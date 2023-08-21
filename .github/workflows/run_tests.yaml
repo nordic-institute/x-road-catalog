@@ -43,7 +43,7 @@ jobs:
         if: success() || failure()
         with:
           name: Test results
-          path: **/build/test-results/**/TEST-*.xml
+          path: ./**/build/test-results/**/TEST-*.xml
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
