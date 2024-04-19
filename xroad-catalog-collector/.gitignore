@@ -3,3 +3,8 @@
 *.class
 target/
 .gradle
+.settings/*
+bin/*
+.project
+.classpath
+.factorypath

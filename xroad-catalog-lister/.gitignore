@@ -1,2 +1,7 @@
 xroad-catalog-lister.iml
 .gradle/
+.settings/*
+bin/*
+.project
+.classpath
+.factorypath

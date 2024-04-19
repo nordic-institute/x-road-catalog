@@ -8,3 +8,6 @@ xroad-catalog-collector/packages/xroad-catalog-collector/redhat/SRPMS/
 xroad-catalog-persistence/classes/
 .gradle/
 out/
+.sdkmanrc
+.settings/*
+.project
