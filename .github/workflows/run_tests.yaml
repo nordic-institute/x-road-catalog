@@ -17,23 +17,30 @@ on:
       - 'xroad-catalog-lister/src/**'
       - 'xroad-catalog-persistence/src/**'
       - '.github/**'
+permissions:
+  contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
+  pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
+  actions: read # Required for https://github.com/dorny/test-reporter
+  checks: write # Required for https://github.com/dorny/test-reporter
 jobs:
   Test:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'true'
       - name: Set up JDK 11 
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
+          dependency-graph: generate-and-submit
+          add-job-summary-as-pr-comment: always
       - name: Run tests
         run: ./gradlew test
       - name: Test report
@@ -47,3 +54,11 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Build collector RPM package builder
+        run: docker build -t collector-rpm xroad-catalog-collector/packages/xroad-catalog-collector/docker
+      - name: Run collector RPM package builder
+        run: docker run -v $PWD:/workspace collector-rpm
+      - name: Build lister RPM package builder
+        run: docker build -t lister-rpm xroad-catalog-lister/packages/xroad-catalog-lister/docker
+      - name: Run lister RPM package builder
+        run: docker run -v $PWD:/workspace lister-rpm
