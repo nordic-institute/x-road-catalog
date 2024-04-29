@@ -23,7 +23,7 @@ permissions:
   actions: read # Required for https://github.com/dorny/test-reporter
   checks: write # Required for https://github.com/dorny/test-reporter
 jobs:
-  Test:
+  BuildAndTest:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew build test
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
