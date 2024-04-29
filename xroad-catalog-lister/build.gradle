@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "${springBootVersion}"
+    alias (libs.plugins.spring.boot) // id "org.springframework.boot" version "${springBootVersion}"
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -71,23 +71,23 @@ jar {
 
 dependencies {
     implementation project(':xroad-catalog-persistence')
-
-    implementation("javax.ws.rs:javax.ws.rs-api:${jakartaVersion}")
-    implementation("org.springdoc:springdoc-openapi-ui:${springDocVersion}")
-    implementation ("org.apache.commons:commons-csv:${commonsCsvVersion}")
-    implementation("org.springframework.boot:spring-boot-starter-web-services:${springBootVersion}")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}")
-    implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
-    implementation("wsdl4j:wsdl4j:${wsdl4jVersion}")
     implementation(files(genJaxb.classesDir).builtBy(genJaxb))
-    implementation("commons-beanutils:commons-beanutils:${commonsBeanUtilsVersion}")
-    implementation("com.google.guava:guava:${guavaVersion}")
-    jaxb("com.sun.xml.bind:jaxb-xjc:${XjcVersion}")
-    implementation("org.projectlombok:lombok:${lombokVersion}")
-    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
-    testImplementation("org.projectlombok:lombok:${lombokVersion}")
-    testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+
+    implementation (libs.jakarta) // implementation("javax.ws.rs:javax.ws.rs-api:${jakartaVersion}")
+    implementation (libs.spring.doc) // implementation("org.springdoc:springdoc-openapi-ui:${springDocVersion}")
+    implementation (libs.commons.csv) // implementation ("org.apache.commons:commons-csv:${commonsCsvVersion}")
+    implementation (libs.spring.boot.ws) // implementation("org.springframework.boot:spring-boot-starter-web-services:${springBootVersion}")
+    implementation (libs.spring.boot.jpa) // implementation("org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}")
+    implementation (libs.jackson) // implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+    implementation (libs.wsdl4j) // implementation("wsdl4j:wsdl4j:${wsdl4jVersion}")
+    implementation (libs.commons.bean.utils) // implementation("commons-beanutils:commons-beanutils:${commonsBeanUtilsVersion}")
+    implementation (libs.guava) // implementation("com.google.guava:guava:${guavaVersion}")
+    jaxb (libs.xjc) // jaxb("com.sun.xml.bind:jaxb-xjc:${XjcVersion}")
+    implementation (libs.lombok) // implementation("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor (libs.lombok) // annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    testImplementation (libs.spring.boot.test) // testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+    testImplementation (libs.lombok) // testImplementation("org.projectlombok:lombok:${lombokVersion}")
+    testAnnotationProcessor (libs.lombok) // testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 }
 
 test {

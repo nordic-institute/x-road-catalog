@@ -1,5 +1,5 @@
 plugins {
-    id "org.springframework.boot" version "${springBootVersion}"
+    alias (libs.plugins.spring.boot) // id "org.springframework.boot" version "${springBootVersion}"
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -69,33 +69,36 @@ task wsImport {
 
 dependencies {
     implementation project(':xroad-catalog-persistence')
-    implementation ("javax.annotation:javax.annotation-api:${javaxAnnotationVersion}")
-    implementation ("javax.xml.bind:jaxb-api:${javaxJaxbVersion}")
-    implementation("com.google.guava:guava:${guavaVersion}")
-    implementation("org.apache.httpcomponents:httpclient:${httpClientVersion}")
-    implementation("org.json:json:${jsonVersion}")
-    implementation("org.springframework.boot:spring-boot-starter-web-services:${springBootVersion}")
-    implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
-    implementation("com.typesafe.akka:akka-actor_3:${akkaVersion}")
-    implementation("com.typesafe.akka:akka-slf4j_3:${akkaVersion}")
-    implementation("org.apache.cxf:cxf-rt-frontend-jaxws:${cxfCoreVersion}")
-    implementation("org.apache.cxf:cxf-rt-transports-http:${cxfVersion}")
-    implementation("org.apache.cxf:cxf-core:${cxfCoreVersion}")
-    implementation("org.projectlombok:lombok:${lombokVersion}")
-    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-    wsimport("com.sun.xml.ws:jaxws-maven-plugin:${jaxbVersion}")
-    implementation("jakarta.xml.ws:jakarta.xml.ws-api:${jaxbVersion}")
-    implementation("com.sun.xml.ws:jaxws-rt:${jaxbVersion}")
-    implementation("com.sun.xml.ws:jaxws-tools:${jaxbVersion}")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
-                exclude group: 'org.mockito', module :'mockito-core'
+    implementation (libs.javax.annotation) // implementation ("javax.annotation:javax.annotation-api:${javaxAnnotationVersion}")
+    implementation (libs.javax.jaxb) // implementation ("javax.xml.bind:jaxb-api:${javaxJaxbVersion}")
+    implementation (libs.guava) // implementation("com.google.guava:guava:${guavaVersion}")
+    implementation (libs.http.client) // implementation("org.apache.httpcomponents:httpclient:${httpClientVersion}")
+    implementation (libs.json) // implementation("org.json:json:${jsonVersion}")
+    implementation (libs.spring.boot.ws) // implementation("org.springframework.boot:spring-boot-starter-web-services:${springBootVersion}")
+    implementation (libs.jackson) // implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+    implementation (libs.bundles.akka) // implementation("com.typesafe.akka:akka-actor_3:${akkaVersion}")
+                                  // implementation("com.typesafe.akka:akka-slf4j_3:${akkaVersion}")
+    implementation (libs.bundles.cxf) // implementation("org.apache.cxf:cxf-rt-frontend-jaxws:${cxfCoreVersion}")
+                                 // implementation("org.apache.cxf:cxf-rt-transports-http:${cxfVersion}")
+                                 // implementation("org.apache.cxf:cxf-core:${cxfCoreVersion}")
+    implementation (libs.lombok) // implementation("org.projectlombok:lombok:${lombokVersion}")
+    annotationProcessor (libs.lombok) // annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    wsimport (libs.jaxb.maven) // wsimport("com.sun.xml.ws:jaxws-maven-plugin:${jaxbVersion}")
+    implementation (libs.bundles.jaxb) // implementation("jakarta.xml.ws:jakarta.xml.ws-api:${jaxbVersion}")
+                                  // implementation("com.sun.xml.ws:jaxws-rt:${jaxbVersion}")
+                                  // implementation("com.sun.xml.ws:jaxws-tools:${jaxbVersion}")
+    testImplementation (libs.spring.boot.test) {
+        exclude group: 'org.mockito', module :'mockito-core'
     }
-    testImplementation("org.mockito:mockito-inline:${mockitoInlineVersion}")
-    testImplementation("com.typesafe.akka:akka-testkit_3:${akkaVersion}")
-    testImplementation("org.projectlombok:lombok:${lombokVersion}")
-    testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-    testImplementation("javax.annotation:javax.annotation-api:${javaxAnnotationVersion}")
-    testImplementation("javax.xml.bind:jaxb-api:${javaxJaxbVersion}")
+    /*testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
+                exclude group: 'org.mockito', module :'mockito-core'
+    }*/
+    testImplementation (libs.mockito.inline) // testImplementation("org.mockito:mockito-inline:${mockitoInlineVersion}")
+    testImplementation (libs.akka.testkit) // testImplementation("com.typesafe.akka:akka-testkit_3:${akkaVersion}")
+    testImplementation (libs.lombok) // testImplementation("org.projectlombok:lombok:${lombokVersion}")
+    testAnnotationProcessor (libs.lombok) // testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    testImplementation (libs.javax.annotation) // testImplementation("javax.annotation:javax.annotation-api:${javaxAnnotationVersion}")
+    testImplementation (libs.javax.jaxb) // testImplementation("javax.xml.bind:jaxb-api:${javaxJaxbVersion}")
 }
 
 compileJava.dependsOn wsImport

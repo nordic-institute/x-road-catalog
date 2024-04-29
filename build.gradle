@@ -1,7 +1,6 @@
 plugins {
-    id "com.github.hierynomus.license" version "${hierynomusLicenseVersion}"
-    id "org.owasp.dependencycheck" version "${owaspVersion}"
-    id "org.sonarqube" version "${sonarQubeVersion}"
+    alias (libs.plugins.hierynomus.license) // id "com.github.hierynomus.license" version "${hierynomusLicenseVersion}"
+    alias (libs.plugins.sonarqube) // id "org.sonarqube" version "${sonarQubeVersion}"
     id 'idea'
     id 'jacoco'
 }
