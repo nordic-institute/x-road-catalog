@@ -16,7 +16,6 @@ jaxb = "4.0.0"
 json = "20220924"
 lombok = "1.18.24"
 mockitoInline = "4.6.1"
-owasp = "3.0.2"
 postgreSql = "42.5.1"
 sonarqube = "5.0.0.4638"
 springBoot = "2.7.5"
@@ -61,6 +60,5 @@ jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in 
 
 [plugins]
 hierynomus-license = { id  = "com.github.hierynomus.license", version.ref = "hierynomusLicense" }
-owasp = { id  = "org.owasp.dependencycheck", version.ref = "owasp" }
 sonarqube = { id  = "org.sonarqube", version.ref = "sonarqube" }
 spring-boot = { id  = "org.springframework.boot", version.ref = "springBoot" }
