@@ -1,5 +1,5 @@
 plugins {
-    alias (libs.plugins.spring.boot) // id "org.springframework.boot" version "${springBootVersion}"
+    alias (libs.plugins.spring.boot)
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -15,16 +15,16 @@ repositories {
 }
 
 dependencies {
-    implementation (libs.spring.boot.jpa) // implementation("org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}")
-    implementation (libs.h2.database) // implementation("com.h2database:h2:${h2DatabaseVersion}")
-    implementation (libs.postgresql) // implementation("org.postgresql:postgresql:${postgreSqlVersion}")
-    implementation (libs.guava) // implementation("com.google.guava:guava:${guavaVersion}")
-    implementation (libs.lombok) // implementation("org.projectlombok:lombok:${lombokVersion}")
-    implementation (libs.lombok) // implementation("org.projectlombok:lombok:${lombokVersion}")
-    annotationProcessor (libs.lombok) // annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-    testImplementation (libs.spring.boot.test) // testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
-    testImplementation (libs.lombok) // testImplementation("org.projectlombok:lombok:${lombokVersion}")
-    testAnnotationProcessor (libs.lombok) // testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    implementation (libs.spring.boot.jpa)
+    implementation (libs.h2.database)
+    implementation (libs.postgresql)
+    implementation (libs.guava)
+    implementation (libs.lombok)
+    implementation (libs.lombok)
+    annotationProcessor (libs.lombok)
+    testImplementation (libs.spring.boot.test)
+    testImplementation (libs.lombok)
+    testAnnotationProcessor (libs.lombok)
 }
 
 

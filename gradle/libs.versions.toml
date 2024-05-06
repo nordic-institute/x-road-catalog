@@ -57,7 +57,6 @@ xjc = { module = "com.sun.xml.bind:jaxb-xjc", version.ref = "xjc" }
 
 [bundles]
 akka = [ "akka-actor", "akka-slf4j" ] # Don't include akka-testkit in this since it is not used in implementation
-cxf = [ "cxf-transport", "cxf-core", "cxf-jaxws" ]
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation
 
 [plugins]
