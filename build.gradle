@@ -11,8 +11,8 @@ repositories {
 
 idea {
     project {
-        jdkName = '11'
-        languageLevel = '11'
+        jdkName = '21'
+        languageLevel = '21'
     }
     module {
         downloadSources = true
@@ -22,11 +22,11 @@ idea {
 }
 
 wrapper {
-    gradleVersion = '7.6'
+    gradleVersion = '8.7'
 }
 
 ext {
-    project_version='3.0.4'
+    project_version='4.0.0'
 }
 
 
