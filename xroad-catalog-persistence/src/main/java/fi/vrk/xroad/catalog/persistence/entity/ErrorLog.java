@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@EqualsAndHashCode(exclude = {"id"})
+@EqualsAndHashCode(exclude = { "id" })
 @Builder
 public class ErrorLog {
     @Id

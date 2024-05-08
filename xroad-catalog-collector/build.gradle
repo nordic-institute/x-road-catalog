@@ -67,6 +67,8 @@ task wsImport {
     }
 }
 
+licenseMain.dependsOn wsImport
+
 dependencies {
     implementation project(':xroad-catalog-persistence')
     implementation (libs.javax.annotation)

@@ -13,15 +13,15 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"postOfficeBoxAddressMunicipality"})
-@EqualsAndHashCode(exclude = {"id","postOfficeBoxAddressMunicipality","statusInfo"})
+@ToString(exclude = { "postOfficeBoxAddressMunicipality" })
+@EqualsAndHashCode(exclude = { "id", "postOfficeBoxAddressMunicipality", "statusInfo" })
 @Builder
 public class PostOfficeBoxAddressMunicipalityName {
     @Id

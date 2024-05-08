@@ -13,15 +13,15 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"organization"})
-@EqualsAndHashCode(exclude = {"id", "organization","statusInfo"})
+@ToString(exclude = { "organization" })
+@EqualsAndHashCode(exclude = { "id", "organization", "statusInfo" })
 @Builder
 public class Email {
 

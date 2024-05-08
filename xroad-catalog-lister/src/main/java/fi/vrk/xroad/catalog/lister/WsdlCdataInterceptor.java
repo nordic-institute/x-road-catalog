@@ -20,7 +20,7 @@ import org.w3c.dom.CDATASection;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import javax.xml.namespace.QName;
-import javax.xml.soap.*;
+import jakarta.xml.soap.*;
 import java.util.Iterator;
 
 public class WsdlCdataInterceptor implements EndpointInterceptor {

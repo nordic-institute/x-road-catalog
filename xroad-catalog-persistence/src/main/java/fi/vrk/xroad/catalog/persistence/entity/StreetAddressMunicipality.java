@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,8 +22,8 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"streetAddress","streetAddressMunicipalityNames"})
-@EqualsAndHashCode(exclude = {"id","streetAddress","streetAddressMunicipalityNames","statusInfo"})
+@ToString(exclude = { "streetAddress", "streetAddressMunicipalityNames" })
+@EqualsAndHashCode(exclude = { "id", "streetAddress", "streetAddressMunicipalityNames", "statusInfo" })
 @Builder
 public class StreetAddressMunicipality {
     @Id

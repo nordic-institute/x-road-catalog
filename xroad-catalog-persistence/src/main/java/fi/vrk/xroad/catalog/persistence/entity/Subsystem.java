@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = {"services"})
-@EqualsAndHashCode(exclude = {"id", "services", "statusInfo"})
+@ToString(exclude = { "services" })
+@EqualsAndHashCode(exclude = { "id", "services", "statusInfo" })
 public class Subsystem {
 
     @Id

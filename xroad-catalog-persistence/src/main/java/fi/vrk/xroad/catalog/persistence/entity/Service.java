@@ -16,7 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +24,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = {"subsystem","wsdls","openApis", "rests", "endpoints"})
+@ToString(exclude = { "subsystem", "wsdls", "openApis", "rests", "endpoints" })
 public class Service {
     @Id
     @Column(nullable = false)
@@ -43,19 +43,24 @@ public class Service {
     // due to OneToOne not working with lazy loading:
     // http://stackoverflow.com/questions/1444227/making-a-onetoone-relation-lazy
     // https://developer.jboss.org/wiki/SomeExplanationsOnLazyLoadingone-to-one
-    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the collection
+    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the
+                              // collection
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Wsdl> wsdls = new HashSet<>();
-    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the collection
+    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the
+                              // collection
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<OpenApi> openApis = new HashSet<>();
-    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the collection
+    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the
+                              // collection
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Rest> rests = new HashSet<>();
 
-    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the collection
+    @Getter(AccessLevel.NONE) // do not create default getter/setter, we provide a wrapper that hides the
+                              // collection
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Endpoint> endpoints = new HashSet<>();
+
     public Service() {
         // Empty constructor
     }
@@ -74,11 +79,18 @@ public class Service {
         wsdls.clear();
         wsdls.add(wsdl);
     }
-    public Wsdl getWsdl() { return wsdls.isEmpty() ? null : wsdls.iterator().next(); }
 
-    public boolean hasWsdl() { return !wsdls.isEmpty(); }
+    public Wsdl getWsdl() {
+        return wsdls.isEmpty() ? null : wsdls.iterator().next();
+    }
 
-    public boolean hasOpenApi() { return !openApis.isEmpty(); }
+    public boolean hasWsdl() {
+        return !wsdls.isEmpty();
+    }
+
+    public boolean hasOpenApi() {
+        return !openApis.isEmpty();
+    }
 
     public void setOpenApi(OpenApi openApi) {
         if (openApis == null) {
@@ -87,9 +99,14 @@ public class Service {
         openApis.clear();
         openApis.add(openApi);
     }
-    public Rest getRest() { return rests.isEmpty() ? null : rests.iterator().next(); }
 
-    public boolean hasRest() { return !rests.isEmpty(); }
+    public Rest getRest() {
+        return rests.isEmpty() ? null : rests.iterator().next();
+    }
+
+    public boolean hasRest() {
+        return !rests.isEmpty();
+    }
 
     public void setRest(Rest rest) {
         if (rests == null) {
@@ -98,7 +115,10 @@ public class Service {
         rests.clear();
         rests.add(rest);
     }
-    public OpenApi getOpenApi() { return openApis.isEmpty() ? null : openApis.iterator().next(); }
+
+    public OpenApi getOpenApi() {
+        return openApis.isEmpty() ? null : openApis.iterator().next();
+    }
 
     public void setEndpoint(Endpoint endpoint) {
         if (endpoints == null) {
@@ -107,11 +127,18 @@ public class Service {
         endpoints.clear();
         endpoints.add(endpoint);
     }
-    public Endpoint getEndpoint() { return endpoints.isEmpty() ? null : endpoints.iterator().next(); }
 
-    public Set<Endpoint> getAllEndpoints() { return endpoints; }
+    public Endpoint getEndpoint() {
+        return endpoints.isEmpty() ? null : endpoints.iterator().next();
+    }
 
-    public boolean hasEndpoint() { return !endpoints.isEmpty(); }
+    public Set<Endpoint> getAllEndpoints() {
+        return endpoints;
+    }
+
+    public boolean hasEndpoint() {
+        return !endpoints.isEmpty();
+    }
 
     public ServiceId createKey() {
         return new ServiceId(serviceCode, serviceVersion);

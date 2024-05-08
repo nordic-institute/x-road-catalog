@@ -20,7 +20,7 @@ import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.server.SoapEndpointInterceptor;
 
 import javax.xml.XMLConstants;
-import javax.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -44,7 +44,6 @@ public class ServiceEndpointInterceptor implements SoapEndpointInterceptor {
         return true;
     }
 
-
     protected SoapHeader getSoapHeader(WebServiceMessage message) {
         if (message instanceof SoapMessage) {
             SoapMessage soapMessage = (SoapMessage) message;
@@ -53,7 +52,6 @@ public class ServiceEndpointInterceptor implements SoapEndpointInterceptor {
             return null;
         }
     }
-
 
     protected void transformHeaders(WebServiceMessage reqMessage, WebServiceMessage respMessage)
             throws TransformerException {
@@ -82,7 +80,6 @@ public class ServiceEndpointInterceptor implements SoapEndpointInterceptor {
     public void afterCompletion(MessageContext messageContext, Object endpoint, Exception ex) throws Exception {
         // No need to do anything
     }
-
 
     @Override
     public boolean understands(SoapHeaderElement header) {

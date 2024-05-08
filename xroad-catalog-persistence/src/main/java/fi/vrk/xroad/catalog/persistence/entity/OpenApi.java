@@ -15,7 +15,7 @@ package fi.vrk.xroad.catalog.persistence.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -32,7 +32,8 @@ public class OpenApi {
     @ManyToOne
     @JoinColumn(name = "SERVICE_ID")
     private Service service;
-    // this is not lazy loaded since hibernate would need build-time bytecode enhancement
+    // this is not lazy loaded since hibernate would need build-time bytecode
+    // enhancement
     // this could be optimized e.g. by not mapping this data to JPA entity, and
     // fetching it directly with a native query
     @Basic(fetch = FetchType.LAZY)

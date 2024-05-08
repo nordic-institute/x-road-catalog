@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"company"})
-@EqualsAndHashCode(exclude = {"id", "company","statusInfo"})
+@ToString(exclude = { "company" })
+@EqualsAndHashCode(exclude = { "id", "company", "statusInfo" })
 @Builder
 public class BusinessAddress {
 

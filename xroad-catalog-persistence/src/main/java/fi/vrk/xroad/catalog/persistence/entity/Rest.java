@@ -16,17 +16,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
+import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -44,8 +44,9 @@ public class Rest {
     @ManyToOne
     @JoinColumn(name = "SERVICE_ID")
     private Service service;
-    
-    // this is not lazy loaded since hibernate would need build-time bytecode enhancement
+
+    // this is not lazy loaded since hibernate would need build-time bytecode
+    // enhancement
     // this could be optimized e.g. by not mapping this data to JPA entity, and
     // fetching it directly with a native query
     @Basic(fetch = FetchType.LAZY)

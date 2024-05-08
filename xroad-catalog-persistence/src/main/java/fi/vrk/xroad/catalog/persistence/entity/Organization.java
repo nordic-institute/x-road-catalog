@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.persistence.entity;
 
 import lombok.*;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,7 +29,7 @@ import java.util.Set;
         "emails",
         "phoneNumbers",
         "webPages",
-        "addresses"})
+        "addresses" })
 @EqualsAndHashCode(exclude = {
         "id",
         "statusInfo",
@@ -38,12 +38,12 @@ import java.util.Set;
         "emails",
         "phoneNumbers",
         "webPages",
-        "addresses"})
-@NamedQueries({@NamedQuery(name = "Organization.findAllByBusinessCode", query = Organization.FIND_ALL_BY_BUSINESS_CODE)})
+        "addresses" })
+@NamedQueries({
+        @NamedQuery(name = "Organization.findAllByBusinessCode", query = Organization.FIND_ALL_BY_BUSINESS_CODE) })
 public class Organization {
 
-    static final String FIND_ALL_BY_BUSINESS_CODE =
-            "SELECT DISTINCT org FROM Organization org WHERE org.businessCode = :businessCode";
+    static final String FIND_ALL_BY_BUSINESS_CODE = "SELECT DISTINCT org FROM Organization org WHERE org.businessCode = :businessCode";
 
     @Id
     @Column(nullable = false)
