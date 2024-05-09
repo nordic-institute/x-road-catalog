@@ -2,7 +2,7 @@
 akka = "2.6.21"
 commonsBeanUtils = "1.9.4"
 commonsCsv = "1.11.0"
-cxf = "3.5.0"
+cxf = "4.0.4"
 cxfCore = "4.0.4"
 guava = "31.1-jre"
 h2Database = "2.2.224"
