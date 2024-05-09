@@ -21,7 +21,7 @@ sonarqube = "5.0.0.4638"
 springBoot = "2.7.5"
 springDoc = "1.8.0"
 wsdl4j = "1.6.3"
-xjc = "2.1.7"
+xjc = "4.0.5"
 
 [libraries]
 akka-actor = { module = "com.typesafe.akka:akka-actor_3", version.ref = "akka" }
