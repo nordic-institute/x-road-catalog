@@ -30,7 +30,8 @@ public class JaxbServiceUtil {
 
     }
 
-    public static fi.vrk.xroad.xroad_catalog_lister.Service convertService(Service service, boolean onlyActiveChildren) {
+    public static fi.vrk.xroad.xroad_catalog_lister.Service convertService(Service service,
+            boolean onlyActiveChildren) {
         fi.vrk.xroad.xroad_catalog_lister.Service cs = new fi.vrk.xroad.xroad_catalog_lister.Service();
         cs.setChanged(toXmlGregorianCalendar(service.getStatusInfo().getChanged()));
         cs.setCreated(toXmlGregorianCalendar(service.getStatusInfo().getCreated()));

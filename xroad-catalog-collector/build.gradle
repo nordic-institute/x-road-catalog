@@ -39,6 +39,10 @@ springBoot {
     mainClass = 'fi.vrk.xroad.catalog.collector.XRoadCatalogCollector'
 }
 
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 task wsImport {
     ext.sourcedestdir = "${buildDir}/generated-sources/wsimport"
     ext.destdir = "${buildDir}/generated-classes/wsimport"
@@ -83,6 +87,7 @@ dependencies {
     implementation (libs.cxf.jaxws)
     implementation (libs.cxf.transport)
     implementation (libs.cxf.core)
+    implementation (libs.cxf.spring.starter)
     implementation (libs.lombok)
     annotationProcessor (libs.lombok)
     wsimport (libs.jaxb.maven)

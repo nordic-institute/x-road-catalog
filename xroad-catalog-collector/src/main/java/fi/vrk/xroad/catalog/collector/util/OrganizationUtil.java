@@ -16,11 +16,15 @@ import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.*;
@@ -39,7 +43,7 @@ import java.util.List;
 
 @Slf4j
 public class OrganizationUtil {
-    
+
     private static final String WITH_BUSINESS_CODE = "with businessCode ";
     private static final String DESCRIPTION = "description";
     private static final String LANGUAGE = "language";
@@ -54,7 +58,8 @@ public class OrganizationUtil {
 
     }
 
-    public static JSONObject getCompany(ClientType clientType, String url, String businessCode, CatalogService catalogService) {
+    public static JSONObject getCompany(ClientType clientType, String url, String businessCode,
+            CatalogService catalogService) {
         final String fetchCompaniesUrl = new StringBuilder().append(url)
                 .append("/").append(businessCode).toString();
         JSONObject jsonObject = new JSONObject();
@@ -64,24 +69,29 @@ public class OrganizationUtil {
             return jsonObject;
         } catch (KeyStoreException e) {
             ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
-                    "KeyStoreException occurred when fetching companies from url " + url + WITH_BUSINESS_CODE + businessCode,
+                    "KeyStoreException occurred when fetching companies from url " + url + WITH_BUSINESS_CODE
+                            + businessCode,
                     "500");
             catalogService.saveErrorLog(errorLog);
-            log.error("KeyStoreException occurred when fetching companies from url {} with businessCode {}", url, businessCode);
+            log.error("KeyStoreException occurred when fetching companies from url {} with businessCode {}", url,
+                    businessCode);
         } catch (NoSuchAlgorithmException e) {
             ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
-                    "NoSuchAlgorithmException occurred when fetching companies from url " + url + WITH_BUSINESS_CODE + businessCode,
+                    "NoSuchAlgorithmException occurred when fetching companies from url " + url + WITH_BUSINESS_CODE
+                            + businessCode,
                     "500");
             catalogService.saveErrorLog(errorLog);
-            log.error("NoSuchAlgorithmException occurred when fetching companies from url {} with businessCode {}", url, businessCode);
+            log.error("NoSuchAlgorithmException occurred when fetching companies from url {} with businessCode {}", url,
+                    businessCode);
         } catch (KeyManagementException e) {
             ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
-                    "KeyManagementException occurred when fetching companies from url " + url + WITH_BUSINESS_CODE + businessCode,
+                    "KeyManagementException occurred when fetching companies from url " + url + WITH_BUSINESS_CODE
+                            + businessCode,
                     "500");
             catalogService.saveErrorLog(errorLog);
-            log.error("KeyManagementException occurred when fetching companies from url {} with businessCode {}", url, businessCode);
-        }
-        catch (Exception e) {
+            log.error("KeyManagementException occurred when fetching companies from url {} with businessCode {}", url,
+                    businessCode);
+        } catch (Exception e) {
             ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
                     "Exception occurred when fetching companies from url " + url + WITH_BUSINESS_CODE + businessCode,
                     "500");
@@ -91,14 +101,16 @@ public class OrganizationUtil {
         return jsonObject;
     }
 
-    public static List<String> getOrganizationIdsList(ClientType clientType, String url, Integer fetchOrganizationsLimit, CatalogService catalogService)
+    public static List<String> getOrganizationIdsList(ClientType clientType, String url,
+            Integer fetchOrganizationsLimit, CatalogService catalogService)
             throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         List<String> idsList = new ArrayList<>();
         try {
             String response = getResponseBody(url);
             JSONObject json = new JSONObject(response);
             JSONArray itemList = json.optJSONArray("itemList");
-            int totalFetchAmount = itemList.length() > fetchOrganizationsLimit ? fetchOrganizationsLimit : itemList.length();
+            int totalFetchAmount = itemList.length() > fetchOrganizationsLimit ? fetchOrganizationsLimit
+                    : itemList.length();
             for (int i = 0; i < totalFetchAmount; i++) {
                 String id = itemList.optJSONObject(i).optString("id");
                 idsList.add(id);
@@ -185,7 +197,8 @@ public class OrganizationUtil {
     }
 
     private static String replaceUnicodeControlCharacters(String input) {
-        return input.replaceAll("[\\x{0000}-\\x{0009}]|[\\x{000b}-\\x{000c}]|[\\x{000e}-\\x{000f}]|[\\x{0010}-\\x{001f}]", "");
+        return input.replaceAll(
+                "[\\x{0000}-\\x{0009}]|[\\x{000b}-\\x{000c}]|[\\x{000e}-\\x{000f}]|[\\x{0010}-\\x{001f}]", "");
     }
 
     public static List<OrganizationName> createNames(JSONArray jsonArray) {
@@ -234,7 +247,8 @@ public class OrganizationUtil {
         return streetAddressMunicipalityNames;
     }
 
-    public static List<StreetAddressAdditionalInformation> createStreetAddressAdditionalInformation(JSONArray jsonArray) {
+    public static List<StreetAddressAdditionalInformation> createStreetAddressAdditionalInformation(
+            JSONArray jsonArray) {
         List<StreetAddressAdditionalInformation> additionalInformationList = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             additionalInformationList.add(StreetAddressAdditionalInformation.builder()
@@ -305,7 +319,8 @@ public class OrganizationUtil {
                 .code(jsonObject.optString("code")).build();
     }
 
-    public static List<PostOfficeBoxAddressMunicipalityName> createPostOfficeBoxAddressMunicipalityNames(JSONArray jsonArray) {
+    public static List<PostOfficeBoxAddressMunicipalityName> createPostOfficeBoxAddressMunicipalityNames(
+            JSONArray jsonArray) {
         List<PostOfficeBoxAddressMunicipalityName> streetAddressMunicipalityNames = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             streetAddressMunicipalityNames.add(PostOfficeBoxAddressMunicipalityName.builder()
@@ -319,12 +334,14 @@ public class OrganizationUtil {
         List<PhoneNumber> phoneNumbers = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             phoneNumbers.add(PhoneNumber.builder()
-                    .additionalInformation(replaceUnicodeControlCharacters(jsonArray.optJSONObject(i).optString("additionalInformation")))
+                    .additionalInformation(replaceUnicodeControlCharacters(
+                            jsonArray.optJSONObject(i).optString("additionalInformation")))
                     .number(jsonArray.optJSONObject(i).optString("number"))
                     .isFinnishServiceNumber(jsonArray.optJSONObject(i).getBoolean("isFinnishServiceNumber"))
                     .prefixNumber(jsonArray.optJSONObject(i).optString("prefixNumber"))
                     .language(jsonArray.optJSONObject(i).optString(LANGUAGE))
-                    .chargeDescription(replaceUnicodeControlCharacters(jsonArray.optJSONObject(i).optString("chargeDescription")))
+                    .chargeDescription(
+                            replaceUnicodeControlCharacters(jsonArray.optJSONObject(i).optString("chargeDescription")))
                     .serviceChargeType(jsonArray.optJSONObject(i).optString("serviceChargeType")).build());
         }
         return phoneNumbers;
@@ -526,7 +543,8 @@ public class OrganizationUtil {
         return null;
     }
 
-    public static JSONArray getDataByIds(ClientType clientType, List<String> guids, String url, CatalogService catalogService) {
+    public static JSONArray getDataByIds(ClientType clientType, List<String> guids, String url,
+            CatalogService catalogService) {
         String requestGuids = "";
         for (int i = 0; i < guids.size(); i++) {
             requestGuids += guids.get(i);
@@ -583,7 +601,8 @@ public class OrganizationUtil {
         return itemList;
     }
 
-    public static String getResponseBody(String url) throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    public static String getResponseBody(String url)
+            throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);
@@ -595,16 +614,21 @@ public class OrganizationUtil {
         return response.getBody();
     }
 
-    private static RestTemplate createTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    private static RestTemplate createTemplate()
+            throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         TrustStrategy acceptingTrustStrategy = new TrustStrategy() {
             @Override
             public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
                 return true;
             }
         };
-        SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+        SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+                .build();
         SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
-        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+        PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(csf)
+                .build();
+        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setHttpClient(httpClient);
         RestTemplate restTemplate = new RestTemplate(requestFactory);
