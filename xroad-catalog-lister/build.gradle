@@ -1,5 +1,6 @@
 plugins {
     alias (libs.plugins.spring.boot)
+    alias (libs.plugins.wsdl2java)
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -14,48 +15,10 @@ repositories {
     mavenCentral()
 }
 
-task genJaxb {
-    ext.sourcesDir = "${buildDir}/generated-sources/jaxb"
-    ext.classesDir = "${buildDir}/classes/jaxb"
-    ext.schema = "src/main/resources/services.wsdl"
-
-    outputs.dir classesDir
-
-    doLast() {
-        project.ant {
-            taskdef name: "xjc", classname: "com.sun.tools.xjc.XJCTask",
-                    classpath: configurations.jaxb.asPath
-            mkdir(dir: sourcesDir)
-            mkdir(dir: classesDir)
-
-            xjc(destdir: sourcesDir, schema: schema) {
-                arg(value: "-wsdl")
-                produces(dir: sourcesDir, includes: "**/*.java")
-            }
-
-            javac(destdir: classesDir, includeantruntime:false, source: 21, target: 21, debug: true,
-                    debugLevel: "lines,vars,source",
-                    classpath: configurations.jaxb.asPath) {
-                src(path: sourcesDir)
-                include(name: "**/*.java")
-                include(name: "*.java")
-            }
-
-            copy(todir: classesDir) {
-                fileset(dir: sourcesDir, erroronmissingdir: false) {
-                    exclude(name: "**/*.java")
-                }
-            }
-        }
-    }
-}
-
-task afterEclipseImport {
-	dependsOn "genJaxb"
-}
-
-configurations {
-    jaxb
+wsdl2java {
+    cxfVersion.set(libs.versions.cxf) // Grab the version from our versions catalog
+    markGenerated = true
+    packageName = 'fi.vrk.xroad.xroad_catalog_lister'
 }
 
 bootJar {
@@ -71,8 +34,6 @@ jar {
 
 dependencies {
     implementation project(':xroad-catalog-persistence')
-    implementation(files(genJaxb.classesDir).builtBy(genJaxb))
-
     implementation (libs.jakarta)
     implementation (libs.spring.doc)
     implementation (libs.commons.csv)
@@ -82,7 +43,6 @@ dependencies {
     implementation (libs.wsdl4j)
     implementation (libs.commons.bean.utils)
     implementation (libs.guava)
-    jaxb (libs.xjc)
     implementation (libs.lombok)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)

@@ -20,7 +20,7 @@ sonarqube = "5.0.0.4638"
 springBoot = "3.2.5"
 springDoc = "1.8.0"
 wsdl4j = "1.6.3"
-xjc = "4.0.5"
+wsdl2java = "2.0.2"
 
 [libraries]
 akka-actor = { module = "com.typesafe.akka:akka-actor_3", version.ref = "akka" }
@@ -52,7 +52,6 @@ spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test
 spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "springBoot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springDoc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
-xjc = { module = "com.sun.xml.bind:jaxb-xjc", version.ref = "xjc" }
 
 [bundles]
 akka = [ "akka-actor", "akka-slf4j" ] # Don't include akka-testkit in this since it is not used in implementation
@@ -62,3 +61,4 @@ jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in 
 hierynomus-license = { id  = "com.github.hierynomus.license", version.ref = "hierynomusLicense" }
 sonarqube = { id  = "org.sonarqube", version.ref = "sonarqube" }
 spring-boot = { id  = "org.springframework.boot", version.ref = "springBoot" }
+wsdl2java = { id = "com.github.bjornvester.wsdl2java", version.ref = "wsdl2java" }
