@@ -28,7 +28,7 @@ import fi.vrk.xroad.catalog.persistence.entity.Language;
 import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -69,7 +69,7 @@ public class JaxbCompanyServiceTest {
 
     @Test
     public void testGetCompanies() {
-        Iterable<fi.vrk.xroad.xroad_catalog_lister.Company> companies = service.getCompanies("1710128-9");
+        Iterable<fi.vrk.xroad.catalog.lister.generated.Company> companies = service.getCompanies("1710128-9");
         assertEquals(1, companies.iterator().next().getBusinessAddresses().getBusinessAddress().size());
         assertEquals(1, companies.iterator().next().getBusinessAuxiliaryNames().getBusinessAuxiliaryName().size());
         assertEquals(1, companies.iterator().next().getBusinessIdChanges().getBusinessIdChange().size());
@@ -84,22 +84,29 @@ public class JaxbCompanyServiceTest {
         assertEquals("1710128-9", companies.iterator().next().getBusinessId());
         assertEquals("Oyj", companies.iterator().next().getCompanyForm());
         assertEquals("Gofore Oyj", companies.iterator().next().getName());
-        assertEquals("Katu 1", companies.iterator().next().getBusinessAddresses().getBusinessAddress().get(0).getStreet());
-        assertEquals("Auxiliary name", companies.iterator().next().getBusinessAuxiliaryNames().getBusinessAuxiliaryName().get(0).getName());
-        assertEquals("12345", companies.iterator().next().getBusinessIdChanges().getBusinessIdChange().get(0).getOldBusinessId());
-        assertEquals("Business line", companies.iterator().next().getBusinessLines().getBusinessLine().get(0).getName());
+        assertEquals("Katu 1",
+                companies.iterator().next().getBusinessAddresses().getBusinessAddress().get(0).getStreet());
+        assertEquals("Auxiliary name",
+                companies.iterator().next().getBusinessAuxiliaryNames().getBusinessAuxiliaryName().get(0).getName());
+        assertEquals("12345",
+                companies.iterator().next().getBusinessIdChanges().getBusinessIdChange().get(0).getOldBusinessId());
+        assertEquals("Business line",
+                companies.iterator().next().getBusinessLines().getBusinessLine().get(0).getName());
         assertEquals("EN", companies.iterator().next().getBusinessNames().getBusinessName().get(0).getLanguage());
         assertEquals("FORM", companies.iterator().next().getCompanyForms().getCompanyForm().get(0).getName());
         assertEquals("EN", companies.iterator().next().getContactDetails().getContactDetail().get(0).getLanguage());
         assertEquals("Osakeyhtiö", companies.iterator().next().getLanguages().getLanguage().get(0).getName());
         assertEquals("EN", companies.iterator().next().getLiquidations().getLiquidation().get(0).getLanguage());
-        assertEquals("Description", companies.iterator().next().getRegisteredEntries().getRegisteredEntry().get(0).getDescription());
-        assertEquals("EN", companies.iterator().next().getRegisteredOffices().getRegisteredOffice().get(0).getLanguage());
+        assertEquals("Description",
+                companies.iterator().next().getRegisteredEntries().getRegisteredEntry().get(0).getDescription());
+        assertEquals("EN",
+                companies.iterator().next().getRegisteredOffices().getRegisteredOffice().get(0).getLanguage());
     }
 
     @Test
     public void testGetChangedCompanyValuesAfter2014() {
-        XMLGregorianCalendar changedAfter20141231 = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2014, 12, 31, 0, 0));
+        XMLGregorianCalendar changedAfter20141231 = JaxbServiceUtil
+                .toXmlGregorianCalendar(LocalDateTime.of(2014, 12, 31, 0, 0));
         XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2022, 12, 31, 0, 0));
         Iterable<ChangedValue> changedValues = service.getChangedCompanyValues("1710128-9",
                 changedAfter20141231, endDateTime);
@@ -108,7 +115,8 @@ public class JaxbCompanyServiceTest {
 
     @Test
     public void testGetChangedCompanyValuesAfter2015() {
-        XMLGregorianCalendar changedAfter20151231 = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2015, 12, 31, 0, 0));
+        XMLGregorianCalendar changedAfter20151231 = JaxbServiceUtil
+                .toXmlGregorianCalendar(LocalDateTime.of(2015, 12, 31, 0, 0));
         XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2022, 12, 31, 0, 0));
         Iterable<ChangedValue> changedValues = service.getChangedCompanyValues("1710128-9",
                 changedAfter20151231, endDateTime);
@@ -118,7 +126,8 @@ public class JaxbCompanyServiceTest {
 
     @Test
     public void testGetChangedCompanyValuesAfter2016() {
-        XMLGregorianCalendar changedAfter20160101 = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2016, 1, 1, 0, 0));
+        XMLGregorianCalendar changedAfter20160101 = JaxbServiceUtil
+                .toXmlGregorianCalendar(LocalDateTime.of(2016, 1, 1, 0, 0));
         XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2022, 12, 31, 0, 0));
         Iterable<ChangedValue> changedValues = service.getChangedCompanyValues("1710128-9",
                 changedAfter20160101, endDateTime);
@@ -158,7 +167,7 @@ public class JaxbCompanyServiceTest {
         Set<BusinessAddress> businessAddresses = new HashSet<>();
         BusinessAddress businessAddress = BusinessAddress.builder().careOf("").city("Tampere").country("Finland")
                 .language("FI").postCode("30123").source(0).street("Katu 1").type(0).version(0)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         businessAddresses.add(businessAddress);
@@ -169,7 +178,7 @@ public class JaxbCompanyServiceTest {
         Set<BusinessAuxiliaryName> businessAuxiliaryNames = new HashSet<>();
         BusinessAuxiliaryName businessAuxiliaryName = BusinessAuxiliaryName.builder()
                 .name("Auxiliary name").language("EN").ordering(0).source(0).version(0)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         businessAuxiliaryNames.add(businessAuxiliaryName);
@@ -191,7 +200,7 @@ public class JaxbCompanyServiceTest {
         Set<BusinessLine> businessLines = new HashSet<>();
         BusinessLine businessLine = BusinessLine.builder()
                 .name("Business line").language("EN").ordering(0).source(0).version(0)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         businessLines.add(businessLine);
@@ -202,7 +211,7 @@ public class JaxbCompanyServiceTest {
         Set<BusinessName> businessNames = new HashSet<>();
         BusinessName businessName = BusinessName.builder()
                 .name("Business name").language("EN").ordering(0).source(0).version(0)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         businessNames.add(businessName);
@@ -213,7 +222,7 @@ public class JaxbCompanyServiceTest {
         Set<CompanyForm> companyForms = new HashSet<>();
         CompanyForm companyForm = CompanyForm.builder()
                 .name("FORM").language("EN").source(0).version(0).type(1)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2016, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         companyForms.add(companyForm);
@@ -224,7 +233,7 @@ public class JaxbCompanyServiceTest {
         Set<ContactDetail> contactDetails = new HashSet<>();
         ContactDetail contactDetail = ContactDetail.builder()
                 .value("VALUE").language("EN").source(0).version(0).type("1")
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         contactDetails.add(contactDetail);
@@ -235,7 +244,7 @@ public class JaxbCompanyServiceTest {
         Set<Language> languages = new HashSet<>();
         Language language = Language.builder()
                 .name("Osakeyhtiö").language("FI").source(0).version(0)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         languages.add(language);
@@ -246,7 +255,7 @@ public class JaxbCompanyServiceTest {
         Set<Liquidation> liquidations = new HashSet<>();
         Liquidation liquidation = Liquidation.builder()
                 .name("Liquidation").language("EN").source(0).version(0).type(1)
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         liquidations.add(liquidation);
@@ -257,7 +266,7 @@ public class JaxbCompanyServiceTest {
         Set<RegisteredEntry> registeredEntries = new HashSet<>();
         RegisteredEntry registeredEntry = RegisteredEntry.builder()
                 .status(1).authority(2).register(3).description("Description")
-                .language("EN").registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .language("EN").registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         registeredEntries.add(registeredEntry);
@@ -268,7 +277,7 @@ public class JaxbCompanyServiceTest {
         Set<RegisteredOffice> registeredOffices = new HashSet<>();
         RegisteredOffice registeredOffice = RegisteredOffice.builder().source(0).ordering(0)
                 .name("Registered Office").version(0).language("EN")
-                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0 ,0))
+                .registrationDate(LocalDateTime.of(2020, 4, 30, 0, 0, 0))
                 .statusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null))
                 .endDate(null).company(c).build();
         registeredOffices.add(registeredOffice);

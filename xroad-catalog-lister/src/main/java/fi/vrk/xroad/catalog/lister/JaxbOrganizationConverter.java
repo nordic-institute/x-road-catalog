@@ -14,14 +14,14 @@ package fi.vrk.xroad.catalog.lister;
 
 import fi.vrk.xroad.catalog.lister.util.JaxbOrganizationUtil;
 import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
-import fi.vrk.xroad.xroad_catalog_lister.AddressList;
-import fi.vrk.xroad.xroad_catalog_lister.Company;
-import fi.vrk.xroad.xroad_catalog_lister.EmailList;
-import fi.vrk.xroad.xroad_catalog_lister.Organization;
-import fi.vrk.xroad.xroad_catalog_lister.OrganizationDescriptionList;
-import fi.vrk.xroad.xroad_catalog_lister.OrganizationNameList;
-import fi.vrk.xroad.xroad_catalog_lister.PhoneNumberList;
-import fi.vrk.xroad.xroad_catalog_lister.WebPageList;
+import fi.vrk.xroad.catalog.lister.generated.AddressList;
+import fi.vrk.xroad.catalog.lister.generated.Company;
+import fi.vrk.xroad.catalog.lister.generated.EmailList;
+import fi.vrk.xroad.catalog.lister.generated.Organization;
+import fi.vrk.xroad.catalog.lister.generated.OrganizationDescriptionList;
+import fi.vrk.xroad.catalog.lister.generated.OrganizationNameList;
+import fi.vrk.xroad.catalog.lister.generated.PhoneNumberList;
+import fi.vrk.xroad.catalog.lister.generated.WebPageList;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,12 +30,11 @@ import java.util.List;
 @Component
 public class JaxbOrganizationConverter implements JaxbOrganizationConversion {
 
-
     @Override
     public Collection<Organization> convertOrganizations(
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.Organization> organizations)  {
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.Organization> organizations) {
         List<Organization> converted = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.persistence.entity.Organization organization: organizations) {
+        for (fi.vrk.xroad.catalog.persistence.entity.Organization organization : organizations) {
             Organization co = new Organization();
             co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(organization.getStatusInfo().getChanged()));
             co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(organization.getStatusInfo().getCreated()));
@@ -47,16 +46,19 @@ public class JaxbOrganizationConverter implements JaxbOrganizationConversion {
             co.setPublishingStatus(organization.getPublishingStatus());
 
             co.setOrganizationNames(new OrganizationNameList());
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.OrganizationName> organizationNames = organization.getAllOrganizationNames();
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.OrganizationName> organizationNames = organization
+                    .getAllOrganizationNames();
             if (organizationNames != null) {
-                co.getOrganizationNames().getOrganizationName().addAll(JaxbOrganizationUtil.convertOrganizationNames(organizationNames));
+                co.getOrganizationNames().getOrganizationName()
+                        .addAll(JaxbOrganizationUtil.convertOrganizationNames(organizationNames));
             }
 
             co.setOrganizationDescriptions(new OrganizationDescriptionList());
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription> organizationDescriptions
-                    = organization.getAllOrganizationDescriptions();
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription> organizationDescriptions = organization
+                    .getAllOrganizationDescriptions();
             if (organizationDescriptions != null) {
-                co.getOrganizationDescriptions().getOrganizationDescription().addAll(JaxbOrganizationUtil.convertOrganizationDescriptions(organizationDescriptions));
+                co.getOrganizationDescriptions().getOrganizationDescription()
+                        .addAll(JaxbOrganizationUtil.convertOrganizationDescriptions(organizationDescriptions));
             }
 
             co.setEmails(new EmailList());
@@ -66,7 +68,8 @@ public class JaxbOrganizationConverter implements JaxbOrganizationConversion {
             }
 
             co.setPhoneNumbers(new PhoneNumberList());
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.PhoneNumber> phoneNumbers = organization.getAllPhoneNumbers();
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.PhoneNumber> phoneNumbers = organization
+                    .getAllPhoneNumbers();
             if (phoneNumbers != null) {
                 co.getPhoneNumbers().getPhoneNumber().addAll(JaxbOrganizationUtil.convertPhoneNumbers(phoneNumbers));
             }
@@ -90,9 +93,9 @@ public class JaxbOrganizationConverter implements JaxbOrganizationConversion {
 
     @Override
     public Collection<Company> convertCompanies(
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.Company> companies)  {
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.Company> companies) {
         List<Company> converted = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.persistence.entity.Company company: companies) {
+        for (fi.vrk.xroad.catalog.persistence.entity.Company company : companies) {
             converted.add(JaxbOrganizationUtil.convertCompany(company));
         }
         return converted;

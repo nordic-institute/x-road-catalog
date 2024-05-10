@@ -12,8 +12,8 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.xroad_catalog_lister.Company;
-import fi.vrk.xroad.xroad_catalog_lister.Organization;
+import fi.vrk.xroad.catalog.lister.generated.Company;
+import fi.vrk.xroad.catalog.lister.generated.Organization;
 import org.springframework.context.annotation.Profile;
 
 import java.util.Collection;
@@ -23,13 +23,16 @@ public interface JaxbOrganizationConversion {
 
     /**
      * Convert entities to XML objects
+     * 
      * @param organizations Iterable of Organization entities
      * @return Collection of Organizations (JAXB generated)
      */
-    Collection<Organization> convertOrganizations(Iterable<fi.vrk.xroad.catalog.persistence.entity.Organization> organizations);
+    Collection<Organization> convertOrganizations(
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.Organization> organizations);
 
     /**
      * Convert entities to XML objects
+     * 
      * @param companies Iterable of Company entities
      * @return Collection of Companies (JAXB generated)
      */

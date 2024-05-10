@@ -35,7 +35,7 @@ import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
 import fi.vrk.xroad.catalog.persistence.entity.WebPage;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -68,8 +68,9 @@ public class JaxbOrganizationServiceTest {
             public Iterable<Organization> getOrganizations(String businessCode) {
                 return mockGetOrganizations(businessCode);
             }
+
             @Override
-            public Optional<Organization> getOrganization(String guid){
+            public Optional<Organization> getOrganization(String guid) {
                 return mockGetOrganization(guid);
             }
         };
@@ -81,7 +82,8 @@ public class JaxbOrganizationServiceTest {
 
     @Test
     public void testGetOrganizations() {
-        Iterable<fi.vrk.xroad.xroad_catalog_lister.Organization> organizations = service.getOrganizations("123456-9");
+        Iterable<fi.vrk.xroad.catalog.lister.generated.Organization> organizations = service
+                .getOrganizations("123456-9");
         assertEquals(1, Iterables.size(organizations));
         assertEquals(1, organizations.iterator().next().getOrganizationNames().getOrganizationName().size());
         assertEquals(1, organizations.iterator().next().getOrganizationDescriptions()
@@ -98,12 +100,15 @@ public class JaxbOrganizationServiceTest {
         assertEquals("a123456789", organizations.iterator().next().getGuid());
         assertEquals("Published", organizations.iterator().next().getPublishingStatus());
         assertEquals("Municipality", organizations.iterator().next().getOrganizationType());
-        assertEquals("Vaasan kaupunki", organizations.iterator().next().getOrganizationNames().getOrganizationName().get(0).getValue());
+        assertEquals("Vaasan kaupunki",
+                organizations.iterator().next().getOrganizationNames().getOrganizationName().get(0).getValue());
         assertEquals("Vaasa on yli 67 000 asukkaan voimakkaasti kasvava kaupunki",
-                organizations.iterator().next().getOrganizationDescriptions().getOrganizationDescription().get(0).getValue());
+                organizations.iterator().next().getOrganizationDescriptions().getOrganizationDescription().get(0)
+                        .getValue());
         assertEquals("vaasa@vaasa.fi", organizations.iterator().next().getEmails().getEmail().get(0).getValue());
         assertEquals("62249111", organizations.iterator().next().getPhoneNumbers().getPhoneNumber().get(0).getNumber());
-        assertEquals("https://www.vaasa.fi", organizations.iterator().next().getWebPages().getWebPage().get(0).getUrl());
+        assertEquals("https://www.vaasa.fi",
+                organizations.iterator().next().getWebPages().getWebPage().get(0).getUrl());
         assertEquals("Street", organizations.iterator().next().getAddresses().getAddress().get(0).getSubType());
         assertEquals("64200", organizations.iterator().next().getAddresses().getAddress().get(0)
                 .getStreetAddresses().getStreetAddress().get(0).getPostalCode());
@@ -113,7 +118,8 @@ public class JaxbOrganizationServiceTest {
 
     @Test
     public void testGetChangedOrganizationValuesAfter2014() {
-        XMLGregorianCalendar changedAfter20141231 = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2014, 12, 31, 0, 0));
+        XMLGregorianCalendar changedAfter20141231 = JaxbServiceUtil
+                .toXmlGregorianCalendar(LocalDateTime.of(2014, 12, 31, 0, 0));
         XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2022, 12, 31, 0, 0));
         Iterable<ChangedValue> changedValues = service.getChangedOrganizationValues("abc123456789",
                 changedAfter20141231, endDateTime);
@@ -122,7 +128,8 @@ public class JaxbOrganizationServiceTest {
 
     @Test
     public void testGetChangedOrganizationValuesAfter2015() {
-        XMLGregorianCalendar changedAfter20151231 = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2015, 12, 31, 0, 0));
+        XMLGregorianCalendar changedAfter20151231 = JaxbServiceUtil
+                .toXmlGregorianCalendar(LocalDateTime.of(2015, 12, 31, 0, 0));
         XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2022, 12, 31, 0, 0));
         Iterable<ChangedValue> changedValues = service.getChangedOrganizationValues("abc123456789",
                 changedAfter20151231, endDateTime);
@@ -132,7 +139,8 @@ public class JaxbOrganizationServiceTest {
 
     @Test
     public void testGetChangedOrganizationValuesAfter2016() {
-        XMLGregorianCalendar changedAfter20160101 = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2016, 1, 1, 0, 0));
+        XMLGregorianCalendar changedAfter20160101 = JaxbServiceUtil
+                .toXmlGregorianCalendar(LocalDateTime.of(2016, 1, 1, 0, 0));
         XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2022, 12, 31, 0, 0));
         Iterable<ChangedValue> changedValues = service.getChangedOrganizationValues("abc123456789",
                 changedAfter20160101, endDateTime);
@@ -207,7 +215,8 @@ public class JaxbOrganizationServiceTest {
         organizationDescription.setLanguage("FI");
         organizationDescription.setType("Description");
         organizationDescription.setValue("Vaasa on yli 67 000 asukkaan voimakkaasti kasvava kaupunki");
-        organizationDescription.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        organizationDescription
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
         organizationDescriptions.add(organizationDescription);
         return organizationDescriptions;
     }
@@ -313,7 +322,8 @@ public class JaxbOrganizationServiceTest {
         streetAddressPostOffice.setId(1L);
         streetAddressPostOffice.setLanguage("FI");
         streetAddressPostOffice.setValue("NIVALA");
-        streetAddressPostOffice.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        streetAddressPostOffice
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
         streetAddressPostOffices.add(streetAddressPostOffice);
         return streetAddressPostOffices;
     }
@@ -325,7 +335,8 @@ public class JaxbOrganizationServiceTest {
         streetAddressAdditionalInformation.setId(1L);
         streetAddressAdditionalInformation.setLanguage("FI");
         streetAddressAdditionalInformation.setValue("Kaupungintalo/kaupunginjohtaja");
-        streetAddressAdditionalInformation.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        streetAddressAdditionalInformation
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
         streetAddressAdditionalInformationList.add(streetAddressAdditionalInformation);
         return streetAddressAdditionalInformationList;
     }
@@ -336,9 +347,11 @@ public class JaxbOrganizationServiceTest {
         streetAddressMunicipality.setStreetAddress(s);
         streetAddressMunicipality.setId(1L);
         streetAddressMunicipality.setCode("545");
-        streetAddressMunicipality.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        streetAddressMunicipality
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
 
-        streetAddressMunicipality.setStreetAddressMunicipalityNames(createStreetAddressMunicipalityNames(streetAddressMunicipality));
+        streetAddressMunicipality
+                .setStreetAddressMunicipalityNames(createStreetAddressMunicipalityNames(streetAddressMunicipality));
 
         streetAddressMunicipalities.add(streetAddressMunicipality);
         return streetAddressMunicipalities;
@@ -351,7 +364,8 @@ public class JaxbOrganizationServiceTest {
         streetAddressMunicipalityName.setId(1L);
         streetAddressMunicipalityName.setLanguage("FI");
         streetAddressMunicipalityName.setValue("Nivala");
-        streetAddressMunicipalityName.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        streetAddressMunicipalityName
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
         streetAddressMunicipalityNames.add(streetAddressMunicipalityName);
         return streetAddressMunicipalityNames;
     }
@@ -362,12 +376,14 @@ public class JaxbOrganizationServiceTest {
         postOfficeBoxAddress.setId(1L);
         postOfficeBoxAddress.setAddress(a);
         postOfficeBoxAddress.setPostalCode("64200");
-        postOfficeBoxAddress.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        postOfficeBoxAddress
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
 
         postOfficeBoxAddress.setPostOffices(createPostOffices(postOfficeBoxAddress));
         postOfficeBoxAddress.setPostOfficesBoxes(createPostOfficeBoxes(postOfficeBoxAddress));
         postOfficeBoxAddress.setAdditionalInformation(createAdditionalInformation(postOfficeBoxAddress));
-        postOfficeBoxAddress.setPostOfficeBoxAddressMunicipalities(createPostOfficeBoxAddressMunicipalities(postOfficeBoxAddress));
+        postOfficeBoxAddress
+                .setPostOfficeBoxAddressMunicipalities(createPostOfficeBoxAddressMunicipalities(postOfficeBoxAddress));
 
         postOfficeBoxAddresses.add(postOfficeBoxAddress);
         return postOfficeBoxAddresses;
@@ -404,7 +420,8 @@ public class JaxbOrganizationServiceTest {
         addressAdditionalInformation.setPostOfficeBoxAddress(p);
         addressAdditionalInformation.setLanguage("FI");
         addressAdditionalInformation.setValue("Something");
-        addressAdditionalInformation.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        addressAdditionalInformation
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
         addressAdditionalInformationList.add(addressAdditionalInformation);
         return addressAdditionalInformationList;
     }
@@ -415,7 +432,8 @@ public class JaxbOrganizationServiceTest {
         postOfficeBoxAddressMunicipality.setPostOfficeBoxAddress(p);
         postOfficeBoxAddressMunicipality.setId(1L);
         postOfficeBoxAddressMunicipality.setCode("545");
-        postOfficeBoxAddressMunicipality.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        postOfficeBoxAddressMunicipality
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
 
         postOfficeBoxAddressMunicipality.setPostOfficeBoxAddressMunicipalityNames(
                 createPostOfficeBoxAddressMunicipalityNames(postOfficeBoxAddressMunicipality));
@@ -424,14 +442,16 @@ public class JaxbOrganizationServiceTest {
         return postOfficeBoxAddressMunicipalities;
     }
 
-    private Set<PostOfficeBoxAddressMunicipalityName> createPostOfficeBoxAddressMunicipalityNames(PostOfficeBoxAddressMunicipality p) {
+    private Set<PostOfficeBoxAddressMunicipalityName> createPostOfficeBoxAddressMunicipalityNames(
+            PostOfficeBoxAddressMunicipality p) {
         Set<PostOfficeBoxAddressMunicipalityName> postOfficeBoxAddressMunicipalityNames = new HashSet<>();
         PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName = new PostOfficeBoxAddressMunicipalityName();
         postOfficeBoxAddressMunicipalityName.setPostOfficeBoxAddressMunicipality(p);
         postOfficeBoxAddressMunicipalityName.setId(1L);
         postOfficeBoxAddressMunicipalityName.setLanguage("FI");
         postOfficeBoxAddressMunicipalityName.setValue("Nivala");
-        postOfficeBoxAddressMunicipalityName.setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
+        postOfficeBoxAddressMunicipalityName
+                .setStatusInfo(TestUtil.createStatusInfo(DATETIME_2015, DATETIME_2015, DATETIME_2015, null));
         postOfficeBoxAddressMunicipalityNames.add(postOfficeBoxAddressMunicipalityName);
         return postOfficeBoxAddressMunicipalityNames;
     }

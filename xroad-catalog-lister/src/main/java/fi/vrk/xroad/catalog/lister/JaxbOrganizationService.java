@@ -12,8 +12,8 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
-import fi.vrk.xroad.xroad_catalog_lister.Organization;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Organization;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 public interface JaxbOrganizationService {
@@ -31,12 +31,12 @@ public interface JaxbOrganizationService {
     /**
      * Returns whether some values of Organization have changed
      *
-     * @param  guid guid of a company
+     * @param guid          guid of a company
      * @param startDateTime creation datetime from
-     * @param endDateTime creation datetime to
+     * @param endDateTime   creation datetime to
      * @return Iterable of JAXB generated ChangedValues
      */
     Iterable<ChangedValue> getChangedOrganizationValues(String guid,
-                                                        XMLGregorianCalendar startDateTime,
-                                                        XMLGregorianCalendar endDateTime);
+            XMLGregorianCalendar startDateTime,
+            XMLGregorianCalendar endDateTime);
 }

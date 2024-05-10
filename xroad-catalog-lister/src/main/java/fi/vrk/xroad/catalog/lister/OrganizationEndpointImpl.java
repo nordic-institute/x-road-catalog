@@ -13,20 +13,20 @@
 package fi.vrk.xroad.catalog.lister;
 
 import com.google.common.collect.Lists;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValueList;
-import fi.vrk.xroad.xroad_catalog_lister.Company;
-import fi.vrk.xroad.xroad_catalog_lister.CompanyList;
-import fi.vrk.xroad.xroad_catalog_lister.GetCompanies;
-import fi.vrk.xroad.xroad_catalog_lister.GetCompaniesResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetOrganizations;
-import fi.vrk.xroad.xroad_catalog_lister.GetOrganizationsResponse;
-import fi.vrk.xroad.xroad_catalog_lister.HasCompanyChanged;
-import fi.vrk.xroad.xroad_catalog_lister.HasCompanyChangedResponse;
-import fi.vrk.xroad.xroad_catalog_lister.HasOrganizationChanged;
-import fi.vrk.xroad.xroad_catalog_lister.HasOrganizationChangedResponse;
-import fi.vrk.xroad.xroad_catalog_lister.Organization;
-import fi.vrk.xroad.xroad_catalog_lister.OrganizationList;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValueList;
+import fi.vrk.xroad.catalog.lister.generated.Company;
+import fi.vrk.xroad.catalog.lister.generated.CompanyList;
+import fi.vrk.xroad.catalog.lister.generated.GetCompanies;
+import fi.vrk.xroad.catalog.lister.generated.GetCompaniesResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOrganizations;
+import fi.vrk.xroad.catalog.lister.generated.GetOrganizationsResponse;
+import fi.vrk.xroad.catalog.lister.generated.HasCompanyChanged;
+import fi.vrk.xroad.catalog.lister.generated.HasCompanyChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
+import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.Organization;
+import fi.vrk.xroad.catalog.lister.generated.OrganizationList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -34,7 +34,6 @@ import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
-
 
 @Endpoint
 @Slf4j
@@ -47,7 +46,6 @@ public class OrganizationEndpointImpl implements OrganizationEndpoint {
     @Autowired
     private JaxbOrganizationService jaxbOrganizationService;
 
-
     @Override
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetOrganizations")
     @ResponsePayload
@@ -56,7 +54,8 @@ public class OrganizationEndpointImpl implements OrganizationEndpoint {
         response.setOrganizationList(new OrganizationList());
         Iterable<Organization> organizations = jaxbOrganizationService.getOrganizations(request.getBusinessCode());
         if (!organizations.iterator().hasNext()) {
-            throw new CatalogListerRuntimeException("Organizations with businessCode " + request.getBusinessCode() + NOT_FOUND);
+            throw new CatalogListerRuntimeException(
+                    "Organizations with businessCode " + request.getBusinessCode() + NOT_FOUND);
         }
         response.getOrganizationList().getOrganization().addAll(Lists.newArrayList(organizations));
         return response;

@@ -16,7 +16,7 @@ import fi.vrk.xroad.catalog.lister.CatalogListerRuntimeException;
 import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
 import fi.vrk.xroad.catalog.persistence.entity.Service;
 import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import fi.vrk.xroad.xroad_catalog_lister.*;
+import fi.vrk.xroad.catalog.lister.generated.*;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -30,9 +30,9 @@ public class JaxbServiceUtil {
 
     }
 
-    public static fi.vrk.xroad.xroad_catalog_lister.Service convertService(Service service,
+    public static fi.vrk.xroad.catalog.lister.generated.Service convertService(Service service,
             boolean onlyActiveChildren) {
-        fi.vrk.xroad.xroad_catalog_lister.Service cs = new fi.vrk.xroad.xroad_catalog_lister.Service();
+        fi.vrk.xroad.catalog.lister.generated.Service cs = new fi.vrk.xroad.catalog.lister.generated.Service();
         cs.setChanged(toXmlGregorianCalendar(service.getStatusInfo().getChanged()));
         cs.setCreated(toXmlGregorianCalendar(service.getStatusInfo().getCreated()));
         cs.setFetched(toXmlGregorianCalendar(service.getStatusInfo().getFetched()));

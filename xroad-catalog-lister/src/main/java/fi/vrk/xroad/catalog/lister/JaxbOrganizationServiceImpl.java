@@ -14,8 +14,8 @@ package fi.vrk.xroad.catalog.lister;
 
 import fi.vrk.xroad.catalog.persistence.OrganizationService;
 import fi.vrk.xroad.catalog.persistence.entity.*;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
-import fi.vrk.xroad.xroad_catalog_lister.Organization;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Organization;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,9 +70,10 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
 
     @Override
     public Iterable<ChangedValue> getChangedOrganizationValues(String guid,
-                                                               XMLGregorianCalendar startDateTime,
-                                                               XMLGregorianCalendar endDateTime) {
-        Optional<fi.vrk.xroad.catalog.persistence.entity.Organization> organization = organizationService.getOrganization(guid);
+            XMLGregorianCalendar startDateTime,
+            XMLGregorianCalendar endDateTime) {
+        Optional<fi.vrk.xroad.catalog.persistence.entity.Organization> organization = organizationService
+                .getOrganization(guid);
         if (organization.isPresent()) {
             return getAllChangedValuesForOrganization(organization.get(),
                     jaxbServiceConverter.toLocalDateTime(startDateTime),
@@ -82,9 +83,10 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
         }
     }
 
-    private Iterable<ChangedValue> getAllChangedValuesForOrganization(fi.vrk.xroad.catalog.persistence.entity.Organization organization,
-                                                                      LocalDateTime startDateTime,
-                                                                      LocalDateTime endDateTime) {
+    private Iterable<ChangedValue> getAllChangedValuesForOrganization(
+            fi.vrk.xroad.catalog.persistence.entity.Organization organization,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         List<ChangedValue> changedValueList = new ArrayList<>();
         Set<OrganizationName> organizationNames = organization.getAllOrganizationNames();
         Set<OrganizationDescription> organizationDescriptions = organization.getAllOrganizationDescriptions();
@@ -141,8 +143,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private Collection<ChangedValue> getAllChangedValuesForAddress(Set<Address> addresses,
-                                                                   LocalDateTime startDateTime,
-                                                                   LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         List<ChangedValue> changedValueList = new ArrayList<>();
         addresses.forEach(address -> {
             if (getChangedValueForAddress(address, startDateTime, endDateTime) != null) {
@@ -151,7 +153,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
 
             Set<StreetAddress> streetAddresses = address.getAllStreetAddresses();
             streetAddresses.forEach(streetAddress -> {
-                List<ChangedValue> allChangedValuesForStreetAddress = getAllChangedValuesForStreetAddress(streetAddress, startDateTime, endDateTime);
+                List<ChangedValue> allChangedValuesForStreetAddress = getAllChangedValuesForStreetAddress(streetAddress,
+                        startDateTime, endDateTime);
                 for (ChangedValue changedValue : allChangedValuesForStreetAddress) {
                     changedValueList.add(changedValue);
                 }
@@ -159,9 +162,10 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
 
             Set<PostOfficeBoxAddress> postOfficeBoxAddresses = address.getAllPostOfficeBoxAddresses();
             postOfficeBoxAddresses.forEach(postOfficeBoxAddress -> {
-                List<ChangedValue> allChangedValuesForPostOfficeBoxAddress = getAllChangedValuesForPostOfficeBoxAddress(postOfficeBoxAddress,
-                                                                                                                        startDateTime,
-                                                                                                                        endDateTime);
+                List<ChangedValue> allChangedValuesForPostOfficeBoxAddress = getAllChangedValuesForPostOfficeBoxAddress(
+                        postOfficeBoxAddress,
+                        startDateTime,
+                        endDateTime);
                 for (ChangedValue changedValue : allChangedValuesForPostOfficeBoxAddress) {
                     changedValueList.add(changedValue);
                 }
@@ -172,8 +176,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForAddress(Address address,
-                                                   LocalDateTime startDateTime,
-                                                   LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime addressChange = address.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (addressChange.isAfter(startDateTime) && addressChange.isBefore(endDateTime)) {
@@ -184,8 +188,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private List<ChangedValue> getAllChangedValuesForStreetAddress(StreetAddress streetAddress,
-                                                                   LocalDateTime startDateTime,
-                                                                   LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         List<ChangedValue> changedValueList = new ArrayList<>();
         if (getChangedValueForStreetAddress(streetAddress, startDateTime, endDateTime) != null) {
             changedValueList.add(getChangedValueForStreetAddress(streetAddress, startDateTime, endDateTime));
@@ -208,21 +212,26 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
         Set<StreetAddressMunicipality> municipalities = streetAddress.getAllMunicipalities();
         municipalities.forEach(municipality -> {
             if (getChangedValueForStreetAddressMunicipality(municipality, startDateTime, endDateTime) != null) {
-                changedValueList.add(getChangedValueForStreetAddressMunicipality(municipality, startDateTime, endDateTime));
+                changedValueList
+                        .add(getChangedValueForStreetAddressMunicipality(municipality, startDateTime, endDateTime));
             }
 
             Set<StreetAddressMunicipalityName> municipalityNames = municipality.getAllMunicipalityNames();
             municipalityNames.forEach(municipalityName -> {
-                if (getChangedValueForStreetAddressMunicipalityName(municipalityName, startDateTime, endDateTime) != null) {
-                    changedValueList.add(getChangedValueForStreetAddressMunicipalityName(municipalityName, startDateTime, endDateTime));
+                if (getChangedValueForStreetAddressMunicipalityName(municipalityName, startDateTime,
+                        endDateTime) != null) {
+                    changedValueList.add(getChangedValueForStreetAddressMunicipalityName(municipalityName,
+                            startDateTime, endDateTime));
                 }
             });
         });
 
         Set<StreetAddressAdditionalInformation> additionalInformationList = streetAddress.getAllAdditionalInformation();
         additionalInformationList.forEach(additionalInformation -> {
-            if (getChangedValueForStreetAddressAdditionalInformation(additionalInformation, startDateTime, endDateTime) != null) {
-                changedValueList.add(getChangedValueForStreetAddressAdditionalInformation(additionalInformation, startDateTime, endDateTime));
+            if (getChangedValueForStreetAddressAdditionalInformation(additionalInformation, startDateTime,
+                    endDateTime) != null) {
+                changedValueList.add(getChangedValueForStreetAddressAdditionalInformation(additionalInformation,
+                        startDateTime, endDateTime));
             }
         });
 
@@ -230,8 +239,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForStreetAddress(StreetAddress address,
-                                                         LocalDateTime startDateTime,
-                                                         LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime streetAddressChange = address.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (streetAddressChange.isAfter(startDateTime) && streetAddressChange.isBefore(endDateTime)) {
@@ -242,8 +251,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForStreetAddressStreet(Street street,
-                                                               LocalDateTime startDateTime,
-                                                               LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime streetChange = street.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (streetChange.isAfter(startDateTime) && streetChange.isBefore(endDateTime)) {
@@ -254,11 +263,12 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForStreetAddressPostOffice(StreetAddressPostOffice postOffice,
-                                                                   LocalDateTime startDateTime,
-                                                                   LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime streetAddressPostOfficeChange = postOffice.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (streetAddressPostOfficeChange.isAfter(startDateTime) && streetAddressPostOfficeChange.isBefore(endDateTime)) {
+        if (streetAddressPostOfficeChange.isAfter(startDateTime)
+                && streetAddressPostOfficeChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(STREET_ADDRESS_POST_OFFICE);
         }
@@ -266,11 +276,12 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForStreetAddressMunicipality(StreetAddressMunicipality municipality,
-                                                                     LocalDateTime startDateTime,
-                                                                     LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime streetAddressMunicipalityChange = municipality.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (streetAddressMunicipalityChange.isAfter(startDateTime) && streetAddressMunicipalityChange.isBefore(endDateTime)) {
+        if (streetAddressMunicipalityChange.isAfter(startDateTime)
+                && streetAddressMunicipalityChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(STREET_ADDRESS_MUNICIPALITY);
         }
@@ -278,23 +289,26 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForStreetAddressMunicipalityName(StreetAddressMunicipalityName municipalityName,
-                                                                         LocalDateTime startDateTime,
-                                                                         LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime streetAddressMunicipalityNameChange = municipalityName.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (streetAddressMunicipalityNameChange.isAfter(startDateTime) && streetAddressMunicipalityNameChange.isBefore(endDateTime)) {
+        if (streetAddressMunicipalityNameChange.isAfter(startDateTime)
+                && streetAddressMunicipalityNameChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(STREET_ADDRESS_MUNICIPALITY_NAME);
         }
         return changedValue;
     }
 
-    private ChangedValue getChangedValueForStreetAddressAdditionalInformation(StreetAddressAdditionalInformation additionalInformation,
-                                                                              LocalDateTime startDateTime,
-                                                                              LocalDateTime endDateTime) {
+    private ChangedValue getChangedValueForStreetAddressAdditionalInformation(
+            StreetAddressAdditionalInformation additionalInformation,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime streetAddressAdditionalInfoChange = additionalInformation.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (streetAddressAdditionalInfoChange.isAfter(startDateTime) && streetAddressAdditionalInfoChange.isBefore(endDateTime)) {
+        if (streetAddressAdditionalInfoChange.isAfter(startDateTime)
+                && streetAddressAdditionalInfoChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(STREET_ADDRESS_ADDITIONAL_INFORMATION);
         }
@@ -302,44 +316,54 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private List<ChangedValue> getAllChangedValuesForPostOfficeBoxAddress(PostOfficeBoxAddress postOfficeBoxAddress,
-                                                                          LocalDateTime startDateTime,
-                                                                          LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         List<ChangedValue> changedValueList = new ArrayList<>();
         if (getChangedValueForPostOfficeBoxAddress(postOfficeBoxAddress, startDateTime, endDateTime) != null) {
-            changedValueList.add(getChangedValueForPostOfficeBoxAddress(postOfficeBoxAddress, startDateTime, endDateTime));
+            changedValueList
+                    .add(getChangedValueForPostOfficeBoxAddress(postOfficeBoxAddress, startDateTime, endDateTime));
         }
 
         Set<PostOffice> postOffices = postOfficeBoxAddress.getAllPostOffices();
         postOffices.forEach(postOffice -> {
             if (getChangedValueForPostOfficeBoxAddressPostOffice(postOffice, startDateTime, endDateTime) != null) {
-                changedValueList.add(getChangedValueForPostOfficeBoxAddressPostOffice(postOffice, startDateTime, endDateTime));
+                changedValueList
+                        .add(getChangedValueForPostOfficeBoxAddressPostOffice(postOffice, startDateTime, endDateTime));
             }
         });
 
         Set<PostOfficeBox> postOfficeBoxes = postOfficeBoxAddress.getAllPostOfficeBoxes();
         postOfficeBoxes.forEach(postOfficeBox -> {
-            if (getChangedValueForPostOfficeBoxAddressPostOfficeBox(postOfficeBox, startDateTime, endDateTime) != null) {
-                changedValueList.add(getChangedValueForPostOfficeBoxAddressPostOfficeBox(postOfficeBox, startDateTime, endDateTime));
+            if (getChangedValueForPostOfficeBoxAddressPostOfficeBox(postOfficeBox, startDateTime,
+                    endDateTime) != null) {
+                changedValueList.add(
+                        getChangedValueForPostOfficeBoxAddressPostOfficeBox(postOfficeBox, startDateTime, endDateTime));
             }
         });
 
-        Set<PostOfficeBoxAddressAdditionalInformation> addressAdditionalInformationList = postOfficeBoxAddress.getAllAdditionalInformation();
+        Set<PostOfficeBoxAddressAdditionalInformation> addressAdditionalInformationList = postOfficeBoxAddress
+                .getAllAdditionalInformation();
         addressAdditionalInformationList.forEach(additionalInformation -> {
-            if (getChangedValueForPostOfficeBoxAddressAdditionalInformation(additionalInformation, startDateTime, endDateTime) != null) {
-                changedValueList.add(getChangedValueForPostOfficeBoxAddressAdditionalInformation(additionalInformation, startDateTime, endDateTime));
+            if (getChangedValueForPostOfficeBoxAddressAdditionalInformation(additionalInformation, startDateTime,
+                    endDateTime) != null) {
+                changedValueList.add(getChangedValueForPostOfficeBoxAddressAdditionalInformation(additionalInformation,
+                        startDateTime, endDateTime));
             }
         });
 
         Set<PostOfficeBoxAddressMunicipality> municipalities = postOfficeBoxAddress.getAllMunicipalities();
         municipalities.forEach(municipality -> {
             if (getChangedValueForPostOfficeBoxAddressMunicipality(municipality, startDateTime, endDateTime) != null) {
-                changedValueList.add(getChangedValueForPostOfficeBoxAddressMunicipality(municipality, startDateTime, endDateTime));
+                changedValueList.add(
+                        getChangedValueForPostOfficeBoxAddressMunicipality(municipality, startDateTime, endDateTime));
             }
 
             Set<PostOfficeBoxAddressMunicipalityName> municipalityNames = municipality.getAllMunicipalityNames();
             municipalityNames.forEach(municipalityName -> {
-                if (getChangedValueForPostOfficeBoxAddressMunicipalityName(municipalityName, startDateTime, endDateTime) != null) {
-                    changedValueList.add(getChangedValueForPostOfficeBoxAddressMunicipalityName(municipalityName, startDateTime, endDateTime));
+                if (getChangedValueForPostOfficeBoxAddressMunicipalityName(municipalityName, startDateTime,
+                        endDateTime) != null) {
+                    changedValueList.add(getChangedValueForPostOfficeBoxAddressMunicipalityName(municipalityName,
+                            startDateTime, endDateTime));
                 }
             });
         });
@@ -347,8 +371,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForPostOfficeBoxAddress(PostOfficeBoxAddress postOfficeBoxAddress,
-                                                                LocalDateTime startDateTime,
-                                                                LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressChange = postOfficeBoxAddress.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (postOfficeBoxAddressChange.isAfter(startDateTime) && postOfficeBoxAddressChange.isBefore(endDateTime)) {
@@ -359,8 +383,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForPostOfficeBoxAddressPostOffice(PostOffice postOffice,
-                                                                          LocalDateTime startDateTime,
-                                                                          LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime postOfficeChange = postOffice.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (postOfficeChange.isAfter(startDateTime) && postOfficeChange.isBefore(endDateTime)) {
@@ -371,8 +395,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
     }
 
     private ChangedValue getChangedValueForPostOfficeBoxAddressPostOfficeBox(PostOfficeBox postOfficeBox,
-                                                                             LocalDateTime startDateTime,
-                                                                             LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxChange = postOfficeBox.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (postOfficeBoxChange.isAfter(startDateTime) && postOfficeBoxChange.isBefore(endDateTime)) {
@@ -382,9 +406,10 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
         return changedValue;
     }
 
-    private ChangedValue getChangedValueForPostOfficeBoxAddressAdditionalInformation(PostOfficeBoxAddressAdditionalInformation additionalInformation,
-                                                                                     LocalDateTime startDateTime,
-                                                                                     LocalDateTime endDateTime) {
+    private ChangedValue getChangedValueForPostOfficeBoxAddressAdditionalInformation(
+            PostOfficeBoxAddressAdditionalInformation additionalInformation,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressAdditionalInfoChange = additionalInformation.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (postOfficeBoxAddressAdditionalInfoChange.isAfter(startDateTime) &&
@@ -395,9 +420,10 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
         return changedValue;
     }
 
-    private ChangedValue getChangedValueForPostOfficeBoxAddressMunicipality(PostOfficeBoxAddressMunicipality municipality,
-                                                                            LocalDateTime startDateTime,
-                                                                            LocalDateTime endDateTime) {
+    private ChangedValue getChangedValueForPostOfficeBoxAddressMunicipality(
+            PostOfficeBoxAddressMunicipality municipality,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressMunicipalityChange = municipality.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (postOfficeBoxAddressMunicipalityChange.isAfter(startDateTime) &&
@@ -408,9 +434,10 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
         return changedValue;
     }
 
-    private ChangedValue getChangedValueForPostOfficeBoxAddressMunicipalityName(PostOfficeBoxAddressMunicipalityName municipalityName,
-                                                                                LocalDateTime startDateTime,
-                                                                                LocalDateTime endDateTime) {
+    private ChangedValue getChangedValueForPostOfficeBoxAddressMunicipalityName(
+            PostOfficeBoxAddressMunicipalityName municipalityName,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressMunicipalityNameChange = municipalityName.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (postOfficeBoxAddressMunicipalityNameChange.isAfter(startDateTime) &&

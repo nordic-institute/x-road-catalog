@@ -12,20 +12,19 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.xroad_catalog_lister.GetCompanies;
-import fi.vrk.xroad.xroad_catalog_lister.GetCompaniesResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetOrganizations;
-import fi.vrk.xroad.xroad_catalog_lister.GetOrganizationsResponse;
-import fi.vrk.xroad.xroad_catalog_lister.HasCompanyChanged;
-import fi.vrk.xroad.xroad_catalog_lister.HasCompanyChangedResponse;
-import fi.vrk.xroad.xroad_catalog_lister.HasOrganizationChanged;
-import fi.vrk.xroad.xroad_catalog_lister.HasOrganizationChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetCompanies;
+import fi.vrk.xroad.catalog.lister.generated.GetCompaniesResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOrganizations;
+import fi.vrk.xroad.catalog.lister.generated.GetOrganizationsResponse;
+import fi.vrk.xroad.catalog.lister.generated.HasCompanyChanged;
+import fi.vrk.xroad.catalog.lister.generated.HasCompanyChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
+import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
-
 
 @Endpoint
 @Profile("fi")

@@ -50,12 +50,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.core.*;
 
 @RestController
 @RequestMapping("/api")
 @PropertySource("classpath:lister.properties")
-@Profile({"default", "fi"})
+@Profile({ "default", "fi" })
 public class ServiceController implements ServiceOperations {
 
     @Value("${xroad-catalog.shared-params-file}")
@@ -89,13 +89,13 @@ public class ServiceController implements ServiceOperations {
 
     @Override
     public ResponseEntity<ErrorLogResponse> listErrors(@PathVariable(required = false) String xRoadInstance,
-                                                       @PathVariable(required = false) String memberClass,
-                                                       @PathVariable(required = false) String memberCode,
-                                                       @PathVariable(required = false) String subsystemCode,
-                                                       @RequestParam(required = false) String startDate,
-                                                       @RequestParam(required = false) String endDate,
-                                                       @RequestParam(required = false) Integer page,
-                                                       @RequestParam(required = false) Integer limit) {
+            @PathVariable(required = false) String memberClass,
+            @PathVariable(required = false) String memberCode,
+            @PathVariable(required = false) String subsystemCode,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit) {
         page = (page == null) ? 0 : page;
         limit = (limit == null) ? 100 : limit;
         LocalDateTime startDateTime;
@@ -103,62 +103,71 @@ public class ServiceController implements ServiceOperations {
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
-        XRoadData xRoadData = XRoadData.builder().xRoadInstance(xRoadInstance).memberClass(memberClass).memberCode(memberCode).subsystemCode(subsystemCode).build();
-        Page<ErrorLog> errors = catalogService.getErrors(xRoadData, Integer.valueOf(page), Integer.valueOf(limit), startDateTime, endDateTime);
-        return ResponseEntity.ok(ErrorLogResponse.builder().pageNumber(page).pageSize(limit).numberOfPages(errors.getTotalPages()).errorLogList(errors.getContent()).build());
+        XRoadData xRoadData = XRoadData.builder().xRoadInstance(xRoadInstance).memberClass(memberClass)
+                .memberCode(memberCode).subsystemCode(subsystemCode).build();
+        Page<ErrorLog> errors = catalogService.getErrors(xRoadData, Integer.valueOf(page), Integer.valueOf(limit),
+                startDateTime, endDateTime);
+        return ResponseEntity.ok(ErrorLogResponse.builder().pageNumber(page).pageSize(limit)
+                .numberOfPages(errors.getTotalPages()).errorLogList(errors.getContent()).build());
     }
 
     @Override
-    public ResponseEntity<DistinctServiceStatisticsResponse> getDistinctServiceStatistics(@RequestParam(required = false) String startDate,
-                                                                                          @RequestParam(required = false) String endDate) {
+    public ResponseEntity<DistinctServiceStatisticsResponse> getDistinctServiceStatistics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
-        List<DistinctServiceStatistics> serviceStatisticsList = catalogService.getDistinctServiceStatistics(startDateTime, endDateTime);
-        return ResponseEntity.ok(DistinctServiceStatisticsResponse.builder().distinctServiceStatisticsList(serviceStatisticsList).build());
+        List<DistinctServiceStatistics> serviceStatisticsList = catalogService
+                .getDistinctServiceStatistics(startDateTime, endDateTime);
+        return ResponseEntity.ok(DistinctServiceStatisticsResponse.builder()
+                .distinctServiceStatisticsList(serviceStatisticsList).build());
     }
 
     @Override
-    public ResponseEntity<ServiceStatisticsResponse> getServiceStatistics(@RequestParam(required = false) String startDate,
-                                                                          @RequestParam(required = false) String endDate) {
+    public ResponseEntity<ServiceStatisticsResponse> getServiceStatistics(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
         List<ServiceStatistics> serviceStatisticsList = catalogService.getServiceStatistics(startDateTime, endDateTime);
-        return ResponseEntity.ok(ServiceStatisticsResponse.builder().serviceStatisticsList(serviceStatisticsList).build());
+        return ResponseEntity
+                .ok(ServiceStatisticsResponse.builder().serviceStatisticsList(serviceStatisticsList).build());
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> getServiceStatisticsCSV(@RequestParam(required = false) String startDate,
-                                                                     @RequestParam(required = false) String endDate) {
+            @RequestParam(required = false) String endDate) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
         List<ServiceStatistics> serviceStatisticsList = catalogService.getServiceStatistics(startDateTime, endDateTime);
         try {
             StringWriter sw = new StringWriter();
-            CSVPrinter csvPrinter = new CSVPrinter(sw, CSVFormat.Builder.create().setDelimiter(",").setHeader(CSV_DATE_HEADER,
-                    CSV_NUMBER_OF_REST_SERVICES_HEADER,
-                    CSV_NUMBER_OF_SOAP_SERVICES_HEADER,
-                    CSV_NUMBER_OF_OPENAPI_SERVICES_HEADER).build());
+            CSVPrinter csvPrinter = new CSVPrinter(sw,
+                    CSVFormat.Builder.create().setDelimiter(",").setHeader(CSV_DATE_HEADER,
+                            CSV_NUMBER_OF_REST_SERVICES_HEADER,
+                            CSV_NUMBER_OF_SOAP_SERVICES_HEADER,
+                            CSV_NUMBER_OF_OPENAPI_SERVICES_HEADER).build());
             if (serviceStatisticsList != null) {
                 serviceStatisticsList.forEach(serviceStatistics -> ServiceUtil.printCSVRecord(csvPrinter,
                         Arrays.asList(serviceStatistics.getCreated().toString(),
@@ -180,49 +189,52 @@ public class ServiceController implements ServiceOperations {
 
     @Override
     public ResponseEntity<ListOfServicesResponse> getListOfServices(@RequestParam(required = false) String startDate,
-                                                                    @RequestParam(required = false) String endDate) {
+            @RequestParam(required = false) String endDate) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
-        List<SecurityServerInfo> securityServerList = ServiceUtil.getSecurityServerInfoList(sharedParamsParser, sharedParamsFile);
+        List<SecurityServerInfo> securityServerList = ServiceUtil.getSecurityServerInfoList(sharedParamsParser,
+                sharedParamsFile);
         List<MemberDataList> memberDataList = catalogService.getMemberData(startDateTime, endDateTime);
-        return ResponseEntity.ok(ListOfServicesResponse.builder().memberData(memberDataList).securityServerData(securityServerList).build());
+        return ResponseEntity.ok(ListOfServicesResponse.builder().memberData(memberDataList)
+                .securityServerData(securityServerList).build());
     }
 
     @Override
     public ResponseEntity<ByteArrayResource> getListOfServicesCSV(@RequestParam(required = false) String startDate,
-                                                                  @RequestParam(required = false) String endDate) {
+            @RequestParam(required = false) String endDate) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
-        List<SecurityServerInfo> securityServerList = ServiceUtil.getSecurityServerInfoList(sharedParamsParser, sharedParamsFile);
+        List<SecurityServerInfo> securityServerList = ServiceUtil.getSecurityServerInfoList(sharedParamsParser,
+                sharedParamsFile);
         List<MemberDataList> memberDataList = catalogService.getMemberData(startDateTime, endDateTime);
         try {
             StringWriter sw = new StringWriter();
             CSVPrinter csvPrinter = new CSVPrinter(sw, CSVFormat.Builder.create().setDelimiter(",").setHeader(
-                            CSV_DATE_HEADER,
-                            CSV_XROAD_INSTANCE_HEADER,
-                            CSV_MEMBER_CLASS_HEADER,
-                            CSV_MEMBER_CODE_HEADER,
-                            CSV_MEMBER_NAME_HEADER,
-                            CSV_MEMBER_CREATED_HEADER,
-                            CSV_SUBSYSTEM_CODE_HEADER,
-                            CSV_SUBSYSTEM_CREATED_HEADER,
-                            CSV_SUBSYSTEM_ACTIVE_HEADER,
-                            CSV_SERVICE_CODE_HEADER,
-                            CSV_SERVICE_VERSION_HEADER,
-                            CSV_SERVICE_CREATED_HEADER,
-                            CSV_SERVICE_ACTIVE_HEADER).build());
+                    CSV_DATE_HEADER,
+                    CSV_XROAD_INSTANCE_HEADER,
+                    CSV_MEMBER_CLASS_HEADER,
+                    CSV_MEMBER_CODE_HEADER,
+                    CSV_MEMBER_NAME_HEADER,
+                    CSV_MEMBER_CREATED_HEADER,
+                    CSV_SUBSYSTEM_CODE_HEADER,
+                    CSV_SUBSYSTEM_CREATED_HEADER,
+                    CSV_SUBSYSTEM_ACTIVE_HEADER,
+                    CSV_SERVICE_CODE_HEADER,
+                    CSV_SERVICE_VERSION_HEADER,
+                    CSV_SERVICE_CREATED_HEADER,
+                    CSV_SERVICE_ACTIVE_HEADER).build());
             if (memberDataList != null) {
                 ServiceUtil.printListOfServicesCSV(csvPrinter, memberDataList, securityServerList);
             }
@@ -250,40 +262,44 @@ public class ServiceController implements ServiceOperations {
 
     @Override
     public ResponseEntity<ServiceResponse> getEndpoints(@PathVariable String xRoadInstance,
-                                                        @PathVariable String memberClass,
-                                                        @PathVariable String memberCode,
-                                                        @PathVariable String subsystemCode,
-                                                        @PathVariable String serviceCode) {
+            @PathVariable String memberClass,
+            @PathVariable String memberCode,
+            @PathVariable String subsystemCode,
+            @PathVariable String serviceCode) {
         List<ServiceEndpointsResponse> listOfServices = new ArrayList<>();
-        List<Service> services = catalogService.getServices(xRoadInstance, memberClass, memberCode, subsystemCode, serviceCode);
-        services.forEach(service -> listOfServices.add(getServiceEndpointsResponse(service, xRoadInstance, memberClass, memberCode, subsystemCode, serviceCode)));
+        List<Service> services = catalogService.getServices(xRoadInstance, memberClass, memberCode, subsystemCode,
+                serviceCode);
+        services.forEach(service -> listOfServices.add(getServiceEndpointsResponse(service, xRoadInstance, memberClass,
+                memberCode, subsystemCode, serviceCode)));
         ServiceResponse response = ServiceResponse.builder().listOfServices(listOfServices).build();
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<ServiceResponse> getRest(@PathVariable String xRoadInstance,
-                                          @PathVariable String memberClass,
-                                          @PathVariable String memberCode,
-                                          @PathVariable String subsystemCode,
-                                          @PathVariable String serviceCode) {
+            @PathVariable String memberClass,
+            @PathVariable String memberCode,
+            @PathVariable String subsystemCode,
+            @PathVariable String serviceCode) {
         List<ServiceEndpointsResponse> listOfServices = new ArrayList<>();
-        List<Service> services = catalogService.getServices(xRoadInstance, memberClass, memberCode, subsystemCode, serviceCode);
+        List<Service> services = catalogService.getServices(xRoadInstance, memberClass, memberCode, subsystemCode,
+                serviceCode);
         services.forEach(service -> {
             Rest rest = catalogService.getRest(service);
             if (rest != null) {
-                listOfServices.add(getServiceEndpointsResponse(service, xRoadInstance, memberClass, memberCode, subsystemCode, serviceCode));
+                listOfServices.add(getServiceEndpointsResponse(service, xRoadInstance, memberClass, memberCode,
+                        subsystemCode, serviceCode));
             }
         });
         return ResponseEntity.ok(ServiceResponse.builder().listOfServices(listOfServices).build());
     }
 
     private ServiceEndpointsResponse getServiceEndpointsResponse(Service service,
-                                                                 String xRoadInstance,
-                                                                 String memberClass,
-                                                                 String memberCode,
-                                                                 String subsystemCode,
-                                                                 String serviceCode) {
+            String xRoadInstance,
+            String memberClass,
+            String memberCode,
+            String subsystemCode,
+            String serviceCode) {
         List<EndpointData> endpointDataList = new ArrayList<>();
         service.getAllEndpoints().forEach(endpoint -> endpointDataList.add(EndpointData.builder()
                 .method(endpoint.getMethod())

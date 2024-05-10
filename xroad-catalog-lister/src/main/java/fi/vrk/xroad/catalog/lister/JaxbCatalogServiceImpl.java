@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.lister;
 
 import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.xroad_catalog_lister.Member;
+import fi.vrk.xroad.catalog.lister.generated.Member;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +33,11 @@ public class JaxbCatalogServiceImpl implements JaxbCatalogService {
     private JaxbServiceConverter jaxbServiceConverter;
 
     @Override
-    public Iterable<Member> getAllMembers(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime)  {
+    public Iterable<Member> getAllMembers(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime) {
         Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> entities;
         if (startDateTime != null && endDateTime != null) {
             entities = catalogService.getAllMembers(jaxbServiceConverter.toLocalDateTime(startDateTime),
-                                                    jaxbServiceConverter.toLocalDateTime(endDateTime));
+                    jaxbServiceConverter.toLocalDateTime(endDateTime));
         } else {
             entities = catalogService.getAllMembers();
         }
@@ -46,11 +46,11 @@ public class JaxbCatalogServiceImpl implements JaxbCatalogService {
     }
 
     @Override
-    public Iterable<fi.vrk.xroad.xroad_catalog_lister.ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime,
-                                                                            XMLGregorianCalendar endDateTime) {
+    public Iterable<fi.vrk.xroad.catalog.lister.generated.ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime,
+            XMLGregorianCalendar endDateTime) {
         Iterable<fi.vrk.xroad.catalog.persistence.entity.ErrorLog> entities;
         entities = catalogService.getErrorLog(jaxbServiceConverter.toLocalDateTime(startDateTime),
-                                              jaxbServiceConverter.toLocalDateTime(endDateTime));
+                jaxbServiceConverter.toLocalDateTime(endDateTime));
         return jaxbServiceConverter.convertErrorLog(entities);
     }
 

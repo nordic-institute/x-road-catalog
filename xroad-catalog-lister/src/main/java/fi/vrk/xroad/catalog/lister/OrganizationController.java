@@ -23,7 +23,7 @@ import fi.vrk.xroad.catalog.persistence.dto.OrganizationDTO;
 import fi.vrk.xroad.catalog.persistence.dto.OrganizationData;
 import fi.vrk.xroad.catalog.persistence.entity.Company;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
@@ -54,7 +54,6 @@ public class OrganizationController implements OrganizationOperations {
 
     @Autowired
     private JaxbOrganizationService jaxbOrganizationService;
-
 
     @Override
     public ResponseEntity<OrganizationDTO> getOrganization(@PathVariable String businessCode) {
@@ -111,14 +110,14 @@ public class OrganizationController implements OrganizationOperations {
 
     @Override
     public ResponseEntity<OrganizationChanged> getOrganizationChanges(@PathVariable String businessCode,
-                                                    @RequestParam(required = false) String startDate,
-                                                    @RequestParam(required = false) String endDate) {
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
         try {
             startDateTime = ServiceUtil.convertStringToLocalDateTime(startDate);
             endDateTime = ServiceUtil.convertStringToLocalDateTime(endDate);
-        } catch(CatalogListerRuntimeException e) {
+        } catch (CatalogListerRuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -132,22 +131,27 @@ public class OrganizationController implements OrganizationOperations {
         } else {
             Iterable<Organization> organizations = organizationService.getOrganizations(businessCode);
             if (organizations.iterator().hasNext()) {
-                changedValues = jaxbOrganizationService.getChangedOrganizationValues(organizations.iterator().next().getGuid(),
+                changedValues = jaxbOrganizationService.getChangedOrganizationValues(
+                        organizations.iterator().next().getGuid(),
                         JaxbServiceUtil.toXmlGregorianCalendar(startDateTime),
                         JaxbServiceUtil.toXmlGregorianCalendar(endDateTime));
             }
         }
         if (changedValues == null) {
-            return ResponseEntity.ok(OrganizationChanged.builder().changed(false).changedValueList(new ArrayList<>()).build());
+            return ResponseEntity
+                    .ok(OrganizationChanged.builder().changed(false).changedValueList(new ArrayList<>()).build());
         }
         if (changedValues.iterator().hasNext()) {
             List<fi.vrk.xroad.catalog.persistence.dto.ChangedValue> changedValueList = new ArrayList<>();
-            changedValues.forEach(changedValue -> changedValueList.add(fi.vrk.xroad.catalog.persistence.dto.ChangedValue.builder()
-                    .name(changedValue.getName())
-                    .build()));
-            organizationChanged = OrganizationChanged.builder().changed(true).changedValueList(changedValueList).build();
+            changedValues.forEach(
+                    changedValue -> changedValueList.add(fi.vrk.xroad.catalog.persistence.dto.ChangedValue.builder()
+                            .name(changedValue.getName())
+                            .build()));
+            organizationChanged = OrganizationChanged.builder().changed(true).changedValueList(changedValueList)
+                    .build();
         } else {
-            organizationChanged = OrganizationChanged.builder().changed(false).changedValueList(new ArrayList<>()).build();
+            organizationChanged = OrganizationChanged.builder().changed(false).changedValueList(new ArrayList<>())
+                    .build();
         }
         return ResponseEntity.ok(organizationChanged);
     }

@@ -12,30 +12,31 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
-import fi.vrk.xroad.xroad_catalog_lister.Company;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Company;
 
 public interface JaxbCompanyService {
 
     /**
      * Returns whether some values of Company have changed
      *
-     * @param  businessID businessId of a company
+     * @param businessID    businessId of a company
      * @param startDateTime creation datetime from
-     * @param endDateTime creation datetime to
+     * @param endDateTime   creation datetime to
      * @return Iterable of JAXB generated ChangedValues
      */
     Iterable<ChangedValue> getChangedCompanyValues(String businessID,
-                                                   XMLGregorianCalendar startDateTime,
-                                                   XMLGregorianCalendar endDateTime);
+            XMLGregorianCalendar startDateTime,
+            XMLGregorianCalendar endDateTime);
 
     /**
      * Returns all companies
      *
      * All subitems of company are always returned
      *
-     * @param  businessId businessId of a company
+     * @param businessId businessId of a company
      * @return Iterable of JAXB generated Companies
      */
     Iterable<Company> getCompanies(String businessId);

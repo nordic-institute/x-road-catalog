@@ -12,30 +12,35 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.xroad_catalog_lister.ErrorLog;
-import fi.vrk.xroad.xroad_catalog_lister.Member;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
+import fi.vrk.xroad.catalog.lister.generated.Member;
 
 public interface JaxbCatalogService {
 
     /**
-     * Returns all members that have had some part of member->substem->service->wsdl graph
-     * changed after <code>startDateTime</code>. If startDateTime = null, returns all members
+     * Returns all members that have had some part of member->substem->service->wsdl
+     * graph
+     * changed after <code>startDateTime</code>. If startDateTime = null, returns
+     * all members
      * altogether.
      *
-     * All substem->service->wsdl items are always returned, whether they are removed items
+     * All substem->service->wsdl items are always returned, whether they are
+     * removed items
      * or not, and whether they have been updated since startDateTime or not.
      *
      * @param startDateTime creation datetime from
-     * @param endDateTime creation datetime to
+     * @param endDateTime   creation datetime to
      * @return Iterable of JAXB generated Members
      */
     Iterable<Member> getAllMembers(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime);
 
     /**
      * Returns all errorLog entries
+     * 
      * @param startDateTime creation datetime from
-     * @param endDateTime creation datetime to
+     * @param endDateTime   creation datetime to
      * @return Iterable of JAXB generated ErrorLog entries
      */
     Iterable<ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime);

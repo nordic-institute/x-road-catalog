@@ -12,27 +12,26 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.xroad_catalog_lister.GetErrors;
-import fi.vrk.xroad.xroad_catalog_lister.GetErrorsResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetOpenAPI;
-import fi.vrk.xroad.xroad_catalog_lister.GetOpenAPIResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetServiceType;
-import fi.vrk.xroad.xroad_catalog_lister.GetServiceTypeResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetWsdl;
-import fi.vrk.xroad.xroad_catalog_lister.GetWsdlResponse;
-import fi.vrk.xroad.xroad_catalog_lister.IsProvider;
-import fi.vrk.xroad.xroad_catalog_lister.IsProviderResponse;
-import fi.vrk.xroad.xroad_catalog_lister.ListMembers;
-import fi.vrk.xroad.xroad_catalog_lister.ListMembersResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetErrors;
+import fi.vrk.xroad.catalog.lister.generated.GetErrorsResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPI;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPIResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceType;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceTypeResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdl;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdlResponse;
+import fi.vrk.xroad.catalog.lister.generated.IsProvider;
+import fi.vrk.xroad.catalog.lister.generated.IsProviderResponse;
+import fi.vrk.xroad.catalog.lister.generated.ListMembers;
+import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
-
 @Endpoint
-@Profile({"default", "fi"})
+@Profile({ "default", "fi" })
 public interface ServiceEndpoint {
 
     static final String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";

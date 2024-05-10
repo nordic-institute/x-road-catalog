@@ -14,8 +14,8 @@ package fi.vrk.xroad.catalog.lister;
 
 import fi.vrk.xroad.catalog.persistence.CompanyService;
 import fi.vrk.xroad.catalog.persistence.entity.*;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
-import fi.vrk.xroad.xroad_catalog_lister.Company;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Company;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +55,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
 
     @Override
     public Iterable<ChangedValue> getChangedCompanyValues(String businessId,
-                                                          XMLGregorianCalendar startDateTime,
-                                                          XMLGregorianCalendar endDateTime) {
+            XMLGregorianCalendar startDateTime,
+            XMLGregorianCalendar endDateTime) {
         Iterable<fi.vrk.xroad.catalog.persistence.entity.Company> companies = companyService.getCompanies(businessId);
         List<ChangedValue> changedValueList = new ArrayList<>();
         if (companies.iterator().hasNext()) {
@@ -77,9 +77,10 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
         return jaxbOrganizationConverter.convertCompanies(entities);
     }
 
-    private Collection<ChangedValue> getAllChangedValuesForCompany(fi.vrk.xroad.catalog.persistence.entity.Company company,
-                                                                   LocalDateTime startDateTime,
-                                                                   LocalDateTime endDateTime) {
+    private Collection<ChangedValue> getAllChangedValuesForCompany(
+            fi.vrk.xroad.catalog.persistence.entity.Company company,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         List<ChangedValue> changedValueList = new ArrayList<>();
         Set<BusinessAddress> businessAddresses = company.getAllBusinessAddresses();
         Set<BusinessAuxiliaryName> businessAuxiliaryNames = company.getAllBusinessAuxiliaryNames();
@@ -102,7 +103,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
         }
 
         if (getBusinessAuxiliaryNamesChangedValue(businessAuxiliaryNames, startDateTime, endDateTime) != null) {
-            changedValueList.add(getBusinessAuxiliaryNamesChangedValue(businessAuxiliaryNames, startDateTime, endDateTime));
+            changedValueList
+                    .add(getBusinessAuxiliaryNamesChangedValue(businessAuxiliaryNames, startDateTime, endDateTime));
         }
 
         if (getBusinessIdChangeChangedValue(businessIdChanges, startDateTime, endDateTime) != null) {
@@ -145,8 +147,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getCompanyChangedValue(fi.vrk.xroad.catalog.persistence.entity.Company company,
-                                                LocalDateTime startDateTime,
-                                                LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         LocalDateTime companyChange = company.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
         if (companyChange.isAfter(startDateTime) && companyChange.isBefore(endDateTime)) {
@@ -157,8 +159,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getBusinessAddressChangedValue(Set<BusinessAddress> businessAddresses,
-                                                        LocalDateTime startDateTime,
-                                                        LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (businessAddresses.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -169,8 +171,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getBusinessAuxiliaryNamesChangedValue(Set<BusinessAuxiliaryName> businessAuxiliaryNames,
-                                                               LocalDateTime startDateTime,
-                                                               LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (businessAuxiliaryNames.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -181,8 +183,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getBusinessIdChangeChangedValue(Set<BusinessIdChange> businessIdChanges,
-                                                         LocalDateTime startDateTime,
-                                                         LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (businessIdChanges.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -193,8 +195,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getBusinessLineChangedValue(Set<BusinessLine> businessLines,
-                                                     LocalDateTime startDateTime,
-                                                     LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (businessLines.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -205,8 +207,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getBusinessNameChangedValue(Set<BusinessName> businessNames,
-                                                     LocalDateTime startDateTime,
-                                                     LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (businessNames.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -217,8 +219,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getCompanyFormChangedValue(Set<CompanyForm> companyForms,
-                                                    LocalDateTime startDateTime,
-                                                    LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (companyForms.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -229,8 +231,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getContactDetailChangedValue(Set<ContactDetail> contactDetails,
-                                                      LocalDateTime startDateTime,
-                                                      LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (contactDetails.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -241,8 +243,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getLanguageChangedValue(Set<Language> languages,
-                                                 LocalDateTime startDateTime,
-                                                 LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (languages.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -253,8 +255,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getLiquidationChangedValue(Set<Liquidation> liquidations,
-                                                    LocalDateTime startDateTime,
-                                                    LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (liquidations.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -265,8 +267,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getRegisteredEntryChangedValue(Set<RegisteredEntry> registeredEntries,
-                                                        LocalDateTime startDateTime,
-                                                        LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (registeredEntries.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
@@ -277,8 +279,8 @@ public class JaxbCompanyServiceImpl implements JaxbCompanyService {
     }
 
     private ChangedValue getRegisteredOfficeChangedValue(Set<RegisteredOffice> registeredOffices,
-                                                         LocalDateTime startDateTime,
-                                                         LocalDateTime endDateTime) {
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         ChangedValue changedValue = null;
         if (registeredOffices.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
                 obj.getStatusInfo().getChanged().isBefore(endDateTime))) {

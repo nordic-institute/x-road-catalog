@@ -12,47 +12,54 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
+import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
+import fi.vrk.xroad.catalog.lister.generated.Member;
 import fi.vrk.xroad.catalog.persistence.entity.Service;
 import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.xroad_catalog_lister.ErrorLog;
-import fi.vrk.xroad.xroad_catalog_lister.Member;
 import org.springframework.context.annotation.Profile;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
-@Profile({"default", "fi"})
+@Profile({ "default", "fi" })
 public interface JaxbServiceConversion {
 
     /**
      * Convert entities to XML objects
-     * @param members Iterable of Member entities
+     * 
+     * @param members            Iterable of Member entities
      * @param onlyActiveChildren if true, convert only active subsystems
      * @return Collection of Members (JAXB generated)
      */
-    Collection<Member> convertMembers(Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> members, boolean onlyActiveChildren);
+    Collection<Member> convertMembers(Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> members,
+            boolean onlyActiveChildren);
 
     /**
      * Convert entities to XML objects
-     * @param subsystems Iterable of Subsystem entities
+     * 
+     * @param subsystems         Iterable of Subsystem entities
      * @param onlyActiveChildren if true, convert only active subsystems
      * @return collection of XML objects
      */
-    Collection<fi.vrk.xroad.xroad_catalog_lister.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems, boolean onlyActiveChildren);
+    Collection<fi.vrk.xroad.catalog.lister.generated.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
+            boolean onlyActiveChildren);
 
     /**
      * Convert entities to XML objects
-     * @param services Iterable of Service entities
+     * 
+     * @param services           Iterable of Service entities
      * @param onlyActiveChildren if true, convert only active subsystems
      * @return collection of XML objects
      */
-    Collection<fi.vrk.xroad.xroad_catalog_lister.Service> convertServices(Iterable<Service> services, boolean onlyActiveChildren);
+    Collection<fi.vrk.xroad.catalog.lister.generated.Service> convertServices(Iterable<Service> services,
+            boolean onlyActiveChildren);
 
     LocalDateTime toLocalDateTime(XMLGregorianCalendar calendar);
 
     /**
      * Convert entities to XML objects
+     * 
      * @param errorLogEntries Iterable of ErrorLog entities
      * @return Collection of ErrorLog entries (JAXB generated)
      */

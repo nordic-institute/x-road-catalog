@@ -18,35 +18,35 @@ import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
 import fi.vrk.xroad.catalog.persistence.entity.Service;
 import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
 import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import fi.vrk.xroad.xroad_catalog_lister.ChangedValue;
-import fi.vrk.xroad.xroad_catalog_lister.Company;
-import fi.vrk.xroad.xroad_catalog_lister.Email;
-import fi.vrk.xroad.xroad_catalog_lister.EmailList;
-import fi.vrk.xroad.xroad_catalog_lister.ErrorLog;
-import fi.vrk.xroad.xroad_catalog_lister.GetCompanies;
-import fi.vrk.xroad.xroad_catalog_lister.GetCompaniesResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetErrors;
-import fi.vrk.xroad.xroad_catalog_lister.GetErrorsResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetOpenAPI;
-import fi.vrk.xroad.xroad_catalog_lister.GetOpenAPIResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetOrganizations;
-import fi.vrk.xroad.xroad_catalog_lister.GetOrganizationsResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetServiceType;
-import fi.vrk.xroad.xroad_catalog_lister.GetServiceTypeResponse;
-import fi.vrk.xroad.xroad_catalog_lister.GetWsdl;
-import fi.vrk.xroad.xroad_catalog_lister.GetWsdlResponse;
-import fi.vrk.xroad.xroad_catalog_lister.HasCompanyChanged;
-import fi.vrk.xroad.xroad_catalog_lister.HasCompanyChangedResponse;
-import fi.vrk.xroad.xroad_catalog_lister.HasOrganizationChanged;
-import fi.vrk.xroad.xroad_catalog_lister.HasOrganizationChangedResponse;
-import fi.vrk.xroad.xroad_catalog_lister.IsProvider;
-import fi.vrk.xroad.xroad_catalog_lister.IsProviderResponse;
-import fi.vrk.xroad.xroad_catalog_lister.ListMembers;
-import fi.vrk.xroad.xroad_catalog_lister.ListMembersResponse;
-import fi.vrk.xroad.xroad_catalog_lister.Member;
-import fi.vrk.xroad.xroad_catalog_lister.Organization;
-import fi.vrk.xroad.xroad_catalog_lister.WebPage;
-import fi.vrk.xroad.xroad_catalog_lister.WebPageList;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Company;
+import fi.vrk.xroad.catalog.lister.generated.Email;
+import fi.vrk.xroad.catalog.lister.generated.EmailList;
+import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
+import fi.vrk.xroad.catalog.lister.generated.GetCompanies;
+import fi.vrk.xroad.catalog.lister.generated.GetCompaniesResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetErrors;
+import fi.vrk.xroad.catalog.lister.generated.GetErrorsResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPI;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPIResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOrganizations;
+import fi.vrk.xroad.catalog.lister.generated.GetOrganizationsResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceType;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceTypeResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdl;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdlResponse;
+import fi.vrk.xroad.catalog.lister.generated.HasCompanyChanged;
+import fi.vrk.xroad.catalog.lister.generated.HasCompanyChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
+import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.IsProvider;
+import fi.vrk.xroad.catalog.lister.generated.IsProviderResponse;
+import fi.vrk.xroad.catalog.lister.generated.ListMembers;
+import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
+import fi.vrk.xroad.catalog.lister.generated.Member;
+import fi.vrk.xroad.catalog.lister.generated.Organization;
+import fi.vrk.xroad.catalog.lister.generated.WebPage;
+import fi.vrk.xroad.catalog.lister.generated.WebPageList;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -75,7 +75,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({"default","fi"})
+@ActiveProfiles({ "default", "fi" })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ApplicationTests {
 
@@ -110,7 +110,7 @@ public class ApplicationTests {
 		XMLGregorianCalendar endDateTime = JaxbServiceUtil.toXmlGregorianCalendar(LocalDateTime.of(2030, 1, 31, 1, 1));
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
-		ListMembersResponse result = (ListMembersResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		ListMembersResponse result = (ListMembersResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws", request);
 		assertNotNull(result);
 		assertEquals(3, result.getMemberList().getMember().size());
@@ -135,7 +135,7 @@ public class ApplicationTests {
 				request.getServiceVersion(),
 				"SOAP");
 
-		GetServiceTypeResponse result = (GetServiceTypeResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		GetServiceTypeResponse result = (GetServiceTypeResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetServiceType/", request);
 		assertNotNull(result);
 		assertEquals("SOAP", result.getType());
@@ -149,7 +149,7 @@ public class ApplicationTests {
 				request.getServiceCode(),
 				request.getServiceVersion(),
 				"REST");
-		result = (GetServiceTypeResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		result = (GetServiceTypeResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetServiceType/", request);
 		assertNotNull(result);
 		assertEquals("REST", result.getType());
@@ -163,7 +163,7 @@ public class ApplicationTests {
 				request.getServiceCode(),
 				request.getServiceVersion(),
 				"OPENAPI");
-		result = (GetServiceTypeResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		result = (GetServiceTypeResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetServiceType/", request);
 		assertNotNull(result);
 		assertEquals("OPENAPI", result.getType());
@@ -190,7 +190,8 @@ public class ApplicationTests {
 		}
 		assertTrue(thrown);
 		assertEquals(exceptionMessage, "Service with xRoadInstance \"dev-cs\", " +
-				"memberClass \"PUB\", memberCode \"14151328\", subsystemCode \"TestSubSystem\", serviceCode \"testService123\" " +
+				"memberClass \"PUB\", memberCode \"14151328\", subsystemCode \"TestSubSystem\", serviceCode \"testService123\" "
+				+
 				"and serviceVersion \"v1\" not found");
 	}
 
@@ -198,8 +199,9 @@ public class ApplicationTests {
 	public void testGetWsdl() {
 		GetWsdl request = new GetWsdl();
 		request.setExternalId("1000");
-		given(catalogService.getWsdl(request.getExternalId())).willReturn(new Wsdl(new Service(), "This is WSDL", request.getExternalId()));
-		GetWsdlResponse result = (GetWsdlResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		given(catalogService.getWsdl(request.getExternalId()))
+				.willReturn(new Wsdl(new Service(), "This is WSDL", request.getExternalId()));
+		GetWsdlResponse result = (GetWsdlResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetWsdl/", request);
 		assertNotNull(result);
 		assertEquals("This is WSDL", result.getWsdl());
@@ -226,8 +228,9 @@ public class ApplicationTests {
 	public void testGetOpenApi() {
 		GetOpenAPI request = new GetOpenAPI();
 		request.setExternalId("3003");
-		given(catalogService.getOpenApi(request.getExternalId())).willReturn(new OpenApi(new Service(), "This is OpenAPI", request.getExternalId()));
-		GetOpenAPIResponse result = (GetOpenAPIResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		given(catalogService.getOpenApi(request.getExternalId()))
+				.willReturn(new OpenApi(new Service(), "This is OpenAPI", request.getExternalId()));
+		GetOpenAPIResponse result = (GetOpenAPIResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetOpenAPI/", request);
 		assertNotNull(result);
 		assertEquals("This is OpenAPI", result.getOpenapi());
@@ -257,7 +260,7 @@ public class ApplicationTests {
 		request.setMemberClass("PUB");
 		request.setMemberCode("14151328");
 		mockProvider(request.getXRoadInstance(), request.getMemberClass(), request.getMemberCode());
-		IsProviderResponse result = (IsProviderResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		IsProviderResponse result = (IsProviderResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/IsProvider/", request);
 		assertNotNull(result);
 		assertTrue(result.isProvider());
@@ -270,7 +273,7 @@ public class ApplicationTests {
 		request.setMemberClass("PUB");
 		request.setMemberCode("88855888");
 		mockNoProvider(request.getXRoadInstance(), request.getMemberClass(), request.getMemberCode());
-		IsProviderResponse result = (IsProviderResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		IsProviderResponse result = (IsProviderResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/IsProvider/", request);
 		assertNotNull(result);
 		assertFalse(result.isProvider());
@@ -286,13 +289,14 @@ public class ApplicationTests {
 			request.setMemberClass("PUB");
 			request.setMemberCode("123");
 			new WebServiceTemplate(marshaller).marshalSendAndReceive(
-						"http://localhost:" + port + "/ws/IsProvider/", request);
+					"http://localhost:" + port + "/ws/IsProvider/", request);
 		} catch (SoapFaultClientException e) {
-				thrown = true;
-				exceptionMessage = e.getMessage();
+			thrown = true;
+			exceptionMessage = e.getMessage();
 		}
 		assertTrue(thrown);
-		assertEquals("Member with xRoadInstance \"dev-cs\", memberClass \"PUB\" and memberCode \"123\" not found", exceptionMessage);
+		assertEquals("Member with xRoadInstance \"dev-cs\", memberClass \"PUB\" and memberCode \"123\" not found",
+				exceptionMessage);
 	}
 
 	@Test
@@ -303,12 +307,14 @@ public class ApplicationTests {
 		GetOrganizations request = new GetOrganizations();
 		request.setBusinessCode(businessCode);
 		mockOrganizations(businessCode, emailAddress, url);
-		GetOrganizationsResponse result = (GetOrganizationsResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-				"http://localhost:" + port + "/ws/GetOrganizations/", request);
+		GetOrganizationsResponse result = (GetOrganizationsResponse) new WebServiceTemplate(marshaller)
+				.marshalSendAndReceive(
+						"http://localhost:" + port + "/ws/GetOrganizations/", request);
 		assertNotNull(result);
 		assertEquals(1, result.getOrganizationList().getOrganization().size());
 		assertEquals(businessCode, result.getOrganizationList().getOrganization().get(0).getBusinessCode());
-		assertEquals(emailAddress, result.getOrganizationList().getOrganization().get(0).getEmails().getEmail().get(0).getValue());
+		assertEquals(emailAddress,
+				result.getOrganizationList().getOrganization().get(0).getEmails().getEmail().get(0).getValue());
 		assertEquals(url, result.getOrganizationList().getOrganization().get(0).getWebPages().getWebPage().get(0).getUrl());
 	}
 
@@ -319,8 +325,9 @@ public class ApplicationTests {
 		try {
 			GetOrganizations request = new GetOrganizations();
 			request.setBusinessCode("0123456-1");
-			GetOrganizationsResponse result = (GetOrganizationsResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-					"http://localhost:" + port + "/ws/GetOrganizations/", request);
+			GetOrganizationsResponse result = (GetOrganizationsResponse) new WebServiceTemplate(marshaller)
+					.marshalSendAndReceive(
+							"http://localhost:" + port + "/ws/GetOrganizations/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
 			exceptionMessage = e.getMessage();
@@ -348,8 +355,9 @@ public class ApplicationTests {
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
 		mockChangedOrganizationMultipleValues(request.getGuid(), request.getStartDateTime(), request.getEndDateTime());
-		HasOrganizationChangedResponse result = (HasOrganizationChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-				"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
+		HasOrganizationChangedResponse result = (HasOrganizationChangedResponse) new WebServiceTemplate(marshaller)
+				.marshalSendAndReceive(
+						"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
 		assertNotNull(result);
 		assertTrue(result.isChanged());
 		assertEquals(7, result.getChangedValueList().getChangedValue().size());
@@ -375,8 +383,9 @@ public class ApplicationTests {
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
 		mockChangedOrganization(request.getGuid(), request.getStartDateTime(), request.getEndDateTime());
-		HasOrganizationChangedResponse result = (HasOrganizationChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-				"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
+		HasOrganizationChangedResponse result = (HasOrganizationChangedResponse) new WebServiceTemplate(marshaller)
+				.marshalSendAndReceive(
+						"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
 		assertNotNull(result);
 		assertTrue(result.isChanged());
 		assertEquals(1, result.getChangedValueList().getChangedValue().size());
@@ -402,8 +411,9 @@ public class ApplicationTests {
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
 		mockUnchangedOrganization(request.getGuid(), request.getStartDateTime(), request.getEndDateTime());
-		HasOrganizationChangedResponse result = (HasOrganizationChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-				"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
+		HasOrganizationChangedResponse result = (HasOrganizationChangedResponse) new WebServiceTemplate(marshaller)
+				.marshalSendAndReceive(
+						"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
 		assertNotNull(result);
 		assertEquals(false, result.isChanged(), "Organization changed");
 		assertEquals(0, result.getChangedValueList().getChangedValue().size());
@@ -431,8 +441,9 @@ public class ApplicationTests {
 			request.setStartDateTime(startDateTime);
 			request.setEndDateTime(endDateTime);
 			mockChangedOrganizationNotFoundException(request.getGuid(), request.getStartDateTime(), request.getEndDateTime());
-			HasOrganizationChangedResponse result = (HasOrganizationChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-					"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
+			HasOrganizationChangedResponse result = (HasOrganizationChangedResponse) new WebServiceTemplate(marshaller)
+					.marshalSendAndReceive(
+							"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
 			exceptionMessage = e.getMessage();
@@ -463,8 +474,9 @@ public class ApplicationTests {
 			}
 			request.setStartDateTime(startDateTime);
 			request.setEndDateTime(endDateTime);
-			HasOrganizationChangedResponse result = (HasOrganizationChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-					"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
+			HasOrganizationChangedResponse result = (HasOrganizationChangedResponse) new WebServiceTemplate(marshaller)
+					.marshalSendAndReceive(
+							"http://localhost:" + port + "/ws/HasOrganizationChanged/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
 			exceptionMessage = e.getMessage();
@@ -483,7 +495,7 @@ public class ApplicationTests {
 		GetCompanies request = new GetCompanies();
 		request.setBusinessId(businessId);
 		mockCompanies(businessId, detailsUri, companyForm, name);
-		GetCompaniesResponse result = (GetCompaniesResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		GetCompaniesResponse result = (GetCompaniesResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetCompanies/", request);
 		assertNotNull(result);
 		assertEquals(1, result.getCompanyList().getCompany().size());
@@ -500,7 +512,7 @@ public class ApplicationTests {
 		try {
 			GetCompanies request = new GetCompanies();
 			request.setBusinessId("1710128-1");
-			GetCompaniesResponse result = (GetCompaniesResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+			GetCompaniesResponse result = (GetCompaniesResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 					"http://localhost:" + port + "/ws/GetCompanies/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
@@ -517,7 +529,7 @@ public class ApplicationTests {
 		try {
 			GetCompanies request = new GetCompanies();
 			request.setBusinessId(null);
-			GetCompaniesResponse result = (GetCompaniesResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+			GetCompaniesResponse result = (GetCompaniesResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 					"http://localhost:" + port + "/ws/GetCompanies/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
@@ -546,8 +558,9 @@ public class ApplicationTests {
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
 		mockChangedCompany(request.getBusinessId(), request.getStartDateTime(), request.getEndDateTime());
-		HasCompanyChangedResponse result = (HasCompanyChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-				"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
+		HasCompanyChangedResponse result = (HasCompanyChangedResponse) new WebServiceTemplate(marshaller)
+				.marshalSendAndReceive(
+						"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
 		assertNotNull(result);
 		assertEquals(true, result.isChanged(), "Company changed");
 		assertEquals(12, result.getChangedValueList().getChangedValue().size());
@@ -573,11 +586,12 @@ public class ApplicationTests {
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
 		mockUnchangedCompany(request.getBusinessId(), request.getStartDateTime(), request.getEndDateTime());
-		HasCompanyChangedResponse result = (HasCompanyChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-				"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
+		HasCompanyChangedResponse result = (HasCompanyChangedResponse) new WebServiceTemplate(marshaller)
+				.marshalSendAndReceive(
+						"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
 		assertNotNull(result);
 		assertFalse(result.isChanged());
-		assertEquals( 0, result.getChangedValueList().getChangedValue().size());
+		assertEquals(0, result.getChangedValueList().getChangedValue().size());
 	}
 
 	@Test
@@ -601,9 +615,11 @@ public class ApplicationTests {
 			}
 			request.setStartDateTime(startDateTime);
 			request.setEndDateTime(endDateTime);
-			mockChangedCompanyNotFoundException(request.getBusinessId(), request.getStartDateTime(), request.getEndDateTime());
-			HasCompanyChangedResponse result = (HasCompanyChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-					"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
+			mockChangedCompanyNotFoundException(request.getBusinessId(), request.getStartDateTime(),
+					request.getEndDateTime());
+			HasCompanyChangedResponse result = (HasCompanyChangedResponse) new WebServiceTemplate(marshaller)
+					.marshalSendAndReceive(
+							"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
 			exceptionMessage = e.getMessage();
@@ -634,8 +650,9 @@ public class ApplicationTests {
 			}
 			request.setStartDateTime(startDateTime);
 			request.setEndDateTime(endDateTime);
-			HasCompanyChangedResponse result = (HasCompanyChangedResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
-					"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
+			HasCompanyChangedResponse result = (HasCompanyChangedResponse) new WebServiceTemplate(marshaller)
+					.marshalSendAndReceive(
+							"http://localhost:" + port + "/ws/HasCompanyChanged/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
 			exceptionMessage = e.getMessage();
@@ -663,7 +680,7 @@ public class ApplicationTests {
 		request.setStartDateTime(startDateTime);
 		request.setEndDateTime(endDateTime);
 		mockErrors(request.getStartDateTime(), request.getEndDateTime());
-		GetErrorsResponse result = (GetErrorsResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+		GetErrorsResponse result = (GetErrorsResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 				"http://localhost:" + port + "/ws/GetErrors/", request);
 		assertNotNull(result);
 		assertEquals(6, result.getErrorLogList().getErrorLog().size());
@@ -690,7 +707,7 @@ public class ApplicationTests {
 			}
 			request.setStartDateTime(startDateTime);
 			request.setEndDateTime(endDateTime);
-			GetErrorsResponse result = (GetErrorsResponse)new WebServiceTemplate(marshaller).marshalSendAndReceive(
+			GetErrorsResponse result = (GetErrorsResponse) new WebServiceTemplate(marshaller).marshalSendAndReceive(
 					"http://localhost:" + port + "/ws/GetErrors/", request);
 		} catch (SoapFaultClientException e) {
 			thrown = true;
@@ -741,12 +758,12 @@ public class ApplicationTests {
 	}
 
 	private void mockServicesForGetServiceType(String xRoadInstance,
-											   String memberClass,
-											   String memberCode,
-											   String subsystemCode,
-											   String serviceCode,
-											   String serviceVersion,
-											   String serviceType) {
+			String memberClass,
+			String memberCode,
+			String subsystemCode,
+			String serviceCode,
+			String serviceVersion,
+			String serviceType) {
 		Service service = new Service();
 		service.setServiceCode(serviceCode);
 		service.setServiceVersion(serviceVersion);
@@ -755,7 +772,8 @@ public class ApplicationTests {
 		} else if (serviceType.equalsIgnoreCase("openapi")) {
 			service.setOpenApi(new OpenApi());
 		}
-		given(catalogService.getService(xRoadInstance, memberClass, memberCode, serviceCode, subsystemCode, serviceVersion)).willReturn(service);
+		given(catalogService.getService(xRoadInstance, memberClass, memberCode, serviceCode, subsystemCode, serviceVersion))
+				.willReturn(service);
 	}
 
 	private void mockUnchangedCompany(String businessId, XMLGregorianCalendar calStart, XMLGregorianCalendar calEnd) {
@@ -785,18 +803,22 @@ public class ApplicationTests {
 		given(jaxbCompanyService.getChangedCompanyValues(businessId, calStart, calEnd)).willReturn(changedValues);
 	}
 
-	private void mockChangedCompanyNotFoundException(String businessId, XMLGregorianCalendar calStart, XMLGregorianCalendar calEnd) {
+	private void mockChangedCompanyNotFoundException(String businessId, XMLGregorianCalendar calStart,
+			XMLGregorianCalendar calEnd) {
 		String exceptionMessage = "company with businessId " + businessId + " not found";
-		given(jaxbCompanyService.getChangedCompanyValues(businessId, calStart, calEnd)).willThrow(new CatalogListerRuntimeException(exceptionMessage));
+		given(jaxbCompanyService.getChangedCompanyValues(businessId, calStart, calEnd))
+				.willThrow(new CatalogListerRuntimeException(exceptionMessage));
 	}
 
 	private void mockChangedOrganization(String guid, XMLGregorianCalendar calStart, XMLGregorianCalendar calEnd) {
 		ChangedValue changedValue = new ChangedValue();
 		changedValue.setName("Email");
-		given(jaxbOrganizationService.getChangedOrganizationValues(guid, calStart, calEnd)).willReturn(Arrays.asList(changedValue));
+		given(jaxbOrganizationService.getChangedOrganizationValues(guid, calStart, calEnd))
+				.willReturn(Arrays.asList(changedValue));
 	}
 
-	private void mockChangedOrganizationMultipleValues(String guid, XMLGregorianCalendar calStart, XMLGregorianCalendar calEnd) {
+	private void mockChangedOrganizationMultipleValues(String guid, XMLGregorianCalendar calStart,
+			XMLGregorianCalendar calEnd) {
 		List<ChangedValue> changedValues = new ArrayList<>();
 		List<String> changeValueStrings = Arrays.asList(
 				"Address",
@@ -814,9 +836,11 @@ public class ApplicationTests {
 		given(jaxbOrganizationService.getChangedOrganizationValues(guid, calStart, calEnd)).willReturn(changedValues);
 	}
 
-	private void mockChangedOrganizationNotFoundException(String guid, XMLGregorianCalendar calStart, XMLGregorianCalendar calEnd) {
+	private void mockChangedOrganizationNotFoundException(String guid, XMLGregorianCalendar calStart,
+			XMLGregorianCalendar calEnd) {
 		String exceptionMessage = "Organization with guid " + guid + " not found";
-		given(jaxbOrganizationService.getChangedOrganizationValues(guid, calStart, calEnd)).willThrow(new CatalogListerRuntimeException(exceptionMessage));
+		given(jaxbOrganizationService.getChangedOrganizationValues(guid, calStart, calEnd))
+				.willThrow(new CatalogListerRuntimeException(exceptionMessage));
 	}
 
 	private void mockUnchangedOrganization(String guid, XMLGregorianCalendar calStart, XMLGregorianCalendar calEnd) {

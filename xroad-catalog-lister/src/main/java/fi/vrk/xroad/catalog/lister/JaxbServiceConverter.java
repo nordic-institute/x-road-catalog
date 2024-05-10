@@ -15,7 +15,7 @@ package fi.vrk.xroad.catalog.lister;
 import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
 import fi.vrk.xroad.catalog.persistence.entity.Service;
 import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.xroad_catalog_lister.*;
+import fi.vrk.xroad.catalog.lister.generated.*;
 import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
@@ -28,9 +28,9 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
 
     @Override
     public Collection<Member> convertMembers(Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> members,
-                                             boolean onlyActiveChildren)  {
+            boolean onlyActiveChildren) {
         List<Member> converted = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.persistence.entity.Member member: members) {
+        for (fi.vrk.xroad.catalog.persistence.entity.Member member : members) {
             Member cm = new Member();
             cm.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(member.getStatusInfo().getChanged()));
             cm.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(member.getStatusInfo().getCreated()));
@@ -54,11 +54,11 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
     }
 
     @Override
-    public Collection<fi.vrk.xroad.xroad_catalog_lister.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
-                                                                                     boolean onlyActiveChildren) {
-        List<fi.vrk.xroad.xroad_catalog_lister.Subsystem> converted = new ArrayList<>();
-        for (Subsystem subsystem: subsystems) {
-            fi.vrk.xroad.xroad_catalog_lister.Subsystem cs = new fi.vrk.xroad.xroad_catalog_lister.Subsystem();
+    public Collection<fi.vrk.xroad.catalog.lister.generated.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
+            boolean onlyActiveChildren) {
+        List<fi.vrk.xroad.catalog.lister.generated.Subsystem> converted = new ArrayList<>();
+        for (Subsystem subsystem : subsystems) {
+            fi.vrk.xroad.catalog.lister.generated.Subsystem cs = new fi.vrk.xroad.catalog.lister.generated.Subsystem();
             cs.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(subsystem.getStatusInfo().getChanged()));
             cs.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(subsystem.getStatusInfo().getCreated()));
             cs.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(subsystem.getStatusInfo().getFetched()));
@@ -78,10 +78,10 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
     }
 
     @Override
-    public Collection<fi.vrk.xroad.xroad_catalog_lister.Service> convertServices(Iterable<Service> services,
-                                                                                 boolean onlyActiveChildren) {
-        List<fi.vrk.xroad.xroad_catalog_lister.Service> converted = new ArrayList<>();
-        for (Service service: services) {
+    public Collection<fi.vrk.xroad.catalog.lister.generated.Service> convertServices(Iterable<Service> services,
+            boolean onlyActiveChildren) {
+        List<fi.vrk.xroad.catalog.lister.generated.Service> converted = new ArrayList<>();
+        for (Service service : services) {
             converted.add(JaxbServiceUtil.convertService(service, onlyActiveChildren));
         }
         return converted;
@@ -93,9 +93,10 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
     }
 
     @Override
-    public Collection<ErrorLog> convertErrorLog(Iterable<fi.vrk.xroad.catalog.persistence.entity.ErrorLog> errorLogEntries)  {
+    public Collection<ErrorLog> convertErrorLog(
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.ErrorLog> errorLogEntries) {
         List<ErrorLog> converted = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.persistence.entity.ErrorLog errorLog: errorLogEntries) {
+        for (fi.vrk.xroad.catalog.persistence.entity.ErrorLog errorLog : errorLogEntries) {
             ErrorLog er = new ErrorLog();
             er.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(errorLog.getCreated()));
             er.setMessage(errorLog.getMessage());
