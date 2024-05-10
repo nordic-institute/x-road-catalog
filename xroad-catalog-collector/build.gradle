@@ -4,6 +4,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'jacoco'
+    id 'com.github.hierynomus.license'
 }
 
 group 'fi.vrk.xroad.catalog.collector'
@@ -71,8 +72,8 @@ licenseMain.dependsOn wsImport
 
 dependencies {
     implementation project(':xroad-catalog-persistence')
-    implementation (libs.javax.annotation)
-    implementation (libs.javax.jaxb)
+    implementation (libs.jakarta.annotation)
+    implementation (libs.jakarta.jaxb)
     implementation (libs.guava)
     implementation (libs.http.client)
     implementation (libs.json)
@@ -95,8 +96,8 @@ dependencies {
     testImplementation (libs.akka.testkit)
     testImplementation (libs.lombok)
     testAnnotationProcessor (libs.lombok)
-    testImplementation (libs.javax.annotation)
-    testImplementation (libs.javax.jaxb)
+    testImplementation (libs.jakarta.annotation)
+    testImplementation (libs.jakarta.jaxb)
 }
 
 compileJava.dependsOn wsImport
@@ -126,3 +127,13 @@ jacocoTestReport {
         xml.required = true
     }
 }
+
+license {
+    header rootProject.file('LICENSE.txt')
+    include "**/*.java"
+}
+
+licenseMain.source = fileTree('src/main')
+licenseTest.source = fileTree('src/test')
+licenseFormatMain.source = fileTree('src/main')
+licenseFormatTest.source = fileTree('src/test')

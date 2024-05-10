@@ -4,6 +4,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'jacoco'
+    id 'com.github.hierynomus.license'
 }
 
 group 'fi.vrk.xroad.catalog.persistence'
@@ -60,4 +61,12 @@ jacocoTestReport {
     }
 }
 
+license {
+    header rootProject.file('LICENSE.txt')
+    include "**/*.java"
+}
 
+licenseMain.source = fileTree('src/main')
+licenseTest.source = fileTree('src/test')
+licenseFormatMain.source = fileTree('src/main')
+licenseFormatTest.source = fileTree('src/test')

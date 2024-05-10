@@ -1,56 +1,56 @@
 [versions]
 akka = "2.6.21"
-commonsBeanUtils = "1.9.4"
-commonsCsv = "1.11.0"
+commons-beanutils = "1.9.4"
+commons-csv = "1.11.0"
 cxf = "4.0.4"
 guava = "31.1-jre"
-h2Database = "2.2.224"
-hierynomusLicense = "0.16.1"
-httpClient = "5.3.1"
+h2 = "2.2.224"
+httpclient = "5.3.1"
 jackson = "2.17.1"
-jakarta = "2.1.1"
-javaxAnnotation = "1.3.2"
-javaxJaxb = "2.3.1"
+jakarta-rs-api = "4.0.0"
+jakarta-annotation-api = "3.0.0"
+jakarta-bind-api = "4.0.2"
 jaxb = "4.0.1"
 json = "20220924"
 lombok = "1.18.32"
-mockitoInline = "4.6.1"
-postgreSql = "42.7.3"
-sonarqube = "5.0.0.4638"
-springBoot = "3.2.5"
-springDoc = "1.8.0"
+mockito-inline = "4.6.1"
+postgresql = "42.7.3"
+spring-boot = "3.2.5"
+spring-doc = "1.8.0"
 wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
+sonarqube = "5.0.0.4638"
+hierynomus-license = "0.16.1"
 
 [libraries]
 akka-actor = { module = "com.typesafe.akka:akka-actor_3", version.ref = "akka" }
 akka-slf4j = { module = "com.typesafe.akka:akka-slf4j_3", version.ref = "akka" }
 akka-testkit = { module = "com.typesafe.akka:akka-testkit_3", version.ref = "akka" }
-commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commonsBeanUtils" }
-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
+commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons.beanutils" }
+commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commons.csv" }
 cxf-core = { module = "org.apache.cxf:cxf-core", version.ref = "cxf" }
 cxf-spring-starter = { module = "org.apache.cxf:cxf-spring-boot-starter-jaxws", version.ref = "cxf" }
 cxf-transport = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "cxf" }
 cxf-jaxws = { module = "org.apache.cxf:cxf-rt-frontend-jaxws", version.ref = "cxf" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
-h2-database = { module = "com.h2database:h2", version.ref = "h2Database" }
-http-client = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpClient" }
+h2-database = { module = "com.h2database:h2", version.ref = "h2" }
+http-client = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
-jakarta = { module = "javax.ws.rs:javax.ws.rs-api", version.ref = "jakarta" }
-javax-annotation = { module = "javax.annotation:javax.annotation-api", version.ref = "javaxAnnotation" }
-javax-jaxb = { module = "javax.xml.bind:jaxb-api", version.ref = "javaxJaxb" }
+jakarta = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta.rs.api" }
+jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta.annotation.api" }
+jakarta-jaxb = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta.bind.api" }
 jaxb-maven = { module = "com.sun.xml.ws:jaxws-maven-plugin", version.ref = "jaxb" }
 jaxb-rt = { module = "com.sun.xml.ws:jaxws-rt", version.ref = "jaxb" }
 jaxb-tools = { module = "com.sun.xml.ws:jaxws-tools", version.ref = "jaxb" }
 jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxb" }
 json = { module = "org.json:json", version.ref = "json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInline" }
-postgresql = { module = "org.postgresql:postgresql", version.ref = "postgreSql" }
-spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
-spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "springBoot" }
-spring-doc = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springDoc" }
+mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito.inline" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "spring.boot" }
+spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring.boot" }
+spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "spring.boot" }
+spring-doc = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "spring.doc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 
 [bundles]
@@ -58,7 +58,7 @@ akka = [ "akka-actor", "akka-slf4j" ] # Don't include akka-testkit in this since
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation
 
 [plugins]
-hierynomus-license = { id  = "com.github.hierynomus.license", version.ref = "hierynomusLicense" }
+hierynomus-license = { id  = "com.github.hierynomus.license", version.ref = "hierynomus.license" }
 sonarqube = { id  = "org.sonarqube", version.ref = "sonarqube" }
-spring-boot = { id  = "org.springframework.boot", version.ref = "springBoot" }
+spring-boot = { id  = "org.springframework.boot", version.ref = "spring.boot" }
 wsdl2java = { id = "com.github.bjornvester.wsdl2java", version.ref = "wsdl2java" }

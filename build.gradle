@@ -35,15 +35,3 @@ allprojects {
     group = 'fi.vrk.xroad'
     version = project_version
 }
-
-subprojects {
-    apply plugin: 'com.github.hierynomus.license'
-
-    license {
-        header rootProject.file('LICENSE.txt')
-        include "**/*.java"
-        exclude "**/wsdl2java/*"
-    }
-}
-
-
