@@ -27,7 +27,8 @@ import scala.concurrent.duration.Duration;
 import static akka.actor.SupervisorStrategy.restart;
 
 /**
- * Supervisor to get list of all clients in system and initiate a ClientActor for each
+ * Supervisor to get list of all clients in system and initiate a ClientActor
+ * for each
  * <p/>
  * A router is configured at startup time, managing a pool of task actors.
  */
@@ -86,58 +87,61 @@ public class OrganizationsSupervisor extends XRoadCatalogActor {
         // prepare each pool. Give ActorRefs to other pools, as needed.
         // To make this possible, create pools in correct order
 
-        // for each pool, supervisor strategy restarts each individual actor if it fails.
+        // for each pool, supervisor strategy restarts each individual actor if it
+        // fails.
         // default is to restart the whole pool, which is not what we want:
         // http://doc.akka.io/docs/akka/current/java/routing.html#Supervision
 
         fetchWsdlPoolRouter = getContext().actorOf(new SmallestMailboxPool(fetchWsdlPoolSize)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("fetchWsdlActor")),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("fetchWsdlActor")),
                 FETCH_WSDL_ACTOR_ROUTER);
 
         fetchOpenApiPoolRouter = getContext().actorOf(new SmallestMailboxPool(fetchOpenApiPoolSize)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("fetchOpenApiActor")),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("fetchOpenApiActor")),
                 FETCH_OPENAPI_ACTOR_ROUTER);
 
         fetchRestPoolRouter = getContext().actorOf(new SmallestMailboxPool(fetchRestPoolSize)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("fetchRestActor")),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("fetchRestActor")),
                 FETCH_REST_ACTOR_ROUTER);
 
         fetchOrganizationsPoolRouter = getContext().actorOf(new SmallestMailboxPool(fetchOrganizationsPoolSize)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("fetchOrganizationsActor")),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("fetchOrganizationsActor")),
                 FETCH_ORGANIZATIONS_ACTOR_ROUTER);
 
         fetchCompaniesPoolRouter = getContext().actorOf(new SmallestMailboxPool(fetchCompaniesPoolSize)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("fetchCompaniesActor")),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("fetchCompaniesActor")),
                 FETCH_COMPANIES_ACTOR_ROUTER);
 
         organizationsPoolRouter = getContext().actorOf(new SmallestMailboxPool(listMethodsPoolSize)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("organizationsActor", fetchWsdlPoolRouter, fetchOpenApiPoolRouter,
-                                fetchRestPoolRouter, fetchOrganizationsPoolRouter, fetchCompaniesPoolRouter)),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("organizationsActor", fetchWsdlPoolRouter,
+                        fetchOpenApiPoolRouter,
+                        fetchRestPoolRouter, fetchOrganizationsPoolRouter,
+                        fetchCompaniesPoolRouter)),
                 ORGANIZATIONS_ACTOR_ROUTER);
 
         listClientsPoolRouter = getContext().actorOf(new SmallestMailboxPool(1)
-                        .withSupervisorStrategy(new OneForOneStrategy(-1,
-                                Duration.Inf(),
-                                (Throwable t) -> restart()))
-                        .props(springExtension.props("listClientsActor", organizationsPoolRouter)),
+                .withSupervisorStrategy(new OneForOneStrategy(-1,
+                        Duration.Inf(),
+                        (Throwable t) -> restart()))
+                .props(springExtension.props("listClientsActor", organizationsPoolRouter)),
                 LIST_CLIENTS_ACTOR_ROUTER);
 
         super.preStart();

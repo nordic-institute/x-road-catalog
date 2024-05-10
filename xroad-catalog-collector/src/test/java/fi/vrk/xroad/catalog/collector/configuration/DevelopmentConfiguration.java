@@ -18,9 +18,7 @@ import fi.vrk.xroad.catalog.collector.wsimport.MetaServicesPort;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;
-import org.apache.cxf.transport.servlet.CXFServlet;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -38,13 +36,6 @@ public class DevelopmentConfiguration extends ApplicationConfiguration {
         log.info("--------------DEVELOPMENT Configuration");
         return new MockRestTemplate();
     }
-
-    // TODO: Check if this is even needed in Spring Boot
-    // to start CXF (for mock web service)
-    // @Bean
-    // public ServletRegistrationBean servletRegistrationBean() {
-    // // return new ServletRegistrationBean(new CXFServlet(), "/*");
-    // }
 
     @Bean
     @Lazy(value = false)

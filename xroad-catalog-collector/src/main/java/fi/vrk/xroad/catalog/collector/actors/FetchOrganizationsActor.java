@@ -15,7 +15,25 @@ package fi.vrk.xroad.catalog.collector.actors;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.persistence.OrganizationService;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.Address;
+import fi.vrk.xroad.catalog.persistence.entity.Email;
+import fi.vrk.xroad.catalog.persistence.entity.Organization;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationName;
+import fi.vrk.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.vrk.xroad.catalog.persistence.entity.PostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.Street;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddress;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.WebPage;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -57,9 +75,11 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
     }
 
     @Override
-    protected boolean handleMessage(Object message) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    protected boolean handleMessage(Object message)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if (message instanceof ClientType) {
-            List<String> organizationIds = OrganizationUtil.getOrganizationIdsList((ClientType)message, fetchOrganizationsUrl,
+            List<String> organizationIds = OrganizationUtil.getOrganizationIdsList((ClientType) message,
+                    fetchOrganizationsUrl,
                     fetchOrganizationsLimit, catalogService);
             int numberOfOrganizations = organizationIds.size();
             log.info("Fetched {} organization GUIDs from {}", numberOfOrganizations, fetchOrganizationsUrl);
@@ -72,12 +92,14 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
                 elementCount.getAndIncrement();
                 if (elementCount.get() % maxOrganizationsPerRequest == 0) {
                     batchCount.getAndIncrement();
-                    saveBatch(OrganizationUtil.getDataByIds((ClientType) message, guidsList, fetchOrganizationsUrl, catalogService));
+                    saveBatch(OrganizationUtil.getDataByIds((ClientType) message, guidsList, fetchOrganizationsUrl,
+                            catalogService));
                     guidsList.clear();
                 }
                 if (elementCount.get() == organizationIds.size()) {
                     batchCount.getAndIncrement();
-                    saveBatch(OrganizationUtil.getDataByIds((ClientType) message, guidsList, fetchOrganizationsUrl, catalogService));
+                    saveBatch(OrganizationUtil.getDataByIds((ClientType) message, guidsList, fetchOrganizationsUrl,
+                            catalogService));
                 }
             });
             log.info("Saved data of {} organizations successfully", numberOfOrganizations);
@@ -174,7 +196,8 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
         streetAddress.setAddress(savedAddress);
         StreetAddress savedStreetAddress = organizationService.saveStreetAddress(streetAddress);
         saveStreetAddressMunicipality(streetAddressJson.optJSONObject("municipality"), savedStreetAddress);
-        saveStreetAddressAdditionalInformation(streetAddressJson.optJSONArray("additionalInformation"), savedStreetAddress);
+        saveStreetAddressAdditionalInformation(streetAddressJson.optJSONArray("additionalInformation"),
+                savedStreetAddress);
         saveStreetAddressPostOffice(streetAddressJson.optJSONArray("postOffice"), savedStreetAddress);
         saveStreetAddressStreet(streetAddressJson.optJSONArray("street"), savedStreetAddress);
     }
@@ -199,7 +222,8 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
         }
     }
 
-    private void saveStreetAddressAdditionalInformation(JSONArray additionalInformationJson, StreetAddress savedStreetAddress) {
+    private void saveStreetAddressAdditionalInformation(JSONArray additionalInformationJson,
+            StreetAddress savedStreetAddress) {
         if (additionalInformationJson != null) {
             List<StreetAddressAdditionalInformation> streetAddressAdditionalInformationList = OrganizationUtil
                     .createStreetAddressAdditionalInformation(additionalInformationJson);
@@ -211,7 +235,7 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
     }
 
     private void saveStreetAddressPostOffice(JSONArray postOfficeJson, StreetAddress savedStreetAddress) {
-        if (postOfficeJson!= null) {
+        if (postOfficeJson != null) {
             List<StreetAddressPostOffice> streetAddressPostOfficeList = OrganizationUtil
                     .createStreetAddressPostOffices(postOfficeJson);
             streetAddressPostOfficeList.forEach(postOffice -> {
@@ -232,22 +256,25 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
     }
 
     private void savePostOfficeBoxAddress(JSONObject postOfficeBoxAddressJson, Address savedAddress) {
-        PostOfficeBoxAddress postOfficeBoxAddress = OrganizationUtil.createPostOfficeBoxAddress(postOfficeBoxAddressJson);
+        PostOfficeBoxAddress postOfficeBoxAddress = OrganizationUtil
+                .createPostOfficeBoxAddress(postOfficeBoxAddressJson);
         postOfficeBoxAddress.setAddress(savedAddress);
-        PostOfficeBoxAddress savedPostOfficeBoxAddress = organizationService.savePostOfficeBoxAddress(postOfficeBoxAddress);
+        PostOfficeBoxAddress savedPostOfficeBoxAddress = organizationService
+                .savePostOfficeBoxAddress(postOfficeBoxAddress);
 
         savePostOfficeBoxAddressAdditionalInformation(postOfficeBoxAddressJson.optJSONArray("additionalInformation"),
                 savedPostOfficeBoxAddress);
         savePostOffice(postOfficeBoxAddressJson.optJSONArray("postOffice"), savedPostOfficeBoxAddress);
-        savePostOfficeBoxAddressMunicipality(postOfficeBoxAddressJson.optJSONObject("municipality"), savedPostOfficeBoxAddress);
+        savePostOfficeBoxAddressMunicipality(postOfficeBoxAddressJson.optJSONObject("municipality"),
+                savedPostOfficeBoxAddress);
         savePostOfficeBox(postOfficeBoxAddressJson.optJSONArray("postOfficeBox"), savedPostOfficeBoxAddress);
     }
 
     private void savePostOfficeBoxAddressAdditionalInformation(JSONArray additionalInformationJson,
-                                                               PostOfficeBoxAddress savedPostOfficeBoxAddress) {
+            PostOfficeBoxAddress savedPostOfficeBoxAddress) {
         if (additionalInformationJson != null) {
-            List<PostOfficeBoxAddressAdditionalInformation> postOfficeBoxAddressAdditionalInformationList
-                    = OrganizationUtil.createPostOfficeBoxAddressAdditionalInformation(additionalInformationJson);
+            List<PostOfficeBoxAddressAdditionalInformation> postOfficeBoxAddressAdditionalInformationList = OrganizationUtil
+                    .createPostOfficeBoxAddressAdditionalInformation(additionalInformationJson);
             postOfficeBoxAddressAdditionalInformationList.forEach(additionalInfo -> {
                 additionalInfo.setPostOfficeBoxAddress(savedPostOfficeBoxAddress);
                 organizationService.savePostOfficeBoxAddressAdditionalInformation(additionalInfo);
@@ -266,8 +293,8 @@ public class FetchOrganizationsActor extends XRoadCatalogActor {
     }
 
     private void savePostOfficeBoxAddressMunicipality(JSONObject municipalityJson,
-                                                      PostOfficeBoxAddress savedPostOfficeBoxAddress) {
-        if (municipalityJson!= null) {
+            PostOfficeBoxAddress savedPostOfficeBoxAddress) {
+        if (municipalityJson != null) {
             PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality = OrganizationUtil
                     .createPostOfficeBoxAddressMunicipality(municipalityJson);
             postOfficeBoxAddressMunicipality.setPostOfficeBoxAddress(savedPostOfficeBoxAddress);

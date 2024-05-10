@@ -34,7 +34,7 @@ public class MockRestTemplate extends RestTemplate implements MockHttpServer {
         try {
             log.info("starting server for url: " + url);
             localUrl = startServerForUrl(url);
-            T result = super.getForObject(localUrl,responseType);
+            T result = super.getForObject(localUrl, responseType);
             log.info("starting server for url: " + url);
             stopServer();
             return result;
@@ -43,7 +43,6 @@ public class MockRestTemplate extends RestTemplate implements MockHttpServer {
             throw new CatalogCollectorRuntimeException("Error reading resource from httpserver", e);
         }
     }
-
 
     @Override
     public HttpServer getServer() {

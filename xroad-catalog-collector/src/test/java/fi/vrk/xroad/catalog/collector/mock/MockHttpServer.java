@@ -28,14 +28,15 @@ public interface MockHttpServer {
 
     int PORT = 8932;
 
-    Logger log = LoggerFactory.getLogger("MockHttpServer");
+    Logger LOG = LoggerFactory.getLogger("MockHttpServer");
 
     HttpServer getServer();
-    void setServer(HttpServer server);
 
+    void setServer(HttpServer server);
 
     /**
      * Start http server that offers the given file through http
+     * 
      * @param fileName file that can be found in classpath
      */
     default void startServer(String fileName) {
@@ -44,7 +45,7 @@ public interface MockHttpServer {
 
             getServer().createContext(getContext(fileName), getHandler(fileName));
             getServer().setExecutor(null); // creates a default executor
-            log.info("Starting local http server {} in port {}", getServer(), PORT);
+            LOG.info("Starting local http server {} in port {}", getServer(), PORT);
             getServer().start();
         } catch (Exception e) {
             throw new CatalogCollectorRuntimeException("Cannot start httpserver", e);
@@ -55,29 +56,29 @@ public interface MockHttpServer {
      * Stop http server
      */
     default void stopServer() {
-        log.info("Stopping local http server {} in port {}", getServer(), PORT);
+        LOG.info("Stopping local http server {} in port {}", getServer(), PORT);
         getServer().stop(0);
     }
 
-
     /**
      * Start http server using file based on the url in the parameter
+     * 
      * @param url Actual url for the real request
      * @return Local url (url for localhost and resource filename)
      */
     default String startServerForUrl(String url) {
         String[] parts = url.split("/");
 
-        String fileName = "/data/" + parts[3]+".xml";
-        String localUrl = "http://localhost:"+PORT+fileName;
+        String fileName = "/data/" + parts[3] + ".xml";
+        String localUrl = "http://localhost:" + PORT + fileName;
 
-        log.info("Reading response from file {} and local url {}", fileName, localUrl);
+        LOG.info("Reading response from file {} and local url {}", fileName, localUrl);
 
         try {
             startServer(fileName);
             return localUrl;
         } catch (Exception e) {
-            log.error("Error getting resource from through http{}", localUrl);
+            LOG.error("Error getting resource from through http{}", localUrl);
             throw new CatalogCollectorRuntimeException("Error reading resource from httpserver", e);
         }
     }
@@ -90,15 +91,13 @@ public interface MockHttpServer {
         return new ResourceToHttpHandler(fileName);
     }
 
-    static class ResourceToHttpHandler implements HttpHandler {
+    class ResourceToHttpHandler implements HttpHandler {
 
         public final String fileName;
 
         public ResourceToHttpHandler(String fileName) {
             this.fileName = fileName;
         }
-
-
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {

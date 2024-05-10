@@ -12,7 +12,17 @@
  */
 package fi.vrk.xroad.catalog.collector.util;
 
-import fi.vrk.xroad.catalog.collector.wsimport.*;
+import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
+import fi.vrk.xroad.catalog.collector.wsimport.GetWsdl;
+import fi.vrk.xroad.catalog.collector.wsimport.GetWsdlResponse;
+import fi.vrk.xroad.catalog.collector.wsimport.ListMethods;
+import fi.vrk.xroad.catalog.collector.wsimport.ListMethodsResponse;
+import fi.vrk.xroad.catalog.collector.wsimport.MetaServicesPort;
+import fi.vrk.xroad.catalog.collector.wsimport.ProducerPortService;
+import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
+import fi.vrk.xroad.catalog.collector.wsimport.XRoadIdentifierType;
+import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
+import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
 import jakarta.activation.DataHandler;
@@ -37,6 +47,9 @@ import java.util.UUID;
 @Slf4j
 public class XRoadClient {
 
+    static final int HTTP_CONNECTION_TIMEOUT = 30000;
+    static final int HTTP_RECEIVE_TIMEOUT = 60000;
+
     final MetaServicesPort metaServicesPort;
     final XRoadClientIdentifierType clientId;
 
@@ -51,7 +64,8 @@ public class XRoadClient {
     /**
      * Calls the service using JAX-WS endpoints that have been generated from wsdl
      */
-    public List<XRoadServiceIdentifierType> getMethods(XRoadClientIdentifierType member, CatalogService catalogService) {
+    public List<XRoadServiceIdentifierType> getMethods(XRoadClientIdentifierType member,
+            CatalogService catalogService) {
         XRoadServiceIdentifierType serviceIdentifierType = new XRoadServiceIdentifierType();
         copyIdentifierType(serviceIdentifierType, member);
 
@@ -70,7 +84,7 @@ public class XRoadClient {
                     userId(),
                     queryId(),
                     protocolVersion());
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Fetch of SOAP services failed: " + e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
                     .created(LocalDateTime.now())
@@ -116,7 +130,7 @@ public class XRoadClient {
                     protocolVersion(),
                     response,
                     wsdl);
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Fetch of WSDL failed: " + e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
                     .created(LocalDateTime.now())
@@ -135,12 +149,11 @@ public class XRoadClient {
             catalogService.saveErrorLog(errorLog);
         }
 
-
         if (!(wsdl.value instanceof byte[])) {
             DataHandler dh = null;
             final Client client = ClientProxy.getClient(metaServicesPort);
-            final Collection<Attachment> attachments =
-                    (Collection<Attachment>)client.getResponseContext().get(Message.ATTACHMENTS);
+            final Collection<Attachment> attachments = (Collection<Attachment>) client.getResponseContext()
+                    .get(Message.ATTACHMENTS);
             if (attachments != null && attachments.size() == 1) {
                 dh = attachments.iterator().next().getDataHandler();
             } else {
@@ -167,7 +180,7 @@ public class XRoadClient {
                 }
                 dh.writeTo(buf);
                 return buf.toString(StandardCharsets.UTF_8.name());
-            } catch (IOException|NullPointerException e) {
+            } catch (IOException | NullPointerException e) {
                 log.error("Error downloading WSDL: ", e.getMessage());
                 ErrorLog errorLog = ErrorLog.builder()
                         .created(LocalDateTime.now())
@@ -192,12 +205,12 @@ public class XRoadClient {
     }
 
     public String getOpenApi(XRoadRestServiceIdentifierType service,
-                             String host,
-                             String xRoadInstance,
-                             String memberClass,
-                             String memberCode,
-                             String subsystemCode,
-                             CatalogService catalogService) {
+            String host,
+            String xRoadInstance,
+            String memberClass,
+            String memberCode,
+            String subsystemCode,
+            CatalogService catalogService) {
         ClientType clientType = new ClientType();
         XRoadClientIdentifierType xRoadClientIdentifierType = new XRoadClientIdentifierType();
         xRoadClientIdentifierType.setXRoadInstance(service.getXRoadInstance());
@@ -212,7 +225,8 @@ public class XRoadClient {
         xRoadClientIdentifierType.setObjectType(service.getObjectType());
         clientType.setId(xRoadClientIdentifierType);
 
-        return MethodListUtil.openApiFromResponse(clientType, host, xRoadInstance, memberClass, memberCode, subsystemCode, catalogService);
+        return MethodListUtil.openApiFromResponse(clientType, host, xRoadInstance, memberClass, memberCode,
+                subsystemCode, catalogService);
     }
 
     private static Holder<String> queryId() {
@@ -238,8 +252,8 @@ public class XRoadClient {
         bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, url.toString());
 
         final HTTPConduit conduit = (HTTPConduit) ClientProxy.getClient(port).getConduit();
-        conduit.getClient().setConnectionTimeout(30000);
-        conduit.getClient().setReceiveTimeout(60000);
+        conduit.getClient().setConnectionTimeout(HTTP_CONNECTION_TIMEOUT);
+        conduit.getClient().setReceiveTimeout(HTTP_RECEIVE_TIMEOUT);
 
         return port;
     }

@@ -17,7 +17,18 @@ import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.CompanyService;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessLine;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessName;
+import fi.vrk.xroad.catalog.persistence.entity.Company;
+import fi.vrk.xroad.catalog.persistence.entity.CompanyForm;
+import fi.vrk.xroad.catalog.persistence.entity.ContactDetail;
+import fi.vrk.xroad.catalog.persistence.entity.Language;
+import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
+import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
+import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +66,8 @@ public class FetchCompaniesActor extends XRoadCatalogActor {
             XRoadClientIdentifierType client = clientType.getId();
             log.info("Fetching data for company with businessCode {}", client.getMemberCode());
             String businessCode = clientType.getId().getMemberCode();
-            JSONObject companyJson = OrganizationUtil.getCompany(clientType, fetchCompaniesUrl, businessCode, catalogService);
+            JSONObject companyJson = OrganizationUtil.getCompany(clientType, fetchCompaniesUrl, businessCode,
+                    catalogService);
             saveData(companyJson.optJSONArray("results"));
             log.info("Successfully saved data for company with businessCode {}", businessCode);
             return true;

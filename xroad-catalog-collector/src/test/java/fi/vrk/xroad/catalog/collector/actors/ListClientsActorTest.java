@@ -47,7 +47,6 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(classes = DevelopmentConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ListClientsActorTest extends TestKit {
 
-
     @MockBean
     CatalogService catalogService;
 
@@ -61,27 +60,28 @@ public class ListClientsActorTest extends TestKit {
 
     ListClientsActor listClientsActor;
 
-    static ActorSystem _system;
+    static ActorSystem system;
 
     public ListClientsActorTest() {
-        super(_system);
+        super(system);
     }
 
     @BeforeTestClass
     public static void setupTest() {
-        _system = ActorSystem.create();
+        system = ActorSystem.create();
     }
 
     @AfterTestClass
     public static void teardown() {
-        TestKit.shutdownActorSystem(_system);
-        _system = null;
+        TestKit.shutdownActorSystem(system);
+        system = null;
     }
 
     @BeforeEach
     public void setup() throws Exception {
         listMethodsPoolRef = mock(InternalActorRef.class);
-        TestActorRef<ListClientsActor> clientsRef = TestActorRef.create(actorSystem, springExtension.props("listClientsActor", listMethodsPoolRef));
+        TestActorRef<ListClientsActor> clientsRef = TestActorRef.create(actorSystem,
+                springExtension.props("listClientsActor", listMethodsPoolRef));
         listClientsActor = clientsRef.underlyingActor();
         ReflectionTestUtils.setField(listClientsActor, "host", "http://localhost");
         ReflectionTestUtils.setField(listClientsActor, "fetchUnlimited", Boolean.TRUE);
@@ -101,7 +101,8 @@ public class ListClientsActorTest extends TestKit {
             clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub1"));
             clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub2"));
 
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(CatalogService.class))).thenReturn(clientList);
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(CatalogService.class)))
+                    .thenReturn(clientList);
 
             listClientsActor.onReceive(ListClientsActor.START_COLLECTING);
 
@@ -126,7 +127,8 @@ public class ListClientsActorTest extends TestKit {
             clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub1"));
             clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub2"));
 
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(CatalogService.class))).thenReturn(clientList);
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(CatalogService.class)))
+                    .thenReturn(clientList);
 
             listClientsActor.onReceive(ListClientsActor.START_COLLECTING);
 
@@ -138,7 +140,8 @@ public class ListClientsActorTest extends TestKit {
     public void testOnReceiveWithEmptyMemberList() throws Exception {
         try (MockedStatic mocked = mockStatic(ClientListUtil.class)) {
             ClientList clientList = new ClientList();
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(CatalogService.class))).thenReturn(clientList);
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(CatalogService.class)))
+                    .thenReturn(clientList);
             listClientsActor.onReceive(ListClientsActor.START_COLLECTING);
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
         }

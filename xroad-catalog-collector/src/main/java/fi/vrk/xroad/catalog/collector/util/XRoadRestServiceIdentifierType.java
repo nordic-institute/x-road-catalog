@@ -18,11 +18,13 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlType;
 import java.util.List;
 
-
 /**
- * <p>Java class for XRoadServiceIdentifierType complex type.
+ * <p>
+ * Java class for XRoadServiceIdentifierType complex type.
  * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="XRoadServiceIdentifierType">
@@ -46,8 +48,7 @@ import java.util.List;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "XRoadServiceIdentifierType", namespace = "http://x-road.eu/xsd/identifiers")
-public class XRoadRestServiceIdentifierType extends XRoadIdentifierType
-{
+public class XRoadRestServiceIdentifierType extends XRoadIdentifierType {
     protected String serviceType;
 
     protected List<Endpoint> endpointList;
@@ -60,7 +61,11 @@ public class XRoadRestServiceIdentifierType extends XRoadIdentifierType
         this.serviceType = value;
     }
 
-    public List<Endpoint> getEndpoints() { return endpointList; }
+    public List<Endpoint> getEndpoints() {
+        return endpointList;
+    }
 
-    public void setEndpoints(List<Endpoint> endpoints) { this.endpointList = endpoints; }
+    public void setEndpoints(List<Endpoint> endpoints) {
+        this.endpointList = endpoints;
+    }
 }

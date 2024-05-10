@@ -12,13 +12,18 @@
  */
 package fi.vrk.xroad.catalog.collector.util;
 
-import fi.vrk.xroad.catalog.collector.wsimport.*;
+import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
+import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class MethodListUtil {
+public final class MethodListUtil {
 
     private static SecurityServerMetadata securityServerMetadata;
 
@@ -46,12 +51,12 @@ public class MethodListUtil {
     }
 
     public static List<XRoadRestServiceIdentifierType> methodListFromResponse(ClientType clientType,
-                                                                              String host,
-                                                                              String xRoadInstance,
-                                                                              String memberClass,
-                                                                              String memberCode,
-                                                                              String subsystemCode,
-                                                                              CatalogService catalogService) {
+            String host,
+            String xRoadInstance,
+            String memberClass,
+            String memberCode,
+            String subsystemCode,
+            CatalogService catalogService) {
         final String url = new StringBuilder().append(host).append("/r1/")
                 .append(clientType.getId().getXRoadInstance()).append("/")
                 .append(clientType.getId().getMemberClass()).append("/")
@@ -70,15 +75,23 @@ public class MethodListUtil {
                 xRoadRestServiceIdentifierType.setSubsystemCode(service.optString("subsystem_code"));
                 xRoadRestServiceIdentifierType.setMemberClass(service.optString("member_class"));
                 xRoadRestServiceIdentifierType.setServiceCode(service.optString("service_code"));
-                xRoadRestServiceIdentifierType.setServiceVersion(service.has("service_version") ? service.optString("service_version") : null);
+                xRoadRestServiceIdentifierType.setServiceVersion(
+                        service.has("service_version") ? service.optString("service_version")
+                                : null);
                 xRoadRestServiceIdentifierType.setXRoadInstance(service.optString("xroad_instance"));
-                xRoadRestServiceIdentifierType.setObjectType(XRoadObjectType.fromValue(service.optString("object_type")));
-                xRoadRestServiceIdentifierType.setServiceType(service.has("service_type") ? service.optString("service_type") : null);
+                xRoadRestServiceIdentifierType
+                        .setObjectType(XRoadObjectType
+                                .fromValue(service.optString("object_type")));
+                xRoadRestServiceIdentifierType
+                        .setServiceType(service.has("service_type")
+                                ? service.optString("service_type")
+                                : null);
                 JSONArray endpointList = service.optJSONArray("endpoint_list");
                 List<Endpoint> endpoints = new ArrayList<>();
                 for (int j = 0; j < endpointList.length(); j++) {
                     JSONObject endpoint = endpointList.getJSONObject(j);
-                    endpoints.add(Endpoint.builder().method(endpoint.optString("method")).path(endpoint.optString("path")).build());
+                    endpoints.add(Endpoint.builder().method(endpoint.optString("method"))
+                            .path(endpoint.optString("path")).build());
                 }
                 xRoadRestServiceIdentifierType.setEndpoints(endpoints);
                 restServices.add(xRoadRestServiceIdentifierType);
@@ -89,12 +102,12 @@ public class MethodListUtil {
     }
 
     public static String openApiFromResponse(ClientType clientType,
-                                             String host,
-                                             String xRoadInstance,
-                                             String memberClass,
-                                             String memberCode,
-                                             String subsystemCode,
-                                             CatalogService catalogService) {
+            String host,
+            String xRoadInstance,
+            String memberClass,
+            String memberCode,
+            String subsystemCode,
+            CatalogService catalogService) {
         final String url = new StringBuilder().append(host).append("/r1/")
                 .append(clientType.getId().getXRoadInstance()).append("/")
                 .append(clientType.getId().getMemberClass()).append("/")
@@ -108,10 +121,12 @@ public class MethodListUtil {
         return (json != null) ? json.toString() : "";
     }
 
-    public static List<fi.vrk.xroad.catalog.collector.util.Endpoint> getEndpointList(XRoadRestServiceIdentifierType service) {
+    public static List<fi.vrk.xroad.catalog.collector.util.Endpoint> getEndpointList(
+            XRoadRestServiceIdentifierType service) {
         List<fi.vrk.xroad.catalog.collector.util.Endpoint> endpointList = new ArrayList<>();
         for (fi.vrk.xroad.catalog.collector.util.Endpoint endpoint : service.getEndpoints()) {
-            endpointList.add(Endpoint.builder().method(endpoint.getMethod()).path(endpoint.getPath()).build());
+            endpointList.add(Endpoint.builder().method(endpoint.getMethod()).path(endpoint.getPath())
+                    .build());
         }
         return endpointList;
     }
@@ -143,7 +158,8 @@ public class MethodListUtil {
         return (today.isAfter(fetchTimeFrom) && today.isBefore(fetchTimeTo));
     }
 
-    private static String createHeader(String xRoadInstance, String memberClass, String memberCode, String subsystemCode) {
+    private static String createHeader(String xRoadInstance, String memberClass, String memberCode,
+            String subsystemCode) {
         return new StringBuilder()
                 .append(xRoadInstance).append("/")
                 .append(memberClass).append("/")
@@ -151,7 +167,8 @@ public class MethodListUtil {
                 .append(subsystemCode).toString();
     }
 
-    private static JSONObject getJSON(String url, ClientType clientType, String xRoadClientHeader, CatalogService catalogService) {
+    private static JSONObject getJSON(String url, ClientType clientType, String xRoadClientHeader,
+            CatalogService catalogService) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
@@ -160,7 +177,8 @@ public class MethodListUtil {
         headers.set("X-Road-Client", xRoadClientHeader);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+                    String.class);
             return new JSONObject(response.getBody());
         } catch (Exception e) {
             SecurityServerMetadata newSecurityServerMetadata = SecurityServerMetadata.builder()
@@ -172,7 +190,8 @@ public class MethodListUtil {
                 log.error("Fetch of REST services failed: " + e.getMessage());
                 ErrorLog errorLog = ErrorLog.builder()
                         .created(LocalDateTime.now())
-                        .message("Fetch of REST services failed(url: " + url + "): " + e.getMessage())
+                        .message("Fetch of REST services failed(url: " + url + "): "
+                                + e.getMessage())
                         .code("500")
                         .xRoadInstance(clientType.getId().getXRoadInstance())
                         .memberClass(clientType.getId().getMemberClass())

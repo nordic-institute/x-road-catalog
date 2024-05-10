@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,12 +72,13 @@ public class FetchRestActor extends XRoadCatalogActor {
             JSONArray endPointsJSONArray = new JSONArray();
             JSONObject endpointJson;
             catalogService.prepareEndpoints(createSubsystemId(service), createServiceId(service));
-            for (Endpoint endpoint: endpointList) {
+            for (Endpoint endpoint : endpointList) {
                 endpointJson = new JSONObject();
                 endpointJson.put(METHOD, endpoint.getMethod());
                 endpointJson.put(PATH, endpoint.getPath());
                 endPointsJSONArray.put(endpointJson);
-                catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(), endpoint.getPath());
+                catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(),
+                        endpoint.getPath());
             }
             endpointData += endPointsJSONArray + "}";
             catalogService.saveRest(createSubsystemId(service), createServiceId(service), endpointData);

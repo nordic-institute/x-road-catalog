@@ -17,7 +17,7 @@ import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
 
-public class ClientTypeUtil {
+public final class ClientTypeUtil {
 
     private ClientTypeUtil() {
         // Private empty constructor
@@ -27,6 +27,7 @@ public class ClientTypeUtil {
         return toString(c.getId()) + ":" + c.getName();
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     public static String toString(XRoadIdentifierType c) {
         StringBuilder sb = new StringBuilder(128);
         sb.append(c.getObjectType());

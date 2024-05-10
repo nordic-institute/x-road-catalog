@@ -1,0 +1,38 @@
+plugins {
+    id 'com.github.hierynomus.license'
+    id 'checkstyle'
+}
+
+license {
+    header rootProject.file('LICENSE.txt')
+    include "**/*.java"
+}
+
+licenseMain.source = fileTree('src/main')
+licenseTest.source = fileTree('src/test')
+licenseFormatMain.source = fileTree('src/main')
+licenseFormatTest.source = fileTree('src/test')
+
+checkstyle {
+    toolVersion = "10.12.6"
+    configDirectory = file("${project.rootDir}/config/checkstyle")
+    ignoreFailures = false
+    showViolations = false
+    enableExternalDtdLoad = true
+}
+
+checkstyleMain {
+    source = fileTree('src/main/java')
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+checkstyleTest {
+    source = fileTree('src/test/java')
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
+}
+
+configurations.checkstyle {
+    resolutionStrategy.capabilitiesResolution.withCapability("com.google.collections:google-collections") {
+        select("com.google.guava:guava:0")
+    }
+}

@@ -25,20 +25,19 @@ public class SpringActorProducer implements IndirectActorProducer {
     private final Object[] args;
 
     public SpringActorProducer(ApplicationContext applicationContext,
-        String actorBeanName) {
+            String actorBeanName) {
         this.applicationContext = applicationContext;
         this.actorBeanName = actorBeanName;
         args = null;
     }
 
     public SpringActorProducer(ApplicationContext applicationContext,
-                               String actorBeanName,
-                               Object... args) {
+            String actorBeanName,
+            Object... args) {
         this.applicationContext = applicationContext;
         this.actorBeanName = actorBeanName;
         this.args = args;
     }
-
 
     @Override
     public Actor produce() {
@@ -54,3 +53,4 @@ public class SpringActorProducer implements IndirectActorProducer {
         return (Class<? extends Actor>) applicationContext.getType(actorBeanName);
     }
 }
+

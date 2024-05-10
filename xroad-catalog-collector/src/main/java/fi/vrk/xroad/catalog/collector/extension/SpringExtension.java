@@ -22,13 +22,14 @@ public class SpringExtension implements Extension {
 
     private ApplicationContext applicationContext;
 
+    @SuppressWarnings("checkstyle:HiddenField")
     public void initialize(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     public Props props(String actorBeanName) {
         return Props.create(SpringActorProducer.class,
-            applicationContext, actorBeanName);
+                applicationContext, actorBeanName);
     }
 
     public Props props(String actorBeanName, Object... args) {

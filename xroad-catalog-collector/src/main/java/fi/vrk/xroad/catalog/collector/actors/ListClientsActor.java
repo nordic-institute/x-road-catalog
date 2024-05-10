@@ -12,9 +12,8 @@
  */
 package fi.vrk.xroad.catalog.collector.actors;
 
-import akka.actor.ActorRef;
-import fi.vrk.xroad.catalog.collector.util.ClientTypeUtil;
 import fi.vrk.xroad.catalog.collector.util.ClientListUtil;
+import fi.vrk.xroad.catalog.collector.util.ClientTypeUtil;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientList;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
@@ -22,6 +21,7 @@ import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.Member;
 import fi.vrk.xroad.catalog.persistence.entity.MemberId;
 import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
+import akka.actor.ActorRef;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,7 +34,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -79,7 +80,8 @@ public class ListClientsActor extends XRoadCatalogActor {
     }
 
     @Override
-    protected boolean handleMessage(Object message) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    protected boolean handleMessage(Object message)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if (START_COLLECTING.equals(message)) {
             if (Boolean.TRUE.equals(fetchUnlimited) || isTimeBetweenHours(fetchTimeAfterHour, fetchTimeBeforeHour)) {
                 return fetchClients();
@@ -90,7 +92,7 @@ public class ListClientsActor extends XRoadCatalogActor {
         }
     }
 
-    private boolean fetchClients(){
+    private boolean fetchClients() {
         String listClientsUrl = host + "/listClients";
 
         log.info("Getting client list from {}", listClientsUrl);

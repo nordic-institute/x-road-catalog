@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -71,12 +72,14 @@ public class FetchOpenApiActor extends XRoadCatalogActor {
         if (message instanceof XRoadRestServiceIdentifierType) {
             XRoadRestServiceIdentifierType service = (XRoadRestServiceIdentifierType) message;
             log.info("Fetching openApi [{}] {}", openApiCounter.addAndGet(1), ClientTypeUtil.toString(service));
-            String openApi = xroadClient.getOpenApi(service, xroadSecurityServerHost, xroadInstance, memberClass, memberCode, subsystemCode, catalogService);
+            String openApi = xroadClient.getOpenApi(service, xroadSecurityServerHost, xroadInstance, memberClass,
+                    memberCode, subsystemCode, catalogService);
             catalogService.saveOpenApi(createSubsystemId(service), createServiceId(service), openApi);
             List<Endpoint> endpointList = MethodListUtil.getEndpointList(service);
             catalogService.prepareEndpoints(createSubsystemId(service), createServiceId(service));
-            for (Endpoint endpoint: endpointList) {
-                catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(), endpoint.getPath());
+            for (Endpoint endpoint : endpointList) {
+                catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(),
+                        endpoint.getPath());
             }
             log.info("Saved openApi successfully");
             return true;

@@ -94,10 +94,10 @@ public class OrganizationsActor extends XRoadCatalogActor {
     private XRoadClient xroadClient;
 
     public OrganizationsActor(ActorRef fetchWsdlPoolRef,
-                            ActorRef fetchOpenApiPoolRef,
-                            ActorRef fetchRestPoolRef,
-                            ActorRef fetchOrganizationsPoolRef,
-                            ActorRef fetchCompaniesPoolRef) {
+            ActorRef fetchOpenApiPoolRef,
+            ActorRef fetchRestPoolRef,
+            ActorRef fetchOrganizationsPoolRef,
+            ActorRef fetchCompaniesPoolRef) {
         this.fetchWsdlPoolRef = fetchWsdlPoolRef;
         this.fetchOpenApiPoolRef = fetchOpenApiPoolRef;
         this.fetchRestPoolRef = fetchRestPoolRef;
@@ -137,7 +137,8 @@ public class OrganizationsActor extends XRoadCatalogActor {
     }
 
     private void fetchCompanies(ClientType clientType) {
-        if (MethodListUtil.shouldFetchCompanies(fetchCompaniesUnlimited, fetchCompaniesTimeAfterHour, fetchCompaniesTimeBeforeHour)) {
+        if (MethodListUtil.shouldFetchCompanies(fetchCompaniesUnlimited, fetchCompaniesTimeAfterHour,
+                fetchCompaniesTimeBeforeHour)) {
             fetchCompaniesPoolRef.tell(clientType, getSelf());
         }
     }
@@ -185,3 +186,4 @@ public class OrganizationsActor extends XRoadCatalogActor {
         }
     }
 }
+

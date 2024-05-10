@@ -20,11 +20,10 @@ import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-public class ClientListUtil {
-
+public final class ClientListUtil {
 
     private ClientListUtil() {
         // Private empty constructor
@@ -45,8 +44,7 @@ public class ClientListUtil {
         }
 
         ClientList clientList = new ClientList();
-        for (int i = 0; i < members.length(); i++)
-        {
+        for (int i = 0; i < members.length(); i++) {
             ClientType clientType = new ClientType();
             JSONObject id = members.getJSONObject(i).getJSONObject("id");
             XRoadClientIdentifierType xRoadClientIdentifierType = new XRoadClientIdentifierType();
@@ -56,7 +54,8 @@ public class ClientListUtil {
             xRoadClientIdentifierType.setSubsystemCode(id.optString("subsystem_code"));
             xRoadClientIdentifierType.setGroupCode(id.optString("group_code"));
             xRoadClientIdentifierType.setServiceCode(id.optString("service_code"));
-            xRoadClientIdentifierType.setServiceVersion(id.has("service_version") ? id.optString("service_version") : null);
+            xRoadClientIdentifierType
+                    .setServiceVersion(id.has("service_version") ? id.optString("service_version") : null);
             xRoadClientIdentifierType.setSecurityCategoryCode(id.optString("security_category_code"));
             xRoadClientIdentifierType.setServerCode(id.optString("server_code"));
             xRoadClientIdentifierType.setObjectType(XRoadObjectType.fromValue(id.optString("object_type")));
@@ -67,7 +66,5 @@ public class ClientListUtil {
 
         return clientList;
     }
-
-
 
 }

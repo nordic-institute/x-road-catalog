@@ -31,7 +31,7 @@ import org.springframework.test.context.TestPropertySource;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = DevelopmentConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {"xroad-catalog.fetch-companies-run-unlimited=true"})
+@TestPropertySource(properties = { "xroad-catalog.fetch-companies-run-unlimited=true" })
 public class FetchCompanyActorTest {
 
     @MockBean
@@ -48,7 +48,8 @@ public class FetchCompanyActorTest {
 
     @Test
     public void testBasicPlumbing() {
-        TestActorRef fetchCompanyActor = TestActorRef.create(actorSystem, springExtension.props("fetchCompaniesActor", null));
+        TestActorRef fetchCompanyActor = TestActorRef.create(actorSystem,
+                springExtension.props("fetchCompaniesActor", null));
         ClientType clientType = new ClientType();
         XRoadClientIdentifierType value = new XRoadClientIdentifierType();
         value.setXRoadInstance("INSTANCE");
@@ -65,7 +66,8 @@ public class FetchCompanyActorTest {
 
     @Test
     public void testBasicPlumbingWithInvalidData() {
-        TestActorRef fetchCompanyActor = TestActorRef.create(actorSystem, springExtension.props("fetchCompaniesActor", null));
+        TestActorRef fetchCompanyActor = TestActorRef.create(actorSystem,
+                springExtension.props("fetchCompaniesActor", null));
         ClientType clientType = new ClientType();
         XRoadClientIdentifierType value = new XRoadClientIdentifierType();
         value.setXRoadInstance("INSTANCE");
@@ -88,4 +90,3 @@ public class FetchCompanyActorTest {
     }
 
 }
-
