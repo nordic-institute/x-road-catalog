@@ -53,19 +53,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {"xroad-catalog.shared-params-file=src/test/resources/shared-params.xml"})
-@ActiveProfiles({"default","fi"})
+@TestPropertySource(properties = { "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml" })
+@ActiveProfiles({ "default", "fi" })
 public class ServiceControllerTests {
 
-    private static final String xRoadInstance = "DEV";
-    private static final String anotherInstance = "ICE";
-    private static final String memberClass = "GOV";
-    private static final String anotherMemberClass = "COM";
-    private static final String memberCode = "1234";
-    private static final String anotherMemberCode = "12345";
-    private static final String firstSubsystem = "TestSubsystem";
-    private static final String secondSubsystem = "AnotherTestSubsystem";
-    private static final String errorMessage = "Service not found";
+    private static final String XROAD_INSTANCE = "DEV";
+    private static final String OTHER_INSTANCE = "ICE";
+    private static final String MEMBER_CLASS = "GOV";
+    private static final String OTHER_MEMBER_CLASS = "COM";
+    private static final String MEMBER_CODE = "1234";
+    private static final String ANOTHER_MEMBER_CODE = "12345";
+    private static final String FIRST_SUBSYSTEM = "TestSubsystem";
+    private static final String SECOND_SUBSYSTEM = "AnotherTestSubsystem";
+    private static final String ERROR_MESSAGE = "Service not found";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -87,8 +87,8 @@ public class ServiceControllerTests {
         String startDate = "2014-01-01";
         String endDate = "2022-01-01";
         mockFindErrorLogForSubsystem(startDate, endDate);
-        String url = "/api/listErrors/" + xRoadInstance + "/" + memberClass + "/"
-                + memberCode +"/" + firstSubsystem + "?startDate=" + startDate + "&endDate=" + endDate;
+        String url = "/api/listErrors/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "/"
+                + MEMBER_CODE + "/" + FIRST_SUBSYSTEM + "?startDate=" + startDate + "&endDate=" + endDate;
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         assertNotNull(response.getBody());
         assertEquals(200, response.getStatusCodeValue());
@@ -98,11 +98,11 @@ public class ServiceControllerTests {
         assertEquals(1, errorList.length());
 
         for (int i = 0; i < errorList.length(); i++) {
-            assertEquals(errorMessage, errorList.optJSONObject(i).optString("message"));
-            assertEquals(xRoadInstance, errorList.optJSONObject(i).optString("xroadInstance"));
-            assertEquals(memberClass, errorList.optJSONObject(i).optString("memberClass"));
-            assertEquals(memberCode, errorList.optJSONObject(i).optString("memberCode"));
-            assertEquals(firstSubsystem, errorList.optJSONObject(i).optString("subsystemCode"));
+            assertEquals(ERROR_MESSAGE, errorList.optJSONObject(i).optString("message"));
+            assertEquals(XROAD_INSTANCE, errorList.optJSONObject(i).optString("xroadInstance"));
+            assertEquals(MEMBER_CLASS, errorList.optJSONObject(i).optString("memberClass"));
+            assertEquals(MEMBER_CODE, errorList.optJSONObject(i).optString("memberCode"));
+            assertEquals(FIRST_SUBSYSTEM, errorList.optJSONObject(i).optString("subsystemCode"));
         }
     }
 
@@ -111,8 +111,9 @@ public class ServiceControllerTests {
         String startDate = "2014-01-01";
         String endDate = "2022-01-01";
         mockFindErrorLogForSubsystem(startDate, endDate);
-        String url = "/api/listErrors/" + xRoadInstance + "/" + memberClass + "/"
-                + memberCode +"/" + firstSubsystem + "?startDate=" + startDate + "&endDate=" + endDate + "&page=0&limit=100";
+        String url = "/api/listErrors/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "/"
+                + MEMBER_CODE + "/" + FIRST_SUBSYSTEM + "?startDate=" + startDate + "&endDate=" + endDate
+                + "&page=0&limit=100";
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         assertNotNull(response.getBody());
         assertEquals(200, response.getStatusCodeValue());
@@ -122,11 +123,11 @@ public class ServiceControllerTests {
         assertEquals(1, errorList.length());
 
         for (int i = 0; i < errorList.length(); i++) {
-            assertEquals(errorMessage, errorList.optJSONObject(i).optString("message"));
-            assertEquals(xRoadInstance, errorList.optJSONObject(i).optString("xroadInstance"));
-            assertEquals(memberClass, errorList.optJSONObject(i).optString("memberClass"));
-            assertEquals(memberCode, errorList.optJSONObject(i).optString("memberCode"));
-            assertEquals(firstSubsystem, errorList.optJSONObject(i).optString("subsystemCode"));
+            assertEquals(ERROR_MESSAGE, errorList.optJSONObject(i).optString("message"));
+            assertEquals(XROAD_INSTANCE, errorList.optJSONObject(i).optString("xroadInstance"));
+            assertEquals(MEMBER_CLASS, errorList.optJSONObject(i).optString("memberClass"));
+            assertEquals(MEMBER_CODE, errorList.optJSONObject(i).optString("memberCode"));
+            assertEquals(FIRST_SUBSYSTEM, errorList.optJSONObject(i).optString("subsystemCode"));
         }
     }
 
@@ -140,7 +141,8 @@ public class ServiceControllerTests {
         mockFindErrorLogForAll(startDate, endDate);
 
         // testListErrorsForMemberCode
-        String url = "/api/listErrors/" + xRoadInstance + "/" + memberClass + "/" + memberCode + "?startDate=" + startDate + "&endDate=" + endDate;
+        String url = "/api/listErrors/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "/" + MEMBER_CODE + "?startDate="
+                + startDate + "&endDate=" + endDate;
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         JSONObject json = new JSONObject(response.getBody());
@@ -148,7 +150,8 @@ public class ServiceControllerTests {
         assertEquals(2, errorList.length());
 
         // testListErrorsForMemberCodeWithPagination
-        url = "/api/listErrors/" + xRoadInstance + "/" + memberClass + "/" + memberCode + "?startDate=" + startDate + "&endDate=" + endDate + "&page=0&limit=100";
+        url = "/api/listErrors/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "/" + MEMBER_CODE + "?startDate=" + startDate
+                + "&endDate=" + endDate + "&page=0&limit=100";
         response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
@@ -156,14 +159,16 @@ public class ServiceControllerTests {
         assertEquals(2, errorList.length());
 
         // testListErrorsForMemberClass
-        url = "/api/listErrors/" + xRoadInstance + "/" + memberClass + "?startDate=" + startDate + "&endDate=" + endDate;
+        url = "/api/listErrors/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "?startDate=" + startDate + "&endDate="
+                + endDate;
         response = restTemplate.getForEntity(url, String.class);
         json = new JSONObject(response.getBody());
         errorList = json.getJSONArray("errorLogList");
         assertEquals(3, errorList.length());
 
         // testListErrorsForMemberClassWithPagination
-        url = "/api/listErrors/" + xRoadInstance + "/" + memberClass + "?startDate=" + startDate + "&endDate=" + endDate + "&page=0&limit=100";
+        url = "/api/listErrors/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "?startDate=" + startDate + "&endDate="
+                + endDate + "&page=0&limit=100";
         response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
@@ -171,7 +176,7 @@ public class ServiceControllerTests {
         assertEquals(3, errorList.length());
 
         // testListErrorsForInstance
-        url = "/api/listErrors/" + xRoadInstance + "?startDate=" + startDate + "&endDate=" + endDate;
+        url = "/api/listErrors/" + XROAD_INSTANCE + "?startDate=" + startDate + "&endDate=" + endDate;
         response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
@@ -179,7 +184,8 @@ public class ServiceControllerTests {
         assertEquals(4, errorList.length());
 
         // testListErrorsForInstanceWithPagination
-        url = "/api/listErrors/" + xRoadInstance + "?startDate=" + startDate + "&endDate=" + endDate + "&page=0&limit=100";
+        url = "/api/listErrors/" + XROAD_INSTANCE + "?startDate=" + startDate + "&endDate=" + endDate
+                + "&page=0&limit=100";
         response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
@@ -238,13 +244,13 @@ public class ServiceControllerTests {
         }
 
         // testGetDistinctServiceStatisticsInvalidDateFormatException
-        response =
-                restTemplate.getForEntity("/api/getDistinctServiceStatistics?startDate=01-01-2014&endDate=2022-01-01", String.class);
+        response = restTemplate.getForEntity(
+                "/api/getDistinctServiceStatistics?startDate=01-01-2014&endDate=2022-01-01", String.class);
         assertEquals(400, response.getStatusCodeValue());
 
         // testGetDistinctServiceStatisticsNotFoundException
-        response =
-                restTemplate.getForEntity("/api/getDistinctServiceStatistics?startDate=2030-01-01&endDate=2030-06-01", String.class);
+        response = restTemplate.getForEntity(
+                "/api/getDistinctServiceStatistics?startDate=2030-01-01&endDate=2030-06-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         assertEquals("{\"distinctServiceStatisticsList\":[]}", response.getBody());
     }
@@ -411,10 +417,13 @@ public class ServiceControllerTests {
         assertEquals(1, securityServerDataList.length());
 
         for (int i = 0; i < securityServerDataList.length(); i++) {
-            assertEquals("{\"memberCode\":\"1234\",\"name\":\"ACME\",\"memberClass\":\"GOV\",\"subsystemCode\":null}", securityServerDataList.optJSONObject(i).optString("owner"));
+            assertEquals("{\"memberCode\":\"1234\",\"name\":\"ACME\",\"memberClass\":\"GOV\",\"subsystemCode\":null}",
+                    securityServerDataList.optJSONObject(i).optString("owner"));
             assertEquals("SS1", securityServerDataList.optJSONObject(i).optString("serverCode"));
             assertEquals("10.18.150.48", securityServerDataList.optJSONObject(i).optString("address"));
-            assertEquals("[{\"memberCode\":\"1234\",\"name\":\"ACME\",\"memberClass\":\"GOV\",\"subsystemCode\":\"MANAGEMENT\"}," +
+            assertEquals(
+                    "[{\"memberCode\":\"1234\",\"name\":\"ACME\",\"memberClass\":\"GOV\",\"subsystemCode\":\"MANAGEMENT\"},"
+                            +
                             "{\"memberCode\":\"1234\",\"name\":\"ACME\",\"memberClass\":\"GOV\",\"subsystemCode\":\"TEST\"}]",
                     securityServerDataList.optJSONObject(i).optString("clients"));
         }
@@ -458,7 +467,8 @@ public class ServiceControllerTests {
     @Test
     public void testGetEndpoints() throws JSONException {
         mockServicesWithEndpointsByMemberServiceAndSubsystem();
-        String url = "/api/getEndpoints/" + xRoadInstance + "/" + memberClass + "/" + memberCode + "/" + firstSubsystem + "/aService";
+        String url = "/api/getEndpoints/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "/" + MEMBER_CODE + "/"
+                + FIRST_SUBSYSTEM + "/aService";
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         ServiceEndpointsResponse endpointsResponse = new ServiceEndpointsResponse();
@@ -474,27 +484,34 @@ public class ServiceControllerTests {
         endpointsResponse.setEndpointList(endpointList);
         JSONObject json = new JSONObject(response.getBody());
         assertEquals(1, json.length());
-        assertEquals(xRoadInstance, json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getXRoadInstance()));
-        assertEquals(memberClass, json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getMemberClass()));
-        assertEquals(memberCode, json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getMemberCode()));
-        assertEquals(firstSubsystem, json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getSubsystemCode()));
-        assertEquals("aService", json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getServiceCode()));
-        assertEquals("v1", json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getServiceVersion()));
+        assertEquals(XROAD_INSTANCE,
+                json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getXRoadInstance()));
+        assertEquals(MEMBER_CLASS,
+                json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getMemberClass()));
+        assertEquals(MEMBER_CODE,
+                json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getMemberCode()));
+        assertEquals(FIRST_SUBSYSTEM,
+                json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getSubsystemCode()));
+        assertEquals("aService",
+                json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getServiceCode()));
+        assertEquals("v1",
+                json.optJSONArray("listOfServices").optJSONObject(0).optString(endpointsResponse.getServiceVersion()));
         assertEquals(1, json.optJSONArray("listOfServices").optJSONObject(0).optJSONArray("endpointList").length());
     }
 
     @Test
     public void testGetRest() throws JSONException {
         mockServicesWithRestByMemberServiceAndSubsystem();
-        String url = "/api/getRest/" + xRoadInstance + "/" + memberClass + "/" + memberCode + "/" + firstSubsystem + "/aService";
+        String url = "/api/getRest/" + XROAD_INSTANCE + "/" + MEMBER_CLASS + "/" + MEMBER_CODE + "/" + FIRST_SUBSYSTEM
+                + "/aService";
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         assertEquals(200, response.getStatusCodeValue());
         JSONObject json = new JSONObject(response.getBody());
         assertEquals(1, json.length());
-        assertEquals(xRoadInstance, json.optJSONArray("listOfServices").optJSONObject(0).optString("xroadInstance"));
-        assertEquals(memberClass, json.optJSONArray("listOfServices").optJSONObject(0).optString("memberClass"));
-        assertEquals(memberCode, json.optJSONArray("listOfServices").optJSONObject(0).optString("memberCode"));
-        assertEquals(firstSubsystem, json.optJSONArray("listOfServices").optJSONObject(0).optString("subsystemCode"));
+        assertEquals(XROAD_INSTANCE, json.optJSONArray("listOfServices").optJSONObject(0).optString("xroadInstance"));
+        assertEquals(MEMBER_CLASS, json.optJSONArray("listOfServices").optJSONObject(0).optString("memberClass"));
+        assertEquals(MEMBER_CODE, json.optJSONArray("listOfServices").optJSONObject(0).optString("memberCode"));
+        assertEquals(FIRST_SUBSYSTEM, json.optJSONArray("listOfServices").optJSONObject(0).optString("subsystemCode"));
         assertEquals("aService", json.optJSONArray("listOfServices").optJSONObject(0).optString("serviceCode"));
         assertEquals("v1", json.optJSONArray("listOfServices").optJSONObject(0).optString("serviceVersion"));
         assertEquals(1, json.optJSONArray("listOfServices").optJSONObject(0).optJSONArray("endpointList").length());
@@ -511,151 +528,151 @@ public class ServiceControllerTests {
     private void mockFindErrorLogForSubsystem(String startDate, String endDate) {
         List<ErrorLog> errorLogList = new ArrayList<>();
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(firstSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(FIRST_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         Page<ErrorLog> errors = new PageImpl<>(errorLogList, PageRequest.of(0, 100), 20);
         given(errorLogRepository.findAnyByAllParameters(ServiceUtil.convertStringToLocalDateTime(startDate),
                 ServiceUtil.convertStringToLocalDateTime(endDate),
-                xRoadInstance,
-                memberClass,
-                memberCode,
-                firstSubsystem,
+                XROAD_INSTANCE,
+                MEMBER_CLASS,
+                MEMBER_CODE,
+                FIRST_SUBSYSTEM,
                 PageRequest.of(0, 100))).willReturn(errors);
     }
 
     private void mockFindErrorLogForMemberCode(String startDate, String endDate) {
         List<ErrorLog> errorLogList = new ArrayList<>();
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(firstSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(FIRST_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         Page<ErrorLog> errors = new PageImpl<>(errorLogList, PageRequest.of(0, 100), 20);
         given(errorLogRepository.findAnyByMemberCode(ServiceUtil.convertStringToLocalDateTime(startDate),
                 ServiceUtil.convertStringToLocalDateTime(endDate),
-                xRoadInstance,
-                memberClass,
-                memberCode,
+                XROAD_INSTANCE,
+                MEMBER_CLASS,
+                MEMBER_CODE,
                 PageRequest.of(0, 100))).willReturn(errors);
     }
 
     private void mockFindErrorLogForMemberClass(String startDate, String endDate) {
         List<ErrorLog> errorLogList = new ArrayList<>();
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(firstSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(FIRST_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(anotherMemberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(ANOTHER_MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         Page<ErrorLog> errors = new PageImpl<>(errorLogList, PageRequest.of(0, 100), 20);
         given(errorLogRepository.findAnyByMemberClass(ServiceUtil.convertStringToLocalDateTime(startDate),
                 ServiceUtil.convertStringToLocalDateTime(endDate),
-                xRoadInstance,
-                memberClass,
+                XROAD_INSTANCE,
+                MEMBER_CLASS,
                 PageRequest.of(0, 100))).willReturn(errors);
     }
 
     private void mockFindErrorLogForInstance(String startDate, String endDate) {
         List<ErrorLog> errorLogList = new ArrayList<>();
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(firstSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(FIRST_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(anotherMemberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(ANOTHER_MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(anotherMemberClass)
-                .memberCode(anotherMemberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(OTHER_MEMBER_CLASS)
+                .memberCode(ANOTHER_MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         Page<ErrorLog> errors = new PageImpl<>(errorLogList, PageRequest.of(0, 100), 20);
         given(errorLogRepository.findAnyByInstance(ServiceUtil.convertStringToLocalDateTime(startDate),
                 ServiceUtil.convertStringToLocalDateTime(endDate),
-                xRoadInstance,
+                XROAD_INSTANCE,
                 PageRequest.of(0, 100))).willReturn(errors);
     }
 
     private void mockFindErrorLogForAll(String startDate, String endDate) {
         List<ErrorLog> errorLogList = new ArrayList<>();
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(firstSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(FIRST_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(memberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(memberClass)
-                .memberCode(anotherMemberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(MEMBER_CLASS)
+                .memberCode(ANOTHER_MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(xRoadInstance)
-                .memberClass(anotherMemberClass)
-                .memberCode(anotherMemberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(XROAD_INSTANCE)
+                .memberClass(OTHER_MEMBER_CLASS)
+                .memberCode(ANOTHER_MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         errorLogList.add(ErrorLog.builder()
-                .xRoadInstance(anotherInstance)
-                .memberClass(anotherMemberClass)
-                .memberCode(anotherMemberCode)
-                .subsystemCode(secondSubsystem)
-                .message(errorMessage)
+                .xRoadInstance(OTHER_INSTANCE)
+                .memberClass(OTHER_MEMBER_CLASS)
+                .memberCode(ANOTHER_MEMBER_CODE)
+                .subsystemCode(SECOND_SUBSYSTEM)
+                .message(ERROR_MESSAGE)
                 .build());
         Page<ErrorLog> errors = new PageImpl<>(errorLogList, PageRequest.of(0, 100), 20);
         given(errorLogRepository.findAnyByCreated(ServiceUtil.convertStringToLocalDateTime(startDate),
@@ -668,8 +685,8 @@ public class ServiceControllerTests {
         LocalDateTime created = LocalDateTime.of(2015, 1, 1, 1, 1);
         LocalDateTime changed = LocalDateTime.of(2015, 1, 1, 1, 1);
         LocalDateTime fetched = LocalDateTime.of(2015, 1, 1, 1, 1);
-        Member member = new Member(xRoadInstance, memberClass, memberCode, "memberX");
-        Subsystem subsystem = new Subsystem(member, firstSubsystem);
+        Member member = new Member(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, "memberX");
+        Subsystem subsystem = new Subsystem(member, FIRST_SUBSYSTEM);
         Service firstService = new Service(subsystem, "aService", "v1");
         firstService.setStatusInfo(new StatusInfo(created, changed, fetched, null));
         Service secondService = new Service(subsystem, "anotherService", "v1");
@@ -681,8 +698,8 @@ public class ServiceControllerTests {
 
     private void mockServicesWithEndpointsByMemberServiceAndSubsystem() {
         List<Service> services = new ArrayList<>();
-        Member member = new Member(xRoadInstance, memberClass, memberCode, "memberX");
-        Subsystem subsystem = new Subsystem(member, firstSubsystem);
+        Member member = new Member(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, "memberX");
+        Subsystem subsystem = new Subsystem(member, FIRST_SUBSYSTEM);
         Service firstService = new Service(subsystem, "aService", "v1");
         firstService.setEndpoint(new Endpoint(firstService, "GET", "/getServices"));
         firstService.setEndpoint(new Endpoint(firstService, "POST", "/setServices"));
@@ -691,17 +708,17 @@ public class ServiceControllerTests {
         secondService.setEndpoint(new Endpoint(secondService, "POST", "/setServices"));
         services.add(firstService);
         services.add(secondService);
-        given(serviceRepository.findServicesByMemberServiceAndSubsystem(xRoadInstance,
-                memberClass,
-                memberCode,
+        given(serviceRepository.findServicesByMemberServiceAndSubsystem(XROAD_INSTANCE,
+                MEMBER_CLASS,
+                MEMBER_CODE,
                 "aService",
-                firstSubsystem)).willReturn(services);
+                FIRST_SUBSYSTEM)).willReturn(services);
     }
 
     private void mockServicesWithRestByMemberServiceAndSubsystem() {
         List<Service> services = new ArrayList<>();
-        Member member = new Member(xRoadInstance, memberClass, memberCode, "memberX");
-        Subsystem subsystem = new Subsystem(member, firstSubsystem);
+        Member member = new Member(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, "memberX");
+        Subsystem subsystem = new Subsystem(member, FIRST_SUBSYSTEM);
         Service firstService = new Service(subsystem, "aService", "v1");
         Service secondService = new Service(subsystem, "anotherService", "v1");
         Rest rest1 = new Rest(firstService, "data123", "abc12345");
@@ -712,11 +729,11 @@ public class ServiceControllerTests {
         firstService.setEndpoint(new Endpoint(firstService, "POST", "/setServices"));
         services.add(firstService);
         services.add(secondService);
-        given(serviceRepository.findServicesByMemberServiceAndSubsystem(xRoadInstance,
-                memberClass,
-                memberCode,
+        given(serviceRepository.findServicesByMemberServiceAndSubsystem(XROAD_INSTANCE,
+                MEMBER_CLASS,
+                MEMBER_CODE,
                 "aService",
-                firstSubsystem)).willReturn(services);
+                FIRST_SUBSYSTEM)).willReturn(services);
         given(restRepository.findAnyByService(firstService)).willReturn(Arrays.asList(rest1));
     }
 
@@ -725,15 +742,15 @@ public class ServiceControllerTests {
         LocalDateTime created = LocalDateTime.of(2015, 1, 1, 1, 1);
         LocalDateTime changed = LocalDateTime.of(2015, 1, 1, 1, 1);
         LocalDateTime fetched = LocalDateTime.of(2015, 1, 1, 1, 1);
-        Member memberX = new Member(xRoadInstance, memberClass, memberCode, "memberX");
-        Member memberY = new Member(xRoadInstance, anotherMemberClass, memberCode, "memberY");
-        Member memberZ = new Member(xRoadInstance, memberClass, anotherMemberCode, "memberZ");
+        Member memberX = new Member(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, "memberX");
+        Member memberY = new Member(XROAD_INSTANCE, OTHER_MEMBER_CLASS, MEMBER_CODE, "memberY");
+        Member memberZ = new Member(XROAD_INSTANCE, MEMBER_CLASS, ANOTHER_MEMBER_CODE, "memberZ");
         memberX.setStatusInfo(new StatusInfo(created, changed, fetched, null));
         memberY.setStatusInfo(new StatusInfo(created.plusYears(1), changed, fetched, null));
         memberZ.setStatusInfo(new StatusInfo(created.plusYears(2), changed, fetched, null));
-        memberX.setSubsystems(new HashSet<>(Arrays.asList(new Subsystem(memberX, firstSubsystem))));
-        memberY.setSubsystems(new HashSet<>(Arrays.asList(new Subsystem(memberY, firstSubsystem))));
-        memberZ.setSubsystems(new HashSet<>(Arrays.asList(new Subsystem(memberZ, firstSubsystem))));
+        memberX.setSubsystems(new HashSet<>(Arrays.asList(new Subsystem(memberX, FIRST_SUBSYSTEM))));
+        memberY.setSubsystems(new HashSet<>(Arrays.asList(new Subsystem(memberY, FIRST_SUBSYSTEM))));
+        memberZ.setSubsystems(new HashSet<>(Arrays.asList(new Subsystem(memberZ, FIRST_SUBSYSTEM))));
         members.add(memberX);
         members.add(memberY);
         members.add(memberZ);

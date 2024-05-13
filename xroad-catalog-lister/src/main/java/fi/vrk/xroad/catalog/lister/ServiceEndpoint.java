@@ -34,9 +34,9 @@ import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 @Profile({ "default", "fi" })
 public interface ServiceEndpoint {
 
-    static final String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";
+    String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";
 
-    static final String NOT_FOUND = " not found";
+    String NOT_FOUND = " not found";
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ListMembers")
     @ResponsePayload

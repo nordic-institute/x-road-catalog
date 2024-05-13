@@ -75,7 +75,7 @@ import fi.vrk.xroad.catalog.persistence.entity.WebPage;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrganizationUtil {
+public final class OrganizationUtil {
 
     private OrganizationUtil() {
 
@@ -83,31 +83,36 @@ public class OrganizationUtil {
 
     public static List<OrganizationNameData> getOrganizationNameData(Iterable<Organization> organizations) {
         List<OrganizationNameData> organizationNameDataList = new ArrayList<>();
-        List<OrganizationName> organizationNames = new ArrayList<>(organizations.iterator().next().getAllOrganizationNames());
-        organizationNames.forEach(organizationName -> organizationNameDataList.add(OrganizationNameData.builder()
-                .language(organizationName.getLanguage())
-                .type(organizationName.getType())
-                .value(organizationName.getValue())
-                .changed(organizationName.getStatusInfo().getChanged())
-                .created(organizationName.getStatusInfo().getCreated())
-                .fetched(organizationName.getStatusInfo().getFetched())
-                .removed(organizationName.getStatusInfo().getRemoved())
-                .build()));
+        List<OrganizationName> organizationNames = new ArrayList<>(
+                organizations.iterator().next().getAllOrganizationNames());
+        organizationNames
+                .forEach(organizationName -> organizationNameDataList.add(OrganizationNameData.builder()
+                        .language(organizationName.getLanguage())
+                        .type(organizationName.getType())
+                        .value(organizationName.getValue())
+                        .changed(organizationName.getStatusInfo().getChanged())
+                        .created(organizationName.getStatusInfo().getCreated())
+                        .fetched(organizationName.getStatusInfo().getFetched())
+                        .removed(organizationName.getStatusInfo().getRemoved())
+                        .build()));
         return organizationNameDataList;
     }
 
-    public static List<OrganizationDescriptionData> getOrganizationDescriptionData(Iterable<Organization> organizations) {
+    public static List<OrganizationDescriptionData> getOrganizationDescriptionData(
+            Iterable<Organization> organizations) {
         List<OrganizationDescriptionData> organizationDescriptionDataList = new ArrayList<>();
-        List<OrganizationDescription> organizationDescriptions = new ArrayList<>(organizations.iterator().next().getAllOrganizationDescriptions());
-        organizationDescriptions.forEach(organizationDescription -> organizationDescriptionDataList.add(OrganizationDescriptionData.builder()
-                .language(organizationDescription.getLanguage())
-                .type(organizationDescription.getType())
-                .value(organizationDescription.getValue())
-                .changed(organizationDescription.getStatusInfo().getChanged())
-                .created(organizationDescription.getStatusInfo().getCreated())
-                .fetched(organizationDescription.getStatusInfo().getFetched())
-                .removed(organizationDescription.getStatusInfo().getRemoved())
-                .build()));
+        List<OrganizationDescription> organizationDescriptions = new ArrayList<>(
+                organizations.iterator().next().getAllOrganizationDescriptions());
+        organizationDescriptions.forEach(organizationDescription -> organizationDescriptionDataList
+                .add(OrganizationDescriptionData.builder()
+                        .language(organizationDescription.getLanguage())
+                        .type(organizationDescription.getType())
+                        .value(organizationDescription.getValue())
+                        .changed(organizationDescription.getStatusInfo().getChanged())
+                        .created(organizationDescription.getStatusInfo().getCreated())
+                        .fetched(organizationDescription.getStatusInfo().getFetched())
+                        .removed(organizationDescription.getStatusInfo().getRemoved())
+                        .build()));
         return organizationDescriptionDataList;
     }
 
@@ -118,8 +123,10 @@ public class OrganizationUtil {
                 .country(address.getCountry())
                 .type(address.getType())
                 .subType(address.getSubType())
-                .postOfficeBoxAddressData(getPostOfficeBoxAddressData(organizations.iterator().next().getAllAddresses()))
-                .streetAddressData(getStreetAddressData(organizations.iterator().next().getAllAddresses()))
+                .postOfficeBoxAddressData(getPostOfficeBoxAddressData(
+                        organizations.iterator().next().getAllAddresses()))
+                .streetAddressData(
+                        getStreetAddressData(organizations.iterator().next().getAllAddresses()))
                 .changed(address.getStatusInfo().getChanged())
                 .created(address.getStatusInfo().getCreated())
                 .fetched(address.getStatusInfo().getFetched())
@@ -130,25 +137,30 @@ public class OrganizationUtil {
 
     public static List<PostOfficeBoxAddressData> getPostOfficeBoxAddressData(Iterable<Address> addresses) {
         List<PostOfficeBoxAddressData> postOfficeBoxAddressDataList = new ArrayList<>();
-        List<PostOfficeBoxAddress> postOfficeBoxAddresses = new ArrayList<>(addresses.iterator().next().getAllPostOfficeBoxAddresses());
-        postOfficeBoxAddresses.forEach(postOfficeBoxAddress -> postOfficeBoxAddressDataList.add(PostOfficeBoxAddressData.builder()
-                .additionalInformation(getPostOfficeBoxAddressAdditionalInformationData(postOfficeBoxAddress))
-                .postalCode(postOfficeBoxAddress.getPostalCode())
-                .postOfficeBoxAddressMunicipalities(getPostOfficeBoxAddressMunicipalityData(postOfficeBoxAddress))
-                .postOfficeBoxes(getPostOfficeBoxData(postOfficeBoxAddress))
-                .postOffices(getPostOfficeData(postOfficeBoxAddress))
-                .changed(postOfficeBoxAddress.getStatusInfo().getChanged())
-                .created(postOfficeBoxAddress.getStatusInfo().getCreated())
-                .fetched(postOfficeBoxAddress.getStatusInfo().getFetched())
-                .removed(postOfficeBoxAddress.getStatusInfo().getRemoved())
-                .build()));
+        List<PostOfficeBoxAddress> postOfficeBoxAddresses = new ArrayList<>(
+                addresses.iterator().next().getAllPostOfficeBoxAddresses());
+        postOfficeBoxAddresses.forEach(postOfficeBoxAddress -> postOfficeBoxAddressDataList
+                .add(PostOfficeBoxAddressData.builder()
+                        .additionalInformation(getPostOfficeBoxAddressAdditionalInformationData(
+                                postOfficeBoxAddress))
+                        .postalCode(postOfficeBoxAddress.getPostalCode())
+                        .postOfficeBoxAddressMunicipalities(
+                                getPostOfficeBoxAddressMunicipalityData(
+                                        postOfficeBoxAddress))
+                        .postOfficeBoxes(getPostOfficeBoxData(postOfficeBoxAddress))
+                        .postOffices(getPostOfficeData(postOfficeBoxAddress))
+                        .changed(postOfficeBoxAddress.getStatusInfo().getChanged())
+                        .created(postOfficeBoxAddress.getStatusInfo().getCreated())
+                        .fetched(postOfficeBoxAddress.getStatusInfo().getFetched())
+                        .removed(postOfficeBoxAddress.getStatusInfo().getRemoved())
+                        .build()));
         return postOfficeBoxAddressDataList;
     }
 
-
     public static List<StreetAddressData> getStreetAddressData(Iterable<Address> addresses) {
         List<StreetAddressData> streetAddressDataList = new ArrayList<>();
-        List<StreetAddress> streetAddresses = new ArrayList<>(addresses.iterator().next().getAllStreetAddresses());
+        List<StreetAddress> streetAddresses = new ArrayList<>(
+                addresses.iterator().next().getAllStreetAddresses());
         streetAddresses.forEach(streetAddress -> streetAddressDataList.add(StreetAddressData.builder()
                 .additionalInformation(getStreetAddressAdditionalInformationData(streetAddress))
                 .coordinateState(streetAddress.getCoordinateState())
@@ -167,18 +179,26 @@ public class OrganizationUtil {
         return streetAddressDataList;
     }
 
-    public static List<StreetAddressAdditionalInformationData> getStreetAddressAdditionalInformationData(StreetAddress streetAddress) {
+    public static List<StreetAddressAdditionalInformationData> getStreetAddressAdditionalInformationData(
+            StreetAddress streetAddress) {
         List<StreetAddressAdditionalInformationData> streetAddressAdditionalInformationDataList = new ArrayList<>();
-        List<StreetAddressAdditionalInformation> streetAddressAdditionalInformationList = new ArrayList<>(streetAddress.getAllAdditionalInformation());
-        streetAddressAdditionalInformationList.forEach(streetAddressAdditionalInformation -> streetAddressAdditionalInformationDataList.add(
-                StreetAddressAdditionalInformationData.builder()
-                        .language(streetAddressAdditionalInformation.getLanguage())
-                        .value(streetAddressAdditionalInformation.getValue())
-                        .changed(streetAddressAdditionalInformation.getStatusInfo().getChanged())
-                        .created(streetAddressAdditionalInformation.getStatusInfo().getCreated())
-                        .fetched(streetAddressAdditionalInformation.getStatusInfo().getFetched())
-                        .removed(streetAddressAdditionalInformation.getStatusInfo().getRemoved())
-                        .build()));
+        List<StreetAddressAdditionalInformation> streetAddressAdditionalInformationList = new ArrayList<>(
+                streetAddress.getAllAdditionalInformation());
+        streetAddressAdditionalInformationList.forEach(
+                streetAddressAdditionalInformation -> streetAddressAdditionalInformationDataList.add(
+                        StreetAddressAdditionalInformationData.builder()
+                                .language(streetAddressAdditionalInformation
+                                        .getLanguage())
+                                .value(streetAddressAdditionalInformation.getValue())
+                                .changed(streetAddressAdditionalInformation
+                                        .getStatusInfo().getChanged())
+                                .created(streetAddressAdditionalInformation
+                                        .getStatusInfo().getCreated())
+                                .fetched(streetAddressAdditionalInformation
+                                        .getStatusInfo().getFetched())
+                                .removed(streetAddressAdditionalInformation
+                                        .getStatusInfo().getRemoved())
+                                .build()));
         return streetAddressAdditionalInformationDataList;
     }
 
@@ -196,95 +216,141 @@ public class OrganizationUtil {
         return streetDataList;
     }
 
-    public static List<StreetAddressMunicipalityData> getStreetAddressMunicipalityData(StreetAddress streetAddress) {
+    public static List<StreetAddressMunicipalityData> getStreetAddressMunicipalityData(
+            StreetAddress streetAddress) {
         List<StreetAddressMunicipalityData> streetAddressMunicipalityDataList = new ArrayList<>();
-        List<StreetAddressMunicipality> streetAddressMunicipalities = new ArrayList<>(streetAddress.getAllMunicipalities());
-        streetAddressMunicipalities.forEach(streetAddressMunicipality -> streetAddressMunicipalityDataList.add(StreetAddressMunicipalityData.builder()
-                .code(streetAddressMunicipality.getCode())
-                .streetAddressMunicipalityNames(getStreetAddressMunicipalityNameData(streetAddressMunicipality))
-                .changed(streetAddressMunicipality.getStatusInfo().getChanged())
-                .created(streetAddressMunicipality.getStatusInfo().getCreated())
-                .fetched(streetAddressMunicipality.getStatusInfo().getFetched())
-                .removed(streetAddressMunicipality.getStatusInfo().getRemoved())
-                .build()));
+        List<StreetAddressMunicipality> streetAddressMunicipalities = new ArrayList<>(
+                streetAddress.getAllMunicipalities());
+        streetAddressMunicipalities.forEach(streetAddressMunicipality -> streetAddressMunicipalityDataList
+                .add(StreetAddressMunicipalityData.builder()
+                        .code(streetAddressMunicipality.getCode())
+                        .streetAddressMunicipalityNames(getStreetAddressMunicipalityNameData(
+                                streetAddressMunicipality))
+                        .changed(streetAddressMunicipality.getStatusInfo().getChanged())
+                        .created(streetAddressMunicipality.getStatusInfo().getCreated())
+                        .fetched(streetAddressMunicipality.getStatusInfo().getFetched())
+                        .removed(streetAddressMunicipality.getStatusInfo().getRemoved())
+                        .build()));
         return streetAddressMunicipalityDataList;
     }
 
-    public static List<StreetAddressMunicipalityNameData> getStreetAddressMunicipalityNameData(StreetAddressMunicipality streetAddressMunicipality) {
+    public static List<StreetAddressMunicipalityNameData> getStreetAddressMunicipalityNameData(
+            StreetAddressMunicipality streetAddressMunicipality) {
         List<StreetAddressMunicipalityNameData> streetAddressMunicipalityNameDataList = new ArrayList<>();
-        List<StreetAddressMunicipalityName> streetAddressMunicipalityNames = new ArrayList<>(streetAddressMunicipality.getAllMunicipalityNames());
-        streetAddressMunicipalityNames.forEach(streetAddressMunicipalityName -> streetAddressMunicipalityNameDataList.add(
-                StreetAddressMunicipalityNameData.builder()
-                        .language(streetAddressMunicipalityName.getLanguage())
-                        .value(streetAddressMunicipalityName.getValue())
-                        .changed(streetAddressMunicipalityName.getStatusInfo().getChanged())
-                        .created(streetAddressMunicipalityName.getStatusInfo().getCreated())
-                        .fetched(streetAddressMunicipalityName.getStatusInfo().getFetched())
-                        .removed(streetAddressMunicipalityName.getStatusInfo().getRemoved())
-                        .build()));
+        List<StreetAddressMunicipalityName> streetAddressMunicipalityNames = new ArrayList<>(
+                streetAddressMunicipality.getAllMunicipalityNames());
+        streetAddressMunicipalityNames
+                .forEach(streetAddressMunicipalityName -> streetAddressMunicipalityNameDataList.add(
+                        StreetAddressMunicipalityNameData.builder()
+                                .language(streetAddressMunicipalityName.getLanguage())
+                                .value(streetAddressMunicipalityName.getValue())
+                                .changed(streetAddressMunicipalityName.getStatusInfo()
+                                        .getChanged())
+                                .created(streetAddressMunicipalityName.getStatusInfo()
+                                        .getCreated())
+                                .fetched(streetAddressMunicipalityName.getStatusInfo()
+                                        .getFetched())
+                                .removed(streetAddressMunicipalityName.getStatusInfo()
+                                        .getRemoved())
+                                .build()));
         return streetAddressMunicipalityNameDataList;
     }
 
     public static List<StreetAddressPostOfficeData> getStreetAddressPostOfficeData(StreetAddress streetAddress) {
         List<StreetAddressPostOfficeData> streetAddressPostOfficeDataList = new ArrayList<>();
-        List<StreetAddressPostOffice> streetAddressPostOffices = new ArrayList<>(streetAddress.getAllPostOffices());
-        streetAddressPostOffices.forEach(streetAddressPostOffice -> streetAddressPostOfficeDataList.add(StreetAddressPostOfficeData.builder()
-                .language(streetAddressPostOffice.getLanguage())
-                .value(streetAddressPostOffice.getValue())
-                .changed(streetAddressPostOffice.getStatusInfo().getChanged())
-                .created(streetAddressPostOffice.getStatusInfo().getCreated())
-                .fetched(streetAddressPostOffice.getStatusInfo().getFetched())
-                .removed(streetAddressPostOffice.getStatusInfo().getRemoved())
-                .build()));
+        List<StreetAddressPostOffice> streetAddressPostOffices = new ArrayList<>(
+                streetAddress.getAllPostOffices());
+        streetAddressPostOffices.forEach(streetAddressPostOffice -> streetAddressPostOfficeDataList
+                .add(StreetAddressPostOfficeData.builder()
+                        .language(streetAddressPostOffice.getLanguage())
+                        .value(streetAddressPostOffice.getValue())
+                        .changed(streetAddressPostOffice.getStatusInfo().getChanged())
+                        .created(streetAddressPostOffice.getStatusInfo().getCreated())
+                        .fetched(streetAddressPostOffice.getStatusInfo().getFetched())
+                        .removed(streetAddressPostOffice.getStatusInfo().getRemoved())
+                        .build()));
         return streetAddressPostOfficeDataList;
     }
 
-    public static List<PostOfficeBoxAddressAdditionalInformationData> getPostOfficeBoxAddressAdditionalInformationData(PostOfficeBoxAddress postOfficeBoxAddress) {
+    public static List<PostOfficeBoxAddressAdditionalInformationData> getPostOfficeBoxAddressAdditionalInformationData(
+            PostOfficeBoxAddress postOfficeBoxAddress) {
         List<PostOfficeBoxAddressAdditionalInformationData> postOfficeBoxAddressAdditionalInformationDataList = new ArrayList<>();
-        List<PostOfficeBoxAddressAdditionalInformation> postOfficeBoxAddressAdditionalInformationList =
-                new ArrayList<>(postOfficeBoxAddress.getAllAdditionalInformation());
+        List<PostOfficeBoxAddressAdditionalInformation> postOfficeBoxAddressAdditionalInformationList = new ArrayList<>(
+                postOfficeBoxAddress.getAllAdditionalInformation());
         postOfficeBoxAddressAdditionalInformationList.forEach(
-                postOfficeBoxAddressAdditionalInformation -> postOfficeBoxAddressAdditionalInformationDataList.add(
-                        PostOfficeBoxAddressAdditionalInformationData.builder()
-                                .language(postOfficeBoxAddressAdditionalInformation.getLanguage())
-                                .value(postOfficeBoxAddressAdditionalInformation.getValue())
-                                .changed(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getChanged())
-                                .created(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getCreated())
-                                .fetched(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getFetched())
-                                .removed(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getRemoved())
-                                .build()));
+                postOfficeBoxAddressAdditionalInformation -> postOfficeBoxAddressAdditionalInformationDataList
+                        .add(
+                                PostOfficeBoxAddressAdditionalInformationData.builder()
+                                        .language(postOfficeBoxAddressAdditionalInformation
+                                                .getLanguage())
+                                        .value(postOfficeBoxAddressAdditionalInformation
+                                                .getValue())
+                                        .changed(postOfficeBoxAddressAdditionalInformation
+                                                .getStatusInfo()
+                                                .getChanged())
+                                        .created(postOfficeBoxAddressAdditionalInformation
+                                                .getStatusInfo()
+                                                .getCreated())
+                                        .fetched(postOfficeBoxAddressAdditionalInformation
+                                                .getStatusInfo()
+                                                .getFetched())
+                                        .removed(postOfficeBoxAddressAdditionalInformation
+                                                .getStatusInfo()
+                                                .getRemoved())
+                                        .build()));
         return postOfficeBoxAddressAdditionalInformationDataList;
     }
 
-    public static List<PostOfficeBoxAddressMunicipalityData> getPostOfficeBoxAddressMunicipalityData(PostOfficeBoxAddress postOfficeBoxAddress) {
+    public static List<PostOfficeBoxAddressMunicipalityData> getPostOfficeBoxAddressMunicipalityData(
+            PostOfficeBoxAddress postOfficeBoxAddress) {
         List<PostOfficeBoxAddressMunicipalityData> postOfficeBoxAddressMunicipalityDataList = new ArrayList<>();
-        List<PostOfficeBoxAddressMunicipality> postOfficeBoxAddressMunicipalities = new ArrayList<>(postOfficeBoxAddress.getAllMunicipalities());
-        postOfficeBoxAddressMunicipalities.forEach(postOfficeBoxAddressMunicipality -> postOfficeBoxAddressMunicipalityDataList.add(
-                PostOfficeBoxAddressMunicipalityData.builder()
-                        .code(postOfficeBoxAddressMunicipality.getCode())
-                        .postOfficeBoxAddressMunicipalityNames(getPostOfficeBoxAddressMunicipalityNameData(postOfficeBoxAddressMunicipality))
-                        .changed(postOfficeBoxAddressMunicipality.getStatusInfo().getChanged())
-                        .created(postOfficeBoxAddressMunicipality.getStatusInfo().getCreated())
-                        .fetched(postOfficeBoxAddressMunicipality.getStatusInfo().getFetched())
-                        .removed(postOfficeBoxAddressMunicipality.getStatusInfo().getRemoved())
-                        .build()));
+        List<PostOfficeBoxAddressMunicipality> postOfficeBoxAddressMunicipalities = new ArrayList<>(
+                postOfficeBoxAddress.getAllMunicipalities());
+        postOfficeBoxAddressMunicipalities.forEach(
+                postOfficeBoxAddressMunicipality -> postOfficeBoxAddressMunicipalityDataList.add(
+                        PostOfficeBoxAddressMunicipalityData.builder()
+                                .code(postOfficeBoxAddressMunicipality.getCode())
+                                .postOfficeBoxAddressMunicipalityNames(
+                                        getPostOfficeBoxAddressMunicipalityNameData(
+                                                postOfficeBoxAddressMunicipality))
+                                .changed(postOfficeBoxAddressMunicipality
+                                        .getStatusInfo().getChanged())
+                                .created(postOfficeBoxAddressMunicipality
+                                        .getStatusInfo().getCreated())
+                                .fetched(postOfficeBoxAddressMunicipality
+                                        .getStatusInfo().getFetched())
+                                .removed(postOfficeBoxAddressMunicipality
+                                        .getStatusInfo().getRemoved())
+                                .build()));
         return postOfficeBoxAddressMunicipalityDataList;
     }
 
     public static List<PostOfficeBoxAddressMunicipalityNameData> getPostOfficeBoxAddressMunicipalityNameData(
             PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality) {
         List<PostOfficeBoxAddressMunicipalityNameData> postOfficeBoxAddressMunicipalityNameDataList = new ArrayList<>();
-        List<PostOfficeBoxAddressMunicipalityName> postOfficeBoxAddressMunicipalityNames =
-                new ArrayList<>(postOfficeBoxAddressMunicipality.getAllMunicipalityNames());
-        postOfficeBoxAddressMunicipalityNames.forEach(postOfficeBoxAddressMunicipalityName -> postOfficeBoxAddressMunicipalityNameDataList.add(
-                PostOfficeBoxAddressMunicipalityNameData.builder()
-                        .language(postOfficeBoxAddressMunicipalityName.getLanguage())
-                        .value(postOfficeBoxAddressMunicipalityName.getValue())
-                        .changed(postOfficeBoxAddressMunicipalityName.getStatusInfo().getChanged())
-                        .created(postOfficeBoxAddressMunicipalityName.getStatusInfo().getCreated())
-                        .fetched(postOfficeBoxAddressMunicipalityName.getStatusInfo().getFetched())
-                        .removed(postOfficeBoxAddressMunicipalityName.getStatusInfo().getRemoved())
-                        .build()));
+        List<PostOfficeBoxAddressMunicipalityName> postOfficeBoxAddressMunicipalityNames = new ArrayList<>(
+                postOfficeBoxAddressMunicipality.getAllMunicipalityNames());
+        postOfficeBoxAddressMunicipalityNames.forEach(
+                postOfficeBoxAddressMunicipalityName -> postOfficeBoxAddressMunicipalityNameDataList
+                        .add(
+                                PostOfficeBoxAddressMunicipalityNameData.builder()
+                                        .language(postOfficeBoxAddressMunicipalityName
+                                                .getLanguage())
+                                        .value(postOfficeBoxAddressMunicipalityName
+                                                .getValue())
+                                        .changed(postOfficeBoxAddressMunicipalityName
+                                                .getStatusInfo()
+                                                .getChanged())
+                                        .created(postOfficeBoxAddressMunicipalityName
+                                                .getStatusInfo()
+                                                .getCreated())
+                                        .fetched(postOfficeBoxAddressMunicipalityName
+                                                .getStatusInfo()
+                                                .getFetched())
+                                        .removed(postOfficeBoxAddressMunicipalityName
+                                                .getStatusInfo()
+                                                .getRemoved())
+                                        .build()));
         return postOfficeBoxAddressMunicipalityNameDataList;
     }
 
@@ -367,7 +433,8 @@ public class OrganizationUtil {
 
     public static List<BusinessAddressData> getBusinessAddressData(Iterable<Company> companies) {
         List<BusinessAddressData> businessAddressDataList = new ArrayList<>();
-        List<BusinessAddress> businessAddresses = new ArrayList<>(companies.iterator().next().getAllBusinessAddresses());
+        List<BusinessAddress> businessAddresses = new ArrayList<>(
+                companies.iterator().next().getAllBusinessAddresses());
         businessAddresses.forEach(businessAddress -> businessAddressDataList.add(BusinessAddressData.builder()
                 .careOf(businessAddress.getCareOf())
                 .street(businessAddress.getStreet())
@@ -389,40 +456,44 @@ public class OrganizationUtil {
 
     public static List<BusinessAuxiliaryNameData> getBusinessAuxiliaryNameData(Iterable<Company> companies) {
         List<BusinessAuxiliaryNameData> businessAuxiliaryNameDataList = new ArrayList<>();
-        List<BusinessAuxiliaryName> businessAuxiliaryNames = new ArrayList<>(companies.iterator().next().getAllBusinessAuxiliaryNames());
-        businessAuxiliaryNames.forEach(businessAuxiliaryName -> businessAuxiliaryNameDataList.add(BusinessAuxiliaryNameData.builder()
-                .language(businessAuxiliaryName.getLanguage())
-                .source(businessAuxiliaryName.getSource())
-                .version(businessAuxiliaryName.getVersion())
-                .name(businessAuxiliaryName.getName())
-                .ordering(businessAuxiliaryName.getOrdering())
-                .endDate(businessAuxiliaryName.getEndDate())
-                .registrationDate(businessAuxiliaryName.getRegistrationDate())
-                .changed(businessAuxiliaryName.getStatusInfo().getChanged())
-                .created(businessAuxiliaryName.getStatusInfo().getCreated())
-                .fetched(businessAuxiliaryName.getStatusInfo().getFetched())
-                .removed(businessAuxiliaryName.getStatusInfo().getRemoved())
-                .build()));
+        List<BusinessAuxiliaryName> businessAuxiliaryNames = new ArrayList<>(
+                companies.iterator().next().getAllBusinessAuxiliaryNames());
+        businessAuxiliaryNames.forEach(businessAuxiliaryName -> businessAuxiliaryNameDataList
+                .add(BusinessAuxiliaryNameData.builder()
+                        .language(businessAuxiliaryName.getLanguage())
+                        .source(businessAuxiliaryName.getSource())
+                        .version(businessAuxiliaryName.getVersion())
+                        .name(businessAuxiliaryName.getName())
+                        .ordering(businessAuxiliaryName.getOrdering())
+                        .endDate(businessAuxiliaryName.getEndDate())
+                        .registrationDate(businessAuxiliaryName.getRegistrationDate())
+                        .changed(businessAuxiliaryName.getStatusInfo().getChanged())
+                        .created(businessAuxiliaryName.getStatusInfo().getCreated())
+                        .fetched(businessAuxiliaryName.getStatusInfo().getFetched())
+                        .removed(businessAuxiliaryName.getStatusInfo().getRemoved())
+                        .build()));
         return businessAuxiliaryNameDataList;
     }
 
     public static List<BusinessIdChangeData> getBusinessIdChangeData(Iterable<Company> companies) {
         List<BusinessIdChangeData> businessIdChangeDataList = new ArrayList<>();
-        List<BusinessIdChange> businessIdChanges = new ArrayList<>(companies.iterator().next().getAllBusinessIdChanges());
-        businessIdChanges.forEach(businessIdChange -> businessIdChangeDataList.add(BusinessIdChangeData.builder()
-                .language(businessIdChange.getLanguage())
-                .source(businessIdChange.getSource())
-                .description(businessIdChange.getDescription())
-                .change(businessIdChange.getChange())
-                .oldBusinessId(businessIdChange.getOldBusinessId())
-                .newBusinessId(businessIdChange.getNewBusinessId())
-                .reason(businessIdChange.getReason())
-                .changeDate(businessIdChange.getChangeDate())
-                .changed(businessIdChange.getStatusInfo().getChanged())
-                .created(businessIdChange.getStatusInfo().getCreated())
-                .fetched(businessIdChange.getStatusInfo().getFetched())
-                .removed(businessIdChange.getStatusInfo().getRemoved())
-                .build()));
+        List<BusinessIdChange> businessIdChanges = new ArrayList<>(
+                companies.iterator().next().getAllBusinessIdChanges());
+        businessIdChanges
+                .forEach(businessIdChange -> businessIdChangeDataList.add(BusinessIdChangeData.builder()
+                        .language(businessIdChange.getLanguage())
+                        .source(businessIdChange.getSource())
+                        .description(businessIdChange.getDescription())
+                        .change(businessIdChange.getChange())
+                        .oldBusinessId(businessIdChange.getOldBusinessId())
+                        .newBusinessId(businessIdChange.getNewBusinessId())
+                        .reason(businessIdChange.getReason())
+                        .changeDate(businessIdChange.getChangeDate())
+                        .changed(businessIdChange.getStatusInfo().getChanged())
+                        .created(businessIdChange.getStatusInfo().getCreated())
+                        .fetched(businessIdChange.getStatusInfo().getFetched())
+                        .removed(businessIdChange.getStatusInfo().getRemoved())
+                        .build()));
         return businessIdChangeDataList;
     }
 
@@ -485,7 +556,8 @@ public class OrganizationUtil {
 
     public static List<ContactDetailData> getContactDetailData(Iterable<Company> companies) {
         List<ContactDetailData> contactDetailDataList = new ArrayList<>();
-        List<ContactDetail> contactDetails = new ArrayList<>(companies.iterator().next().getAllContactDetails());
+        List<ContactDetail> contactDetails = new ArrayList<>(
+                companies.iterator().next().getAllContactDetails());
         contactDetails.forEach(contactDetail -> contactDetailDataList.add(ContactDetailData.builder()
                 .language(contactDetail.getLanguage())
                 .source(contactDetail.getSource())
@@ -540,7 +612,8 @@ public class OrganizationUtil {
 
     public static List<RegisteredEntryData> getRegisteredEntryData(Iterable<Company> companies) {
         List<RegisteredEntryData> registeredEntryDataList = new ArrayList<>();
-        List<RegisteredEntry> registeredEntries = new ArrayList<>(companies.iterator().next().getAllRegisteredEntries());
+        List<RegisteredEntry> registeredEntries = new ArrayList<>(
+                companies.iterator().next().getAllRegisteredEntries());
         registeredEntries.forEach(registeredEntry -> registeredEntryDataList.add(RegisteredEntryData.builder()
                 .language(registeredEntry.getLanguage())
                 .endDate(registeredEntry.getEndDate())
@@ -559,20 +632,22 @@ public class OrganizationUtil {
 
     public static List<RegisteredOfficeData> getRegisteredOfficeData(Iterable<Company> companies) {
         List<RegisteredOfficeData> registeredOfficeDataList = new ArrayList<>();
-        List<RegisteredOffice> registeredOffices = new ArrayList<>(companies.iterator().next().getAllRegisteredOffices());
-        registeredOffices.forEach(registeredOffice -> registeredOfficeDataList.add(RegisteredOfficeData.builder()
-                .language(registeredOffice.getLanguage())
-                .endDate(registeredOffice.getEndDate())
-                .registrationDate(registeredOffice.getRegistrationDate())
-                .name(registeredOffice.getName())
-                .ordering(registeredOffice.getOrdering())
-                .source(registeredOffice.getSource())
-                .version(registeredOffice.getVersion())
-                .changed(registeredOffice.getStatusInfo().getChanged())
-                .created(registeredOffice.getStatusInfo().getCreated())
-                .fetched(registeredOffice.getStatusInfo().getFetched())
-                .removed(registeredOffice.getStatusInfo().getRemoved())
-                .build()));
+        List<RegisteredOffice> registeredOffices = new ArrayList<>(
+                companies.iterator().next().getAllRegisteredOffices());
+        registeredOffices
+                .forEach(registeredOffice -> registeredOfficeDataList.add(RegisteredOfficeData.builder()
+                        .language(registeredOffice.getLanguage())
+                        .endDate(registeredOffice.getEndDate())
+                        .registrationDate(registeredOffice.getRegistrationDate())
+                        .name(registeredOffice.getName())
+                        .ordering(registeredOffice.getOrdering())
+                        .source(registeredOffice.getSource())
+                        .version(registeredOffice.getVersion())
+                        .changed(registeredOffice.getStatusInfo().getChanged())
+                        .created(registeredOffice.getStatusInfo().getCreated())
+                        .fetched(registeredOffice.getStatusInfo().getFetched())
+                        .removed(registeredOffice.getStatusInfo().getRemoved())
+                        .build()));
         return registeredOfficeDataList;
     }
 }

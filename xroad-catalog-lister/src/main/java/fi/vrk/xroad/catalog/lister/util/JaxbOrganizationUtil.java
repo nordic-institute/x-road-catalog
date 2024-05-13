@@ -69,7 +69,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class JaxbOrganizationUtil {
+@SuppressWarnings("checkstyle:linelength")
+public final class JaxbOrganizationUtil {
 
     private JaxbOrganizationUtil() {
 
@@ -80,10 +81,14 @@ public class JaxbOrganizationUtil {
         List<OrganizationName> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.OrganizationName organizationName : organizationNames) {
             OrganizationName co = new OrganizationName();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(organizationName.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(organizationName.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(organizationName.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(organizationName.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationName.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationName.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationName.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationName.getStatusInfo().getRemoved()));
             co.setLanguage(organizationName.getLanguage());
             co.setType(organizationName.getType());
             co.setValue(organizationName.getValue());
@@ -97,10 +102,14 @@ public class JaxbOrganizationUtil {
         List<OrganizationDescription> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription organizationDescription : organizationDescriptions) {
             OrganizationDescription co = new OrganizationDescription();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(organizationDescription.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(organizationDescription.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(organizationDescription.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(organizationDescription.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationDescription.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationDescription.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationDescription.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(organizationDescription.getStatusInfo().getRemoved()));
             co.setLanguage(organizationDescription.getLanguage());
             co.setType(organizationDescription.getType());
             co.setValue(organizationDescription.getValue());
@@ -181,7 +190,8 @@ public class JaxbOrganizationUtil {
             Iterable<fi.vrk.xroad.catalog.persistence.entity.StreetAddress> streetAddresses = address
                     .getAllStreetAddresses();
             if (streetAddresses != null) {
-                co.getStreetAddresses().getStreetAddress().addAll(convertStreetAddresses(streetAddresses));
+                co.getStreetAddresses().getStreetAddress()
+                        .addAll(convertStreetAddresses(streetAddresses));
             }
 
             co.setPostOfficeBoxAddresses(new PostOfficeBoxAddressList());
@@ -202,17 +212,22 @@ public class JaxbOrganizationUtil {
         List<StreetAddress> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.StreetAddress streetAddress : streetAddresses) {
             StreetAddress co = new StreetAddress();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(streetAddress.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(streetAddress.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(streetAddress.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(streetAddress.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddress.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddress.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddress.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddress.getStatusInfo().getRemoved()));
             co.setPostalCode(streetAddress.getPostalCode());
             co.setLatitude(streetAddress.getLatitude());
             co.setLongitude(streetAddress.getLongitude());
             co.setCoordinateState(streetAddress.getCoordinateState());
 
             co.setStreets(new StreetList());
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.Street> streets = streetAddress.getAllStreets();
+            Iterable<fi.vrk.xroad.catalog.persistence.entity.Street> streets = streetAddress
+                    .getAllStreets();
             if (streets != null) {
                 co.getStreets().getStreet().addAll(convertStreets(streets));
             }
@@ -230,7 +245,8 @@ public class JaxbOrganizationUtil {
                     .getAllMunicipalities();
             if (streetAddressMunicipalities != null) {
                 co.getMunicipalities().getStreetAddressMunicipality()
-                        .addAll(convertStreetAddressMunicipalities(streetAddressMunicipalities));
+                        .addAll(convertStreetAddressMunicipalities(
+                                streetAddressMunicipalities));
             }
 
             co.setAdditionalInformation(new StreetAddressAdditionalInformationList());
@@ -238,7 +254,8 @@ public class JaxbOrganizationUtil {
                     .getAllAdditionalInformation();
             if (streetAddressAdditionalInformation != null) {
                 co.getAdditionalInformation().getStreetAddressAdditionalInformation()
-                        .addAll(convertStreetAddressAdditionalInformation(streetAddressAdditionalInformation));
+                        .addAll(convertStreetAddressAdditionalInformation(
+                                streetAddressAdditionalInformation));
             }
 
             converted.add(co);
@@ -267,10 +284,14 @@ public class JaxbOrganizationUtil {
         List<StreetAddressPostOffice> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice streetAddressPostOffice : streetAddressPostOffices) {
             StreetAddressPostOffice co = new StreetAddressPostOffice();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(streetAddressPostOffice.getStatusInfo().getRemoved()));
             co.setLanguage(streetAddressPostOffice.getLanguage());
             co.setValue(streetAddressPostOffice.getValue());
             converted.add(co);
@@ -284,13 +305,17 @@ public class JaxbOrganizationUtil {
         for (fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality streetAddressMunicipality : streetAddressMunicipalities) {
             StreetAddressMunicipality co = new StreetAddressMunicipality();
             co.setChanged(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipality.getStatusInfo().getChanged()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipality.getStatusInfo().getChanged()));
             co.setCreated(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipality.getStatusInfo().getCreated()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipality.getStatusInfo().getCreated()));
             co.setFetched(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipality.getStatusInfo().getFetched()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipality.getStatusInfo().getFetched()));
             co.setRemoved(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipality.getStatusInfo().getRemoved()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipality.getStatusInfo().getRemoved()));
             co.setCode(streetAddressMunicipality.getCode());
 
             co.setStreetAddressMunicipalityNames(new StreetAddressMunicipalityNameList());
@@ -298,7 +323,8 @@ public class JaxbOrganizationUtil {
                     .getAllMunicipalityNames();
             if (streetAddressMunicipalityNames != null) {
                 co.getStreetAddressMunicipalityNames().getStreetAddressMunicipalityName()
-                        .addAll(convertStreetAddressMunicipalityNames(streetAddressMunicipalityNames));
+                        .addAll(convertStreetAddressMunicipalityNames(
+                                streetAddressMunicipalityNames));
             }
 
             converted.add(co);
@@ -312,13 +338,17 @@ public class JaxbOrganizationUtil {
         for (fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName streetAddressMunicipalityName : streetAddressMunicipalityNames) {
             StreetAddressMunicipalityName co = new StreetAddressMunicipalityName();
             co.setChanged(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipalityName.getStatusInfo().getChanged()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipalityName.getStatusInfo().getChanged()));
             co.setCreated(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipalityName.getStatusInfo().getCreated()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipalityName.getStatusInfo().getCreated()));
             co.setFetched(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipalityName.getStatusInfo().getFetched()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipalityName.getStatusInfo().getFetched()));
             co.setRemoved(
-                    JaxbServiceUtil.toXmlGregorianCalendar(streetAddressMunicipalityName.getStatusInfo().getRemoved()));
+                    JaxbServiceUtil.toXmlGregorianCalendar(
+                            streetAddressMunicipalityName.getStatusInfo().getRemoved()));
             co.setLanguage(streetAddressMunicipalityName.getLanguage());
             co.setValue(streetAddressMunicipalityName.getValue());
             converted.add(co);
@@ -332,13 +362,17 @@ public class JaxbOrganizationUtil {
         for (fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation streetAddressAdditionalInformation : streetAddressAdditionalInformationList) {
             StreetAddressAdditionalInformation co = new StreetAddressAdditionalInformation();
             co.setChanged(JaxbServiceUtil
-                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo().getChanged()));
+                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo()
+                            .getChanged()));
             co.setCreated(JaxbServiceUtil
-                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo().getCreated()));
+                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo()
+                            .getCreated()));
             co.setFetched(JaxbServiceUtil
-                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo().getFetched()));
+                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo()
+                            .getFetched()));
             co.setRemoved(JaxbServiceUtil
-                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo().getRemoved()));
+                    .toXmlGregorianCalendar(streetAddressAdditionalInformation.getStatusInfo()
+                            .getRemoved()));
             co.setLanguage(streetAddressAdditionalInformation.getLanguage());
             co.setValue(streetAddressAdditionalInformation.getValue());
             converted.add(co);
@@ -351,10 +385,14 @@ public class JaxbOrganizationUtil {
         List<PostOfficeBoxAddress> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress postOfficeBoxAddress : postOfficeBoxAddresses) {
             PostOfficeBoxAddress co = new PostOfficeBoxAddress();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBoxAddress.getStatusInfo().getRemoved()));
             co.setPostalCode(postOfficeBoxAddress.getPostalCode());
             co.setPostalCode(postOfficeBoxAddress.getPostalCode());
 
@@ -372,7 +410,8 @@ public class JaxbOrganizationUtil {
                     .getAllMunicipalities();
             if (postOfficeBoxAddressMunicipalities != null) {
                 co.getPostOfficeBoxAddressMunicipalities().getPostOfficeBoxAddressMunicipality()
-                        .addAll(convertPostOfficeBoxAddressMunicipalities(postOfficeBoxAddressMunicipalities));
+                        .addAll(convertPostOfficeBoxAddressMunicipalities(
+                                postOfficeBoxAddressMunicipalities));
             }
 
             co.setPostOffices(new PostOfficeList());
@@ -386,7 +425,8 @@ public class JaxbOrganizationUtil {
             Iterable<fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox> postOfficeBoxes = postOfficeBoxAddress
                     .getAllPostOfficeBoxes();
             if (postOfficeBoxes != null) {
-                co.getPostOfficeBoxes().getPostOfficeBox().addAll(convertPostOfficeBoxes(postOfficeBoxes));
+                co.getPostOfficeBoxes().getPostOfficeBox()
+                        .addAll(convertPostOfficeBoxes(postOfficeBoxes));
             }
 
             converted.add(co);
@@ -400,13 +440,17 @@ public class JaxbOrganizationUtil {
         for (fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation postOfficeBoxAddressAdditionalInformation : postOfficeBoxAddressAdditionalInformationList) {
             PostOfficeBoxAddressAdditionalInformation co = new PostOfficeBoxAddressAdditionalInformation();
             co.setChanged(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getChanged()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation
+                            .getStatusInfo().getChanged()));
             co.setCreated(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getCreated()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation
+                            .getStatusInfo().getCreated()));
             co.setFetched(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getFetched()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation
+                            .getStatusInfo().getFetched()));
             co.setRemoved(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation.getStatusInfo().getRemoved()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressAdditionalInformation
+                            .getStatusInfo().getRemoved()));
             co.setLanguage(postOfficeBoxAddressAdditionalInformation.getLanguage());
             co.setValue(postOfficeBoxAddressAdditionalInformation.getValue());
             converted.add(co);
@@ -420,13 +464,17 @@ public class JaxbOrganizationUtil {
         for (fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality : postOfficeBoxAddressMunicipalities) {
             PostOfficeBoxAddressMunicipality co = new PostOfficeBoxAddressMunicipality();
             co.setChanged(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipality.getStatusInfo().getChanged()));
+                    .toXmlGregorianCalendar(
+                            postOfficeBoxAddressMunicipality.getStatusInfo().getChanged()));
             co.setCreated(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipality.getStatusInfo().getCreated()));
+                    .toXmlGregorianCalendar(
+                            postOfficeBoxAddressMunicipality.getStatusInfo().getCreated()));
             co.setFetched(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipality.getStatusInfo().getFetched()));
+                    .toXmlGregorianCalendar(
+                            postOfficeBoxAddressMunicipality.getStatusInfo().getFetched()));
             co.setRemoved(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipality.getStatusInfo().getRemoved()));
+                    .toXmlGregorianCalendar(
+                            postOfficeBoxAddressMunicipality.getStatusInfo().getRemoved()));
             co.setCode(postOfficeBoxAddressMunicipality.getCode());
 
             co.setPostOfficeBoxAddressMunicipalityNames(new PostOfficeBoxAddressMunicipalityNameList());
@@ -434,7 +482,8 @@ public class JaxbOrganizationUtil {
                     .getAllMunicipalityNames();
             if (postOfficeBoxAddressMunicipalityNames != null) {
                 co.getPostOfficeBoxAddressMunicipalityNames().getPostOfficeBoxAddressMunicipalityName()
-                        .addAll(convertPostOfficeBoxAddressMunicipalityNames(postOfficeBoxAddressMunicipalityNames));
+                        .addAll(convertPostOfficeBoxAddressMunicipalityNames(
+                                postOfficeBoxAddressMunicipalityNames));
             }
 
             converted.add(co);
@@ -448,13 +497,17 @@ public class JaxbOrganizationUtil {
         for (fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName : postOfficeBoxAddressMunicipalityNames) {
             PostOfficeBoxAddressMunicipalityName co = new PostOfficeBoxAddressMunicipalityName();
             co.setChanged(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo().getChanged()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo()
+                            .getChanged()));
             co.setCreated(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo().getCreated()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo()
+                            .getCreated()));
             co.setFetched(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo().getFetched()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo()
+                            .getFetched()));
             co.setRemoved(JaxbServiceUtil
-                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo().getRemoved()));
+                    .toXmlGregorianCalendar(postOfficeBoxAddressMunicipalityName.getStatusInfo()
+                            .getRemoved()));
             co.setLanguage(postOfficeBoxAddressMunicipalityName.getLanguage());
             co.setValue(postOfficeBoxAddressMunicipalityName.getValue());
             converted.add(co);
@@ -483,10 +536,14 @@ public class JaxbOrganizationUtil {
         List<PostOfficeBox> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox postOfficeBox : postOfficeBoxes) {
             PostOfficeBox co = new PostOfficeBox();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(postOfficeBox.getStatusInfo().getRemoved()));
             co.setLanguage(postOfficeBox.getLanguage());
             co.setValue(postOfficeBox.getValue());
             converted.add(co);
@@ -510,7 +567,8 @@ public class JaxbOrganizationUtil {
         Iterable<fi.vrk.xroad.catalog.persistence.entity.BusinessAddress> businessAddresses = company
                 .getAllBusinessAddresses();
         if (businessAddresses != null) {
-            co.getBusinessAddresses().getBusinessAddress().addAll(convertBusinessAddresses(businessAddresses));
+            co.getBusinessAddresses().getBusinessAddress()
+                    .addAll(convertBusinessAddresses(businessAddresses));
         }
 
         co.setBusinessAuxiliaryNames(new BusinessAuxiliaryNameList());
@@ -525,29 +583,34 @@ public class JaxbOrganizationUtil {
         Iterable<fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange> businessIdChanges = company
                 .getAllBusinessIdChanges();
         if (businessIdChanges != null) {
-            co.getBusinessIdChanges().getBusinessIdChange().addAll(convertBusinessIdChanges(businessIdChanges));
+            co.getBusinessIdChanges().getBusinessIdChange()
+                    .addAll(convertBusinessIdChanges(businessIdChanges));
         }
 
         co.setBusinessLines(new BusinessLineList());
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.BusinessLine> businessLines = company.getAllBusinessLines();
+        Iterable<fi.vrk.xroad.catalog.persistence.entity.BusinessLine> businessLines = company
+                .getAllBusinessLines();
         if (businessLines != null) {
             co.getBusinessLines().getBusinessLine().addAll(convertBusinessLines(businessLines));
         }
 
         co.setBusinessNames(new BusinessNameList());
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.BusinessName> businessNames = company.getAllBusinessNames();
+        Iterable<fi.vrk.xroad.catalog.persistence.entity.BusinessName> businessNames = company
+                .getAllBusinessNames();
         if (businessNames != null) {
             co.getBusinessNames().getBusinessName().addAll(convertBusinessNames(businessNames));
         }
 
         co.setCompanyForms(new CompanyFormList());
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.CompanyForm> companyForms = company.getAllCompanyForms();
+        Iterable<fi.vrk.xroad.catalog.persistence.entity.CompanyForm> companyForms = company
+                .getAllCompanyForms();
         if (companyForms != null) {
             co.getCompanyForms().getCompanyForm().addAll(convertCompanyForms(companyForms));
         }
 
         co.setContactDetails(new ContactDetailList());
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.ContactDetail> contactDetails = company.getAllContactDetails();
+        Iterable<fi.vrk.xroad.catalog.persistence.entity.ContactDetail> contactDetails = company
+                .getAllContactDetails();
         if (contactDetails != null) {
             co.getContactDetails().getContactDetail().addAll(convertContactDetails(contactDetails));
         }
@@ -559,7 +622,8 @@ public class JaxbOrganizationUtil {
         }
 
         co.setLiquidations(new LiquidationList());
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.Liquidation> liquidations = company.getAllLiquidations();
+        Iterable<fi.vrk.xroad.catalog.persistence.entity.Liquidation> liquidations = company
+                .getAllLiquidations();
         if (liquidations != null) {
             co.getLiquidations().getLiquidation().addAll(convertLiquidations(liquidations));
         }
@@ -568,14 +632,16 @@ public class JaxbOrganizationUtil {
         Iterable<fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry> registeredEntries = company
                 .getAllRegisteredEntries();
         if (registeredEntries != null) {
-            co.getRegisteredEntries().getRegisteredEntry().addAll(convertRegisteredEntries(registeredEntries));
+            co.getRegisteredEntries().getRegisteredEntry()
+                    .addAll(convertRegisteredEntries(registeredEntries));
         }
 
         co.setRegisteredOffices(new RegisteredOfficeList());
         Iterable<fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice> registeredOffices = company
                 .getAllRegisteredOffices();
         if (registeredOffices != null) {
-            co.getRegisteredOffices().getRegisteredOffice().addAll(convertRegisteredOffices(registeredOffices));
+            co.getRegisteredOffices().getRegisteredOffice()
+                    .addAll(convertRegisteredOffices(registeredOffices));
         }
         return co;
     }
@@ -585,10 +651,14 @@ public class JaxbOrganizationUtil {
         List<BusinessAddress> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.BusinessAddress businessAddress : businessAddresses) {
             BusinessAddress co = new BusinessAddress();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAddress.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAddress.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAddress.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAddress.getStatusInfo().getRemoved()));
             co.setCareOf(businessAddress.getCareOf());
             co.setCity(businessAddress.getCity());
             co.setCountry(businessAddress.getCountry());
@@ -598,7 +668,8 @@ public class JaxbOrganizationUtil {
             co.setStreet(businessAddress.getStreet());
             co.setType(businessAddress.getType());
             co.setVersion(businessAddress.getVersion());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(businessAddress.getEndDate()));
             converted.add(co);
         }
@@ -610,16 +681,21 @@ public class JaxbOrganizationUtil {
         List<BusinessAuxiliaryName> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName businessAuxiliaryName : businessAuxiliaryNames) {
             BusinessAuxiliaryName co = new BusinessAuxiliaryName();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAuxiliaryName.getStatusInfo().getRemoved()));
             co.setLanguage(businessAuxiliaryName.getLanguage());
             co.setName(businessAuxiliaryName.getName());
             co.setOrdering(businessAuxiliaryName.getOrdering());
             co.setSource(businessAuxiliaryName.getSource());
             co.setVersion(businessAuxiliaryName.getVersion());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(businessAuxiliaryName.getRegistrationDate()));
+            co.setRegistrationDate(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessAuxiliaryName.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(businessAuxiliaryName.getEndDate()));
             converted.add(co);
         }
@@ -631,10 +707,14 @@ public class JaxbOrganizationUtil {
         List<BusinessIdChange> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange businessIdChange : businessIdChanges) {
             BusinessIdChange co = new BusinessIdChange();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(businessIdChange.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(businessIdChange.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(businessIdChange.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(businessIdChange.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessIdChange.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessIdChange.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessIdChange.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessIdChange.getStatusInfo().getRemoved()));
             co.setLanguage(businessIdChange.getLanguage());
             co.setSource(businessIdChange.getSource());
             co.setChange(businessIdChange.getChange());
@@ -653,16 +733,21 @@ public class JaxbOrganizationUtil {
         List<BusinessLine> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.BusinessLine businessLine : businessLines) {
             BusinessLine co = new BusinessLine();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessLine.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessLine.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessLine.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessLine.getStatusInfo().getRemoved()));
             co.setLanguage(businessLine.getLanguage());
             co.setSource(businessLine.getSource());
             co.setName(businessLine.getName());
             co.setOrdering(businessLine.getOrdering());
             co.setVersion(businessLine.getVersion());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(businessLine.getEndDate()));
             converted.add(co);
         }
@@ -674,16 +759,21 @@ public class JaxbOrganizationUtil {
         List<BusinessName> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.BusinessName businessName : businessNames) {
             BusinessName co = new BusinessName();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(businessName.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(businessName.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(businessName.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(businessName.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessName.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessName.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessName.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(businessName.getStatusInfo().getRemoved()));
             co.setLanguage(businessName.getLanguage());
             co.setSource(businessName.getSource());
             co.setName(businessName.getName());
             co.setOrdering(businessName.getOrdering());
             co.setVersion(businessName.getVersion());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(businessName.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(businessName.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(businessName.getEndDate()));
             converted.add(co);
         }
@@ -704,7 +794,8 @@ public class JaxbOrganizationUtil {
             co.setName(companyForm.getName());
             co.setType(companyForm.getType());
             co.setVersion(companyForm.getVersion());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(companyForm.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(companyForm.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(companyForm.getEndDate()));
             converted.add(co);
         }
@@ -716,16 +807,21 @@ public class JaxbOrganizationUtil {
         List<ContactDetail> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.ContactDetail contactDetail : contactDetails) {
             ContactDetail co = new ContactDetail();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(contactDetail.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(contactDetail.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(contactDetail.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(contactDetail.getStatusInfo().getRemoved()));
             co.setLanguage(contactDetail.getLanguage());
             co.setSource(contactDetail.getSource());
             co.setValue(contactDetail.getValue());
             co.setType(contactDetail.getType());
             co.setVersion(contactDetail.getVersion());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(contactDetail.getEndDate()));
             converted.add(co);
         }
@@ -766,7 +862,8 @@ public class JaxbOrganizationUtil {
             co.setName(liquidation.getName());
             co.setVersion(liquidation.getVersion());
             co.setType(liquidation.getType());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(liquidation.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(liquidation.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(liquidation.getEndDate()));
             converted.add(co);
         }
@@ -778,16 +875,21 @@ public class JaxbOrganizationUtil {
         List<RegisteredEntry> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry registeredEntry : registeredEntries) {
             RegisteredEntry co = new RegisteredEntry();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredEntry.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredEntry.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredEntry.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredEntry.getStatusInfo().getRemoved()));
             co.setLanguage(registeredEntry.getLanguage());
             co.setAuthority(registeredEntry.getAuthority());
             co.setDescription(registeredEntry.getDescription());
             co.setRegister(registeredEntry.getRegister());
             co.setStatus(registeredEntry.getStatus());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(registeredEntry.getEndDate()));
             converted.add(co);
         }
@@ -799,16 +901,21 @@ public class JaxbOrganizationUtil {
         List<RegisteredOffice> converted = new ArrayList<>();
         for (fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice registeredOffice : registeredOffices) {
             RegisteredOffice co = new RegisteredOffice();
-            co.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getStatusInfo().getChanged()));
-            co.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getStatusInfo().getCreated()));
-            co.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getStatusInfo().getFetched()));
-            co.setRemoved(JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getStatusInfo().getRemoved()));
+            co.setChanged(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredOffice.getStatusInfo().getChanged()));
+            co.setCreated(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredOffice.getStatusInfo().getCreated()));
+            co.setFetched(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredOffice.getStatusInfo().getFetched()));
+            co.setRemoved(JaxbServiceUtil
+                    .toXmlGregorianCalendar(registeredOffice.getStatusInfo().getRemoved()));
             co.setLanguage(registeredOffice.getLanguage());
             co.setSource(registeredOffice.getSource());
             co.setOrdering(registeredOffice.getOrdering());
             co.setVersion(registeredOffice.getVersion());
             co.setName(registeredOffice.getName());
-            co.setRegistrationDate(JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getRegistrationDate()));
+            co.setRegistrationDate(
+                    JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getRegistrationDate()));
             co.setEndDate(JaxbServiceUtil.toXmlGregorianCalendar(registeredOffice.getEndDate()));
             converted.add(co);
         }

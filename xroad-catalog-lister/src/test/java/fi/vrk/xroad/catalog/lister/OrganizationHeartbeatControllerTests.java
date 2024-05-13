@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {"xroad-catalog.app-name=X-Road Catalog Lister","xroad-catalog.app-version=1.0.3"})
-@ActiveProfiles({"default","fi"})
+@TestPropertySource(properties = { "xroad-catalog.app-name=X-Road Catalog Lister", "xroad-catalog.app-version=1.0.3" })
+@ActiveProfiles({ "default", "fi" })
 public class OrganizationHeartbeatControllerTests {
 
     @Autowired
@@ -50,8 +50,8 @@ public class OrganizationHeartbeatControllerTests {
     @Test
     public void testGetOrganizationHeartbeat() throws JSONException {
         LastOrganizationCollectionData lastCollectionData = LastOrganizationCollectionData.builder()
-                .organizationsLastFetched(LocalDateTime.of(2021, 6,1,1,1, 1))
-                .companiesLastFetched(LocalDateTime.of(2021, 3,1,1,1, 1)).build();
+                .organizationsLastFetched(LocalDateTime.of(2021, 6, 1, 1, 1, 1))
+                .companiesLastFetched(LocalDateTime.of(2021, 3, 1, 1, 1, 1)).build();
         given(catalogService.checkDatabaseConnection()).willReturn(Boolean.TRUE);
         given(organizationService.getLastOrganizationCollectionData()).willReturn(lastCollectionData);
         ResponseEntity<String> response = restTemplate.getForEntity("/api/organizationHeartbeat", String.class);
@@ -61,7 +61,8 @@ public class OrganizationHeartbeatControllerTests {
         assertTrue(json.getBoolean("appWorking"));
         assertTrue(json.getBoolean("dbWorking"));
         assertEquals("X-Road Catalog Lister", json.getString("appName"));
-        assertEquals("2021-06-01T01:01:01", json.getJSONObject("lastCollectionData").optString("organizationsLastFetched"));
+        assertEquals("2021-06-01T01:01:01",
+                json.getJSONObject("lastCollectionData").optString("organizationsLastFetched"));
         assertEquals("2021-03-01T01:01:01", json.getJSONObject("lastCollectionData").optString("companiesLastFetched"));
         assertEquals("1.0.3", json.getString("appVersion"));
     }
@@ -70,8 +71,7 @@ public class OrganizationHeartbeatControllerTests {
     public void testGetHeartbeatDbDown() throws JSONException {
         given(catalogService.checkDatabaseConnection()).willReturn(Boolean.FALSE);
 
-        ResponseEntity<String> response =
-                restTemplate.getForEntity("/api/organizationHeartbeat", String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/organizationHeartbeat", String.class);
         assertNotNull(response.getBody());
         assertEquals(200, response.getStatusCodeValue());
 
@@ -83,4 +83,3 @@ public class OrganizationHeartbeatControllerTests {
     }
 
 }
-

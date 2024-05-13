@@ -18,9 +18,14 @@ import org.springframework.ws.server.EndpointInterceptor;
 import org.springframework.ws.soap.saaj.SaajSoapMessage;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.NodeList;
+
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
+
 import org.w3c.dom.Node;
 import javax.xml.namespace.QName;
-import jakarta.xml.soap.*;
 import java.util.Iterator;
 
 public class WsdlCdataInterceptor implements EndpointInterceptor {

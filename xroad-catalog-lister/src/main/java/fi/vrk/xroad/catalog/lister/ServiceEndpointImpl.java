@@ -13,11 +13,27 @@
 package fi.vrk.xroad.catalog.lister;
 
 import com.google.common.collect.Lists;
+
+import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
+import fi.vrk.xroad.catalog.lister.generated.ErrorLogList;
+import fi.vrk.xroad.catalog.lister.generated.GetErrors;
+import fi.vrk.xroad.catalog.lister.generated.GetErrorsResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPI;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPIResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceType;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceTypeResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdl;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdlResponse;
+import fi.vrk.xroad.catalog.lister.generated.IsProvider;
+import fi.vrk.xroad.catalog.lister.generated.IsProviderResponse;
+import fi.vrk.xroad.catalog.lister.generated.ListMembers;
+import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
+import fi.vrk.xroad.catalog.lister.generated.Member;
+import fi.vrk.xroad.catalog.lister.generated.MemberList;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
 import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
 import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.lister.generated.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;

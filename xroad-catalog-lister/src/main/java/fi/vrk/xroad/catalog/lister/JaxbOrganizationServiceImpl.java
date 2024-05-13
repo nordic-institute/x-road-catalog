@@ -13,7 +13,24 @@
 package fi.vrk.xroad.catalog.lister;
 
 import fi.vrk.xroad.catalog.persistence.OrganizationService;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.Address;
+import fi.vrk.xroad.catalog.persistence.entity.Email;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationName;
+import fi.vrk.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.vrk.xroad.catalog.persistence.entity.PostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.Street;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddress;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.WebPage;
 import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
 import fi.vrk.xroad.catalog.lister.generated.Organization;
 import lombok.Setter;
@@ -22,7 +39,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -95,43 +116,43 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
         Set<WebPage> webPages = organization.getAllWebPages();
         Set<Address> addresses = organization.getAllAddresses();
 
-        if (organization.getStatusInfo().getChanged().isAfter(startDateTime) &&
-                organization.getStatusInfo().getChanged().isBefore(endDateTime)) {
+        if (organization.getStatusInfo().getChanged().isAfter(startDateTime)
+                && organization.getStatusInfo().getChanged().isBefore(endDateTime)) {
             ChangedValue changedValue = new ChangedValue();
             changedValue.setName(ORGANIZATION);
             changedValueList.add(changedValue);
         }
 
-        if (organizationNames.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
-                obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
+        if (organizationNames.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime)
+                && obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
             ChangedValue changedValue = new ChangedValue();
             changedValue.setName(ORGANIZATION_NAME);
             changedValueList.add(changedValue);
         }
 
-        if (organizationDescriptions.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
-                obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
+        if (organizationDescriptions.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime)
+                && obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
             ChangedValue changedValue = new ChangedValue();
             changedValue.setName(ORGANIZATION_DESCRIPTION);
             changedValueList.add(changedValue);
         }
 
-        if (emails.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
-                obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
+        if (emails.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime)
+                && obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
             ChangedValue changedValue = new ChangedValue();
             changedValue.setName(EMAIL);
             changedValueList.add(changedValue);
         }
 
-        if (phoneNumbers.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
-                obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
+        if (phoneNumbers.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime)
+                && obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
             ChangedValue changedValue = new ChangedValue();
             changedValue.setName(PHONE_NUMBER);
             changedValueList.add(changedValue);
         }
 
-        if (webPages.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime) &&
-                obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
+        if (webPages.stream().anyMatch(obj -> obj.getStatusInfo().getChanged().isAfter(startDateTime)
+                && obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
             ChangedValue changedValue = new ChangedValue();
             changedValue.setName(WEB_PAGE);
             changedValueList.add(changedValue);
@@ -412,8 +433,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
             LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressAdditionalInfoChange = additionalInformation.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (postOfficeBoxAddressAdditionalInfoChange.isAfter(startDateTime) &&
-                postOfficeBoxAddressAdditionalInfoChange.isBefore(endDateTime)) {
+        if (postOfficeBoxAddressAdditionalInfoChange.isAfter(startDateTime)
+                && postOfficeBoxAddressAdditionalInfoChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(POST_OFFICE_BOX_ADDRESS_ADDITIONAL_INFORMATION);
         }
@@ -426,8 +447,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
             LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressMunicipalityChange = municipality.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (postOfficeBoxAddressMunicipalityChange.isAfter(startDateTime) &&
-                postOfficeBoxAddressMunicipalityChange.isBefore(endDateTime)) {
+        if (postOfficeBoxAddressMunicipalityChange.isAfter(startDateTime)
+                && postOfficeBoxAddressMunicipalityChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(POST_OFFICE_BOX_ADDRESS_MUNICIPALITY);
         }
@@ -440,8 +461,8 @@ public class JaxbOrganizationServiceImpl implements JaxbOrganizationService {
             LocalDateTime endDateTime) {
         LocalDateTime postOfficeBoxAddressMunicipalityNameChange = municipalityName.getStatusInfo().getChanged();
         ChangedValue changedValue = null;
-        if (postOfficeBoxAddressMunicipalityNameChange.isAfter(startDateTime) &&
-                postOfficeBoxAddressMunicipalityNameChange.isBefore(endDateTime)) {
+        if (postOfficeBoxAddressMunicipalityNameChange.isAfter(startDateTime)
+                && postOfficeBoxAddressMunicipalityNameChange.isBefore(endDateTime)) {
             changedValue = new ChangedValue();
             changedValue.setName(POST_OFFICE_BOX_ADDRESS_MUNICIPALITY_NAME);
         }

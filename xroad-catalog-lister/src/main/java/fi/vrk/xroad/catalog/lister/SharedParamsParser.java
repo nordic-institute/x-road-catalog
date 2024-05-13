@@ -68,15 +68,20 @@ public class SharedParamsParser {
     private Environment environment;
 
     /**
-     * Parses security server information from X-Road global configuration shared-params.xml.
-     * Matches member elements with securityServer elements to gather the information.
+     * Parses security server information from X-Road global configuration
+     * shared-params.xml.
+     * Matches member elements with securityServer elements to gather the
+     * information.
      *
      * @return list of {@link SecurityServerInfo} objects
-     * @throws ParserConfigurationException when there are issues with parsing the file
-     * @throws IOException when unable to read input file
-     * @throws SAXException when there are issues with parsing of XML
+     * @throws ParserConfigurationException when there are issues with parsing the
+     *                                      file
+     * @throws IOException                  when unable to read input file
+     * @throws SAXException                 when there are issues with parsing of
+     *                                      XML
      */
-    public Set<SecurityServerInfo> parseInfo(String sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
+    public Set<SecurityServerInfo> parseInfo(String sharedParamsFile)
+            throws ParserConfigurationException, IOException, SAXException {
         Document document = parseInputAndConvertToXmlDocument(new File(sharedParamsFile));
         Element root = document.getDocumentElement();
         String xRoadInstance = root.getChildNodes().item(1).getFirstChild().getNodeValue();
@@ -96,14 +101,13 @@ public class SharedParamsParser {
                     if (member.getNodeType() == Node.ELEMENT_NODE) {
                         Element memberElement = (Element) member;
                         if (memberElement.getAttribute(ID).equals(owner)) {
-                            Element memberClassElement =
-                                    (Element) memberElement.getElementsByTagName(MEMBER_CLASS).item(0);
-                            String memberClass =
-                                    memberClassElement.getElementsByTagName(CODE).item(0).getTextContent();
-                            String memberCode =
-                                    memberElement.getElementsByTagName(MEMBER_CODE).item(0).getTextContent();
-                            SecurityServerInfo info =
-                                    new SecurityServerInfo(xRoadInstance, serverCode, address, memberClass, memberCode);
+                            Element memberClassElement = (Element) memberElement.getElementsByTagName(MEMBER_CLASS)
+                                    .item(0);
+                            String memberClass = memberClassElement.getElementsByTagName(CODE).item(0).getTextContent();
+                            String memberCode = memberElement.getElementsByTagName(MEMBER_CODE).item(0)
+                                    .getTextContent();
+                            SecurityServerInfo info = new SecurityServerInfo(xRoadInstance, serverCode, address,
+                                    memberClass, memberCode);
                             securityServerInfos.add(info);
                             break;
                         }
@@ -116,31 +120,42 @@ public class SharedParamsParser {
     }
 
     /**
-     * Parses security server information from X-Road global configuration shared-params.xml.
-     * Matches member elements with securityServer elements to gather the information.
+     * Parses security server information from X-Road global configuration
+     * shared-params.xml.
+     * Matches member elements with securityServer elements to gather the
+     * information.
      *
      * @return list of {@link SecurityServerInfo} objects
-     * @throws ParserConfigurationException when there are issues with parsing the file
-     * @throws IOException when unable to read input file
-     * @throws SAXException when there are issues with parsing of XML
+     * @throws ParserConfigurationException when there are issues with parsing the
+     *                                      file
+     * @throws IOException                  when unable to read input file
+     * @throws SAXException                 when there are issues with parsing of
+     *                                      XML
      */
-    public SecurityServerDataList parseDetails(String sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
+    public SecurityServerDataList parseDetails(String sharedParamsFile)
+            throws ParserConfigurationException, IOException, SAXException {
         Document document = parseInputAndConvertToXmlDocument(new File(sharedParamsFile));
         Element root = document.getDocumentElement();
-        List<SecurityServerData> securityServerList = getSecurityServerDataList(root.getElementsByTagName(SECURITY_SERVER), root.getElementsByTagName(MEMBER));
+        List<SecurityServerData> securityServerList = getSecurityServerDataList(
+                root.getElementsByTagName(SECURITY_SERVER), root.getElementsByTagName(MEMBER));
         return SecurityServerDataList.builder().securityServerDataList(securityServerList).build();
     }
 
     /**
-     * Parses security server information from X-Road global configuration shared-params.xml.
-     * Matches member elements with securityServer elements to gather the information.
+     * Parses security server information from X-Road global configuration
+     * shared-params.xml.
+     * Matches member elements with securityServer elements to gather the
+     * information.
      *
      * @return list of {@link SecurityServerInfo} objects
-     * @throws ParserConfigurationException when there are issues with parsing the file
-     * @throws IOException when unable to read input file
-     * @throws SAXException when there are issues with parsing of XML
+     * @throws ParserConfigurationException when there are issues with parsing the
+     *                                      file
+     * @throws IOException                  when unable to read input file
+     * @throws SAXException                 when there are issues with parsing of
+     *                                      XML
      */
-    public List<DescriptorInfo> parseDescriptorInfo(String sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
+    public List<DescriptorInfo> parseDescriptorInfo(String sharedParamsFile)
+            throws ParserConfigurationException, IOException, SAXException {
         Document document = parseInputAndConvertToXmlDocument(new File(sharedParamsFile));
         Element root = document.getDocumentElement();
         String xRoadInstance = root.getChildNodes().item(1).getFirstChild().getNodeValue();
@@ -160,8 +175,8 @@ public class SharedParamsParser {
                     Node subsystem = subsystems.item(k);
                     if (member.getNodeType() == Node.ELEMENT_NODE) {
                         Element subsystemElement = (Element) subsystem;
-                        String subsystemCode =
-                                subsystemElement.getElementsByTagName(SUBSYSTEM_CODE).item(0).getTextContent();
+                        String subsystemCode = subsystemElement.getElementsByTagName(SUBSYSTEM_CODE).item(0)
+                                .getTextContent();
 
                         descriptorInfos.add(DescriptorInfo.builder()
                                 .xRoadInstance(xRoadInstance)
@@ -169,12 +184,14 @@ public class SharedParamsParser {
                                 .memberClass(memberClass)
                                 .memberName(name)
                                 .subsystemCode(subsystemCode)
-                                .subsystemName(SubsystemName.builder().en(DEFAULT_SUBSYSTEM_NAME_EN).et(DEFAULT_SUBSYSTEM_NAME_ET).build())
+                                .subsystemName(SubsystemName.builder().en(DEFAULT_SUBSYSTEM_NAME_EN)
+                                        .et(DEFAULT_SUBSYSTEM_NAME_ET).build())
                                 .email(Lists.newArrayList(
                                         Email.builder()
                                                 .name(DEFAULT_CONTACT_NAME)
                                                 .email(DEFAULT_CONTACT_EMAIL)
-                                                .build())).build());
+                                                .build()))
+                                .build());
                     }
                 }
 
@@ -184,7 +201,8 @@ public class SharedParamsParser {
         return descriptorInfos;
     }
 
-    private Document parseInputAndConvertToXmlDocument(File inputFile) throws ParserConfigurationException, IOException, SAXException {
+    private Document parseInputAndConvertToXmlDocument(File inputFile)
+            throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
@@ -252,7 +270,6 @@ public class SharedParamsParser {
         }
         return MemberInfo.builder().build();
     }
-
 
     private MemberInfo buildMemberInfo(Element memberElement) {
         return buildSubsystemInfo(memberElement, null);

@@ -59,17 +59,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {"xroad-catalog.shared-params-file=src/test/resources/shared-params.xml"})
-@ActiveProfiles({"default","fi"})
+@TestPropertySource(properties = { "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml" })
+@ActiveProfiles({ "default", "fi" })
 public class OrganizationControllerTests {
 
-    private static final String organizationBusinessCode = "0123456-9";
-    private static final String organizationGuid = "abcdef123456";
-    private static final String organizationType = "Municipality";
-    private static final String organizationPublishingStatus = "Published";
-    private static final String companyBusinessId = "1710128-9";
-    private static final String companyForm = "OYJ";
-    private static final String companyName = "Gofore Oyj";
+    private static final String ORG_BUSINESS_CODE = "0123456-9";
+    private static final String ORG_GUID = "abcdef123456";
+    private static final String ORG_TYPE = "Municipality";
+    private static final String ORG_PUBLISH_STATUS = "Published";
+    private static final String COMPANY_BUSINESS_ID = "1710128-9";
+    private static final String COMPANY_FORM = "OYJ";
+    private static final String COMPANY_NAME = "Gofore Oyj";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -86,7 +86,8 @@ public class OrganizationControllerTests {
         testGetOrganizationWithCompanyData();
 
         // Get Organization not found
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/0-12345", String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/0-12345",
+                String.class);
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
     }
@@ -94,9 +95,10 @@ public class OrganizationControllerTests {
     @Test
     public void testGetOrganizationChanges() throws JSONException {
         // Get OrganizationChanges for CompanyData older values
-        mockOrganizationWithCompanyData(companyBusinessId);
+        mockOrganizationWithCompanyData(COMPANY_BUSINESS_ID);
         ResponseEntity<String> response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + companyBusinessId +"?startDate=2010-01-01&endDate=2022-01-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + COMPANY_BUSINESS_ID
+                        + "?startDate=2010-01-01&endDate=2022-01-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         JSONObject json = new JSONObject(response.getBody());
         JSONArray changedValues = json.optJSONArray("changedValueList");
@@ -104,9 +106,10 @@ public class OrganizationControllerTests {
         assertEquals(12, changedValues.length());
 
         // Get OrganizationChanges for OrganizationData older values
-        mockOrganizationWithOrganizationData(organizationBusinessCode);
+        mockOrganizationWithOrganizationData(ORG_BUSINESS_CODE);
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + organizationBusinessCode + "?startDate=2010-01-01&endDate=2022-01-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
+                        + "?startDate=2010-01-01&endDate=2022-01-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
         changedValues = json.optJSONArray("changedValueList");
@@ -115,7 +118,8 @@ public class OrganizationControllerTests {
 
         // Get OrganizationChanges for CompanyData newer values
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + companyBusinessId +"?startDate=2021-01-01&endDate=2022-01-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + COMPANY_BUSINESS_ID
+                        + "?startDate=2021-01-01&endDate=2022-01-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
         changedValues = json.optJSONArray("changedValueList");
@@ -124,7 +128,8 @@ public class OrganizationControllerTests {
 
         // Get OrganizationChanges for OrganizationData newer values
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + organizationBusinessCode + "?startDate=2021-01-01&endDate=2022-01-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
+                        + "?startDate=2021-01-01&endDate=2022-01-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         json = new JSONObject(response.getBody());
         changedValues = json.optJSONArray("changedValueList");
@@ -133,36 +138,41 @@ public class OrganizationControllerTests {
 
         // Get OrganizationChanges when date parameter in wrong format
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + organizationBusinessCode + "?startDate=01-01-2022&endDate=2022-06-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
+                        + "?startDate=01-01-2022&endDate=2022-06-01", String.class);
         assertEquals(400, response.getStatusCodeValue());
 
         // Get OrganizationChanges for CompanyData not found
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + companyBusinessId + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + COMPANY_BUSINESS_ID
+                        + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
 
         // Get OrganizationChanges for OrganizationData not found
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + organizationBusinessCode + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
+                        + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
 
         // Get OrganizationChanges when business code is invalid
         response = restTemplate
-                .getForEntity("/api/getOrganizationChanges/" + organizationBusinessCode + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
+                .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
+                        + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
         assertEquals(200, response.getStatusCodeValue());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
 
         // Get OrganizationChanges when dates are null
-        response = restTemplate.getForEntity("/api/getOrganizationChanges/" + organizationBusinessCode, String.class);
+        response = restTemplate.getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE, String.class);
         assertEquals(200, response.getStatusCodeValue());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
     }
 
     private void testGetOrganizationWithOrganizationData() throws JSONException {
-        mockOrganizationWithOrganizationData(organizationBusinessCode);
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/" + organizationBusinessCode, String.class);
+        mockOrganizationWithOrganizationData(ORG_BUSINESS_CODE);
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/" + ORG_BUSINESS_CODE,
+                String.class);
         assertNotNull(response.getBody());
         assertEquals(200, response.getStatusCodeValue());
         JSONObject json = new JSONObject(response.getBody());
@@ -170,10 +180,10 @@ public class OrganizationControllerTests {
         JSONObject companyData = json.optJSONObject("companyData");
         assertNull(companyData);
         assertEquals(14, organizationData.length());
-        assertEquals(organizationBusinessCode, organizationData.optString("businessCode"));
-        assertEquals(organizationGuid, organizationData.optString("guid"));
-        assertEquals(organizationType, organizationData.optString("organizationType"));
-        assertEquals(organizationPublishingStatus, organizationData.optString("publishingStatus"));
+        assertEquals(ORG_BUSINESS_CODE, organizationData.optString("businessCode"));
+        assertEquals(ORG_GUID, organizationData.optString("guid"));
+        assertEquals(ORG_TYPE, organizationData.optString("organizationType"));
+        assertEquals(ORG_PUBLISH_STATUS, organizationData.optString("publishingStatus"));
         assertNotNull(organizationData.opt("changed"));
         assertNotNull(organizationData.opt("created"));
         assertNotNull(organizationData.opt("fetched"));
@@ -187,8 +197,9 @@ public class OrganizationControllerTests {
     }
 
     private void testGetOrganizationWithCompanyData() throws JSONException {
-        mockOrganizationWithCompanyData(companyBusinessId);
-        ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/" + companyBusinessId, String.class);
+        mockOrganizationWithCompanyData(COMPANY_BUSINESS_ID);
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/" + COMPANY_BUSINESS_ID,
+                String.class);
         assertNotNull(response.getBody());
         assertEquals(200, response.getStatusCodeValue());
         JSONObject json = new JSONObject(response.getBody());
@@ -201,10 +212,10 @@ public class OrganizationControllerTests {
         assertNotNull(companyData.opt("fetched"));
         assertNotNull(companyData.opt("removed"));
         assertNotNull(companyData.opt("registrationDate"));
-        assertEquals(companyBusinessId, companyData.optString("businessCode"));
-        assertEquals(companyForm, companyData.optString("companyForm"));
+        assertEquals(COMPANY_BUSINESS_ID, companyData.optString("businessCode"));
+        assertEquals(COMPANY_FORM, companyData.optString("companyForm"));
         assertEquals("", companyData.optString("detailsUri"));
-        assertEquals(companyName, companyData.optString("name"));
+        assertEquals(COMPANY_NAME, companyData.optString("name"));
         assertEquals(1, companyData.optJSONArray("businessAddresses").length());
         assertEquals(1, companyData.optJSONArray("businessAuxiliaryNames").length());
         assertEquals(1, companyData.optJSONArray("businessIdChanges").length());
@@ -224,25 +235,30 @@ public class OrganizationControllerTests {
         LocalDateTime fetched = LocalDateTime.of(2020, 1, 10, 10, 10, 10);
         Organization organization = Organization.builder()
                 .businessCode(businessCode)
-                .organizationType(organizationType)
-                .guid(organizationGuid)
-                .publishingStatus(organizationPublishingStatus)
+                .organizationType(ORG_TYPE)
+                .guid(ORG_GUID)
+                .publishingStatus(ORG_PUBLISH_STATUS)
                 .organizationNames(new HashSet<>(Arrays.asList(OrganizationName.builder()
                         .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
                 .organizationDescriptions(new HashSet<>(Arrays.asList(OrganizationDescription.builder()
                         .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
                 .addresses(new HashSet<>(Arrays.asList(Address.builder()
                         .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .emails(new HashSet<>(Arrays.asList(Email.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .emails(new HashSet<>(Arrays.asList(Email.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
                 .phoneNumbers(new HashSet<>(Arrays.asList(PhoneNumber.builder()
                         .statusInfo(new StatusInfo(created, changed, fetched, null))
                         .isFinnishServiceNumber(false).build())))
-                .webPages(new HashSet<>(Arrays.asList(WebPage.builder().statusInfo(new StatusInfo(created, changed.plusYears(1), fetched, null)).build())))
+                .webPages(new HashSet<>(Arrays.asList(WebPage.builder()
+                        .statusInfo(new StatusInfo(created, changed.plusYears(1), fetched,
+                                null))
+                        .build())))
                 .statusInfo(new StatusInfo(created, changed, fetched, null))
                 .build();
         Set<Organization> organizations = new HashSet<>(Arrays.asList(organization));
         given(organizationRepository.findAllByBusinessCode(businessCode)).willReturn(organizations);
-        given(organizationRepository.findAnyByOrganizationGuid(organizationGuid)).willReturn(Optional.ofNullable(organization));
+        given(organizationRepository.findAnyByOrganizationGuid(ORG_GUID))
+                .willReturn(Optional.ofNullable(organization));
     }
 
     private void mockOrganizationWithCompanyData(String businessId) {
@@ -251,21 +267,34 @@ public class OrganizationControllerTests {
         LocalDateTime fetched = LocalDateTime.of(2020, 1, 10, 10, 10, 10);
         Company company = Company.builder()
                 .businessId(businessId)
-                .companyForm(companyForm)
+                .companyForm(COMPANY_FORM)
                 .detailsUri("")
-                .name(companyName)
+                .name(COMPANY_NAME)
                 .statusInfo(new StatusInfo(created, changed, fetched, null))
-                .companyForms(new HashSet<>(Arrays.asList(CompanyForm.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .businessAddresses(new HashSet<>(Arrays.asList(BusinessAddress.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .businessAuxiliaryNames(new HashSet<>(Arrays.asList(BusinessAuxiliaryName.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .businessIdChanges(new HashSet<>(Arrays.asList(BusinessIdChange.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .businessLines(new HashSet<>(Arrays.asList(BusinessLine.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .businessNames(new HashSet<>(Arrays.asList(BusinessName.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .contactDetails(new HashSet<>(Arrays.asList(ContactDetail.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .liquidations(new HashSet<>(Arrays.asList(Liquidation.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .languages(new HashSet<>(Arrays.asList(Language.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .registeredOffices(new HashSet<>(Arrays.asList(RegisteredOffice.builder().statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
-                .registeredEntries(new HashSet<>(Arrays.asList(RegisteredEntry.builder().statusInfo(new StatusInfo(created, changed.plusYears(1), fetched, null)).build())))
+                .companyForms(new HashSet<>(Arrays.asList(CompanyForm.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .businessAddresses(new HashSet<>(Arrays.asList(BusinessAddress.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .businessAuxiliaryNames(new HashSet<>(Arrays.asList(BusinessAuxiliaryName.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .businessIdChanges(new HashSet<>(Arrays.asList(BusinessIdChange.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .businessLines(new HashSet<>(Arrays.asList(BusinessLine.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .businessNames(new HashSet<>(Arrays.asList(BusinessName.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .contactDetails(new HashSet<>(Arrays.asList(ContactDetail.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .liquidations(new HashSet<>(Arrays.asList(Liquidation.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .languages(new HashSet<>(Arrays.asList(Language.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .registeredOffices(new HashSet<>(Arrays.asList(RegisteredOffice.builder()
+                        .statusInfo(new StatusInfo(created, changed, fetched, null)).build())))
+                .registeredEntries(new HashSet<>(Arrays.asList(RegisteredEntry.builder()
+                        .statusInfo(new StatusInfo(created, changed.plusYears(1), fetched,
+                                null))
+                        .build())))
                 .build();
         Set<Company> companies = new HashSet<>(Arrays.asList(company));
         given(companyRepository.findAllByBusinessId(businessId)).willReturn(companies);

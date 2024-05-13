@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.parsers.ParserConfigurationException;
 
-public class ServiceUtil {
+public final class ServiceUtil {
 
     private ServiceUtil() {
 
@@ -58,9 +58,11 @@ public class ServiceUtil {
         }
     }
 
-    public static void printListOfServicesCSV(CSVPrinter csvPrinter, List<MemberDataList> memberDataList, List<SecurityServerInfo> securityServerList) {
+    public static void printListOfServicesCSV(CSVPrinter csvPrinter, List<MemberDataList> memberDataList,
+            List<SecurityServerInfo> securityServerList) {
         memberDataList.forEach(memberList -> {
-            printCSVRecord(csvPrinter, Arrays.asList(memberList.getDate().toString(), "", "", "", "", "", "", "", "", "", "", "", ""));
+            printCSVRecord(csvPrinter,
+                    Arrays.asList(memberList.getDate().toString(), "", "", "", "", "", "", "", "", "", "", "", ""));
             memberList.getMemberDataList().forEach(memberData -> {
                 String memberCreated = memberData.getCreated().toString();
                 String xRoadInstance = memberData.getXRoadInstance();
@@ -76,32 +78,40 @@ public class ServiceUtil {
                 memberData.getSubsystemList().forEach(subsystemData -> {
 
                     if (subsystemData.getServiceList().isEmpty() || subsystemData.getServiceList() == null) {
-                        printCSVRecord(csvPrinter, Arrays.asList("", xRoadInstance, memberClass, memberCode, memberName, memberCreated,
-                                subsystemData.getSubsystemCode(), subsystemData.getCreated().toString(), subsystemData.getActive().toString(),
-                                "", "", "", ""));
+                        printCSVRecord(csvPrinter,
+                                Arrays.asList("", xRoadInstance, memberClass, memberCode, memberName, memberCreated,
+                                        subsystemData.getSubsystemCode(), subsystemData.getCreated().toString(),
+                                        subsystemData.getActive().toString(),
+                                        "", "", "", ""));
                     }
 
                     subsystemData.getServiceList().forEach(serviceData -> printCSVRecord(csvPrinter, Arrays.asList(
-                            "", xRoadInstance, memberClass, memberCode, memberName, memberCreated, subsystemData.getSubsystemCode(),
-                            subsystemData.getCreated().toString(), subsystemData.getActive().toString(), serviceData.getServiceCode(),
-                            serviceData.getServiceVersion(), serviceData.getCreated().toString(), serviceData.getActive().toString())));
+                            "", xRoadInstance, memberClass, memberCode, memberName, memberCreated,
+                            subsystemData.getSubsystemCode(),
+                            subsystemData.getCreated().toString(), subsystemData.getActive().toString(),
+                            serviceData.getServiceCode(),
+                            serviceData.getServiceVersion(), serviceData.getCreated().toString(),
+                            serviceData.getActive().toString())));
                 });
             });
         });
 
         if (securityServerList != null && !securityServerList.isEmpty()) {
-            printCSVRecord(csvPrinter, Arrays.asList("", "Security server (SS) info:", "", "", "", "", "", "", "", "", "", "", ""));
-            printCSVRecord(csvPrinter, Arrays.asList("instance", "member class", "member code", "server code", "address", "", "", "", "", "","", "", ""));
+            printCSVRecord(csvPrinter,
+                    Arrays.asList("", "Security server (SS) info:", "", "", "", "", "", "", "", "", "", "", ""));
+            printCSVRecord(csvPrinter, Arrays.asList("instance", "member class", "member code", "server code",
+                    "address", "", "", "", "", "", "", "", ""));
 
-            securityServerList.forEach(securityServerInfo -> printCSVRecord(csvPrinter, Arrays.asList(securityServerInfo.getXRoadInstance(),
-                    securityServerInfo.getMemberClass(), securityServerInfo.getMemberCode(),
-                    securityServerInfo.getServerCode(), securityServerInfo.getAddress()
-                    , "", "", "", "", "", "", "", "")));
+            securityServerList.forEach(securityServerInfo -> printCSVRecord(csvPrinter,
+                    Arrays.asList(securityServerInfo.getXRoadInstance(),
+                            securityServerInfo.getMemberClass(), securityServerInfo.getMemberCode(),
+                            securityServerInfo.getServerCode(), securityServerInfo.getAddress(), "", "", "", "", "", "",
+                            "", "")));
         }
     }
 
     public static List<SecurityServerInfo> getSecurityServerInfoList(SharedParamsParser sharedParamsParser,
-                                                                     String sharedParamsFile) {
+            String sharedParamsFile) {
         List<SecurityServerInfo> securityServerList = new ArrayList<>();
         try {
             Set<SecurityServerInfo> securityServerInfos = sharedParamsParser.parseInfo(sharedParamsFile);
@@ -115,23 +125,25 @@ public class ServiceUtil {
     }
 
     public static SecurityServerDataList getSecurityServerDataList(SharedParamsParser sharedParamsParser,
-                                                                   String sharedParamsFile) {
+            String sharedParamsFile) {
         SecurityServerDataList securityServerDataList;
         try {
             securityServerDataList = sharedParamsParser.parseDetails(sharedParamsFile);
         } catch (ParserConfigurationException | IOException | SAXException e) {
-            throw new CatalogListerRuntimeException("Exception when parsing security server data from sharedParams file: " + e);
+            throw new CatalogListerRuntimeException(
+                    "Exception when parsing security server data from sharedParams file: " + e);
         }
         return securityServerDataList;
     }
 
     public static List<DescriptorInfo> getDescriptorInfoList(SharedParamsParser sharedParamsParser,
-                                                             String sharedParamsFile) {
+            String sharedParamsFile) {
         List<DescriptorInfo> descriptorInfoList;
         try {
             descriptorInfoList = sharedParamsParser.parseDescriptorInfo(sharedParamsFile);
         } catch (ParserConfigurationException | IOException | SAXException e) {
-            throw new CatalogListerRuntimeException("Exception when parsing descriptor info from sharedParams file: " + e);
+            throw new CatalogListerRuntimeException(
+                    "Exception when parsing descriptor info from sharedParams file: " + e);
         }
         return descriptorInfoList;
     }

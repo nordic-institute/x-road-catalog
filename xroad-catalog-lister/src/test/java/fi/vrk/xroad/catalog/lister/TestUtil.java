@@ -17,12 +17,15 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-public class TestUtil {
+public final class TestUtil {
+
+    private TestUtil() {
+    }
 
     public static StatusInfo createStatusInfo(LocalDateTime created,
-                                              LocalDateTime changed,
-                                              LocalDateTime fetched,
-                                              LocalDateTime removed) {
+            LocalDateTime changed,
+            LocalDateTime fetched,
+            LocalDateTime removed) {
         StatusInfo statusInfo = new StatusInfo();
         statusInfo.setCreated(created);
         statusInfo.setChanged(changed);

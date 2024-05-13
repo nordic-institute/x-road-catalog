@@ -30,9 +30,9 @@ import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 @Profile("fi")
 public interface OrganizationEndpoint {
 
-    static final String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";
+    String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";
 
-    static final String NOT_FOUND = " not found";
+    String NOT_FOUND = " not found";
 
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetOrganizations")
     @ResponsePayload

@@ -19,45 +19,43 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @RequestMapping("/default")
-@Profile({"default", "fi"})
+@Profile({ "default", "fi" })
 public interface ServiceOperations {
 
-    @GetMapping(path = {"/listErrors/{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}",
-                        "/listErrors/{xRoadInstance}/{memberClass}/{memberCode}",
-                        "/listErrors/{xRoadInstance}/{memberClass}",
-                        "/listErrors/{xRoadInstance}",
-                        "/listErrors"},
-               produces = "application/json")
+    @GetMapping(path = { "/listErrors/{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}",
+            "/listErrors/{xRoadInstance}/{memberClass}/{memberCode}",
+            "/listErrors/{xRoadInstance}/{memberClass}",
+            "/listErrors/{xRoadInstance}",
+            "/listErrors" }, produces = "application/json")
     ResponseEntity<?> listErrors(@PathVariable(required = false) String xRoadInstance,
-                                 @PathVariable(required = false) String memberClass,
-                                 @PathVariable(required = false) String memberCode,
-                                 @PathVariable(required = false) String subsystemCode,
-                                 @RequestParam(required = false) String startDate,
-                                 @RequestParam(required = false) String endDate,
-                                 @RequestParam(required = false) Integer page,
-                                 @RequestParam(required = false) Integer limit);
+            @PathVariable(required = false) String memberClass,
+            @PathVariable(required = false) String memberCode,
+            @PathVariable(required = false) String subsystemCode,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit);
 
     @GetMapping(path = "/getDistinctServiceStatistics", produces = "application/json")
     ResponseEntity<?> getDistinctServiceStatistics(@RequestParam(required = false) String startDate,
-                                                   @RequestParam(required = false) String endDate);
+            @RequestParam(required = false) String endDate);
 
     @GetMapping(path = "/getServiceStatistics", produces = "application/json")
     ResponseEntity<?> getServiceStatistics(@RequestParam(required = false) String startDate,
-                                           @RequestParam(required = false) String endDate);
+            @RequestParam(required = false) String endDate);
 
     @GetMapping(path = "/getServiceStatisticsCSV", produces = "text/csv")
     ResponseEntity<?> getServiceStatisticsCSV(@RequestParam(required = false) String startDate,
-                                              @RequestParam(required = false) String endDate);
+            @RequestParam(required = false) String endDate);
 
     @GetMapping(path = "/getListOfServices", produces = "application/json")
     ResponseEntity<?> getListOfServices(@RequestParam(required = false) String startDate,
-                                        @RequestParam(required = false) String endDate);
+            @RequestParam(required = false) String endDate);
 
     @GetMapping(path = "/getListOfServicesCSV", produces = "text/csv")
     ResponseEntity<?> getListOfServicesCSV(@RequestParam(required = false) String startDate,
-                                           @RequestParam(required = false) String endDate);
+            @RequestParam(required = false) String endDate);
 
     @GetMapping(path = "/listSecurityServers", produces = "application/json")
     ResponseEntity<?> listSecurityServers();
@@ -65,17 +63,18 @@ public interface ServiceOperations {
     @GetMapping(path = "/listDescriptors", produces = "application/json")
     ResponseEntity<?> listDescriptors();
 
+    @SuppressWarnings("checkstyle:linelength")
     @GetMapping(path = "/getEndpoints/{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/{serviceCode}", produces = "application/json")
     ResponseEntity<?> getEndpoints(@PathVariable String xRoadInstance,
-                                   @PathVariable String memberClass,
-                                   @PathVariable String memberCode,
-                                   @PathVariable String subsystemCode,
-                                   @PathVariable String serviceCode);
+            @PathVariable String memberClass,
+            @PathVariable String memberCode,
+            @PathVariable String subsystemCode,
+            @PathVariable String serviceCode);
 
     @GetMapping(path = "/getRest/{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/{serviceCode}", produces = "application/json")
     ResponseEntity<?> getRest(@PathVariable String xRoadInstance,
-                              @PathVariable String memberClass,
-                              @PathVariable String memberCode,
-                              @PathVariable String subsystemCode,
-                              @PathVariable String serviceCode);
+            @PathVariable String memberClass,
+            @PathVariable String memberCode,
+            @PathVariable String subsystemCode,
+            @PathVariable String serviceCode);
 }

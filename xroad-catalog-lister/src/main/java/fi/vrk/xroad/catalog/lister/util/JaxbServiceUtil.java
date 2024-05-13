@@ -13,10 +13,11 @@
 package fi.vrk.xroad.catalog.lister.util;
 
 import fi.vrk.xroad.catalog.lister.CatalogListerRuntimeException;
+import fi.vrk.xroad.catalog.lister.generated.OPENAPI;
+import fi.vrk.xroad.catalog.lister.generated.WSDL;
 import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
 import fi.vrk.xroad.catalog.persistence.entity.Service;
 import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import fi.vrk.xroad.catalog.lister.generated.*;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.GregorianCalendar;
 
-public class JaxbServiceUtil {
+public final class JaxbServiceUtil {
 
     private JaxbServiceUtil() {
 
