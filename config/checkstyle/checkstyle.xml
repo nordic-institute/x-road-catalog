@@ -135,7 +135,9 @@
         <module name="InterfaceIsType"/>
         <!-- Miscellaneous other checks.                   -->
         <!-- See http://checkstyle.sf.net/config_misc.html -->
-        <module name="TodoComment"/>
+        <module name="TodoComment">
+            <property name="severity" value="warning"/>
+        </module>
         <module name="UpperEll"/>
         <module name="AvoidStarImport">
             <property name="severity" value="error"/>

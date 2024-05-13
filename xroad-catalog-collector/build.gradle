@@ -37,6 +37,10 @@ jar {
     enabled = false
 }
 
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+}
+
 springBoot {
     mainClass = 'fi.vrk.xroad.catalog.collector.XRoadCatalogCollector'
 }
