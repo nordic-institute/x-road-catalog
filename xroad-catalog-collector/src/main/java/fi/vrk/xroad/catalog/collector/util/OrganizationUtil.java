@@ -278,7 +278,9 @@ public final class OrganizationUtil {
         return organizationDescriptions;
     }
 
+    @SuppressWarnings("squid:S6035")
     private static String replaceUnicodeControlCharacters(String input) {
+        // TODO: Check if there is a better way to remove control characters
         return input.replaceAll(
                 "[\\x{0000}-\\x{0009}]|[\\x{000b}-\\x{000c}]|[\\x{000e}-\\x{000f}]|[\\x{0010}-\\x{001f}]",
                 "");

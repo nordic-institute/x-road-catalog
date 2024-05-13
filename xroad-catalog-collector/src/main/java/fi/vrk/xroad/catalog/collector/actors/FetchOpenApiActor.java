@@ -69,8 +69,7 @@ public class FetchOpenApiActor extends XRoadCatalogActor {
 
     @Override
     protected boolean handleMessage(Object message) {
-        if (message instanceof XRoadRestServiceIdentifierType) {
-            XRoadRestServiceIdentifierType service = (XRoadRestServiceIdentifierType) message;
+        if (message instanceof XRoadRestServiceIdentifierType service) {
             log.info("Fetching openApi [{}] {}", openApiCounter.addAndGet(1), ClientTypeUtil.toString(service));
             String openApi = xroadClient.getOpenApi(service, xroadSecurityServerHost, xroadInstance, memberClass,
                     memberCode, subsystemCode, catalogService);

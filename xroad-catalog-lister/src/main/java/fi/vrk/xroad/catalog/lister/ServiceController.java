@@ -109,9 +109,7 @@ public class ServiceController implements ServiceOperations {
         }
         XRoadData xRoadData = XRoadData.builder().xRoadInstance(xRoadInstance).memberClass(memberClass)
                 .memberCode(memberCode).subsystemCode(subsystemCode).build();
-        Page<ErrorLog> errors = catalogService.getErrors(xRoadData, Integer.valueOf(page),
-                Integer.valueOf(limit),
-                startDateTime, endDateTime);
+        Page<ErrorLog> errors = catalogService.getErrors(xRoadData, page, limit, startDateTime, endDateTime);
         return ResponseEntity.ok(ErrorLogResponse.builder().pageNumber(page).pageSize(limit)
                 .numberOfPages(errors.getTotalPages()).errorLogList(errors.getContent()).build());
     }

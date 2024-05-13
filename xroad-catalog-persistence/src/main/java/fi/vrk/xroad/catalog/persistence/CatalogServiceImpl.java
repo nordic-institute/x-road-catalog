@@ -288,14 +288,14 @@ public class CatalogServiceImpl implements CatalogService {
         List<Service> services = serviceRepository.findAllActive();
         LocalDateTime dateInPast = startDateTime;
         while (isDateBetweenDates(dateInPast, startDateTime, endDateTime)) {
+            // TODO: Why are we using AtomicLong here?
             AtomicLong totalDistinctServices = new AtomicLong();
             List<Service> servicesBetweenDates = services.stream()
                     .filter(p -> p.getStatusInfo().getCreated().isBefore(endDateTime))
-                    .collect(Collectors.toList());
+                    .toList();
             if (!servicesBetweenDates.isEmpty()) {
                 totalDistinctServices
-                        .set(servicesBetweenDates.stream().map(Service::getServiceCode).collect(Collectors.toList())
-                                .stream().distinct().collect(Collectors.toList()).size());
+                        .set(servicesBetweenDates.stream().map(Service::getServiceCode).distinct().count());
 
                 DistinctServiceStatistics serviceStatistics = DistinctServiceStatistics.builder()
                         .created(dateInPast)

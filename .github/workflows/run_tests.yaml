@@ -42,7 +42,7 @@ jobs:
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
       - name: Run tests
-        run: ./gradlew build test
+        run: ./gradlew build test --stacktrace
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

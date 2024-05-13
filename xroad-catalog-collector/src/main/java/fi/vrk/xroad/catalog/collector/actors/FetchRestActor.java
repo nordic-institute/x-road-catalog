@@ -64,8 +64,7 @@ public class FetchRestActor extends XRoadCatalogActor {
 
     @Override
     protected boolean handleMessage(Object message) {
-        if (message instanceof XRoadRestServiceIdentifierType) {
-            XRoadRestServiceIdentifierType service = (XRoadRestServiceIdentifierType) message;
+        if (message instanceof XRoadRestServiceIdentifierType service) {
             log.info("Fetching rest [{}] {}", restCounter.addAndGet(1), ClientTypeUtil.toString(service));
             List<fi.vrk.xroad.catalog.collector.util.Endpoint> endpointList = MethodListUtil.getEndpointList(service);
             String endpointData = "{\"endpoint_data\":";
