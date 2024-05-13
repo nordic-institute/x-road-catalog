@@ -25,15 +25,15 @@ public interface RegisteredEntryRepository extends CrudRepository<RegisteredEntr
     Optional<List<RegisteredEntry>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT r FROM RegisteredEntry r WHERE r.company.id = :companyId "
-            +"AND r.language = :language "
-            +"AND r.authority = :authority "
-            +"AND r.register = :register "
-            +"AND r.status = :status "
+            + "AND r.language = :language "
+            + "AND r.authority = :authority "
+            + "AND r.register = :register "
+            + "AND r.status = :status "
             + "AND r.description = :description")
     Optional<RegisteredEntry> findAny(@Param("companyId") Long companyId,
-                                      @Param("language") String language,
-                                      @Param("authority") Long authority,
-                                      @Param("register") Long register,
-                                      @Param("status") Long status,
-                                      @Param("description") String description);
+            @Param("language") String language,
+            @Param("authority") Long authority,
+            @Param("register") Long register,
+            @Param("status") Long status,
+            @Param("description") String description);
 }

@@ -20,11 +20,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface StreetAddressAdditionalInformationRepository extends CrudRepository<StreetAddressAdditionalInformation, Long> {
+public interface StreetAddressAdditionalInformationRepository
+        extends CrudRepository<StreetAddressAdditionalInformation, Long> {
 
     Optional<List<StreetAddressAdditionalInformation>> findAnyByStreetAddressId(Long streetAddressId);
 
     @Query("SELECT s FROM StreetAddressAdditionalInformation s WHERE s.streetAddress.id = :streetAddressId AND s.language = :language")
-    Optional<StreetAddressAdditionalInformation> findAny(@Param("streetAddressId") Long streetAddressId, @Param("language") String language);
+    Optional<StreetAddressAdditionalInformation> findAny(@Param("streetAddressId") Long streetAddressId,
+            @Param("language") String language);
 
 }

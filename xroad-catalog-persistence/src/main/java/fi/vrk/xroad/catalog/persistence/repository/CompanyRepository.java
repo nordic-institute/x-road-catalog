@@ -27,11 +27,11 @@ public interface CompanyRepository extends CrudRepository<Company, Long> {
     Set<Company> findAllByBusinessId(@Param("businessId") String businessId);
 
     @Query("SELECT c FROM Company c WHERE c.businessId = :businessId "
-            +"AND c.companyForm = :companyForm "
+            + "AND c.companyForm = :companyForm "
             + "AND c.name = :name")
     Optional<Company> findAny(@Param("businessId") String businessId,
-                              @Param("companyForm") String companyForm,
-                              @Param("name") String name);
+            @Param("companyForm") String companyForm,
+            @Param("name") String name);
 
     @Query(value = "SELECT MAX(fetched) FROM company", nativeQuery = true)
     LocalDateTime findLatestFetched();

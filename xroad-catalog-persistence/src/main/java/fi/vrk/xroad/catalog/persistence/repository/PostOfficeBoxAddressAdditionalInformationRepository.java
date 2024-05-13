@@ -20,13 +20,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface PostOfficeBoxAddressAdditionalInformationRepository extends CrudRepository<PostOfficeBoxAddressAdditionalInformation, Long> {
+public interface PostOfficeBoxAddressAdditionalInformationRepository
+        extends CrudRepository<PostOfficeBoxAddressAdditionalInformation, Long> {
 
-    Optional<List<PostOfficeBoxAddressAdditionalInformation>> findAnyByPostOfficeBoxAddressId(Long postOfficeBoxAddressId);
+    Optional<List<PostOfficeBoxAddressAdditionalInformation>> findAnyByPostOfficeBoxAddressId(
+            Long postOfficeBoxAddressId);
 
     @Query("SELECT p FROM PostOfficeBoxAddressAdditionalInformation p WHERE p.postOfficeBoxAddress.id = :postOfficeBoxAddressId "
             + "AND p.language = :language")
-    Optional<PostOfficeBoxAddressAdditionalInformation> findAny(@Param("postOfficeBoxAddressId") Long postOfficeBoxAddressId,
-                                                                @Param("language") String language);
+    Optional<PostOfficeBoxAddressAdditionalInformation> findAny(
+            @Param("postOfficeBoxAddressId") Long postOfficeBoxAddressId,
+            @Param("language") String language);
 
 }

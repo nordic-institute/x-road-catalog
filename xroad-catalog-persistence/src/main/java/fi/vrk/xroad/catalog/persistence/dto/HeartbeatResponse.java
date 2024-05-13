@@ -12,10 +12,13 @@
  */
 package fi.vrk.xroad.catalog.persistence.dto;
 
-import lombok.*;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Builder
 @NoArgsConstructor

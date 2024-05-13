@@ -25,10 +25,10 @@ public interface AddressRepository extends CrudRepository<Address, Long> {
     Optional<List<Address>> findAnyByOrganizationId(Long organizationId);
 
     @Query("SELECT a FROM Address a WHERE a.organization.id = :organizationId "
-            +"AND a.type = :type "
+            + "AND a.type = :type "
             + "AND a.subType = :subType")
     Optional<Address> findAny(@Param("organizationId") Long organizationId,
-                              @Param("type") String type,
-                              @Param("subType") String subType);
+            @Param("type") String type,
+            @Param("subType") String subType);
 
 }

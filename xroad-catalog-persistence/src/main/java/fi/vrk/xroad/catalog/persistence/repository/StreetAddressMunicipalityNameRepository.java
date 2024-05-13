@@ -22,9 +22,12 @@ import java.util.Optional;
 
 public interface StreetAddressMunicipalityNameRepository extends CrudRepository<StreetAddressMunicipalityName, Long> {
 
-    Optional<List<StreetAddressMunicipalityName>> findAnyByStreetAddressMunicipalityId(Long streetAddressMunicipalityId);
+    Optional<List<StreetAddressMunicipalityName>> findAnyByStreetAddressMunicipalityId(
+            Long streetAddressMunicipalityId);
 
+    @SuppressWarnings("checkstyle:linelength")
     @Query("SELECT s FROM StreetAddressMunicipalityName s WHERE s.streetAddressMunicipality.id = :streetAddressMunicipalityId AND s.language = :language")
-    Optional<StreetAddressMunicipalityName> findAny(@Param("streetAddressMunicipalityId") Long streetAddressMunicipalityId, @Param("language") String language);
+    Optional<StreetAddressMunicipalityName> findAny(
+            @Param("streetAddressMunicipalityId") Long streetAddressMunicipalityId, @Param("language") String language);
 
 }

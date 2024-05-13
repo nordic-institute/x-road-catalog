@@ -46,7 +46,4 @@ public class ContactDetailRepositoryTest {
         assertNull(contactDetails.get().get(0).getEndDate());
     }
 
-
-
 }
-

@@ -12,10 +12,30 @@
  */
 package fi.vrk.xroad.catalog.persistence.entity;
 
-import lombok.*;
-import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 
 @Entity
 @Getter
@@ -29,6 +49,7 @@ public class PostOfficeBoxAddressMunicipality {
     @Id
     @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "POST_OFFICE_BOX_ADDRESS_MUNICIPALITY_GEN")
+    @SuppressWarnings("checkstyle:lineLength")
     @SequenceGenerator(name = "POST_OFFICE_BOX_ADDRESS_MUNICIPALITY_GEN", sequenceName = "POST_OFFICE_BOX_ADDRESS_MUNICIPALITY_ID_SEQ", allocationSize = 1)
     private long id;
     @Column(nullable = false)

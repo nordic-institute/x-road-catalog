@@ -25,14 +25,14 @@ public interface RegisteredOfficeRepository extends CrudRepository<RegisteredOff
     Optional<List<RegisteredOffice>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT r FROM RegisteredOffice r WHERE r.company.id = :companyId "
-            +"AND r.language = :language "
-            +"AND r.ordering = :ordering "
-            +"AND r.version = :version "
+            + "AND r.language = :language "
+            + "AND r.ordering = :ordering "
+            + "AND r.version = :version "
             + "AND r.source = :source")
     Optional<RegisteredOffice> findAny(@Param("companyId") Long companyId,
-                                       @Param("language") String language,
-                                       @Param("ordering") Long ordering,
-                                       @Param("version") Long version,
-                                       @Param("source") Long source);
+            @Param("language") String language,
+            @Param("ordering") Long ordering,
+            @Param("version") Long version,
+            @Param("source") Long source);
 
 }

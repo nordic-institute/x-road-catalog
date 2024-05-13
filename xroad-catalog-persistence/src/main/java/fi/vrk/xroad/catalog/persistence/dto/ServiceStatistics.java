@@ -42,6 +42,7 @@ public class ServiceStatistics implements Serializable {
     @Override
     public String toString() {
         return "{\"created\":" + created + ",\"numberOfSoapServices\":\"" + numberOfSoapServices
-                + "\",\"numberOfRestServices\":\"" + numberOfRestServices + "\",\"numberOfOpenApiServices\":\"" + numberOfOpenApiServices + "}";
+                + "\",\"numberOfRestServices\":\"" + numberOfRestServices + "\",\"numberOfOpenApiServices\":\""
+                + numberOfOpenApiServices + "}";
     }
 }

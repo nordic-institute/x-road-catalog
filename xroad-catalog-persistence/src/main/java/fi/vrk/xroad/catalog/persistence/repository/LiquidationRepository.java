@@ -25,13 +25,13 @@ public interface LiquidationRepository extends CrudRepository<Liquidation, Long>
     Optional<List<Liquidation>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT l FROM Liquidation l WHERE l.company.id = :companyId "
-            +"AND l.language = :language "
-            +"AND l.source = :source "
-            +"AND l.type = :type "
+            + "AND l.language = :language "
+            + "AND l.source = :source "
+            + "AND l.type = :type "
             + "AND l.version = :version")
     Optional<Liquidation> findAny(@Param("companyId") Long companyId,
-                                  @Param("language") String language,
-                                  @Param("source") Long source,
-                                  @Param("type") Long type,
-                                  @Param("version") Long version);
+            @Param("language") String language,
+            @Param("source") Long source,
+            @Param("type") Long type,
+            @Param("version") Long version);
 }

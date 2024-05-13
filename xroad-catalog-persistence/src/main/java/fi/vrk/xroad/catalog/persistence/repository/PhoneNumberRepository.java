@@ -24,12 +24,12 @@ public interface PhoneNumberRepository extends CrudRepository<PhoneNumber, Long>
 
     Optional<List<PhoneNumber>> findAnyByOrganizationId(Long organizationId);
 
-    @Query("SELECT p FROM PhoneNumber p WHERE p.organization.id = :organizationId " +
-            "AND p.number = :number " +
-            "AND p.additionalInformation = :additionalInformation " +
-            "AND p.language = :language")
+    @Query("SELECT p FROM PhoneNumber p WHERE p.organization.id = :organizationId "
+            + "AND p.number = :number "
+            + "AND p.additionalInformation = :additionalInformation "
+            + "AND p.language = :language")
     Optional<PhoneNumber> findAny(@Param("organizationId") Long organizationId,
-                                  @Param("number") String number,
-                                  @Param("additionalInformation") String additionalInformation,
-                                  @Param("language") String language);
+            @Param("number") String number,
+            @Param("additionalInformation") String additionalInformation,
+            @Param("language") String language);
 }

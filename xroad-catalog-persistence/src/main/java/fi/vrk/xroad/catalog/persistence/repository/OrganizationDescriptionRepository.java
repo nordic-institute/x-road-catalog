@@ -25,9 +25,9 @@ public interface OrganizationDescriptionRepository extends CrudRepository<Organi
     Optional<List<OrganizationDescription>> findAnyByOrganizationId(Long organizationId);
 
     @Query("SELECT o FROM OrganizationDescription o WHERE o.organization.id = :organizationId "
-            +"AND o.language = :language "
+            + "AND o.language = :language "
             + "AND o.type = :type")
     Optional<OrganizationDescription> findAny(@Param("organizationId") Long organizationId,
-                                              @Param("language") String language,
-                                              @Param("type") String type);
+            @Param("language") String language,
+            @Param("type") String type);
 }

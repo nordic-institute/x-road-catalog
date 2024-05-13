@@ -12,16 +12,53 @@
  */
 package fi.vrk.xroad.catalog.persistence;
 
-import fi.vrk.xroad.catalog.persistence.dto.LastCollectionData;
 import fi.vrk.xroad.catalog.persistence.dto.LastOrganizationCollectionData;
-import fi.vrk.xroad.catalog.persistence.entity.*;
-import fi.vrk.xroad.catalog.persistence.repository.*;
+import fi.vrk.xroad.catalog.persistence.entity.Address;
+import fi.vrk.xroad.catalog.persistence.entity.Email;
+import fi.vrk.xroad.catalog.persistence.entity.Organization;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationName;
+import fi.vrk.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.vrk.xroad.catalog.persistence.entity.PostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.StatusInfo;
+import fi.vrk.xroad.catalog.persistence.entity.Street;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddress;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.WebPage;
+import fi.vrk.xroad.catalog.persistence.repository.AddressRepository;
+import fi.vrk.xroad.catalog.persistence.repository.CompanyRepository;
+import fi.vrk.xroad.catalog.persistence.repository.EmailRepository;
+import fi.vrk.xroad.catalog.persistence.repository.OrganizationDescriptionRepository;
+import fi.vrk.xroad.catalog.persistence.repository.OrganizationNameRepository;
+import fi.vrk.xroad.catalog.persistence.repository.OrganizationRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PhoneNumberRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PostOfficeBoxAddressAdditionalInformationRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PostOfficeBoxAddressMunicipalityNameRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PostOfficeBoxAddressMunicipalityRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PostOfficeBoxAddressRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PostOfficeBoxRepository;
+import fi.vrk.xroad.catalog.persistence.repository.PostOfficeRepository;
+import fi.vrk.xroad.catalog.persistence.repository.StreetAddressAdditionalInformationRepository;
+import fi.vrk.xroad.catalog.persistence.repository.StreetAddressMunicipalityNameRepository;
+import fi.vrk.xroad.catalog.persistence.repository.StreetAddressMunicipalityRepository;
+import fi.vrk.xroad.catalog.persistence.repository.StreetAddressPostOfficeRepository;
+import fi.vrk.xroad.catalog.persistence.repository.StreetAddressRepository;
+import fi.vrk.xroad.catalog.persistence.repository.StreetRepository;
+import fi.vrk.xroad.catalog.persistence.repository.WebPageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Implementation for organizationservice CRUD
@@ -111,7 +148,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     @Transactional
     public Organization saveOrganization(Organization organization) {
-        Optional<Organization> foundOrganization = organizationRepository.findAnyByOrganizationGuid(organization.getGuid());
+        Optional<Organization> foundOrganization = organizationRepository
+                .findAnyByOrganizationGuid(organization.getGuid());
         if (foundOrganization.isPresent()) {
             Organization oldOrganization = foundOrganization.get();
             StatusInfo statusInfo = oldOrganization.getStatusInfo();
@@ -122,7 +160,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             organization.setStatusInfo(statusInfo);
             organization.setId(oldOrganization.getId());
         } else {
-            organization.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            organization
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return organizationRepository.save(organization);
     }
@@ -168,20 +207,23 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public StreetAddressMunicipality saveStreetAddressMunicipality(StreetAddressMunicipality streetAddressMunicipality) {
+    public StreetAddressMunicipality saveStreetAddressMunicipality(
+            StreetAddressMunicipality streetAddressMunicipality) {
         return streetAddressMunicipalityRepository.save(updateStreetAddressMunicipalityData(streetAddressMunicipality));
     }
 
     @Override
     public StreetAddressMunicipalityName saveStreetAddressMunicipalityName(
             StreetAddressMunicipalityName streetAddressMunicipalityName) {
-        return streetAddressMunicipalityNameRepository.save(updateStreetAddressMunicipalityNameData(streetAddressMunicipalityName));
+        return streetAddressMunicipalityNameRepository
+                .save(updateStreetAddressMunicipalityNameData(streetAddressMunicipalityName));
     }
 
     @Override
     public StreetAddressAdditionalInformation saveStreetAddressAdditionalInformation(
             StreetAddressAdditionalInformation streetAddressAdditionalInformation) {
-        return streetAddressAdditionalInformationRepository.save(updateStreetAddressAdditionalInformationData(streetAddressAdditionalInformation));
+        return streetAddressAdditionalInformationRepository
+                .save(updateStreetAddressAdditionalInformationData(streetAddressAdditionalInformation));
     }
 
     @Override
@@ -195,14 +237,17 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public PostOfficeBoxAddressMunicipality savePostOfficeBoxAddressMunicipality(PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality) {
-        return postOfficeBoxAddressMunicipalityRepository.save(updatePostOfficeBoxAddressMunicipalityData(postOfficeBoxAddressMunicipality));
+    public PostOfficeBoxAddressMunicipality savePostOfficeBoxAddressMunicipality(
+            PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality) {
+        return postOfficeBoxAddressMunicipalityRepository
+                .save(updatePostOfficeBoxAddressMunicipalityData(postOfficeBoxAddressMunicipality));
     }
 
     @Override
     public PostOfficeBoxAddressMunicipalityName savePostOfficeBoxAddressMunicipalityName(
             PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName) {
-        return postOfficeBoxAddressMunicipalityNameRepository.save(updatePostOfficeBoxAddressMunicipalityNameData(postOfficeBoxAddressMunicipalityName));
+        return postOfficeBoxAddressMunicipalityNameRepository
+                .save(updatePostOfficeBoxAddressMunicipalityNameData(postOfficeBoxAddressMunicipalityName));
     }
 
     @Override
@@ -224,7 +269,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     private OrganizationName updateOrganizationNameData(OrganizationName organizationName) {
         Optional<OrganizationName> foundOrganizationName = organizationNameRepository
-                .findAny(organizationName.getOrganization().getId(), organizationName.getLanguage(), organizationName.getType());
+                .findAny(organizationName.getOrganization().getId(), organizationName.getLanguage(),
+                        organizationName.getType());
         if (foundOrganizationName.isPresent()) {
             OrganizationName oldOrganizationName = foundOrganizationName.get();
             StatusInfo statusInfo = oldOrganizationName.getStatusInfo();
@@ -235,14 +281,16 @@ public class OrganizationServiceImpl implements OrganizationService {
             organizationName.setStatusInfo(statusInfo);
             organizationName.setId(oldOrganizationName.getId());
         } else {
-            organizationName.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            organizationName
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return organizationName;
     }
 
     private OrganizationDescription updateOrganizationDescriptionData(OrganizationDescription organizationDescription) {
         Optional<OrganizationDescription> foundOrganizationDescription = organizationDescriptionRepository
-                .findAny(organizationDescription.getOrganization().getId(), organizationDescription.getLanguage(), organizationDescription.getType());
+                .findAny(organizationDescription.getOrganization().getId(), organizationDescription.getLanguage(),
+                        organizationDescription.getType());
         if (foundOrganizationDescription.isPresent()) {
             OrganizationDescription oldOrganizationDescription = foundOrganizationDescription.get();
             StatusInfo statusInfo = oldOrganizationDescription.getStatusInfo();
@@ -253,7 +301,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             organizationDescription.setStatusInfo(statusInfo);
             organizationDescription.setId(oldOrganizationDescription.getId());
         } else {
-            organizationDescription.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            organizationDescription
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return organizationDescription;
     }
@@ -289,13 +338,15 @@ public class OrganizationServiceImpl implements OrganizationService {
             phoneNumber.setStatusInfo(statusInfo);
             phoneNumber.setId(oldPhoneNumber.getId());
         } else {
-            phoneNumber.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            phoneNumber
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return phoneNumber;
     }
 
     private WebPage updateWebPageData(WebPage webPage) {
-        Optional<WebPage> foundWebPage = webpageRepository.findAny(webPage.getOrganization().getId(), webPage.getLanguage(), webPage.getUrl());
+        Optional<WebPage> foundWebPage = webpageRepository.findAny(webPage.getOrganization().getId(),
+                webPage.getLanguage(), webPage.getUrl());
         if (foundWebPage.isPresent()) {
             WebPage oldWebPage = foundWebPage.get();
             StatusInfo statusInfo = oldWebPage.getStatusInfo();
@@ -312,7 +363,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     private Address updateAddressData(Address address) {
-        Optional<Address> foundAddress = addressRepository.findAny(address.getOrganization().getId(), address.getType(), address.getSubType());
+        Optional<Address> foundAddress = addressRepository.findAny(address.getOrganization().getId(), address.getType(),
+                address.getSubType());
         if (foundAddress.isPresent()) {
             Address oldAddress = foundAddress.get();
             StatusInfo statusInfo = oldAddress.getStatusInfo();
@@ -329,7 +381,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     private StreetAddress updateStreetAddressData(StreetAddress streetAddress) {
-        Optional<StreetAddress> foundStreetAddress = Optional.ofNullable(streetAddressRepository.findByAddressId(streetAddress.getAddress().getId()));
+        Optional<StreetAddress> foundStreetAddress = Optional
+                .ofNullable(streetAddressRepository.findByAddressId(streetAddress.getAddress().getId()));
         if (foundStreetAddress.isPresent()) {
             StreetAddress oldStreetAddress = foundStreetAddress.get();
             StatusInfo statusInfo = oldStreetAddress.getStatusInfo();
@@ -340,14 +393,17 @@ public class OrganizationServiceImpl implements OrganizationService {
             streetAddress.setStatusInfo(statusInfo);
             streetAddress.setId(oldStreetAddress.getId());
         } else {
-            streetAddress.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            streetAddress
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return streetAddress;
     }
 
-    private StreetAddressMunicipality updateStreetAddressMunicipalityData(StreetAddressMunicipality streetAddressMunicipality) {
-        Optional<StreetAddressMunicipality> foundStreetAddressMunicipality =
-                Optional.ofNullable(streetAddressMunicipalityRepository.findByStreetAddressId(streetAddressMunicipality.getStreetAddress().getId()));
+    private StreetAddressMunicipality updateStreetAddressMunicipalityData(
+            StreetAddressMunicipality streetAddressMunicipality) {
+        Optional<StreetAddressMunicipality> foundStreetAddressMunicipality = Optional
+                .ofNullable(streetAddressMunicipalityRepository
+                        .findByStreetAddressId(streetAddressMunicipality.getStreetAddress().getId()));
         if (foundStreetAddressMunicipality.isPresent()) {
             StreetAddressMunicipality oldStreetAddressMunicipality = foundStreetAddressMunicipality.get();
             StatusInfo statusInfo = oldStreetAddressMunicipality.getStatusInfo();
@@ -358,7 +414,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             streetAddressMunicipality.setStatusInfo(statusInfo);
             streetAddressMunicipality.setId(oldStreetAddressMunicipality.getId());
         } else {
-            streetAddressMunicipality.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            streetAddressMunicipality
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return streetAddressMunicipality;
     }
@@ -366,7 +423,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     private StreetAddressMunicipalityName updateStreetAddressMunicipalityNameData(
             StreetAddressMunicipalityName streetAddressMunicipalityName) {
         Optional<StreetAddressMunicipalityName> foundStreetAddressMunicipalityName = streetAddressMunicipalityNameRepository
-                .findAny(streetAddressMunicipalityName.getStreetAddressMunicipality().getId(), streetAddressMunicipalityName.getLanguage());
+                .findAny(streetAddressMunicipalityName.getStreetAddressMunicipality().getId(),
+                        streetAddressMunicipalityName.getLanguage());
         if (foundStreetAddressMunicipalityName.isPresent()) {
             StreetAddressMunicipalityName oldStreetAddressMunicipalityName = foundStreetAddressMunicipalityName.get();
             StatusInfo statusInfo = oldStreetAddressMunicipalityName.getStatusInfo();
@@ -377,7 +435,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             streetAddressMunicipalityName.setStatusInfo(statusInfo);
             streetAddressMunicipalityName.setId(oldStreetAddressMunicipalityName.getId());
         } else {
-            streetAddressMunicipalityName.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            streetAddressMunicipalityName
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return streetAddressMunicipalityName;
     }
@@ -395,7 +454,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             postOfficeBoxAddress.setStatusInfo(statusInfo);
             postOfficeBoxAddress.setId(oldPostOfficeBoxAddress.getId());
         } else {
-            postOfficeBoxAddress.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            postOfficeBoxAddress
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return postOfficeBoxAddress;
     }
@@ -403,9 +463,11 @@ public class OrganizationServiceImpl implements OrganizationService {
     private StreetAddressAdditionalInformation updateStreetAddressAdditionalInformationData(
             StreetAddressAdditionalInformation streetAddressAdditionalInformation) {
         Optional<StreetAddressAdditionalInformation> foundStreetAddressAdditionalInformation = streetAddressAdditionalInformationRepository
-                .findAny(streetAddressAdditionalInformation.getStreetAddress().getId(), streetAddressAdditionalInformation.getLanguage());
+                .findAny(streetAddressAdditionalInformation.getStreetAddress().getId(),
+                        streetAddressAdditionalInformation.getLanguage());
         if (foundStreetAddressAdditionalInformation.isPresent()) {
-            StreetAddressAdditionalInformation oldStreetAddressAdditionalInformation = foundStreetAddressAdditionalInformation.get();
+            StreetAddressAdditionalInformation oldStreetAddressAdditionalInformation = foundStreetAddressAdditionalInformation
+                    .get();
             StatusInfo statusInfo = oldStreetAddressAdditionalInformation.getStatusInfo();
             statusInfo.setFetched(LocalDateTime.now());
             if (!oldStreetAddressAdditionalInformation.equals(streetAddressAdditionalInformation)) {
@@ -414,7 +476,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             streetAddressAdditionalInformation.setStatusInfo(statusInfo);
             streetAddressAdditionalInformation.setId(oldStreetAddressAdditionalInformation.getId());
         } else {
-            streetAddressAdditionalInformation.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            streetAddressAdditionalInformation
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return streetAddressAdditionalInformation;
     }
@@ -433,7 +496,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             streetAddressPostOffice.setStatusInfo(statusInfo);
             streetAddressPostOffice.setId(oldStreetAddressPostOffice.getId());
         } else {
-            streetAddressPostOffice.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            streetAddressPostOffice
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return streetAddressPostOffice;
     }
@@ -469,7 +533,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             postOffice.setStatusInfo(statusInfo);
             postOffice.setId(oldPostOffice.getId());
         } else {
-            postOffice.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            postOffice
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return postOffice;
     }
@@ -487,20 +552,22 @@ public class OrganizationServiceImpl implements OrganizationService {
             postOfficeBox.setStatusInfo(statusInfo);
             postOfficeBox.setId(oldPostOfficeBox.getId());
         } else {
-            postOfficeBox.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            postOfficeBox
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return postOfficeBox;
     }
 
+    @SuppressWarnings("checkstyle:lineLength")
     private PostOfficeBoxAddressAdditionalInformation updatePostOfficeBoxAddressAdditionalInformationData(
             PostOfficeBoxAddressAdditionalInformation postOfficeBoxAddressAdditionalInformation) {
-        Optional<PostOfficeBoxAddressAdditionalInformation> foundPostOfficeBoxAddressAdditionalInformation
-                = postOfficeBoxAddressAdditionalInformationRepository.findAny(
-                postOfficeBoxAddressAdditionalInformation.getPostOfficeBoxAddress().getId(),
-                postOfficeBoxAddressAdditionalInformation.getLanguage());
+        Optional<PostOfficeBoxAddressAdditionalInformation> foundPostOfficeBoxAddressAdditionalInformation = postOfficeBoxAddressAdditionalInformationRepository
+                .findAny(
+                        postOfficeBoxAddressAdditionalInformation.getPostOfficeBoxAddress().getId(),
+                        postOfficeBoxAddressAdditionalInformation.getLanguage());
         if (foundPostOfficeBoxAddressAdditionalInformation.isPresent()) {
-            PostOfficeBoxAddressAdditionalInformation oldPostOfficeBoxAddressAdditionalInformation
-                    = foundPostOfficeBoxAddressAdditionalInformation.get();
+            PostOfficeBoxAddressAdditionalInformation oldPostOfficeBoxAddressAdditionalInformation = foundPostOfficeBoxAddressAdditionalInformation
+                    .get();
             StatusInfo statusInfo = oldPostOfficeBoxAddressAdditionalInformation.getStatusInfo();
             statusInfo.setFetched(LocalDateTime.now());
             if (!oldPostOfficeBoxAddressAdditionalInformation.equals(postOfficeBoxAddressAdditionalInformation)) {
@@ -509,18 +576,21 @@ public class OrganizationServiceImpl implements OrganizationService {
             postOfficeBoxAddressAdditionalInformation.setStatusInfo(statusInfo);
             postOfficeBoxAddressAdditionalInformation.setId(oldPostOfficeBoxAddressAdditionalInformation.getId());
         } else {
-            postOfficeBoxAddressAdditionalInformation.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            postOfficeBoxAddressAdditionalInformation
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return postOfficeBoxAddressAdditionalInformation;
     }
 
     private PostOfficeBoxAddressMunicipality updatePostOfficeBoxAddressMunicipalityData(
             PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality) {
-        Optional<PostOfficeBoxAddressMunicipality> foundPostOfficeBoxAddressMunicipality =
-                Optional.ofNullable(postOfficeBoxAddressMunicipalityRepository
-                        .findByPostOfficeBoxAddressId(postOfficeBoxAddressMunicipality.getPostOfficeBoxAddress().getId()));
+        Optional<PostOfficeBoxAddressMunicipality> foundPostOfficeBoxAddressMunicipality = Optional
+                .ofNullable(postOfficeBoxAddressMunicipalityRepository
+                        .findByPostOfficeBoxAddressId(
+                                postOfficeBoxAddressMunicipality.getPostOfficeBoxAddress().getId()));
         if (foundPostOfficeBoxAddressMunicipality.isPresent()) {
-            PostOfficeBoxAddressMunicipality oldPostOfficeBoxAddressMunicipality = foundPostOfficeBoxAddressMunicipality.get();
+            PostOfficeBoxAddressMunicipality oldPostOfficeBoxAddressMunicipality = foundPostOfficeBoxAddressMunicipality
+                    .get();
             StatusInfo statusInfo = oldPostOfficeBoxAddressMunicipality.getStatusInfo();
             statusInfo.setFetched(LocalDateTime.now());
             if (!oldPostOfficeBoxAddressMunicipality.equals(postOfficeBoxAddressMunicipality)) {
@@ -529,20 +599,22 @@ public class OrganizationServiceImpl implements OrganizationService {
             postOfficeBoxAddressMunicipality.setStatusInfo(statusInfo);
             postOfficeBoxAddressMunicipality.setId(oldPostOfficeBoxAddressMunicipality.getId());
         } else {
-            postOfficeBoxAddressMunicipality.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            postOfficeBoxAddressMunicipality
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return postOfficeBoxAddressMunicipality;
     }
 
+    @SuppressWarnings("checkstyle:lineLength")
     private PostOfficeBoxAddressMunicipalityName updatePostOfficeBoxAddressMunicipalityNameData(
             PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName) {
-        Optional<PostOfficeBoxAddressMunicipalityName> foundPostOfficeBoxAddressMunicipalityName
-                = postOfficeBoxAddressMunicipalityNameRepository.findAny(
-                postOfficeBoxAddressMunicipalityName.getPostOfficeBoxAddressMunicipality().getId(),
-                postOfficeBoxAddressMunicipalityName.getLanguage());
+        Optional<PostOfficeBoxAddressMunicipalityName> foundPostOfficeBoxAddressMunicipalityName = postOfficeBoxAddressMunicipalityNameRepository
+                .findAny(
+                        postOfficeBoxAddressMunicipalityName.getPostOfficeBoxAddressMunicipality().getId(),
+                        postOfficeBoxAddressMunicipalityName.getLanguage());
         if (foundPostOfficeBoxAddressMunicipalityName.isPresent()) {
-            PostOfficeBoxAddressMunicipalityName oldPostOfficeBoxAddressMunicipalityName
-                    = foundPostOfficeBoxAddressMunicipalityName.get();
+            PostOfficeBoxAddressMunicipalityName oldPostOfficeBoxAddressMunicipalityName = foundPostOfficeBoxAddressMunicipalityName
+                    .get();
             StatusInfo statusInfo = oldPostOfficeBoxAddressMunicipalityName.getStatusInfo();
             statusInfo.setFetched(LocalDateTime.now());
             if (!oldPostOfficeBoxAddressMunicipalityName.equals(postOfficeBoxAddressMunicipalityName)) {
@@ -551,7 +623,8 @@ public class OrganizationServiceImpl implements OrganizationService {
             postOfficeBoxAddressMunicipalityName.setStatusInfo(statusInfo);
             postOfficeBoxAddressMunicipalityName.setId(oldPostOfficeBoxAddressMunicipalityName.getId());
         } else {
-            postOfficeBoxAddressMunicipalityName.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            postOfficeBoxAddressMunicipalityName
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return postOfficeBoxAddressMunicipalityName;
     }

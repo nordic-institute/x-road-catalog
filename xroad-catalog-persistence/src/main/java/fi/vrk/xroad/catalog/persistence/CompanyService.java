@@ -12,10 +12,22 @@
  */
 package fi.vrk.xroad.catalog.persistence;
 
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessLine;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessName;
+import fi.vrk.xroad.catalog.persistence.entity.Company;
+import fi.vrk.xroad.catalog.persistence.entity.CompanyForm;
+import fi.vrk.xroad.catalog.persistence.entity.ContactDetail;
+import fi.vrk.xroad.catalog.persistence.entity.Language;
+import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
+import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
+import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
 
 /**
- * CRUD methods for company related objects. no business logic (e.g. hash calculation),
+ * CRUD methods for company related objects. no business logic (e.g. hash
+ * calculation),
  * just persistence-related logic.
  * Company entities have time stamps created, updated and deleted.
  */
@@ -28,8 +40,11 @@ public interface CompanyService {
     Iterable<Company> getCompanies(String businessId);
 
     /**
-     * Saves given company data. The company can either be a new one, or an update to an existing one.
-     * Updates "changed" field based on whether data is different compared to last time.
+     * Saves given company data. The company can either be a new one, or an update
+     * to an existing one.
+     * Updates "changed" field based on whether data is different compared to last
+     * time.
+     * 
      * @return saved company
      * @param company the actual company
      */
@@ -37,66 +52,77 @@ public interface CompanyService {
 
     /**
      * Saves given BusinessName data.
+     * 
      * @param businessName the BusinessName
      */
     void saveBusinessName(BusinessName businessName);
 
     /**
      * Saves given BusinessAuxiliaryName data.
+     * 
      * @param businessAuxiliaryName the BusinessAuxiliaryName
      */
     void saveBusinessAuxiliaryName(BusinessAuxiliaryName businessAuxiliaryName);
 
     /**
      * Saves given BusinessAddress data.
+     * 
      * @param businessAddress the BusinessAddress
      */
     void saveBusinessAddress(BusinessAddress businessAddress);
 
     /**
      * Saves given BusinessIdChange data.
+     * 
      * @param businessIdChange the BusinessIdChange
      */
     void saveBusinessIdChange(BusinessIdChange businessIdChange);
 
     /**
      * Saves given BusinessLine data.
+     * 
      * @param businessLine the BusinessLine
      */
     void saveBusinessLine(BusinessLine businessLine);
 
     /**
      * Saves given CompanyForm data.
+     * 
      * @param companyForm the CompanyForm
      */
     void saveCompanyForm(CompanyForm companyForm);
 
     /**
      * Saves given ContactDetail data.
+     * 
      * @param contactDetail the ContactDetail
      */
     void saveContactDetail(ContactDetail contactDetail);
 
     /**
      * Saves given Language data.
+     * 
      * @param language the Language
      */
     void saveLanguage(Language language);
 
     /**
      * Saves given Liquidation data.
+     * 
      * @param liquidation the Liquidation
      */
     void saveLiquidation(Liquidation liquidation);
 
     /**
      * Saves given RegisteredEntry data.
+     * 
      * @param registeredEntry the RegisteredEntry
      */
     void saveRegisteredEntry(RegisteredEntry registeredEntry);
 
     /**
      * Saves given RegisteredOffice data.
+     * 
      * @param registeredOffice the RegisteredOffice
      */
     void saveRegisteredOffice(RegisteredOffice registeredOffice);

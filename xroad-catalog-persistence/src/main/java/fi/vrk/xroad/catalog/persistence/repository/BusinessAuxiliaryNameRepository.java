@@ -25,13 +25,13 @@ public interface BusinessAuxiliaryNameRepository extends CrudRepository<Business
     Optional<List<BusinessAuxiliaryName>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT b FROM BusinessAuxiliaryName b WHERE b.company.id = :companyId "
-            +"AND b.language = :language "
-            +"AND b.source = :source "
-            +"AND b.ordering = :ordering "
+            + "AND b.language = :language "
+            + "AND b.source = :source "
+            + "AND b.ordering = :ordering "
             + "AND b.version = :version")
     Optional<BusinessAuxiliaryName> findAny(@Param("companyId") Long companyId,
-                                            @Param("language") String language,
-                                            @Param("source") Long source,
-                                            @Param("ordering") Long ordering,
-                                            @Param("version") Long version);
+            @Param("language") String language,
+            @Param("source") Long source,
+            @Param("ordering") Long ordering,
+            @Param("version") Long version);
 }

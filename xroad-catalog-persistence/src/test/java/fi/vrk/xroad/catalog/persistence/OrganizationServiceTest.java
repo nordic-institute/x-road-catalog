@@ -13,17 +13,36 @@
 package fi.vrk.xroad.catalog.persistence;
 
 import fi.vrk.xroad.catalog.persistence.dto.LastOrganizationCollectionData;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.Address;
+import fi.vrk.xroad.catalog.persistence.entity.Email;
+import fi.vrk.xroad.catalog.persistence.entity.Organization;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationName;
+import fi.vrk.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.vrk.xroad.catalog.persistence.entity.PostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.Street;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddress;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.WebPage;
+
 import com.google.common.collect.Iterables;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Optional;
 
 @SpringBootTest
 @Transactional
@@ -34,7 +53,8 @@ public class OrganizationServiceTest {
 
     @Test
     public void testGetLastCollectionData() {
-        LastOrganizationCollectionData lastCollectionData = organizationService.getLastOrganizationCollectionData();
+        LastOrganizationCollectionData lastCollectionData = organizationService
+                .getLastOrganizationCollectionData();
         assertEquals(2016, lastCollectionData.getOrganizationsLastFetched().getYear());
         assertEquals(2020, lastCollectionData.getCompaniesLastFetched().getYear());
     }
@@ -53,29 +73,42 @@ public class OrganizationServiceTest {
         assertEquals("abcdef123456", organizations.iterator().next().getGuid());
         assertEquals("Published", organizations.iterator().next().getPublishingStatus());
         assertEquals("Municipality", organizations.iterator().next().getOrganizationType());
-        assertEquals("Vaasan kaupunki", organizations.iterator().next().getAllOrganizationNames().iterator().next().getValue());
+        assertEquals("Vaasan kaupunki",
+                organizations.iterator().next().getAllOrganizationNames().iterator().next().getValue());
         assertEquals("Vaasa on yli 67 000 asukkaan voimakkaasti kasvava kaupunki",
-                organizations.iterator().next().getAllOrganizationDescriptions().iterator().next().getValue());
-        assertEquals("vaasa@vaasa.fi", organizations.iterator().next().getAllEmails().iterator().next().getValue());
-        assertEquals("62249111", organizations.iterator().next().getAllPhoneNumbers().iterator().next().getNumber());
-        assertEquals("https://www.vaasa.fi/", organizations.iterator().next().getAllWebPages().iterator().next().getUrl());
-        assertEquals("Street", organizations.iterator().next().getAllAddresses().iterator().next().getSubType());
+                organizations.iterator().next().getAllOrganizationDescriptions().iterator().next()
+                        .getValue());
+        assertEquals("vaasa@vaasa.fi",
+                organizations.iterator().next().getAllEmails().iterator().next().getValue());
+        assertEquals("62249111",
+                organizations.iterator().next().getAllPhoneNumbers().iterator().next().getNumber());
+        assertEquals("https://www.vaasa.fi/",
+                organizations.iterator().next().getAllWebPages().iterator().next().getUrl());
+        assertEquals("Street",
+                organizations.iterator().next().getAllAddresses().iterator().next().getSubType());
         assertEquals("64200", organizations.iterator().next().getAllAddresses().iterator().next()
                 .getAllStreetAddresses().iterator().next().getPostalCode());
         assertEquals("Motellikuja", organizations.iterator().next().getAllAddresses().iterator().next()
-                .getAllStreetAddresses().iterator().next().getAllStreets().iterator().next().getValue());
+                .getAllStreetAddresses().iterator().next().getAllStreets().iterator().next()
+                .getValue());
         assertEquals("64200", organizations.iterator().next().getAllAddresses().iterator().next()
                 .getAllPostOfficeBoxAddresses().iterator().next().getPostalCode());
         assertEquals("NIVALA", organizations.iterator().next().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOffices().iterator().next().getValue());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOffices().iterator().next()
+                .getValue());
         assertEquals("NIVALA", organizations.iterator().next().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOfficeBoxes().iterator().next().getValue());
-        assertEquals("Kaupungintalo/kaupunginjohtaja", organizations.iterator().next().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllAdditionalInformation().iterator().next().getValue());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOfficeBoxes().iterator()
+                .next().getValue());
+        assertEquals("Kaupungintalo/kaupunginjohtaja",
+                organizations.iterator().next().getAllAddresses().iterator().next()
+                        .getAllPostOfficeBoxAddresses().iterator().next()
+                        .getAllAdditionalInformation().iterator().next().getValue());
         assertEquals("545", organizations.iterator().next().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator().next().getCode());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator()
+                .next().getCode());
         assertEquals("Nivala", organizations.iterator().next().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator().next()
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator()
+                .next()
                 .getAllMunicipalityNames().iterator().next().getValue());
     }
 
@@ -93,7 +126,8 @@ public class OrganizationServiceTest {
         assertEquals("abcdef123456", organization.get().getGuid());
         assertEquals("Published", organization.get().getPublishingStatus());
         assertEquals("Municipality", organization.get().getOrganizationType());
-        assertEquals("Vaasan kaupunki", organization.get().getAllOrganizationNames().iterator().next().getValue());
+        assertEquals("Vaasan kaupunki",
+                organization.get().getAllOrganizationNames().iterator().next().getValue());
         assertEquals("Vaasa on yli 67 000 asukkaan voimakkaasti kasvava kaupunki",
                 organization.get().getAllOrganizationDescriptions().iterator().next().getValue());
         assertEquals("vaasa@vaasa.fi", organization.get().getAllEmails().iterator().next().getValue());
@@ -103,19 +137,25 @@ public class OrganizationServiceTest {
         assertEquals("64200", organization.get().getAllAddresses().iterator().next()
                 .getAllStreetAddresses().iterator().next().getPostalCode());
         assertEquals("Motellikuja", organization.get().getAllAddresses().iterator().next()
-                .getAllStreetAddresses().iterator().next().getAllStreets().iterator().next().getValue());
+                .getAllStreetAddresses().iterator().next().getAllStreets().iterator().next()
+                .getValue());
         assertEquals("64200", organization.get().getAllAddresses().iterator().next()
                 .getAllPostOfficeBoxAddresses().iterator().next().getPostalCode());
         assertEquals("NIVALA", organization.get().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOffices().iterator().next().getValue());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOffices().iterator().next()
+                .getValue());
         assertEquals("NIVALA", organization.get().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOfficeBoxes().iterator().next().getValue());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllPostOfficeBoxes().iterator()
+                .next().getValue());
         assertEquals("Kaupungintalo/kaupunginjohtaja", organization.get().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllAdditionalInformation().iterator().next().getValue());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllAdditionalInformation()
+                .iterator().next().getValue());
         assertEquals("545", organization.get().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator().next().getCode());
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator()
+                .next().getCode());
         assertEquals("Nivala", organization.get().getAllAddresses().iterator().next()
-                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator().next()
+                .getAllPostOfficeBoxAddresses().iterator().next().getAllMunicipalities().iterator()
+                .next()
                 .getAllMunicipalityNames().iterator().next().getValue());
     }
 
@@ -159,7 +199,8 @@ public class OrganizationServiceTest {
         assertEquals(1, foundOrganization.get().getAllOrganizationNames().size());
         assertEquals("fi", foundOrganization.get().getAllOrganizationNames().iterator().next().getLanguage());
         assertEquals("Vaasa", foundOrganization.get().getAllOrganizationNames().iterator().next().getValue());
-        TestUtil.verifySavedStatusInfo(foundOrganization.get().getAllOrganizationNames().iterator().next().getStatusInfo());
+        TestUtil.verifySavedStatusInfo(
+                foundOrganization.get().getAllOrganizationNames().iterator().next().getStatusInfo());
     }
 
     @Test
@@ -168,13 +209,17 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllOrganizationNames().size());
         OrganizationDescription organizationDescription = OrganizationDescription.builder()
-                .language("fi").type("Description").value("Vaasa").organization(organization.get()).build();
+                .language("fi").type("Description").value("Vaasa").organization(organization.get())
+                .build();
         organizationService.saveOrganizationDescription(organizationDescription);
         Optional<Organization> foundOrganization = organizationService.getOrganization("abcdef123456");
         assertEquals(1, foundOrganization.get().getAllOrganizationDescriptions().size());
-        assertEquals("fi", foundOrganization.get().getAllOrganizationDescriptions().iterator().next().getLanguage());
-        assertEquals("Vaasa", foundOrganization.get().getAllOrganizationDescriptions().iterator().next().getValue());
-        TestUtil.verifySavedStatusInfo(foundOrganization.get().getAllOrganizationDescriptions().iterator().next().getStatusInfo());
+        assertEquals("fi", foundOrganization.get().getAllOrganizationDescriptions().iterator().next()
+                .getLanguage());
+        assertEquals("Vaasa",
+                foundOrganization.get().getAllOrganizationDescriptions().iterator().next().getValue());
+        TestUtil.verifySavedStatusInfo(foundOrganization.get().getAllOrganizationDescriptions().iterator()
+                .next().getStatusInfo());
     }
 
     @Test
@@ -183,13 +228,15 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllOrganizationNames().size());
         Email email = Email.builder()
-                .language("fi").description("Asiakaspalvelu").value("vaasa@vaasa.fi").organization(organization.get()).build();
+                .language("fi").description("Asiakaspalvelu").value("vaasa@vaasa.fi")
+                .organization(organization.get()).build();
         organizationService.saveEmail(email);
         Optional<Organization> foundOrganization = organizationService.getOrganization("abcdef123456");
         assertEquals(1, foundOrganization.get().getAllEmails().size());
         assertEquals("fi", foundOrganization.get().getAllEmails().iterator().next().getLanguage());
         assertEquals("vaasa@vaasa.fi", foundOrganization.get().getAllEmails().iterator().next().getValue());
-        TestUtil.verifySavedStatusInfo(foundOrganization.get().getAllEmails().iterator().next().getStatusInfo());
+        TestUtil.verifySavedStatusInfo(
+                foundOrganization.get().getAllEmails().iterator().next().getStatusInfo());
     }
 
     @Test
@@ -210,8 +257,10 @@ public class OrganizationServiceTest {
         Optional<Organization> foundOrganization = organizationService.getOrganization("abcdef123456");
         assertEquals(1, foundOrganization.get().getAllPhoneNumbers().size());
         assertEquals("62249111", foundOrganization.get().getAllPhoneNumbers().iterator().next().getNumber());
-        assertEquals(false, foundOrganization.get().getAllPhoneNumbers().iterator().next().getIsFinnishServiceNumber());
-        TestUtil.verifySavedStatusInfo(foundOrganization.get().getAllPhoneNumbers().iterator().next().getStatusInfo());
+        assertEquals(false, foundOrganization.get().getAllPhoneNumbers().iterator().next()
+                .getIsFinnishServiceNumber());
+        TestUtil.verifySavedStatusInfo(
+                foundOrganization.get().getAllPhoneNumbers().iterator().next().getStatusInfo());
     }
 
     @Test
@@ -220,14 +269,17 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllOrganizationNames().size());
         WebPage webPage = WebPage.builder()
-                .language("fi").url("https://www.vaasa.fi/").value("Vaasa").organization(organization.get()).build();
+                .language("fi").url("https://www.vaasa.fi/").value("Vaasa")
+                .organization(organization.get()).build();
         organizationService.saveWebPage(webPage);
         Optional<Organization> foundOrganization = organizationService.getOrganization("abcdef123456");
         assertEquals(1, foundOrganization.get().getAllWebPages().size());
         assertEquals("fi", foundOrganization.get().getAllWebPages().iterator().next().getLanguage());
-        assertEquals("https://www.vaasa.fi/", foundOrganization.get().getAllWebPages().iterator().next().getUrl());
+        assertEquals("https://www.vaasa.fi/",
+                foundOrganization.get().getAllWebPages().iterator().next().getUrl());
         assertEquals("Vaasa", foundOrganization.get().getAllWebPages().iterator().next().getValue());
-        TestUtil.verifySavedStatusInfo(foundOrganization.get().getAllWebPages().iterator().next().getStatusInfo());
+        TestUtil.verifySavedStatusInfo(
+                foundOrganization.get().getAllWebPages().iterator().next().getStatusInfo());
     }
 
     @Test
@@ -236,7 +288,8 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllOrganizationNames().size());
         Address address = Address.builder()
-                .country("UK").organization(organization.get()).type("Postal").subType("Street").build();
+                .country("UK").organization(organization.get()).type("Postal").subType("Street")
+                .build();
         Address savedAddress = organizationService.saveAddress(address);
         assertNotNull(savedAddress);
         assertEquals("UK", savedAddress.getCountry());
@@ -252,7 +305,8 @@ public class OrganizationServiceTest {
         assertEquals(1, organization.get().getAllAddresses().size());
         StreetAddress streetAddress = StreetAddress.builder()
                 .postalCode("12345").longitude("23").latitude("59").coordinateState("Ok")
-                .streetNumber("100").address(organization.get().getAllAddresses().iterator().next()).build();
+                .streetNumber("100").address(organization.get().getAllAddresses().iterator().next())
+                .build();
         StreetAddress savedStreetAddress = organizationService.saveStreetAddress(streetAddress);
         assertNotNull(savedStreetAddress);
         assertEquals("12345", savedStreetAddress.getPostalCode());
@@ -269,7 +323,8 @@ public class OrganizationServiceTest {
         assertEquals(1, organization.get().getAllAddresses().size());
         assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().size());
         Street street = Street.builder()
-                .streetAddress(organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().iterator().next())
+                .streetAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllStreetAddresses().iterator().next())
                 .language("fi").value("Motellikuja").build();
         Street savedStreet = organizationService.saveStreet(street);
         assertNotNull(savedStreet);
@@ -285,9 +340,11 @@ public class OrganizationServiceTest {
         assertEquals(1, organization.get().getAllAddresses().size());
         assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().size());
         StreetAddressPostOffice streetAddressPostOffice = StreetAddressPostOffice.builder()
-                .streetAddress(organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().iterator().next())
+                .streetAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllStreetAddresses().iterator().next())
                 .language("fi").value("NIVALA").build();
-        StreetAddressPostOffice savedStreetAddressPostOffice = organizationService.saveStreetAddressPostOffice(streetAddressPostOffice);
+        StreetAddressPostOffice savedStreetAddressPostOffice = organizationService
+                .saveStreetAddressPostOffice(streetAddressPostOffice);
         assertNotNull(savedStreetAddressPostOffice);
         assertEquals("fi", savedStreetAddressPostOffice.getLanguage());
         assertEquals("NIVALA", savedStreetAddressPostOffice.getValue());
@@ -300,11 +357,13 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
         assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().size());
-        StreetAddressAdditionalInformation addressAdditionalInformation = StreetAddressAdditionalInformation.builder()
-                .streetAddress(organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().iterator().next())
+        StreetAddressAdditionalInformation addressAdditionalInformation = StreetAddressAdditionalInformation
+                .builder()
+                .streetAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllStreetAddresses().iterator().next())
                 .language("fi").value("Kaupungintalo/kaupunginjohtaja").build();
-        StreetAddressAdditionalInformation savedStreetAddressAdditionalInformation =
-                organizationService.saveStreetAddressAdditionalInformation(addressAdditionalInformation);
+        StreetAddressAdditionalInformation savedStreetAddressAdditionalInformation = organizationService
+                .saveStreetAddressAdditionalInformation(addressAdditionalInformation);
         assertNotNull(savedStreetAddressAdditionalInformation);
         assertEquals("fi", savedStreetAddressAdditionalInformation.getLanguage());
         assertEquals("Kaupungintalo/kaupunginjohtaja", savedStreetAddressAdditionalInformation.getValue());
@@ -318,9 +377,11 @@ public class OrganizationServiceTest {
         assertEquals(1, organization.get().getAllAddresses().size());
         assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().size());
         StreetAddressMunicipality streetAddressMunicipality = StreetAddressMunicipality.builder()
-                .streetAddress(organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().iterator().next())
+                .streetAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllStreetAddresses().iterator().next())
                 .code("999").build();
-        StreetAddressMunicipality savedStreetAddressMunicipality = organizationService.saveStreetAddressMunicipality(streetAddressMunicipality);
+        StreetAddressMunicipality savedStreetAddressMunicipality = organizationService
+                .saveStreetAddressMunicipality(streetAddressMunicipality);
         assertNotNull(savedStreetAddressMunicipality);
         assertEquals("999", savedStreetAddressMunicipality.getCode());
         TestUtil.verifySavedStatusInfo(savedStreetAddressMunicipality.getStatusInfo());
@@ -333,11 +394,12 @@ public class OrganizationServiceTest {
         assertEquals(1, organization.get().getAllAddresses().size());
         assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().size());
         StreetAddressMunicipalityName streetAddressMunicipalityName = StreetAddressMunicipalityName.builder()
-                .streetAddressMunicipality(organization.get().getAllAddresses().iterator().next().getAllStreetAddresses()
+                .streetAddressMunicipality(organization.get().getAllAddresses().iterator().next()
+                        .getAllStreetAddresses()
                         .iterator().next().getAllMunicipalities().iterator().next())
                 .language("fi").value("Nivala").build();
-        StreetAddressMunicipalityName savedStreetAddressMunicipalityName =
-                organizationService.saveStreetAddressMunicipalityName(streetAddressMunicipalityName);
+        StreetAddressMunicipalityName savedStreetAddressMunicipalityName = organizationService
+                .saveStreetAddressMunicipalityName(streetAddressMunicipalityName);
         assertNotNull(savedStreetAddressMunicipalityName);
         assertEquals("fi", savedStreetAddressMunicipalityName.getLanguage());
         assertEquals("Nivala", savedStreetAddressMunicipalityName.getValue());
@@ -350,8 +412,10 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
         PostOfficeBoxAddress postOfficeBoxAddress = PostOfficeBoxAddress.builder()
-                .postalCode("9876").address(organization.get().getAllAddresses().iterator().next()).build();
-        PostOfficeBoxAddress savedPostOfficeBoxAddress = organizationService.savePostOfficeBoxAddress(postOfficeBoxAddress);
+                .postalCode("9876").address(organization.get().getAllAddresses().iterator().next())
+                .build();
+        PostOfficeBoxAddress savedPostOfficeBoxAddress = organizationService
+                .savePostOfficeBoxAddress(postOfficeBoxAddress);
         assertNotNull(savedPostOfficeBoxAddress);
         assertEquals("9876", savedPostOfficeBoxAddress.getPostalCode());
         TestUtil.verifySavedStatusInfo(savedPostOfficeBoxAddress.getStatusInfo());
@@ -362,9 +426,11 @@ public class OrganizationServiceTest {
         Optional<Organization> organization = organizationService.getOrganization("abcdef123456");
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
-        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().size());
+        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses()
+                .size());
         PostOffice postOffice = PostOffice.builder()
-                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().iterator().next())
+                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllPostOfficeBoxAddresses().iterator().next())
                 .language("FI").value("Posti").build();
         PostOffice savedPostOffice = organizationService.savePostOffice(postOffice);
         assertNotNull(savedPostOffice);
@@ -378,9 +444,11 @@ public class OrganizationServiceTest {
         Optional<Organization> organization = organizationService.getOrganization("abcdef123456");
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
-        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().size());
+        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses()
+                .size());
         PostOfficeBox postOfficeBox = PostOfficeBox.builder()
-                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().iterator().next())
+                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllPostOfficeBoxAddresses().iterator().next())
                 .language("FI").value("NIVALA").build();
         PostOfficeBox savedPostOfficeBox = organizationService.savePostOfficeBox(postOfficeBox);
         assertNotNull(savedPostOfficeBox);
@@ -394,12 +462,15 @@ public class OrganizationServiceTest {
         Optional<Organization> organization = organizationService.getOrganization("abcdef123456");
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
-        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().size());
-        PostOfficeBoxAddressAdditionalInformation addressAdditionalInformation = PostOfficeBoxAddressAdditionalInformation.builder()
-                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().iterator().next())
+        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses()
+                .size());
+        PostOfficeBoxAddressAdditionalInformation addressAdditionalInformation = PostOfficeBoxAddressAdditionalInformation
+                .builder()
+                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllPostOfficeBoxAddresses().iterator().next())
                 .language("fi").value("Kaupungintalo/kaupunginjohtaja").build();
-        PostOfficeBoxAddressAdditionalInformation savedAdditionalInformation =
-                organizationService.savePostOfficeBoxAddressAdditionalInformation(addressAdditionalInformation);
+        PostOfficeBoxAddressAdditionalInformation savedAdditionalInformation = organizationService
+                .savePostOfficeBoxAddressAdditionalInformation(addressAdditionalInformation);
         assertNotNull(savedAdditionalInformation);
         assertEquals("fi", savedAdditionalInformation.getLanguage());
         assertEquals("Kaupungintalo/kaupunginjohtaja", savedAdditionalInformation.getValue());
@@ -412,11 +483,13 @@ public class OrganizationServiceTest {
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
         assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllStreetAddresses().size());
-        PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality = PostOfficeBoxAddressMunicipality.builder()
-                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().iterator().next())
+        PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality = PostOfficeBoxAddressMunicipality
+                .builder()
+                .postOfficeBoxAddress(organization.get().getAllAddresses().iterator().next()
+                        .getAllPostOfficeBoxAddresses().iterator().next())
                 .code("222").build();
-        PostOfficeBoxAddressMunicipality savedPostOfficeBoxAddressMunicipality =
-                organizationService.savePostOfficeBoxAddressMunicipality(postOfficeBoxAddressMunicipality);
+        PostOfficeBoxAddressMunicipality savedPostOfficeBoxAddressMunicipality = organizationService
+                .savePostOfficeBoxAddressMunicipality(postOfficeBoxAddressMunicipality);
         assertNotNull(savedPostOfficeBoxAddressMunicipality);
         assertEquals("222", savedPostOfficeBoxAddressMunicipality.getCode());
         TestUtil.verifySavedStatusInfo(savedPostOfficeBoxAddressMunicipality.getStatusInfo());
@@ -427,13 +500,16 @@ public class OrganizationServiceTest {
         Optional<Organization> organization = organizationService.getOrganization("abcdef123456");
         assertEquals(true, organization.isPresent());
         assertEquals(1, organization.get().getAllAddresses().size());
-        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses().size());
-        PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName = PostOfficeBoxAddressMunicipalityName.builder()
-                .postOfficeBoxAddressMunicipality(organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses()
+        assertEquals(1, organization.get().getAllAddresses().iterator().next().getAllPostOfficeBoxAddresses()
+                .size());
+        PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName = PostOfficeBoxAddressMunicipalityName
+                .builder()
+                .postOfficeBoxAddressMunicipality(organization.get().getAllAddresses().iterator().next()
+                        .getAllPostOfficeBoxAddresses()
                         .iterator().next().getAllMunicipalities().iterator().next())
                 .language("fi").value("Nivala").build();
-        PostOfficeBoxAddressMunicipalityName savedPostOfficeBoxMunicipalityName =
-                organizationService.savePostOfficeBoxAddressMunicipalityName(postOfficeBoxAddressMunicipalityName);
+        PostOfficeBoxAddressMunicipalityName savedPostOfficeBoxMunicipalityName = organizationService
+                .savePostOfficeBoxAddressMunicipalityName(postOfficeBoxAddressMunicipalityName);
         assertNotNull(savedPostOfficeBoxMunicipalityName);
         assertEquals("fi", savedPostOfficeBoxMunicipalityName.getLanguage());
         assertEquals("Nivala", savedPostOfficeBoxMunicipalityName.getValue());

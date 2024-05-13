@@ -25,13 +25,13 @@ public interface BusinessAddressRepository extends CrudRepository<BusinessAddres
     Optional<List<BusinessAddress>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT b FROM BusinessAddress b WHERE b.company.id = :companyId "
-            +"AND b.language = :language "
-            +"AND b.type = :type "
-            +"AND b.source = :source "
+            + "AND b.language = :language "
+            + "AND b.type = :type "
+            + "AND b.source = :source "
             + "AND b.version = :version")
     Optional<BusinessAddress> findAny(@Param("companyId") Long companyId,
-                                      @Param("language") String language,
-                                      @Param("type") Long type,
-                                      @Param("source") Long source,
-                                      @Param("version") Long version);
+            @Param("language") String language,
+            @Param("type") Long type,
+            @Param("source") Long source,
+            @Param("version") Long version);
 }

@@ -12,13 +12,32 @@
  */
 package fi.vrk.xroad.catalog.persistence;
 
-import fi.vrk.xroad.catalog.persistence.dto.LastCollectionData;
 import fi.vrk.xroad.catalog.persistence.dto.LastOrganizationCollectionData;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.Address;
+import fi.vrk.xroad.catalog.persistence.entity.Email;
+import fi.vrk.xroad.catalog.persistence.entity.Organization;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription;
+import fi.vrk.xroad.catalog.persistence.entity.OrganizationName;
+import fi.vrk.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.vrk.xroad.catalog.persistence.entity.PostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBox;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.Street;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddress;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
+import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
+import fi.vrk.xroad.catalog.persistence.entity.WebPage;
+
 import java.util.Optional;
 
 /**
- * CRUD methods for organization related objects. no business logic (e.g. hash calculation),
+ * CRUD methods for organization related objects. no business logic (e.g. hash
+ * calculation),
  * just persistence-related logic.
  * Organization entities have time stamps created, updated and deleted.
  */
@@ -26,26 +45,32 @@ public interface OrganizationService {
 
     /**
      * Retrieves latest collection data
+     * 
      * @return LastCollectionData
      */
     LastOrganizationCollectionData getLastOrganizationCollectionData();
 
     /**
-     * @param businessCode Only interested in organizations with this businessCode value
+     * @param businessCode Only interested in organizations with this businessCode
+     *                     value
      * @return Iterable of Organization entities
      */
     Iterable<Organization> getOrganizations(String businessCode);
 
     /**
      * Returns the full Organization object.
+     * 
      * @param guid guid of an organization
      * @return Organization, if any
      */
     Optional<Organization> getOrganization(String guid);
 
     /**
-     * Saves given organization data. The organization can either be a new one, or an update to an existing one.
-     * Updates "changed" field based on whether data is different compared to last time.
+     * Saves given organization data. The organization can either be a new one, or
+     * an update to an existing one.
+     * Updates "changed" field based on whether data is different compared to last
+     * time.
+     * 
      * @return saved organization
      * @param organization the actual organization
      */
@@ -53,36 +78,42 @@ public interface OrganizationService {
 
     /**
      * Saves given organizationName data.
+     * 
      * @param organizationName the organizationName
      */
     void saveOrganizationName(OrganizationName organizationName);
 
     /**
      * Saves given organizationDescription data.
+     * 
      * @param organizationDescription the organizationDescription
      */
     void saveOrganizationDescription(OrganizationDescription organizationDescription);
 
     /**
      * Saves given email data.
+     * 
      * @param email the actual email
      */
     void saveEmail(Email email);
 
     /**
      * Saves given phoneNumber data.
+     * 
      * @param phoneNumber the actual phoneNumber
      */
     void savePhoneNumber(PhoneNumber phoneNumber);
 
     /**
      * Saves given webPage data.
+     * 
      * @param webPage the actual webPage
      */
     void saveWebPage(WebPage webPage);
 
     /**
      * Saves given address data.
+     * 
      * @return saved Address
      * @param address the actual address
      */
@@ -90,6 +121,7 @@ public interface OrganizationService {
 
     /**
      * Saves given StreetAddress data.
+     * 
      * @return saved StreetAddress
      * @param streetAddress the actual StreetAddress
      */
@@ -97,6 +129,7 @@ public interface OrganizationService {
 
     /**
      * Saves given PostOfficeBoxAddress data.
+     * 
      * @return saved PostOfficeBoxAddress
      * @param postOfficeBoxAddress the actual PostOfficeBoxAddress
      */
@@ -104,6 +137,7 @@ public interface OrganizationService {
 
     /**
      * Saves given StreetAddressMunicipality data.
+     * 
      * @return saved StreetAddressMunicipality
      * @param streetAddressMunicipality the actual StreetAddressMunicipality
      */
@@ -111,45 +145,56 @@ public interface OrganizationService {
 
     /**
      * Saves given PostOfficeBoxAddressMunicipality data.
+     * 
      * @return saved PostOfficeBoxAddressMunicipality
-     * @param postOfficeBoxAddressMunicipality the actual PostOfficeBoxAddressMunicipality
+     * @param postOfficeBoxAddressMunicipality the actual
+     *                                         PostOfficeBoxAddressMunicipality
      */
-    PostOfficeBoxAddressMunicipality savePostOfficeBoxAddressMunicipality(PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality);
-
+    PostOfficeBoxAddressMunicipality savePostOfficeBoxAddressMunicipality(
+            PostOfficeBoxAddressMunicipality postOfficeBoxAddressMunicipality);
 
     /**
      * Saves given StreetAddressMunicipalityName data.
+     * 
      * @return saved StreetAddressMunicipalityName
      * @param streetAddressMunicipalityName the actual StreetAddressMunicipalityName
      */
-    StreetAddressMunicipalityName saveStreetAddressMunicipalityName(StreetAddressMunicipalityName streetAddressMunicipalityName);
+    StreetAddressMunicipalityName saveStreetAddressMunicipalityName(
+            StreetAddressMunicipalityName streetAddressMunicipalityName);
 
     /**
      * Saves given PostOfficeBoxAddressMunicipalityName data.
+     * 
      * @return saved PostOfficeBoxAddressMunicipalityName
-     * @param postOfficeBoxAddressMunicipalityName the actual PostOfficeBoxAddressMunicipalityName
+     * @param postOfficeBoxAddressMunicipalityName the actual
+     *                                             PostOfficeBoxAddressMunicipalityName
      */
     PostOfficeBoxAddressMunicipalityName savePostOfficeBoxAddressMunicipalityName(
             PostOfficeBoxAddressMunicipalityName postOfficeBoxAddressMunicipalityName);
 
     /**
      * Saves given StreetAddressAdditionalInformation data.
+     * 
      * @return saved StreetAddressAdditionalInformation
-     * @param streetAddressAdditionalInformation the actual StreetAddressAdditionalInformation
+     * @param streetAddressAdditionalInformation the actual
+     *                                           StreetAddressAdditionalInformation
      */
     StreetAddressAdditionalInformation saveStreetAddressAdditionalInformation(
             StreetAddressAdditionalInformation streetAddressAdditionalInformation);
 
     /**
      * Saves given PostOfficeBoxAddressAdditionalInformation data.
+     * 
      * @return saved PostOfficeBoxAddressAdditionalInformation
-     * @param postOfficeBoxAddressAdditionalInformation the actual PostOfficeBoxAddressAdditionalInformation
+     * @param postOfficeBoxAddressAdditionalInformation the actual
+     *                                                  PostOfficeBoxAddressAdditionalInformation
      */
     PostOfficeBoxAddressAdditionalInformation savePostOfficeBoxAddressAdditionalInformation(
             PostOfficeBoxAddressAdditionalInformation postOfficeBoxAddressAdditionalInformation);
 
     /**
      * Saves given StreetAddressPostOffice data.
+     * 
      * @return saved StreetAddressPostOffice
      * @param streetAddressPostOffice the actual StreetAddressPostOffice
      */
@@ -157,6 +202,7 @@ public interface OrganizationService {
 
     /**
      * Saves given PostOffice data.
+     * 
      * @return saved PostOffice
      * @param postOffice the actual PostOffice
      */
@@ -164,6 +210,7 @@ public interface OrganizationService {
 
     /**
      * Saves given PostOfficeBox data.
+     * 
      * @return saved PostOfficeBox
      * @param postOfficeBox the actual PostOfficeBox
      */
@@ -171,6 +218,7 @@ public interface OrganizationService {
 
     /**
      * Saves given Street data.
+     * 
      * @return saved Street
      * @param street the actual Street
      */

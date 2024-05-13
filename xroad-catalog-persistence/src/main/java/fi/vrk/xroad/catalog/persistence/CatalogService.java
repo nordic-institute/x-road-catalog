@@ -17,7 +17,15 @@ import fi.vrk.xroad.catalog.persistence.dto.DistinctServiceStatistics;
 import fi.vrk.xroad.catalog.persistence.dto.MemberDataList;
 import fi.vrk.xroad.catalog.persistence.dto.ServiceStatistics;
 import fi.vrk.xroad.catalog.persistence.dto.XRoadData;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
+import fi.vrk.xroad.catalog.persistence.entity.Member;
+import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
+import fi.vrk.xroad.catalog.persistence.entity.Rest;
+import fi.vrk.xroad.catalog.persistence.entity.Service;
+import fi.vrk.xroad.catalog.persistence.entity.ServiceId;
+import fi.vrk.xroad.catalog.persistence.entity.SubsystemId;
+import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
+
 import org.springframework.data.domain.Page;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -26,9 +34,12 @@ import java.util.List;
 /**
  * CRUD methods for catalog objects. no business logic (e.g. hash calculation),
  * just persistence-related logic.
- * Catalog entities (member, subsystem, service, wsdl) have time stamps created, updated and deleted.
- * They are used so that "updated" is changed always when entity is updated in any way, including
- * creation and deletion. This is important since getActiveMembers(Date updatedSince) only checks
+ * Catalog entities (member, subsystem, service, wsdl) have time stamps created,
+ * updated and deleted.
+ * They are used so that "updated" is changed always when entity is updated in
+ * any way, including
+ * creation and deletion. This is important since getActiveMembers(Date
+ * updatedSince) only checks
  * updated-field and ignores created & deleted.
  */
 public interface CatalogService {
@@ -37,6 +48,7 @@ public interface CatalogService {
      * Gets all non-removed members, regardless of when they were changed.
      * Fetches all data from graph member->subsystem->service.
      * Does NOT fetch wsdl.
+     * 
      * @return Iterable of Member entities
      */
     Iterable<Member> getActiveMembers();
@@ -44,39 +56,47 @@ public interface CatalogService {
     /**
      * Same as {@link #getActiveMembers()} except that returns also
      * removed items
+     * 
      * @return Iterable of Member entities
      */
     Iterable<Member> getAllMembers();
 
     /**
-     * Gets all non-removed members that have been changed (created) after given time.
+     * Gets all non-removed members that have been changed (created) after given
+     * time.
      * Change is determined by field "changed".
      * Fetches all data from graph member->subsystem->service->wsdl.
+     * 
      * @param startDateTime Only interested in member after this
-     * @param endDateTime Only interested in member before this
+     * @param endDateTime   Only interested in member before this
      * @return Iterable of Member entities
      */
     Iterable<Member> getActiveMembers(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     /**
-     * Same as {@link #getActiveMembers(LocalDateTime, LocalDateTime)} except that returns also removed items
+     * Same as {@link #getActiveMembers(LocalDateTime, LocalDateTime)} except that
+     * returns also removed items
+     * 
      * @param startDateTime Only interested in member after this
-     * @param endDateTime Only interested in member before this
+     * @param endDateTime   Only interested in member before this
      * @return Iterable of Member entities
      */
     Iterable<Member> getAllMembers(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     /**
      * Returns full Member object
+     * 
      * @param xRoadInstance name of the instance
-     * @param memberClass member class
-     * @param memberCode member  code
+     * @param memberClass   member class
+     * @param memberCode    member code
      * @return Member entity
      */
     Member getMember(String xRoadInstance, String memberClass, String memberCode);
 
     /**
-     * Returns the full Wsdl object. Only returns active ones, removed are not found.
+     * Returns the full Wsdl object. Only returns active ones, removed are not
+     * found.
+     * 
      * @param externalId id of a Wsdl
      * @return Wsdl, if any, null if not found
      * @throws RuntimeException if multiple matches found.
@@ -84,7 +104,9 @@ public interface CatalogService {
     Wsdl getWsdl(String externalId);
 
     /**
-     * Returns the full OpenApi object. Only returns active ones, removed are not found.
+     * Returns the full OpenApi object. Only returns active ones, removed are not
+     * found.
+     * 
      * @param externalId id of an OpenAPI
      * @return OpenApi, if any, null if not found
      * @throws RuntimeException if multiple matches found.
@@ -92,186 +114,227 @@ public interface CatalogService {
     OpenApi getOpenApi(String externalId);
 
     /**
-     * Returns the full Rest object. Only returns active ones, removed are not found.
-     * @param Service a service object
+     * Returns the full Rest object. Only returns active ones, removed are not
+     * found.
+     * 
+     * @param service a service object
      * @return Rest, if any, null if not found
      * @throws RuntimeException if multiple matches found.
      */
     Rest getRest(Service service);
 
     /**
-     * Returns the full Service object. Only returns active ones, removed are not found.
-     * @param xRoadInstance X-Road instance identifier
-     * @param memberClass X-Road member class
-     * @param memberCode X-Road member code
-     * @param serviceCode X-Road service code
-     * @param subsystemCode X-Road subsystem code
+     * Returns the full Service object. Only returns active ones, removed are not
+     * found.
+     * 
+     * @param xRoadInstance  X-Road instance identifier
+     * @param memberClass    X-Road member class
+     * @param memberCode     X-Road member code
+     * @param serviceCode    X-Road service code
+     * @param subsystemCode  X-Road subsystem code
      * @param serviceVersion X-Road service version
      * @return Service, if any, null if not found
      * @throws RuntimeException if multiple matches found.
      */
     Service getService(String xRoadInstance,
-                       String memberClass,
-                       String memberCode,
-                       String serviceCode,
-                       String subsystemCode,
-                       String serviceVersion);
+            String memberClass,
+            String memberCode,
+            String serviceCode,
+            String subsystemCode,
+            String serviceVersion);
 
     /**
-     * Returns List of full Service objects. Only returns active ones, removed are not found.
+     * Returns List of full Service objects. Only returns active ones, removed are
+     * not found.
+     * 
      * @param xRoadInstance X-Road instance identifier
-     * @param memberClass X-Road member class
-     * @param memberCode X-Road member code
-     * @param serviceCode X-Road service code
+     * @param memberClass   X-Road member class
+     * @param memberCode    X-Road member code
+     * @param serviceCode   X-Road service code
      * @param subsystemCode X-Road subsystem code
      * @return List of Service objects, empty list if not found
      */
     List<Service> getServices(String xRoadInstance,
-                              String memberClass,
-                              String memberCode,
-                              String subsystemCode,
-                              String serviceCode);
+            String memberClass,
+            String memberCode,
+            String subsystemCode,
+            String serviceCode);
 
     /**
      * Returns a list of error logs with pagination
-     * @param xRoadData X-Road instance identifier, member class, member code and subsystem code
-     * @param page page number of pageable result of error logs
-     * @param limit number of results per page
+     * 
+     * @param xRoadData X-Road instance identifier, member class, member code and
+     *                  subsystem code
+     * @param page      page number of pageable result of error logs
+     * @param limit     number of results per page
      * @param startDate creation date from
-     * @param endDate creation date to
+     * @param endDate   creation date to
      * @return Page of ErrorLog, null if not found
      */
     Page<ErrorLog> getErrors(XRoadData xRoadData,
-                             int page,
-                             int limit,
-                             LocalDateTime startDate,
-                             LocalDateTime endDate);
+            int page,
+            int limit,
+            LocalDateTime startDate,
+            LocalDateTime endDate);
 
     /**
      * Returns a list of service statistics
+     * 
      * @param startDateTime creation date from
-     * @param endDateTime creation date to
+     * @param endDateTime   creation date to
      * @return List of ServiceStatistics, null if not found
      */
     List<ServiceStatistics> getServiceStatistics(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     /**
      * Returns a list of distinct service statistics
+     * 
      * @return List of DistinctServiceStatistics, null if not found
      */
-    List<DistinctServiceStatistics> getDistinctServiceStatistics(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<DistinctServiceStatistics> getDistinctServiceStatistics(LocalDateTime startDateTime,
+            LocalDateTime endDateTime);
 
     /**
      * Returns a list of memberDataLists
+     * 
      * @param startDateTime creation date from
-     * @param endDateTime creation date to
+     * @param endDateTime   creation date to
      * @return List of memberDataLists, null if not found
      */
     List<MemberDataList> getMemberData(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     /**
      * Returns the full ErrorLog object.
+     * 
      * @param startDateTime creation date from
-     * @param endDateTime creation date to
+     * @param endDateTime   creation date to
      * @return ErrorLog, if any, null if not found
      * @throws RuntimeException if multiple matches found.
      */
     Iterable<ErrorLog> getErrorLog(LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     /**
-     * Stores given members and subsystems. This should be the full dataset of both items
-     * - items not included in the parameters are marked as removed, if the existed previously.
+     * Stores given members and subsystems. This should be the full dataset of both
+     * items
+     * - items not included in the parameters are marked as removed, if the existed
+     * previously.
      *
-     * "Full service": updates all status timestamps (created/changed/fetched/removed) automatically,
+     * "Full service": updates all status timestamps
+     * (created/changed/fetched/removed) automatically,
      * and knows whether to update existing items or create new ones.
      *
-     * Does not touch the child items (service, wsdl). If creating new subsystems, the
+     * Does not touch the child items (service, wsdl). If creating new subsystems,
+     * the
      * service collection will be empty.
      *
-     * @param members all Members that currently exist. If some members are missing from
+     * @param members all Members that currently exist. If some members are missing
+     *                from
      *                the collection, they are (marked) removed. Member should have
-     *                member.subsystems collection populated, and each subsystem should
+     *                member.subsystems collection populated, and each subsystem
+     *                should
      *                have subsystem.member populated as well.
      */
     void saveAllMembersAndSubsystems(Collection<Member> members);
 
     /**
-     * Stores services for given subsystem. Does not modify the associated Subsystem or
+     * Stores services for given subsystem. Does not modify the associated Subsystem
+     * or
      * the wsdl.
-     * @param subsystem identifier info for subsystem. Also needs to have subsystem.member
+     * 
+     * @param subsystem identifier info for subsystem. Also needs to have
+     *                  subsystem.member
      *                  populated properly.
-     * @param service services
+     * @param service   services
      */
     void saveServices(SubsystemId subsystem, Collection<Service> service);
 
     /**
-     * Saves given wsdl data. The wsdl can either be a new one, or an update to an existing one.
-     * Updates "changed" field based on whether data is different compared to last time.
+     * Saves given wsdl data. The wsdl can either be a new one, or an update to an
+     * existing one.
+     * Updates "changed" field based on whether data is different compared to last
+     * time.
+     * 
      * @param subsystemId identifier of the subsystem
-     * @param serviceId identifier of the service
-     * @param wsdl the actual wsdl
+     * @param serviceId   identifier of the service
+     * @param wsdl        the actual wsdl
      */
     void saveWsdl(SubsystemId subsystemId, ServiceId serviceId, String wsdl);
 
     /**
-     * Saves given openApi data. The openApi can either be a new one, or an update to an existing one.
-     * Updates "changed" field based on whether data is different compared to last time.
+     * Saves given openApi data. The openApi can either be a new one, or an update
+     * to an existing one.
+     * Updates "changed" field based on whether data is different compared to last
+     * time.
+     * 
      * @param subsystemId identifier of the subsystem
-     * @param serviceId identifier of the service
-     * @param openApi the actual openApi
+     * @param serviceId   identifier of the service
+     * @param openApi     the actual openApi
      */
     void saveOpenApi(SubsystemId subsystemId, ServiceId serviceId, String openApi);
 
     /**
-     * Saves given rest data. The rest can either be a new one, or an update to an existing one.
-     * Updates "changed" field based on whether data is different compared to last time.
+     * Saves given rest data. The rest can either be a new one, or an update to an
+     * existing one.
+     * Updates "changed" field based on whether data is different compared to last
+     * time.
+     * 
      * @param subsystemId identifier of the subsystem
-     * @param serviceId identifier of the service
-     * @param rest the actual rest
+     * @param serviceId   identifier of the service
+     * @param rest        the actual rest
      */
     void saveRest(SubsystemId subsystemId, ServiceId serviceId, String rest);
 
     /**
-     * Saves given rest data. The rest can either be a new one, or an update to an existing one.
-     * Updates "changed" field based on whether data is different compared to last time.
+     * Saves given rest data. The rest can either be a new one, or an update to an
+     * existing one.
+     * Updates "changed" field based on whether data is different compared to last
+     * time.
+     * 
      * @param subsystemId identifier of the subsystem
-     * @param serviceId identifier of the service
-     * @param method method info
-     * @param path path info
+     * @param serviceId   identifier of the service
+     * @param method      method info
+     * @param path        path info
      */
     void saveEndpoint(SubsystemId subsystemId, ServiceId serviceId, String method, String path);
 
     /**
      * Marks all entries in the Endpoints table as removed
-     * so that when new endpoints are being fetched, those will be marked as non-removed
-     * and when some endpoints are missing in the future, the ones still present in the table
+     * so that when new endpoints are being fetched, those will be marked as
+     * non-removed
+     * and when some endpoints are missing in the future, the ones still present in
+     * the table
      * will remain as removed
+     * 
      * @param subsystemId identifier of the subsystem
-     * @param serviceId identifier of the service
+     * @param serviceId   identifier of the service
      */
     void prepareEndpoints(SubsystemId subsystemId, ServiceId serviceId);
 
     /**
      * Checks if database is alive
+     * 
      * @return databaseConnection
      */
     Boolean checkDatabaseConnection();
 
     /**
      * Retrieves latest collection data
+     * 
      * @return LastCollectionData
      */
     LastCollectionData getLastCollectionData();
 
     /**
      * Saves given errorLog data.
+     * 
      * @param errorLog the actual errorLog
-     @return error log
+     * @return error log
      */
     ErrorLog saveErrorLog(ErrorLog errorLog);
 
     /**
      * Deletes old log entries
+     * 
      * @param daysBefore older than daysBefore
      */
     void deleteOldErrorLogEntries(Integer daysBefore);

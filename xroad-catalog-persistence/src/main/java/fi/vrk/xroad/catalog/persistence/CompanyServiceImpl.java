@@ -12,14 +12,37 @@
  */
 package fi.vrk.xroad.catalog.persistence;
 
-import fi.vrk.xroad.catalog.persistence.entity.*;
-import fi.vrk.xroad.catalog.persistence.repository.*;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessLine;
+import fi.vrk.xroad.catalog.persistence.entity.BusinessName;
+import fi.vrk.xroad.catalog.persistence.entity.Company;
+import fi.vrk.xroad.catalog.persistence.entity.CompanyForm;
+import fi.vrk.xroad.catalog.persistence.entity.ContactDetail;
+import fi.vrk.xroad.catalog.persistence.entity.Language;
+import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
+import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
+import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
+import fi.vrk.xroad.catalog.persistence.entity.StatusInfo;
+import fi.vrk.xroad.catalog.persistence.repository.BusinessAddressRepository;
+import fi.vrk.xroad.catalog.persistence.repository.BusinessAuxiliaryNameRepository;
+import fi.vrk.xroad.catalog.persistence.repository.BusinessIdChangeRepository;
+import fi.vrk.xroad.catalog.persistence.repository.BusinessLineRepository;
+import fi.vrk.xroad.catalog.persistence.repository.BusinessNameRepository;
+import fi.vrk.xroad.catalog.persistence.repository.CompanyFormRepository;
+import fi.vrk.xroad.catalog.persistence.repository.CompanyRepository;
+import fi.vrk.xroad.catalog.persistence.repository.ContactDetailRepository;
+import fi.vrk.xroad.catalog.persistence.repository.LanguageRepository;
+import fi.vrk.xroad.catalog.persistence.repository.LiquidationRepository;
+import fi.vrk.xroad.catalog.persistence.repository.RegisteredEntryRepository;
+import fi.vrk.xroad.catalog.persistence.repository.RegisteredOfficeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Implementation for companyservice CRUD
@@ -72,7 +95,8 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public Company saveCompany(Company company) {
-        Optional<Company> foundCompany = companyRepository.findAny(company.getBusinessId(), company.getCompanyForm(), company.getName());
+        Optional<Company> foundCompany = companyRepository.findAny(company.getBusinessId(), company.getCompanyForm(),
+                company.getName());
         if (foundCompany.isPresent()) {
             Company oldCompany = foundCompany.get();
             StatusInfo statusInfo = oldCompany.getStatusInfo();
@@ -160,7 +184,8 @@ public class CompanyServiceImpl implements CompanyService {
             businessName.setStatusInfo(statusInfo);
             businessName.setId(oldBusinessName.getId());
         } else {
-            businessName.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            businessName
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return businessName;
     }
@@ -182,7 +207,8 @@ public class CompanyServiceImpl implements CompanyService {
             businessAuxiliaryName.setStatusInfo(statusInfo);
             businessAuxiliaryName.setId(oldBusinessAuxiliaryName.getId());
         } else {
-            businessAuxiliaryName.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            businessAuxiliaryName
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return businessAuxiliaryName;
     }
@@ -204,7 +230,8 @@ public class CompanyServiceImpl implements CompanyService {
             businessAddress.setStatusInfo(statusInfo);
             businessAddress.setId(oldBusinessAddress.getId());
         } else {
-            businessAddress.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            businessAddress
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return businessAddress;
     }
@@ -227,7 +254,8 @@ public class CompanyServiceImpl implements CompanyService {
             businessIdChange.setStatusInfo(statusInfo);
             businessIdChange.setId(oldBusinessIdChange.getId());
         } else {
-            businessIdChange.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            businessIdChange
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return businessIdChange;
     }
@@ -249,7 +277,8 @@ public class CompanyServiceImpl implements CompanyService {
             businessLine.setStatusInfo(statusInfo);
             businessLine.setId(oldBusinessLine.getId());
         } else {
-            businessLine.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            businessLine
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return businessLine;
     }
@@ -271,7 +300,8 @@ public class CompanyServiceImpl implements CompanyService {
             companyForm.setStatusInfo(statusInfo);
             companyForm.setId(oldCompanyForm.getId());
         } else {
-            companyForm.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            companyForm
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return companyForm;
     }
@@ -293,7 +323,8 @@ public class CompanyServiceImpl implements CompanyService {
             contactDetail.setStatusInfo(statusInfo);
             contactDetail.setId(oldContactDetail.getId());
         } else {
-            contactDetail.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            contactDetail
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return contactDetail;
     }
@@ -336,7 +367,8 @@ public class CompanyServiceImpl implements CompanyService {
             liquidation.setStatusInfo(statusInfo);
             liquidation.setId(oldLiquidation.getId());
         } else {
-            liquidation.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            liquidation
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return liquidation;
     }
@@ -359,7 +391,8 @@ public class CompanyServiceImpl implements CompanyService {
             registeredEntry.setStatusInfo(statusInfo);
             registeredEntry.setId(oldRegisteredEntry.getId());
         } else {
-            registeredEntry.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            registeredEntry
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return registeredEntry;
     }
@@ -381,7 +414,8 @@ public class CompanyServiceImpl implements CompanyService {
             registeredOffice.setStatusInfo(statusInfo);
             registeredOffice.setId(oldRegisteredOffice.getId());
         } else {
-            registeredOffice.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
+            registeredOffice
+                    .setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
         }
         return registeredOffice;
     }

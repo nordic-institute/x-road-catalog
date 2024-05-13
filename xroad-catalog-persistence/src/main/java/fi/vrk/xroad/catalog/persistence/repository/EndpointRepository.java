@@ -31,6 +31,7 @@ public interface EndpointRepository extends CrudRepository<Endpoint, Long> {
     LocalDateTime findLatestFetched();
 
     @Query("SELECT e FROM Endpoint e WHERE e.service = :service "
-            +"AND e.method = :method AND e.path = :path ")
-    Endpoint findAnyByServicePathAndMethod(@Param("service") Service service, @Param("method") String method, @Param("path") String path);
+            + "AND e.method = :method AND e.path = :path ")
+    Endpoint findAnyByServicePathAndMethod(@Param("service") Service service, @Param("method") String method,
+            @Param("path") String path);
 }

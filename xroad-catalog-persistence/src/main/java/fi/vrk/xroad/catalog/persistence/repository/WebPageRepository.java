@@ -25,9 +25,9 @@ public interface WebPageRepository extends CrudRepository<WebPage, Long> {
     Optional<List<WebPage>> findAnyByOrganizationId(Long organizationId);
 
     @Query("SELECT w FROM WebPage w WHERE w.organization.id = :organizationId "
-            +"AND w.language = :language "
+            + "AND w.language = :language "
             + "AND w.url = :url")
     Optional<WebPage> findAny(@Param("organizationId") Long organizationId,
-                              @Param("language") String language,
-                              @Param("url") String url);
+            @Param("language") String language,
+            @Param("url") String url);
 }

@@ -25,15 +25,15 @@ public interface BusinessIdChangeRepository extends CrudRepository<BusinessIdCha
     Optional<List<BusinessIdChange>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT b FROM BusinessIdChange b WHERE b.company.id = :companyId "
-            +"AND b.language = :language "
-            +"AND b.source = :source "
-            +"AND b.change = :change "
-            +"AND b.oldBusinessId = :oldBusinessId "
+            + "AND b.language = :language "
+            + "AND b.source = :source "
+            + "AND b.change = :change "
+            + "AND b.oldBusinessId = :oldBusinessId "
             + "AND b.newBusinessId = :newBusinessId")
     Optional<BusinessIdChange> findAny(@Param("companyId") Long companyId,
-                                       @Param("language") String language,
-                                       @Param("source") Long source,
-                                       @Param("change") String change,
-                                       @Param("oldBusinessId") String oldBusinessId,
-                                       @Param("newBusinessId") String newBusinessId);
+            @Param("language") String language,
+            @Param("source") Long source,
+            @Param("change") String change,
+            @Param("oldBusinessId") String oldBusinessId,
+            @Param("newBusinessId") String newBusinessId);
 }

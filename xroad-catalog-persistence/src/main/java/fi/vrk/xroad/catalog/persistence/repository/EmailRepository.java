@@ -25,11 +25,11 @@ public interface EmailRepository extends CrudRepository<Email, Long> {
     Optional<List<Email>> findAnyByOrganizationId(Long organizationId);
 
     @Query("SELECT e FROM Email e WHERE e.organization.id = :organizationId "
-            +"AND e.language = :language "
-            +"AND e.value = :value "
+            + "AND e.language = :language "
+            + "AND e.value = :value "
             + "AND e.description = :description")
     Optional<Email> findAny(@Param("organizationId") Long organizationId,
-                            @Param("language") String language,
-                            @Param("value") String value,
-                            @Param("description") String description);
+            @Param("language") String language,
+            @Param("value") String value,
+            @Param("description") String description);
 }

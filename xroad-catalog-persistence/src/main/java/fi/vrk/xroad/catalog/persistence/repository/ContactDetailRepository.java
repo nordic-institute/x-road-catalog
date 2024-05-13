@@ -25,14 +25,14 @@ public interface ContactDetailRepository extends CrudRepository<ContactDetail, L
     Optional<List<ContactDetail>> findAnyByCompanyId(Long companyId);
 
     @Query("SELECT c FROM ContactDetail c WHERE c.company.id = :companyId "
-            +"AND c.language = :language "
-            +"AND c.source = :source "
-            +"AND c.type = :type "
+            + "AND c.language = :language "
+            + "AND c.source = :source "
+            + "AND c.type = :type "
             + "AND c.version = :version")
     Optional<ContactDetail> findAny(@Param("companyId") Long companyId,
-                                    @Param("language") String language,
-                                    @Param("source") Long source,
-                                    @Param("type") String type,
-                                    @Param("version") Long version);
+            @Param("language") String language,
+            @Param("source") Long source,
+            @Param("type") String type,
+            @Param("version") Long version);
 
 }

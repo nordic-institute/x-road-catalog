@@ -49,10 +49,13 @@ public class BusinessIdChangeDataDTOTest {
         businessIdChangeData1.setChanged(changed);
         businessIdChangeData1.setFetched(fetched);
         businessIdChangeData1.setRemoved(null);
-        BusinessIdChangeData businessIdChangeData2 = new BusinessIdChangeData(source, description, reason, changeDate, change, oldBusinessId,
+        BusinessIdChangeData businessIdChangeData2 = new BusinessIdChangeData(source, description, reason, changeDate,
+                change, oldBusinessId,
                 newBusinessId, language, created, changed, fetched, null);
-        BusinessIdChangeData businessIdChangeData3 = BusinessIdChangeData.builder().source(source).description(description).reason(reason)
-                .changeDate(changeDate).change(change).oldBusinessId(oldBusinessId).newBusinessId(newBusinessId).language(language)
+        BusinessIdChangeData businessIdChangeData3 = BusinessIdChangeData.builder().source(source)
+                .description(description).reason(reason)
+                .changeDate(changeDate).change(change).oldBusinessId(oldBusinessId).newBusinessId(newBusinessId)
+                .language(language)
                 .created(created).changed(changed).fetched(fetched).removed(null).build();
         assertEquals(businessIdChangeData1, businessIdChangeData2);
         assertEquals(businessIdChangeData1, businessIdChangeData3);
@@ -81,5 +84,3 @@ public class BusinessIdChangeDataDTOTest {
     }
 
 }
-
-

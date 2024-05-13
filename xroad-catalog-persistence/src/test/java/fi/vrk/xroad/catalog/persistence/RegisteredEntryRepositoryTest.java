@@ -23,7 +23,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 public class RegisteredEntryRepositoryTest {
@@ -46,7 +45,4 @@ public class RegisteredEntryRepositoryTest {
         assertEquals(LocalDate.of(2001, 6, 24), registeredEntries.get().get(0).getEndDate().toLocalDate());
     }
 
-
-
 }
-

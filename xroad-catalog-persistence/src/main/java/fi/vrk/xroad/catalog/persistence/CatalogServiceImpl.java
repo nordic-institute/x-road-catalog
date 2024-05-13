@@ -20,9 +20,26 @@ import fi.vrk.xroad.catalog.persistence.dto.ServiceData;
 import fi.vrk.xroad.catalog.persistence.dto.ServiceStatistics;
 import fi.vrk.xroad.catalog.persistence.dto.SubsystemData;
 import fi.vrk.xroad.catalog.persistence.dto.XRoadData;
-import fi.vrk.xroad.catalog.persistence.entity.*;
+import fi.vrk.xroad.catalog.persistence.entity.Endpoint;
+import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
+import fi.vrk.xroad.catalog.persistence.entity.Member;
+import fi.vrk.xroad.catalog.persistence.entity.MemberId;
+import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
+import fi.vrk.xroad.catalog.persistence.entity.Rest;
+import fi.vrk.xroad.catalog.persistence.entity.Service;
+import fi.vrk.xroad.catalog.persistence.entity.ServiceId;
+import fi.vrk.xroad.catalog.persistence.entity.StatusInfo;
 import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.catalog.persistence.repository.*;
+import fi.vrk.xroad.catalog.persistence.entity.SubsystemId;
+import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
+import fi.vrk.xroad.catalog.persistence.repository.EndpointRepository;
+import fi.vrk.xroad.catalog.persistence.repository.ErrorLogRepository;
+import fi.vrk.xroad.catalog.persistence.repository.MemberRepository;
+import fi.vrk.xroad.catalog.persistence.repository.OpenApiRepository;
+import fi.vrk.xroad.catalog.persistence.repository.RestRepository;
+import fi.vrk.xroad.catalog.persistence.repository.ServiceRepository;
+import fi.vrk.xroad.catalog.persistence.repository.SubsystemRepository;
+import fi.vrk.xroad.catalog.persistence.repository.WsdlRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,7 +48,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -129,7 +151,8 @@ public class CatalogServiceImpl implements CatalogService {
     public Rest getRest(Service service) {
         List<Rest> matches = restRepository.findAnyByService(service);
         if (matches.size() > 1) {
-            throw new IllegalStateException(MULTIPLE_MATCHES_FOUND_TO + service.getServiceCode() + " serviceCode: " + matches);
+            throw new IllegalStateException(
+                    MULTIPLE_MATCHES_FOUND_TO + service.getServiceCode() + " serviceCode: " + matches);
         } else if (matches.size() == 1) {
             return matches.iterator().next();
         } else {
@@ -139,11 +162,11 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public Service getService(String xRoadInstance,
-                              String memberClass,
-                              String memberCode,
-                              String serviceCode,
-                              String subsystemCode,
-                              String serviceVersion) {
+            String memberClass,
+            String memberCode,
+            String serviceCode,
+            String subsystemCode,
+            String serviceVersion) {
         if (serviceVersion == null) {
             return serviceRepository.findAllByMemberServiceAndSubsystemVersionNull(xRoadInstance,
                     memberClass, memberCode, serviceCode, subsystemCode);
@@ -154,10 +177,10 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public List<Service> getServices(String xRoadInstance,
-                                     String memberClass,
-                                     String memberCode,
-                                     String subsystemCode,
-                                     String serviceCode) {
+            String memberClass,
+            String memberCode,
+            String subsystemCode,
+            String serviceCode) {
         return serviceRepository.findServicesByMemberServiceAndSubsystem(xRoadInstance,
                 memberClass,
                 memberCode,
@@ -179,8 +202,8 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     private ServiceStatistics createServiceStatistics(List<Service> services,
-                                                      LocalDateTime dateInPast,
-                                                      LocalDateTime endDateTime) {
+            LocalDateTime dateInPast,
+            LocalDateTime endDateTime) {
         AtomicLong numberOfSoapServices = new AtomicLong();
         AtomicLong numberOfRestServices = new AtomicLong();
         AtomicLong numberOfOpenApiServices = new AtomicLong();
@@ -190,11 +213,9 @@ public class CatalogServiceImpl implements CatalogService {
             if (creationDate.isBefore(endDateTime)) {
                 if (service.hasOpenApi()) {
                     numberOfOpenApiServices.getAndIncrement();
-                }
-                else if (service.hasWsdl()) {
+                } else if (service.hasWsdl()) {
                     numberOfSoapServices.getAndIncrement();
-                }
-                else {
+                } else {
                     numberOfRestServices.getAndIncrement();
                 }
             }
@@ -209,10 +230,10 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public Page<ErrorLog> getErrors(XRoadData xRoadData,
-                                    int page,
-                                    int limit,
-                                    LocalDateTime startDateTime,
-                                    LocalDateTime endDateTime) {
+            int page,
+            int limit,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime) {
         Page<ErrorLog> errorLogList;
         String xRoadInstance = xRoadData.getXRoadInstance();
         String memberClass = xRoadData.getMemberClass();
@@ -262,7 +283,7 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public List<DistinctServiceStatistics> getDistinctServiceStatistics(LocalDateTime startDateTime,
-                                                                        LocalDateTime endDateTime) {
+            LocalDateTime endDateTime) {
         List<DistinctServiceStatistics> serviceStatisticsList = new ArrayList<>();
         List<Service> services = serviceRepository.findAllActive();
         LocalDateTime dateInPast = startDateTime;
@@ -272,8 +293,9 @@ public class CatalogServiceImpl implements CatalogService {
                     .filter(p -> p.getStatusInfo().getCreated().isBefore(endDateTime))
                     .collect(Collectors.toList());
             if (!servicesBetweenDates.isEmpty()) {
-                totalDistinctServices.set(servicesBetweenDates.stream().map(Service::getServiceCode).collect(Collectors.toList())
-                    .stream().distinct().collect(Collectors.toList()).size());
+                totalDistinctServices
+                        .set(servicesBetweenDates.stream().map(Service::getServiceCode).collect(Collectors.toList())
+                                .stream().distinct().collect(Collectors.toList()).size());
 
                 DistinctServiceStatistics serviceStatistics = DistinctServiceStatistics.builder()
                         .created(dateInPast)
@@ -354,12 +376,12 @@ public class CatalogServiceImpl implements CatalogService {
         StreamSupport.stream(memberRepository.findAll().spliterator(), false)
                 .forEach(member -> unprocessedOldMembers.put(member.createKey(), member));
 
-        for (Member member: members) {
+        for (Member member : members) {
             Member oldMember = unprocessedOldMembers.get(member.createKey());
             if (oldMember == null) {
                 // brand new item
                 member.getStatusInfo().setTimestampsForNew(now);
-                for (Subsystem subsystem: member.getAllSubsystems()) {
+                for (Subsystem subsystem : member.getAllSubsystems()) {
                     subsystem.getStatusInfo().setTimestampsForNew(now);
                     subsystem.setMember(member);
                 }
@@ -371,7 +393,8 @@ public class CatalogServiceImpl implements CatalogService {
             }
             unprocessedOldMembers.remove(member.createKey());
         }
-        // now unprocessedOldMembers should all be removed (either already removed, or will be now)
+        // now unprocessedOldMembers should all be removed (either already removed, or
+        // will be now)
         removeUnprocessedOldMembers(now, unprocessedOldMembers);
     }
 
@@ -392,7 +415,7 @@ public class CatalogServiceImpl implements CatalogService {
         Map<ServiceId, Service> unprocessedOldServices = new HashMap<>();
         oldSubsystem.getAllServices().stream().forEach(s -> unprocessedOldServices.put(s.createKey(), s));
 
-        for (Service service: services) {
+        for (Service service : services) {
             Service oldService = unprocessedOldServices.get(service.createKey());
             if (oldService == null) {
                 // brand new item, add it
@@ -405,8 +428,9 @@ public class CatalogServiceImpl implements CatalogService {
             unprocessedOldServices.remove(service.createKey());
         }
 
-        // now unprocessedOldServices should all be removed (either already removed, or will be now)
-        for (Service oldToRemove: unprocessedOldServices.values()) {
+        // now unprocessedOldServices should all be removed (either already removed, or
+        // will be now)
+        for (Service oldToRemove : unprocessedOldServices.values()) {
             StatusInfo status = oldToRemove.getStatusInfo();
             if (!status.isRemoved()) {
                 status.setTimestampsForRemoved(now);
@@ -542,7 +566,7 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public void prepareEndpoints(SubsystemId subsystemId, ServiceId serviceId){
+    public void prepareEndpoints(SubsystemId subsystemId, ServiceId serviceId) {
         Assert.notNull(subsystemId, SUBSYSTEM_ID_REQUIRED);
         Assert.notNull(serviceId, SERVICE_ID_REQUIRED);
         Service oldService = getExistingService(subsystemId, serviceId);
@@ -586,10 +610,10 @@ public class CatalogServiceImpl implements CatalogService {
         oldMember.updateWithDataFrom(member, now);
         // process subsystems for the old member
         Map<SubsystemId, Subsystem> unprocessedOldSubsystems = new HashMap<>();
-        for (Subsystem subsystem: oldMember.getAllSubsystems()) {
+        for (Subsystem subsystem : oldMember.getAllSubsystems()) {
             unprocessedOldSubsystems.put(subsystem.createKey(), subsystem);
         }
-        for (Subsystem subsystem: member.getAllSubsystems()) {
+        for (Subsystem subsystem : member.getAllSubsystems()) {
             Subsystem oldSubsystem = unprocessedOldSubsystems.get(subsystem.createKey());
             if (oldSubsystem == null) {
                 // brand new item, add it
@@ -603,7 +627,7 @@ public class CatalogServiceImpl implements CatalogService {
         }
         // remaining old subsystems - that were not included in member.subsystems -
         // are removed (if not already)
-        for (Subsystem oldToRemove: unprocessedOldSubsystems.values()) {
+        for (Subsystem oldToRemove : unprocessedOldSubsystems.values()) {
             StatusInfo status = oldToRemove.getStatusInfo();
             if (!status.isRemoved()) {
                 status.setTimestampsForRemoved(now);
@@ -612,12 +636,12 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     private void removeUnprocessedOldMembers(LocalDateTime now, Map<MemberId, Member> unprocessedOldMembers) {
-        for (Member oldToRemove: unprocessedOldMembers.values()) {
+        for (Member oldToRemove : unprocessedOldMembers.values()) {
             StatusInfo status = oldToRemove.getStatusInfo();
             if (!status.isRemoved()) {
                 status.setTimestampsForRemoved(now);
             }
-            for (Subsystem subsystem: oldToRemove.getAllSubsystems()) {
+            for (Subsystem subsystem : oldToRemove.getAllSubsystems()) {
                 if (!subsystem.getStatusInfo().isRemoved()) {
                     subsystem.getStatusInfo().setTimestampsForRemoved(now);
                 }
@@ -626,14 +650,14 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     private boolean isDateBetweenDates(LocalDateTime dateToBeChecked,
-                                       LocalDateTime startDate,
-                                       LocalDateTime endDate) {
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
         return (dateToBeChecked.isAfter(startDate) || dateToBeChecked.isEqual(startDate))
                 && (dateToBeChecked.isBefore(endDate) || dateToBeChecked.isEqual(endDate))
                 && (dateToBeChecked.isBefore(LocalDateTime.now()) || dateToBeChecked.isEqual(LocalDateTime.now()));
     }
 
-    private Service getExistingService(SubsystemId subsystemId, ServiceId serviceId){
+    private Service getExistingService(SubsystemId subsystemId, ServiceId serviceId) {
         Service oldService;
         if (serviceId.getServiceVersion() == null) {
             oldService = serviceRepository.findActiveNullVersionByNaturalKey(
