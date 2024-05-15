@@ -79,4 +79,3 @@ public class FetchOpenApiActorTest {
         verify(catalogService, times(0)).saveEndpoint(any(), any(), any(), any());
     }
 }
-

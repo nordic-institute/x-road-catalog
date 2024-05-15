@@ -41,7 +41,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -50,15 +52,52 @@ public class XRoadClient {
     static final int HTTP_CONNECTION_TIMEOUT = 30000;
     static final int HTTP_RECEIVE_TIMEOUT = 60000;
 
+    static final Map<URL, MetaServicesPort> META_SERVICE_PORTS = new HashMap<>();
     final MetaServicesPort metaServicesPort;
+
     final XRoadClientIdentifierType clientId;
 
     public XRoadClient(XRoadClientIdentifierType clientId, URL serverUrl) {
         this.metaServicesPort = getMetaServicesPort(serverUrl);
-
         final XRoadClientIdentifierType tmp = new XRoadClientIdentifierType();
         copyIdentifierType(tmp, clientId);
         this.clientId = tmp;
+    }
+
+    private static synchronized MetaServicesPort getMetaServicesPort(URL serverUrl) {
+        /**
+         * This is currently a workaround, since the current approach results in all the
+         * dispatchers creating a new port, which in turn causes a failure due to HTTP
+         * code 429 (Too Many Requests) from W3C's server.
+         *
+         * An issue is that CXF ports are not thread-safe, however that is
+         * mostly for the cases of configuring it, which we do in
+         * {@link}fi.vrk.xroad.catalog.collector.util.XRoadClient#getMetaServicesPort(URL)}.
+         * Actually using the port in multiple threads to do requests as a client should
+         * be safe.
+         *
+         * Nevertheless, this should be refactored when migrating away from Akka.
+         * Currently just a stop-gap solution to get the JAVA21 build version running
+         * correctish.
+         *
+         * A few alternatives I have come across for this are:
+         *
+         * - Try to use cataloging, which links the online resources to local files.
+         * Though this apparently is pretty hit or miss depending on the implementation.
+         * Some information suggests CXF does not support this.
+         *
+         * - Another alternative would be to use XRD4J once it is updated to JAVA21,
+         * since it doesn't try to parse the WSDL every time.
+         *
+         */
+        MetaServicesPort port = META_SERVICE_PORTS.get(serverUrl);
+        if (!META_SERVICE_PORTS.containsKey(serverUrl)) {
+            port = createMetaServicesPort(serverUrl);
+            META_SERVICE_PORTS.put(serverUrl, port);
+        } else {
+            port = META_SERVICE_PORTS.get(serverUrl);
+        }
+        return port;
     }
 
     /**
@@ -245,7 +284,7 @@ public class XRoadClient {
         return new Holder<>(value);
     }
 
-    private static MetaServicesPort getMetaServicesPort(URL url) {
+    private static MetaServicesPort createMetaServicesPort(URL url) {
         ProducerPortService service = new ProducerPortService();
         MetaServicesPort port = service.getMetaServicesPortSoap11();
         BindingProvider bindingProvider = (BindingProvider) port;

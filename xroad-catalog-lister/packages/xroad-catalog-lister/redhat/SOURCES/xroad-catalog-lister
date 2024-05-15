@@ -1,6 +1,6 @@
 #!/bin/sh
 set -x
 source /etc/xroad/xroad-catalog/catalog-profile.properties
-JAVA=$(update-alternatives --display java | grep priority | grep java-11-openjdk | cut -d " " -f1)
+JAVA=$(update-alternatives --display java | grep priority | grep java-21-openjdk | cut -d " " -f1)
 exec $JAVA -Xms128m -Xmx2g -Dserver.port=8070 -Dspring.profiles.active=production -Dspring.profiles.include=$CATALOG_PROFILE -jar /usr/lib/xroad-catalog/xroad-catalog-lister.jar --spring.config.location=/etc/xroad/xroad-catalog/ --spring.config.name=lister,catalogdb
 
