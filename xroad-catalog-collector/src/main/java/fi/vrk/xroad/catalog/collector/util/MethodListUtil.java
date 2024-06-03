@@ -25,7 +25,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,21 +32,12 @@ import java.util.List;
 @Slf4j
 public final class MethodListUtil {
 
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
     private static SecurityServerMetadata securityServerMetadata;
 
     private MethodListUtil() {
         // Private empty constructor
-    }
-
-    public static boolean shouldFetchCompanies(boolean fetchUnlimited, int fetchHourAfter, int fetchHourBefore) {
-        if (fetchUnlimited) {
-            return true;
-        }
-        return isTimeBetweenHours(fetchHourAfter, fetchHourBefore);
-    }
-
-    public static boolean shouldFlushLogEntries(int fetchHourAfter, int fetchHourBefore) {
-        return isTimeBetweenHours(fetchHourAfter, fetchHourBefore);
     }
 
     public static List<XRoadRestServiceIdentifierType> methodListFromResponse(ClientType clientType,
@@ -131,33 +121,6 @@ public final class MethodListUtil {
         return endpointList;
     }
 
-    public static ErrorLog createErrorLog(ClientType clientType, String message, String code) {
-        if (clientType != null) {
-            return ErrorLog.builder()
-                    .created(LocalDateTime.now())
-                    .message(message)
-                    .code(code)
-                    .xRoadInstance(clientType.getId().getXRoadInstance())
-                    .memberClass(clientType.getId().getMemberClass())
-                    .memberCode(clientType.getId().getMemberCode())
-                    .groupCode(clientType.getId().getGroupCode())
-                    .securityCategoryCode(clientType.getId().getSecurityCategoryCode())
-                    .serverCode(clientType.getId().getServerCode())
-                    .serviceCode(clientType.getId().getServiceCode())
-                    .serviceVersion(clientType.getId().getServiceVersion())
-                    .subsystemCode(clientType.getId().getSubsystemCode())
-                    .build();
-        }
-        return ErrorLog.builder().created(LocalDateTime.now()).message(message).code(code).build();
-    }
-
-    private static boolean isTimeBetweenHours(int fetchHourAfter, int fetchHourBefore) {
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime fetchTimeFrom = LocalDate.now().atTime(fetchHourAfter, 0);
-        LocalDateTime fetchTimeTo = LocalDate.now().atTime(fetchHourBefore, 0);
-        return (today.isAfter(fetchTimeFrom) && today.isBefore(fetchTimeTo));
-    }
-
     private static String createHeader(String xRoadInstance, String memberClass, String memberCode,
             String subsystemCode) {
         return new StringBuilder()
@@ -169,7 +132,6 @@ public final class MethodListUtil {
 
     private static JSONObject getJSON(String url, ClientType clientType, String xRoadClientHeader,
             CatalogService catalogService) {
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);
@@ -177,7 +139,7 @@ public final class MethodListUtil {
         headers.set("X-Road-Client", xRoadClientHeader);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+            ResponseEntity<String> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, entity,
                     String.class);
             return new JSONObject(response.getBody());
         } catch (Exception e) {

@@ -1,0 +1,926 @@
+[
+    {
+        "id": "12ea34r3-1k23-412r-9142-1442asd13131",
+        "sourceId": null,
+        "oid": null,
+        "parentOrganizationId": null,
+        "organizationRootId": "12ea34r3-1k23-412r-9142-1442asd13131",
+        "municipality": {
+            "code": "111",
+            "name": [
+                {
+                    "value": "Some Municipality",
+                    "language": "fi"
+                },
+                {
+                    "value": "Some Municipality",
+                    "language": "sv"
+                },
+                {
+                    "value": "Some Municipality",
+                    "language": "en"
+                }
+
+            ]
+        },
+        "organizationType": "Municipality",
+        "businessCode": "1234567-1",
+        "businessName": null,
+        "organizationNames": [
+            {
+                "language": "fi",
+                "value": "Some Name",
+                "type": "Name"
+            }
+        ],
+        "displayNameType": [
+            {
+                "type": "Name",
+                "language": "fi"
+            }
+        ],
+        "areaType": null,
+        "areas": null,
+        "organizationDescriptions": [
+            {
+                "language": "fi",
+                "value": "Some Description FI",
+                "type": "Summary"
+            },
+            {
+                "language": "fi",
+                "value": "Some Description FI",
+                "type": "Description"
+            }
+        ],
+        "emails": [
+            {
+                "description": "Some email",
+                "value": "info@niis.org",
+                "language": "fi"
+            },
+            {
+                "description": "Some email",
+                "value": "info@niis.org",
+                "language": "fi"
+            }
+        ],
+        "phoneNumbers": [
+            {
+                "additionalInformation": "Additional info field",
+                "serviceChargeType": "Chargeable",
+                "chargeDescription": null,
+                "prefixNumber": "+000",
+                "isFinnishServiceNumber": false,
+                "number": "123456789",
+                "language": "fi"
+            }
+        ],
+        "webPages": [
+            {
+                "url": "https://niis.org",
+                "value": "Some description",
+                "language": "fi"
+            }
+        ],
+        "addresses": [
+            {
+                "type": "Visiting",
+                "subType": "Street",
+                "postOfficeBoxAddress": null,
+                "streetAddress": {
+                    "street": [
+                        {
+                            "value": "Address part",
+                            "language": "fi"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sms"
+                        }
+                    ],
+                    "streetNumber": "1",
+                    "postalCode": "12345",
+                    "postOffice": [
+                        {
+                            "value": "Some post office",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sms"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "fi"
+                        }
+                    ],
+                    "municipality": {
+                        "code": "123",
+                        "name": [
+                            {
+                                "value": "Some Municipality",
+                                "language": "fi"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "sv"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "en"
+                            }
+
+                        ]
+                    },
+                    "additionalInformation": [],
+                    "latitude": "1000001.001",
+                    "longitude": "100001.001",
+                    "coordinateState": "Ok"
+                },
+                "otherAddress": null,
+                "foreignAddress": null,
+                "country": "FI"
+            },
+            {
+                "type": "Postal",
+                "subType": "Street",
+                "postOfficeBoxAddress": null,
+                "streetAddress": {
+                    "street": [
+                        {
+                            "value": "Address part",
+                            "language": "fi"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sms"
+                        }
+                    ],
+                    "streetNumber": "1",
+                    "postalCode": "12314",
+                    "postOffice": [
+                        {
+                            "value": "Some post office",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sms"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "fi"
+                        }
+                    ],
+                    "municipality": {
+                        "code": "124",
+                        "name": [
+                            {
+                                "value": "Some Municipality",
+                                "language": "fi"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "sv"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "en"
+                            }
+
+                        ]
+                    },
+                    "additionalInformation": [
+                        {
+                            "value": null,
+                            "language": "fi"
+                        }
+                    ],
+                    "latitude": "1000001.001",
+                    "longitude": "100001.001",
+                    "coordinateState": "Ok"
+                },
+                "otherAddress": null,
+                "foreignAddress": null,
+                "country": "FI"
+            }
+        ],
+        "electronicInvoicings": [
+            {
+                "operatorCode": "123142535345",
+                "electronicInvoicingAddress": "123434523524",
+                "additionalInformation": [
+                    {
+                        "value": "Some additional information",
+                        "language": "fi"
+                    }
+
+                ]
+            }],
+        "publishingStatus": "Published",
+        "services": [
+            {
+                "service": {
+                    "id": "13123132-1321-2342-asdf-1321sfasf123",
+                    "name": "Some Service 1"
+                },
+                "roleType": "OtherResponsible",
+                "provisionType": null,
+                "additionalInformation": []
+            },
+            {
+                "service": {
+                    "id": "1231asd1-sdf1-asfd-1231-afsdfaas1231",
+                    "name": "Some Service 2"
+                },
+                "roleType": "Responsible",
+                "provisionType": null,
+                "additionalInformation": []
+            },
+            {
+                "service": {
+                    "id": "sdkljlk1-123l-1231-sdfa-1231231asdfa",
+                    "name": "Some Service 3"
+                },
+                "roleType": "Producer",
+                "provisionType": "SelfProduced",
+                "additionalInformation": []
+            }
+        ],
+        "modified": "2020-01-12T12:11:11.131231",
+        "subOrganizations": null
+    },
+    {
+        "id": "12ea34r3-1k23-412r-9142-1442asd13132",
+        "sourceId": null,
+        "oid": null,
+        "parentOrganizationId": null,
+        "organizationRootId": "12ea34r3-1k23-412r-9142-1442asd13132",
+        "municipality": {
+            "code": "111",
+            "name": [
+                {
+                    "value": "Some Municipality",
+                    "language": "fi"
+                },
+                {
+                    "value": "Some Municipality",
+                    "language": "sv"
+                },
+                {
+                    "value": "Some Municipality",
+                    "language": "en"
+                }
+
+            ]
+        },
+        "organizationType": "Municipality",
+        "businessCode": "1234567-1",
+        "businessName": null,
+        "organizationNames": [
+            {
+                "language": "fi",
+                "value": "Some Name",
+                "type": "Name"
+            }
+        ],
+        "displayNameType": [
+            {
+                "type": "Name",
+                "language": "fi"
+            }
+        ],
+        "areaType": null,
+        "areas": null,
+        "organizationDescriptions": [
+            {
+                "language": "fi",
+                "value": "Some Description FI",
+                "type": "Summary"
+            },
+            {
+                "language": "fi",
+                "value": "Some Description FI",
+                "type": "Description"
+            }
+        ],
+        "emails": [
+            {
+                "description": "Some email",
+                "value": "info@niis.org",
+                "language": "fi"
+            },
+            {
+                "description": "Some email",
+                "value": "info@niis.org",
+                "language": "fi"
+            }
+        ],
+        "phoneNumbers": [
+            {
+                "additionalInformation": "Additional info field",
+                "serviceChargeType": "Chargeable",
+                "chargeDescription": null,
+                "prefixNumber": "+000",
+                "isFinnishServiceNumber": false,
+                "number": "123456789",
+                "language": "fi"
+            }
+        ],
+        "webPages": [
+            {
+                "url": "https://niis.org",
+                "value": "Some description",
+                "language": "fi"
+            }
+        ],
+        "addresses": [
+            {
+                "type": "Visiting",
+                "subType": "Street",
+                "postOfficeBoxAddress": null,
+                "streetAddress": {
+                    "street": [
+                        {
+                            "value": "Address part",
+                            "language": "fi"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sms"
+                        }
+                    ],
+                    "streetNumber": "1",
+                    "postalCode": "12345",
+                    "postOffice": [
+                        {
+                            "value": "Some post office",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sms"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "fi"
+                        }
+                    ],
+                    "municipality": {
+                        "code": "123",
+                        "name": [
+                            {
+                                "value": "Some Municipality",
+                                "language": "fi"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "sv"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "en"
+                            }
+
+                        ]
+                    },
+                    "additionalInformation": [],
+                    "latitude": "1000001.001",
+                    "longitude": "100001.001",
+                    "coordinateState": "Ok"
+                },
+                "otherAddress": null,
+                "foreignAddress": null,
+                "country": "FI"
+            },
+            {
+                "type": "Postal",
+                "subType": "Street",
+                "postOfficeBoxAddress": null,
+                "streetAddress": {
+                    "street": [
+                        {
+                            "value": "Address part",
+                            "language": "fi"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sms"
+                        }
+                    ],
+                    "streetNumber": "1",
+                    "postalCode": "12314",
+                    "postOffice": [
+                        {
+                            "value": "Some post office",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sms"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "fi"
+                        }
+                    ],
+                    "municipality": {
+                        "code": "124",
+                        "name": [
+                            {
+                                "value": "Some Municipality",
+                                "language": "fi"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "sv"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "en"
+                            }
+
+                        ]
+                    },
+                    "additionalInformation": [
+                        {
+                            "value": null,
+                            "language": "fi"
+                        }
+                    ],
+                    "latitude": "1000001.001",
+                    "longitude": "100001.001",
+                    "coordinateState": "Ok"
+                },
+                "otherAddress": null,
+                "foreignAddress": null,
+                "country": "FI"
+            }
+        ],
+        "electronicInvoicings": [
+            {
+                "operatorCode": "123142535345",
+                "electronicInvoicingAddress": "123434523524",
+                "additionalInformation": [
+                    {
+                        "value": "Some additional information",
+                        "language": "fi"
+                    }
+
+                ]
+            }],
+        "publishingStatus": "Published",
+        "services": [
+            {
+                "service": {
+                    "id": "13123132-1321-2342-asdf-1321sfasf123",
+                    "name": "Some Service 1"
+                },
+                "roleType": "OtherResponsible",
+                "provisionType": null,
+                "additionalInformation": []
+            },
+            {
+                "service": {
+                    "id": "1231asd1-sdf1-asfd-1231-afsdfaas1231",
+                    "name": "Some Service 2"
+                },
+                "roleType": "Responsible",
+                "provisionType": null,
+                "additionalInformation": []
+            },
+            {
+                "service": {
+                    "id": "sdkljlk1-123l-1231-sdfa-1231231asdfa",
+                    "name": "Some Service 3"
+                },
+                "roleType": "Producer",
+                "provisionType": "SelfProduced",
+                "additionalInformation": []
+            }
+        ],
+        "modified": "2020-01-12T12:11:11.131231",
+        "subOrganizations": null
+    },
+    {
+        "id": "12ea34r3-1k23-412r-9142-1442asd13133",
+        "sourceId": null,
+        "oid": null,
+        "parentOrganizationId": null,
+        "organizationRootId": "12ea34r3-1k23-412r-9142-1442asd13131",
+        "municipality": {
+            "code": "111",
+            "name": [
+                {
+                    "value": "Some Municipality",
+                    "language": "fi"
+                },
+                {
+                    "value": "Some Municipality",
+                    "language": "sv"
+                },
+                {
+                    "value": "Some Municipality",
+                    "language": "en"
+                }
+
+            ]
+        },
+        "organizationType": "Municipality",
+        "businessCode": "1234567-1",
+        "businessName": null,
+        "organizationNames": [
+            {
+                "language": "fi",
+                "value": "Some Name",
+                "type": "Name"
+            }
+        ],
+        "displayNameType": [
+            {
+                "type": "Name",
+                "language": "fi"
+            }
+        ],
+        "areaType": null,
+        "areas": null,
+        "organizationDescriptions": [
+            {
+                "language": "fi",
+                "value": "Some Description FI",
+                "type": "Summary"
+            },
+            {
+                "language": "fi",
+                "value": "Some Description FI",
+                "type": "Description"
+            }
+        ],
+        "emails": [
+            {
+                "description": "Some email",
+                "value": "info@niis.org",
+                "language": "fi"
+            },
+            {
+                "description": "Some email",
+                "value": "info@niis.org",
+                "language": "fi"
+            }
+        ],
+        "phoneNumbers": [
+            {
+                "additionalInformation": "Additional info field",
+                "serviceChargeType": "Chargeable",
+                "chargeDescription": null,
+                "prefixNumber": "+000",
+                "isFinnishServiceNumber": false,
+                "number": "123456789",
+                "language": "fi"
+            }
+        ],
+        "webPages": [
+            {
+                "url": "https://niis.org",
+                "value": "Some description",
+                "language": "fi"
+            }
+        ],
+        "addresses": [
+            {
+                "type": "Visiting",
+                "subType": "Street",
+                "postOfficeBoxAddress": null,
+                "streetAddress": {
+                    "street": [
+                        {
+                            "value": "Address part",
+                            "language": "fi"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sms"
+                        }
+                    ],
+                    "streetNumber": "1",
+                    "postalCode": "12345",
+                    "postOffice": [
+                        {
+                            "value": "Some post office",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sms"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "fi"
+                        }
+                    ],
+                    "municipality": {
+                        "code": "123",
+                        "name": [
+                            {
+                                "value": "Some Municipality",
+                                "language": "fi"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "sv"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "en"
+                            }
+
+                        ]
+                    },
+                    "additionalInformation": [],
+                    "latitude": "1000001.001",
+                    "longitude": "100001.001",
+                    "coordinateState": "Ok"
+                },
+                "otherAddress": null,
+                "foreignAddress": null,
+                "country": "FI"
+            },
+            {
+                "type": "Postal",
+                "subType": "Street",
+                "postOfficeBoxAddress": null,
+                "streetAddress": {
+                    "street": [
+                        {
+                            "value": "Address part",
+                            "language": "fi"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Address part",
+                            "language": "sms"
+                        }
+                    ],
+                    "streetNumber": "1",
+                    "postalCode": "12314",
+                    "postOffice": [
+                        {
+                            "value": "Some post office",
+                            "language": "se"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "smn"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sv"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "sms"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "en"
+                        },
+                        {
+                            "value": "Some post office",
+                            "language": "fi"
+                        }
+                    ],
+                    "municipality": {
+                        "code": "124",
+                        "name": [
+                            {
+                                "value": "Some Municipality",
+                                "language": "fi"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "sv"
+                            },
+                            {
+                                "value": "Some Municipality",
+                                "language": "en"
+                            }
+
+                        ]
+                    },
+                    "additionalInformation": [
+                        {
+                            "value": null,
+                            "language": "fi"
+                        }
+                    ],
+                    "latitude": "1000001.001",
+                    "longitude": "100001.001",
+                    "coordinateState": "Ok"
+                },
+                "otherAddress": null,
+                "foreignAddress": null,
+                "country": "FI"
+            }
+        ],
+        "electronicInvoicings": [
+            {
+                "operatorCode": "123142535345",
+                "electronicInvoicingAddress": "123434523524",
+                "additionalInformation": [
+                    {
+                        "value": "Some additional information",
+                        "language": "fi"
+                    }
+
+                ]
+            }],
+        "publishingStatus": "Published",
+        "services": [
+            {
+                "service": {
+                    "id": "13123132-1321-2342-asdf-1321sfasf123",
+                    "name": "Some Service 1"
+                },
+                "roleType": "OtherResponsible",
+                "provisionType": null,
+                "additionalInformation": []
+            },
+            {
+                "service": {
+                    "id": "1231asd1-sdf1-asfd-1231-afsdfaas1231",
+                    "name": "Some Service 2"
+                },
+                "roleType": "Responsible",
+                "provisionType": null,
+                "additionalInformation": []
+            },
+            {
+                "service": {
+                    "id": "sdkljlk1-123l-1231-sdfa-1231231asdfa",
+                    "name": "Some Service 3"
+                },
+                "roleType": "Producer",
+                "provisionType": "SelfProduced",
+                "additionalInformation": []
+            }
+        ],
+        "modified": "2020-01-12T12:11:11.131231",
+        "subOrganizations": null
+    }
+]

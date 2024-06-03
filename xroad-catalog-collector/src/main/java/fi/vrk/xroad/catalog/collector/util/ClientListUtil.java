@@ -16,8 +16,6 @@ import fi.vrk.xroad.catalog.collector.wsimport.ClientList;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
@@ -25,23 +23,18 @@ import org.springframework.web.client.RestTemplate;
 
 public final class ClientListUtil {
 
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
     private ClientListUtil() {
         // Private empty constructor
     }
 
-    public static ClientList clientListFromResponse(String url, CatalogService catalogService) {
-        RestTemplate restTemplate = new RestTemplate();
+    public static ClientList clientListFromResponse(String url) {
         JSONArray members = new JSONArray();
-        try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            JSONObject json = new JSONObject(response.getBody());
-            members = json.getJSONArray("member");
-        } catch (Exception e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(null,
-                    "Error when fetching listClients(url: " + url + "): " + e.getMessage(),
-                    "500");
-            catalogService.saveErrorLog(errorLog);
-        }
+
+        ResponseEntity<String> response = REST_TEMPLATE.getForEntity(url, String.class);
+        JSONObject json = new JSONObject(response.getBody());
+        members = json.getJSONArray("member");
 
         ClientList clientList = new ClientList();
         for (int i = 0; i < members.length(); i++) {

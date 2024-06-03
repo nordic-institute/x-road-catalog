@@ -99,7 +99,8 @@ public final class OrganizationUtil {
     public static JSONObject getCompanies(ClientType clientType,
             Integer fetchCompaniesLimit,
             String url,
-            CatalogService catalogService) {
+            CatalogService catalogService)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         final String fetchCompaniesUrl = new StringBuilder()
                 .append(url)
                 .append("?totalResults=").append(TOTAL_RESULTS)
@@ -113,31 +114,34 @@ public final class OrganizationUtil {
             jsonObject = new JSONObject(ret);
             return jsonObject;
         } catch (KeyStoreException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyStoreException occurred when fetching list of companies from url " + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyStoreException occurred when fetching companies from url {}", url);
+            throw e;
         } catch (NoSuchAlgorithmException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "NoSuchAlgorithmException occurred when fetching companies from url " + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("NoSuchAlgorithmException occurred when fetching companies from url", url);
+            throw e;
         } catch (KeyManagementException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyManagementException occurred when fetching companies from url " + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyManagementException occurred when fetching companies from url {}", url);
+            throw e;
         } catch (Exception e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "Exception occurred when fetching companies from url " + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("Exception occurred when fetching companies from url {}", url);
+            throw e;
         }
-        return jsonObject;
     }
 
     public static JSONObject getCompany(ClientType clientType, String url, String businessCode,
@@ -150,7 +154,7 @@ public final class OrganizationUtil {
             jsonObject = new JSONObject(ret);
             return jsonObject;
         } catch (KeyStoreException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyStoreException occurred when fetching companies from url " + url
                             + WITH_BUSINESS_CODE + businessCode,
                     "500");
@@ -158,7 +162,7 @@ public final class OrganizationUtil {
             log.error("KeyStoreException occurred when fetching companies from url {} with businessCode {}",
                     url, businessCode);
         } catch (NoSuchAlgorithmException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "NoSuchAlgorithmException occurred when fetching companies from url " + url
                             + WITH_BUSINESS_CODE + businessCode,
                     "500");
@@ -166,7 +170,7 @@ public final class OrganizationUtil {
             log.error("NoSuchAlgorithmException occurred when fetching companies from url {} with businessCode {}",
                     url, businessCode);
         } catch (KeyManagementException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyManagementException occurred when fetching companies from url " + url
                             + WITH_BUSINESS_CODE + businessCode,
                     "500");
@@ -174,7 +178,7 @@ public final class OrganizationUtil {
             log.error("KeyManagementException occurred when fetching companies from url {} with businessCode {}",
                     url, businessCode);
         } catch (Exception e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "Exception occurred when fetching companies from url " + url
                             + WITH_BUSINESS_CODE + businessCode,
                     "500");
@@ -188,8 +192,8 @@ public final class OrganizationUtil {
     public static List<String> getOrganizationIdsList(ClientType clientType, String url,
             Integer fetchOrganizationsLimit, CatalogService catalogService)
             throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
-        List<String> idsList = new ArrayList<>();
         try {
+            List<String> idsList = new ArrayList<>();
             String response = getResponseBody(url);
             JSONObject json = new JSONObject(response);
             JSONArray itemList = json.optJSONArray("itemList");
@@ -201,27 +205,30 @@ public final class OrganizationUtil {
             }
             return idsList;
         } catch (KeyStoreException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyStoreException occurred when fetching organization ids with from url "
                             + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyStoreException occurred when fetching organization ids with from url {}", url);
+            throw e;
         } catch (NoSuchAlgorithmException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "NoSuchAlgorithmException occurred when fetching organization ids with from url "
                             + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("NoSuchAlgorithmException occurred when fetching organization ids with from url {}",
                     url);
+            throw e;
         } catch (KeyManagementException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyManagementException occurred when fetching organization ids with from url "
                             + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyManagementException occurred when fetching organizations with from url {}", url);
+            throw e;
         } catch (Exception e) {
             log.error("Exception occurred when fetching organization ids: " + e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
@@ -239,8 +246,8 @@ public final class OrganizationUtil {
                     .subsystemCode(clientType.getId().getSubsystemCode())
                     .build();
             catalogService.saveErrorLog(errorLog);
+            throw e;
         }
-        return idsList;
     }
 
     public static Organization createOrganization(JSONObject jsonObject) {
@@ -670,6 +677,8 @@ public final class OrganizationUtil {
         final String listOrganizationsUrl = new StringBuilder().append(url)
                 .append("/list?guids=").append(requestGuids).toString();
 
+        log.debug("Fetching organizations with guids: " + listOrganizationsUrl);
+
         JSONArray itemList = new JSONArray();
         try {
             String ret = getResponseBody(listOrganizationsUrl);
@@ -677,13 +686,13 @@ public final class OrganizationUtil {
             itemList = json.optJSONArray("items");
             return itemList;
         } catch (KeyStoreException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyStoreException occurred when fetching organizations with from url " + url,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyStoreException occurred when fetching organizations with from url {}", url);
         } catch (NoSuchAlgorithmException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "NoSuchAlgorithmException occurred when fetching organizations with from url "
                             + url,
                     "500");
@@ -691,7 +700,7 @@ public final class OrganizationUtil {
             log.error("NoSuchAlgorithmException occurred when fetching organizations with from url {}",
                     url);
         } catch (KeyManagementException e) {
-            ErrorLog errorLog = MethodListUtil.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
                     "KeyManagementException occurred when fetching organizations with from url "
                             + url,
                     "500");

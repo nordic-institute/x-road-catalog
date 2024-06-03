@@ -84,7 +84,6 @@ dependencies {
     implementation (libs.json)
     implementation (libs.spring.boot.ws)
     implementation (libs.jackson)
-    implementation (libs.bundles.akka)
     // Note that bundle seems to break something with CXF and being able top find api bindings, so using separate dependencies here
     implementation (libs.cxf.jaxws)
     implementation (libs.cxf.transport)
@@ -97,8 +96,7 @@ dependencies {
     testImplementation (libs.spring.boot.test) {
         exclude group: 'org.mockito', module :'mockito-core'
     }
-    testImplementation (libs.mockito.inline)
-    testImplementation (libs.akka.testkit)
+    testImplementation (libs.mockito)
     testImplementation (libs.lombok)
     testAnnotationProcessor (libs.lombok)
     testImplementation (libs.jakarta.annotation)

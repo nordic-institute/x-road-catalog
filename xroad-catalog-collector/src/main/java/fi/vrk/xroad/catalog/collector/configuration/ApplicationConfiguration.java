@@ -12,91 +12,20 @@
  */
 package fi.vrk.xroad.catalog.collector.configuration;
 
-import fi.vrk.xroad.catalog.collector.extension.SpringExtension;
-import akka.actor.ActorSystem;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestOperations;
-import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @Lazy
 @ComponentScan(basePackages = {
         "fi.vrk.xroad.catalog.collector.actors",
         "fi.vrk.xroad.catalog.collector.extension",
-        "fi.vrk.xroad.catalog"
-        + ".persistence" })
+        "fi.vrk.xroad.catalog.persistence"
+})
 @ImportResource({ "classpath:META-INF/cxf/cxf.xml" })
-@Slf4j
 public class ApplicationConfiguration extends SpringBootServletInitializer {
-
-    @Value("${xroad-catalog.collector-interval-min}")
-    private Long collectorInterval;
-
-
-    @Bean
-    public ActorSystem actorSystem(ApplicationContext applicationContext,
-                                   SpringExtension springExtension) {
-
-        ActorSystem system = ActorSystem
-                .create("AkkaTaskProcessing", akkaConfiguration());
-
-        // Initialize the application context in the Akka Spring Extension
-        springExtension.initialize(applicationContext);
-        return system;
-    }
-
-
-    @Bean
-    public Config akkaConfiguration() {
-        return ConfigFactory.load();
-    }
-
-    @Bean
-    @Qualifier("listClientsRestOperations")
-    public RestOperations getRestOperations() {
-        return createTimeoutingRestTemplate();
-    }
-
-    @Bean
-    @Qualifier("wsdlRestOperations")
-    public RestOperations getDynamicWsdlRestOperations() {
-        log.info("-------------- Configuration");
-        return createTimeoutingRestTemplate();
-    }
-
-    @Bean
-    public Long getCollectorInterval() {
-        return collectorInterval;
-    }
-
-    private static final int TIMEOUT = 10 * 60 * 1000; // 10 minutes
-    private RestTemplate createTimeoutingRestTemplate() {
-        RestTemplate rt = new RestTemplate();
-        setTimeout(rt, TIMEOUT);
-        return rt;
-    }
-
-    private void setTimeout(RestTemplate restTemplate, int timeout) {
-        //Explicitly setting ClientHttpRequestFactory instance to
-        //SimpleClientHttpRequestFactory instance to leverage
-        //set*Timeout methods
-        restTemplate.setRequestFactory(new SimpleClientHttpRequestFactory());
-        SimpleClientHttpRequestFactory rf = (SimpleClientHttpRequestFactory) restTemplate
-                .getRequestFactory();
-        rf.setReadTimeout(timeout);
-        rf.setConnectTimeout(timeout);
-    }
 
 }

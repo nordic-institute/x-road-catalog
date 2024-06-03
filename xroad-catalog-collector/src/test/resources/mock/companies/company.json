@@ -1,0 +1,166 @@
+{
+    "type": "fi.prh.opendata.bis",
+    "version": "1",
+    "totalResults": -1,
+    "resultsFrom": 0,
+    "previousResultsUri": null,
+    "nextResultsUri": null,
+    "exceptionNoticeUri": null,
+    "results": [
+        {
+            "businessId": "1234567-1",
+            "name": "Test Company 1",
+            "registrationDate": "2020-01-01",
+            "companyForm": "OY",
+            "detailsUri": null,
+            "liquidations": [],
+            "names": [
+                {
+                    "order": 0,
+                    "version": 1,
+                    "name": "Test Company 1",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "source": 3
+                }
+            ],
+            "auxiliaryNames": [],
+            "addresses": [
+                {
+                    "careOf": null,
+                    "street": "Test Street 1",
+                    "postCode": "12345",
+                    "type": 2,
+                    "version": 1,
+                    "city": "Test City",
+                    "country": null,
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "FI",
+                    "source": 0
+                }
+            ],
+            "companyForms": [
+                {
+                    "version": 1,
+                    "name": "Limited company",
+                    "type": null,
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "EN",
+                    "source": 3
+                },
+                {
+                    "version": 1,
+                    "name": "Osakeyhtiö",
+                    "type": "OY",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "FI",
+                    "source": 3
+                },
+                {
+                    "version": 1,
+                    "name": "Aktiebolag",
+                    "type": "AB",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "SE",
+                    "source": 3
+                }
+            ],
+            "businessLines": [],
+            "languages": [],
+            "registedOffices": [
+                {
+                    "order": 0,
+                    "version": 1,
+                    "name": "Test City",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "EN",
+                    "source": 0
+                },
+                {
+                    "order": 0,
+                    "version": 1,
+                    "name": "Test City",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "FI",
+                    "source": 0
+                },
+                {
+                    "order": 0,
+                    "version": 1,
+                    "name": "Test City",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "SE",
+                    "source": 0
+                }
+            ],
+            "contactDetails": [
+                {
+                    "version": 1,
+                    "value": "+123 123 1234",
+                    "type": "Matkapuhelin",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "FI",
+                    "source": 0
+                },
+                {
+                    "version": 1,
+                    "value": "+123 123 1234",
+                    "type": "Mobiltelefon",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "SE",
+                    "source": 0
+                },
+                {
+                    "version": 1,
+                    "value": "+123 123 1234",
+                    "type": "Mobile phone",
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "language": "EN",
+                    "source": 0
+                }
+            ],
+            "registeredEntries": [
+                {
+                    "authority": 2,
+                    "register": 1,
+                    "status": 2,
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "statusDate": "2020-01-01",
+                    "language": "FI",
+                    "description": "Rekisteröimätön"
+                },
+                {
+                    "authority": 2,
+                    "register": 1,
+                    "status": 2,
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "statusDate": "2020-01-01",
+                    "language": "SE",
+                    "description": "Oregistrerad"
+                },
+                {
+                    "authority": 2,
+                    "register": 1,
+                    "status": 2,
+                    "registrationDate": "2020-01-01",
+                    "endDate": null,
+                    "statusDate": "2020-01-01",
+                    "language": "EN",
+                    "description": "Unregistered"
+                }
+            ],
+            "businessIdChanges": []
+        }
+    ]}

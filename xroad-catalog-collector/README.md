@@ -3,14 +3,15 @@
 The purpose of this module is to collect members, subsystems and services from the X-Road ecosystem and store them to 
 a database. 
 
-The module is implemented using concurrent Akka actors: 
+The module is implemented using JAVA virtual threads: 
 
-* `FetchWsdlActor` - fetches WSDL descriptions of SOAP services from the X-Road instance and stores them to the db.
-* `FetchOpenApiActor` - fetches OpenAPI descriptions of Rest services from the X-Road instance and stores them to the db.
-* `ListClientsActor` - fetches a list of clients from the X-Road instance and stores them to the db.
-* `ListMethodsActor` - fetches a list of services from the X-Road instance and stores them to the db.
-* `FetchOrganizationsActor` - fetches a list of public organizations from an external API and stores them to the db.
-* `FetchCompaniesActor` - fetches a list of private companies from an external API and stores them to the db.
+* `FetchWsdlTask` - fetches WSDL descriptions of SOAP services from the X-Road instance and stores them to the db.
+* `FetchRestTask` - fetches REST services without descriptions from the X-Road instance and stores them to the db.
+* `FetchOpenApiTask` - fetches OpenAPI descriptions of Rest services from the X-Road instance and stores them to the db.
+* `ListClientsTask` - fetches a list of clients from the X-Road instance and stores them to the db.
+* `ListMethodsTask` - fetches a list of services from the X-Road instance and stores them to the db.
+* `FetchOrganizationsTask` - fetches a list of public organizations from an external API and stores them to the db.
+* `FetchCompaniesTask` - fetches a list of private companies from an external API and stores them to the db.
 
 See also the [Installation Guide](../doc/xroad_catalog_installation_guide.md) and
 [User Guide](../doc/xroad_catalog_user_guide.md).

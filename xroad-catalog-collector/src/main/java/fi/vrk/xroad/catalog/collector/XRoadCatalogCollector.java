@@ -12,29 +12,40 @@
  */
 package fi.vrk.xroad.catalog.collector;
 
-import fi.vrk.xroad.catalog.collector.actors.XRoadCatalogActor;
-import fi.vrk.xroad.catalog.collector.extension.SpringExtension;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
-import scala.concurrent.duration.Duration;
 
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import fi.vrk.xroad.catalog.collector.tasks.FetchCompaniesTask;
+import fi.vrk.xroad.catalog.collector.tasks.FetchOpenApiTask;
+import fi.vrk.xroad.catalog.collector.tasks.FetchOrganizationsTask;
+import fi.vrk.xroad.catalog.collector.tasks.FetchRestTask;
+import fi.vrk.xroad.catalog.collector.tasks.FetchWsdlsTask;
+import fi.vrk.xroad.catalog.collector.tasks.ListClientsTask;
+import fi.vrk.xroad.catalog.collector.tasks.ListMethodsTask;
+import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
+import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @SpringBootApplication
 public class XRoadCatalogCollector {
 
-    private static final String CATALOG_SUPERVISOR = "CatalogSupervisor";
-    private static final String ORGANIZATIONS_SUPERVISOR = "OrganizationsSupervisor";
     private static final String FI_PROFILE = "fi";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException, URISyntaxException {
 
         ApplicationContext context = SpringApplication.run(XRoadCatalogCollector.class, args);
 
@@ -43,29 +54,61 @@ public class XRoadCatalogCollector {
         final String keystore = env.getProperty("xroad-catalog.ssl-keystore");
         final String keystorePw = env.getProperty("xroad-catalog.ssl-keystore-password");
 
-        if (keystore != null && keystorePw != null) {
-            System.setProperty("javax.net.ssl.keyStore", keystore);
-            System.setProperty("javax.net.ssl.keyStorePassword", keystorePw);
+        if (keystore != null && !keystore.isEmpty() && keystorePw != null) {
+            if (!Path.of(keystore).toFile().exists()) {
+                log.warn("Keystore file at {} is not accessible or does not exist, not using keystore", keystore);
+            } else {
+                log.info("Using keystore at {}", keystore);
+                System.setProperty("javax.net.ssl.keyStore", keystore);
+                System.setProperty("javax.net.ssl.keyStorePassword", keystorePw);
+            }
         }
 
-        ActorSystem system = context.getBean(ActorSystem.class);
-        final LoggingAdapter log = Logging.getLogger(system, "Application");
-        Long collectorInterval = (Long) context.getBean("getCollectorInterval");
+        final boolean isFIProfile = Arrays.stream(env.getActiveProfiles())
+                .anyMatch(str -> str.equalsIgnoreCase(FI_PROFILE));
 
+        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        final BlockingQueue<ClientType> listMethodsQueue = new LinkedBlockingQueue<>();
+        final BlockingQueue<ClientType> fetchCompaniesQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
+        final BlockingQueue<ClientType> fetchOrganizationsQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
+        final BlockingQueue<XRoadServiceIdentifierType> fetchWsdlsQueue = new LinkedBlockingQueue<>();
+        final BlockingQueue<XRoadRestServiceIdentifierType> fetchRestQueue = new LinkedBlockingQueue<>();
+        final BlockingQueue<XRoadRestServiceIdentifierType> fetchOpenApiQueue = new LinkedBlockingQueue<>();
+
+        if (isFIProfile) {
+            log.info("FI profile detected, starting up organizations and companies fetchers");
+            final FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(context, fetchCompaniesQueue);
+            Thread.ofVirtual().start(fetchCompaniesTask::run);
+
+            final FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(context,
+                    fetchOrganizationsQueue);
+            Thread.ofVirtual().start(fetchOrganizationsTask::run);
+        }
+
+        final FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(context, fetchWsdlsQueue);
+        Thread.ofVirtual().start(fetchWsdlsTask::run);
+
+        final FetchRestTask fetchRestTask = new FetchRestTask(context, fetchRestQueue);
+        Thread.ofVirtual().start(fetchRestTask::run);
+
+        final FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(context, fetchOpenApiQueue);
+        Thread.ofVirtual().start(fetchOpenApiTask::run);
+
+        final ListMethodsTask listMethodsTask = new ListMethodsTask(context, listMethodsQueue, fetchWsdlsQueue,
+                fetchRestQueue,
+                fetchOpenApiQueue);
+        Thread.ofVirtual().start(listMethodsTask::run);
+
+        // The ListClientsTask is the main task that starts the whole process and
+        // gathers information that the other tasks will react on to do work
+        final ListClientsTask listClientsTask = new ListClientsTask(context, listMethodsQueue, fetchCompaniesQueue,
+                fetchOrganizationsQueue);
+
+        Long collectorInterval = (Long) context.getBean("getCollectorInterval");
         log.info("Starting up catalog collector with collector interval of {}", collectorInterval);
 
-        SpringExtension ext = context.getBean(SpringExtension.class);
-        String supervisorBeanName = CATALOG_SUPERVISOR;
-        if (Arrays.stream(env.getActiveProfiles()).anyMatch(str -> str.equalsIgnoreCase(FI_PROFILE))) {
-            supervisorBeanName = ORGANIZATIONS_SUPERVISOR;
-        }
-        ActorRef supervisor = system.actorOf(ext.props(supervisorBeanName));
-        system.scheduler().scheduleWithFixedDelay(Duration.Zero(),
-                Duration.create(collectorInterval, TimeUnit.MINUTES),
-                supervisor,
-                XRoadCatalogActor.START_COLLECTING,
-                system.dispatcher(),
-                ActorRef.noSender());
+        scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);
+
     }
 
 }

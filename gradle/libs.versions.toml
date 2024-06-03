@@ -1,5 +1,4 @@
 [versions]
-akka = "2.6.21"
 commons-beanutils = "1.9.4"
 commons-csv = "1.11.0"
 cxf = "4.0.4"
@@ -14,7 +13,7 @@ wsImport = "4.0.2"
 jaxb = "4.0.2"
 json = "20240303"
 lombok = "1.18.32"
-mockito-inline = "4.6.1"
+mockito = "5.12.0"
 postgresql = "42.7.3"
 spring-boot = "3.2.5"
 spring-doc = "1.8.0"
@@ -24,9 +23,6 @@ sonarqube = "5.0.0.4638"
 hierynomus-license = "0.16.1"
 
 [libraries]
-akka-actor = { module = "com.typesafe.akka:akka-actor_3", version.ref = "akka" }
-akka-slf4j = { module = "com.typesafe.akka:akka-slf4j_3", version.ref = "akka" }
-akka-testkit = { module = "com.typesafe.akka:akka-testkit_3", version.ref = "akka" }
 commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons.beanutils" }
 commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commons.csv" }
 cxf-core = { module = "org.apache.cxf:cxf-core", version.ref = "cxf" }
@@ -46,7 +42,7 @@ jaxb-tools = { module = "com.sun.xml.ws:jaxws-tools", version.ref = "jaxb" }
 jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxb" }
 json = { module = "org.json:json", version.ref = "json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito.inline" }
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "spring.boot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring.boot" }
@@ -55,7 +51,6 @@ spring-doc = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "spr
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 
 [bundles]
-akka = [ "akka-actor", "akka-slf4j" ] # Don't include akka-testkit in this since it is not used in implementation
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation
 
 [plugins]

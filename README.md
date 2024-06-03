@@ -39,7 +39,7 @@ The X-Road Catalog software consists of three modules:
 
 - [X-Road Catalog Collector](xroad-catalog-collector/README.md)
   * Collects information from the X-Road ecosystem (possibly also from external APIs) and stores it to the postgresql database. 
-  * Implemented using concurrent Akka actors. 
+  * Implemented using JAVA virtual threads. 
 - [X-Road Catalog Lister](xroad-catalog-lister/README.md)
   * Provides REST and SOAP interfaces that offer information collected by the Collector. 
   * Can be used as an X-Road service (X-Road headers are in place).

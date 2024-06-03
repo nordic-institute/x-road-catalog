@@ -1,19 +1,45 @@
 /**
- * The MIT License
  *
- * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
- * Copyright (c) 2016-2023 Finnish Digital Agency
+ *  The MIT License
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *  Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
+ *  Copyright (c) 2016-2023 Finnish Digital Agency
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ *
  */
-package fi.vrk.xroad.catalog.collector.actors;
+package fi.vrk.xroad.catalog.collector.tasks;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.context.ApplicationContext;
+
+import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
+import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.OrganizationService;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
@@ -34,80 +60,86 @@ import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipality;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
 import fi.vrk.xroad.catalog.persistence.entity.WebPage;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
-@Scope("prototype")
 @Slf4j
-public class FetchOrganizationsActor extends XRoadCatalogActor {
+public class FetchOrganizationsTask {
 
-    @Value("${xroad-catalog.fetch-organizations-url}")
     private String fetchOrganizationsUrl;
 
-    @Value("${xroad-catalog.max-organizations-per-request}")
     private Integer maxOrganizationsPerRequest;
 
-    @Value("${xroad-catalog.fetch-organizations-limit}")
     private Integer fetchOrganizationsLimit;
 
-    @Autowired
-    protected CatalogService catalogService;
+    private final CatalogService catalogService;
 
-    @Autowired
-    protected OrganizationService organizationService;
+    private final OrganizationService organizationService;
 
-    @Override
-    public void preStart() throws Exception {
-        // This method is here just to override the method from the superclass
+    private final BlockingQueue<ClientType> fetchOrganizationsQueue;
+
+    private final TaskPoolConfiguration taskPoolConfiguration;
+
+    private final Semaphore semaphore;
+
+    public FetchOrganizationsTask(final ApplicationContext applicationContext,
+            final BlockingQueue<ClientType> fetchOrganizationsQueue) {
+        this.catalogService = applicationContext.getBean(CatalogService.class);
+        this.organizationService = applicationContext.getBean(OrganizationService.class);
+
+        this.fetchOrganizationsQueue = fetchOrganizationsQueue;
+
+        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
+        this.fetchOrganizationsUrl = taskPoolConfiguration.getFetchOrganizationsUrl();
+        this.maxOrganizationsPerRequest = taskPoolConfiguration.getMaxOrganizationsPerRequest();
+        this.fetchOrganizationsLimit = taskPoolConfiguration.getFetchOrganizationsLimit();
+
+        this.semaphore = new Semaphore(taskPoolConfiguration.getFetchOrganizationsPoolSize());
+
     }
 
-    @Override
-    protected boolean handleMessage(Object message)
-            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        if (message instanceof ClientType) {
-            List<String> organizationIds = OrganizationUtil.getOrganizationIdsList((ClientType) message,
-                    fetchOrganizationsUrl,
+    public void run() {
+        log.info("Starting {} with pool size {}", getClass().getSimpleName(), semaphore.availablePermits());
+        try {
+            while (true) {
+                log.debug("Waiting for data ... ");
+
+                // take() blocks until an element becomes available or it gets interrupted
+                ClientType client = fetchOrganizationsQueue.take();
+                semaphore.acquire();
+                Thread.ofVirtual().start(() -> fetchOrganizationsForClient(client));
+            }
+        } catch (InterruptedException e) {
+            log.warn("Interrupted while waiting for data, stopping {}", getClass().getSimpleName(), e);
+        }
+    }
+
+    protected void fetchOrganizationsForClient(final ClientType client) {
+        try {
+            List<String> organizationIds = OrganizationUtil.getOrganizationIdsList(client, fetchOrganizationsUrl,
                     fetchOrganizationsLimit, catalogService);
             int numberOfOrganizations = organizationIds.size();
             log.info("Fetched {} organization GUIDs from {}", numberOfOrganizations, fetchOrganizationsUrl);
 
             AtomicInteger elementCount = new AtomicInteger();
-            AtomicInteger batchCount = new AtomicInteger();
             List<String> guidsList = new ArrayList<>();
             organizationIds.forEach(id -> {
                 guidsList.add(id);
                 elementCount.getAndIncrement();
                 if (elementCount.get() % maxOrganizationsPerRequest == 0) {
-                    batchCount.getAndIncrement();
-                    saveBatch(OrganizationUtil.getDataByIds((ClientType) message, guidsList, fetchOrganizationsUrl,
-                            catalogService));
+                    saveBatch(OrganizationUtil.getDataByIds(client, guidsList, fetchOrganizationsUrl, catalogService));
                     guidsList.clear();
                 }
-                if (elementCount.get() == organizationIds.size()) {
-                    batchCount.getAndIncrement();
-                    saveBatch(OrganizationUtil.getDataByIds((ClientType) message, guidsList, fetchOrganizationsUrl,
-                            catalogService));
+                if (elementCount.get() == organizationIds.size() && !guidsList.isEmpty()) {
+                    saveBatch(OrganizationUtil.getDataByIds(client, guidsList, fetchOrganizationsUrl, catalogService));
                 }
             });
-            log.info("Saved data of {} organizations successfully", numberOfOrganizations);
-
-            return true;
-        } else {
-            return false;
+            log.info("Processed {} organizations", numberOfOrganizations);
+        } catch (Exception e) {
+            log.error("Error while fetching organizations for client {}", client, e);
+        } finally {
+            semaphore.release();
         }
+
     }
 
     private void saveBatch(JSONArray data) {

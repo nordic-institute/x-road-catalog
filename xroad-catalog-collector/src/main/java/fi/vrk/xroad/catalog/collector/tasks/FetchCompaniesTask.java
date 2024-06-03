@@ -1,17 +1,41 @@
 /**
- * The MIT License
  *
- * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
- * Copyright (c) 2016-2023 Finnish Digital Agency
+ *  The MIT License
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *  Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
+ *  Copyright (c) 2016-2023 Finnish Digital Agency
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ *
  */
-package fi.vrk.xroad.catalog.collector.actors;
+package fi.vrk.xroad.catalog.collector.tasks;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.context.ApplicationContext;
+
+import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
@@ -29,42 +53,58 @@ import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import java.util.ArrayList;
-import java.util.List;
 
-@Component
-@Scope("prototype")
 @Slf4j
-public class FetchCompaniesActor extends XRoadCatalogActor {
+public class FetchCompaniesTask {
 
-    @Value("${xroad-catalog.fetch-companies-url}")
-    private String fetchCompaniesUrl;
+    private final String fetchCompaniesUrl;
 
-    @Value("${xroad-catalog.fetch-companies-limit}")
-    private Integer fetchCompaniesLimit;
+    private final Integer fetchCompaniesLimit;
 
-    @Autowired
-    protected CatalogService catalogService;
+    private final CatalogService catalogService;
 
-    @Autowired
-    protected CompanyService companyService;
+    private final CompanyService companyService;
 
-    @Override
-    public void preStart() throws Exception {
-        // This method is here just to override the method from the superclass
+    private final BlockingQueue<ClientType> fetchCompaniesQueue;
+
+    private final TaskPoolConfiguration taskPoolConfiguration;
+
+    private final Semaphore semaphore;
+
+    public FetchCompaniesTask(final ApplicationContext applicationContext,
+            final BlockingQueue<ClientType> fetchCompaniesQueue) {
+        this.catalogService = applicationContext.getBean(CatalogService.class);
+        this.companyService = applicationContext.getBean(CompanyService.class);
+
+        this.fetchCompaniesQueue = fetchCompaniesQueue;
+
+        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
+        this.fetchCompaniesUrl = taskPoolConfiguration.getFetchCompaniesUrl();
+        this.fetchCompaniesLimit = taskPoolConfiguration.getFetchCompaniesLimit();
+
+        this.semaphore = new Semaphore(taskPoolConfiguration.getFetchCompaniesPoolSize());
+
     }
 
-    @Override
-    protected boolean handleMessage(Object message) {
-        if (message instanceof ClientType) {
-            ClientType clientType = (ClientType) message;
-            JSONObject companiesJson = OrganizationUtil.getCompanies(clientType, fetchCompaniesLimit, fetchCompaniesUrl,
+    public void run() {
+        log.info("Starting {} with pool size {}", getClass().getSimpleName(), semaphore.availablePermits());
+        try {
+            while (true) {
+                log.debug("Waiting for data ... ");
+
+                // take() blocks until an element becomes available or it gets interrupted
+                ClientType client = fetchCompaniesQueue.take();
+                semaphore.acquire();
+                Thread.ofVirtual().start(() -> fetchCompaniesForCLient(client));
+            }
+        } catch (InterruptedException e) {
+            log.warn("Interrupted while waiting for data, stopping {}", getClass().getSimpleName(), e);
+        }
+    }
+
+    protected void fetchCompaniesForCLient(final ClientType client) {
+        try {
+            JSONObject companiesJson = OrganizationUtil.getCompanies(client, fetchCompaniesLimit, fetchCompaniesUrl,
                     catalogService);
             JSONArray companiesArray = companiesJson.optJSONArray("results");
             int numberOfCompanies = companiesArray.length();
@@ -72,14 +112,15 @@ public class FetchCompaniesActor extends XRoadCatalogActor {
             companiesArray.forEach(item -> {
                 JSONObject company = (JSONObject) item;
                 String businessCode = company.optString("businessId");
-                JSONObject companyJson = OrganizationUtil.getCompany(clientType, fetchCompaniesUrl, businessCode,
+                JSONObject companyJson = OrganizationUtil.getCompany(client, fetchCompaniesUrl, businessCode,
                         catalogService);
                 saveData(companyJson.optJSONArray("results"));
             });
             log.info("Successfully saved data for {} companies", numberOfCompanies);
-            return true;
-        } else {
-            return false;
+        } catch (Exception e) {
+            log.error("Error while fetching companies for client {}", client, e);
+        } finally {
+            semaphore.release();
         }
     }
 
