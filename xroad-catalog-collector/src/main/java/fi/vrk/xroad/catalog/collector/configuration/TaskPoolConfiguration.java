@@ -113,7 +113,7 @@ public class TaskPoolConfiguration {
     // Collector internal parameters
 
     @Value("${xroad-catalog.collector-interval-min:20}")
-    private int collectorInterval;
+    private long collectorInterval;
 
     @Value("${xroad-catalog.list-methods-pool-size:50}")
     private int listMethodsPoolSize;

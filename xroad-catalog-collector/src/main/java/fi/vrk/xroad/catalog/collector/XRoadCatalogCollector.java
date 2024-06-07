@@ -27,6 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
+import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.tasks.FetchCompaniesTask;
 import fi.vrk.xroad.catalog.collector.tasks.FetchOpenApiTask;
 import fi.vrk.xroad.catalog.collector.tasks.FetchOrganizationsTask;
@@ -104,7 +105,7 @@ public class XRoadCatalogCollector {
         final ListClientsTask listClientsTask = new ListClientsTask(context, listMethodsQueue, fetchCompaniesQueue,
                 fetchOrganizationsQueue);
 
-        Long collectorInterval = (Long) context.getBean("getCollectorInterval");
+        long collectorInterval = context.getBean(TaskPoolConfiguration.class).getCollectorInterval();
         log.info("Starting up catalog collector with collector interval of {}", collectorInterval);
 
         scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);
