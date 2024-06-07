@@ -21,6 +21,7 @@ wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
 sonarqube = "5.0.0.4638"
 hierynomus-license = "0.16.1"
+awaitility = "4.2.1"
 
 [libraries]
 commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons.beanutils" }
@@ -49,6 +50,7 @@ spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test
 spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "spring.boot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "spring.doc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
+awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 
 [bundles]
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation

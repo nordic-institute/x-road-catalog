@@ -99,6 +99,7 @@ public class FetchCompaniesTask {
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for data, stopping {}", getClass().getSimpleName(), e);
+            Thread.currentThread().interrupt();
         }
     }
 

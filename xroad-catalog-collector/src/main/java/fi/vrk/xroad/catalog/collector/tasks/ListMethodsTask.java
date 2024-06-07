@@ -124,6 +124,7 @@ public class ListMethodsTask {
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for clients, stopping ListMethodsTask", e);
+            Thread.currentThread().interrupt();
         }
     }
 

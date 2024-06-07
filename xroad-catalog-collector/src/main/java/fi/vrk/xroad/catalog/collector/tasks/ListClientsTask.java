@@ -98,20 +98,20 @@ public class ListClientsTask {
             // initialized if the FI profile is active. The current actor implementation
             // only ran these once and the specific client had no effect. This should be
             // refactored once we get clarification on how this is expected to work.
-            if (fetchCompaniesQueue != null && !clientList.getMember().isEmpty()) {
-                // To mimic old actor behaviour
-                if (CollectorUtils.shouldFetchCompanies(taskPoolConfiguration.isFetchCompaniesRunUnlimited(),
-                        taskPoolConfiguration.getFetchCompaniesTimeAfterHour(),
-                        taskPoolConfiguration.getFetchCompaniesTimeBeforeHour())) {
-                    fetchCompaniesQueue.add(clientList.getMember().getFirst());
-                    log.info("All clients ({}) sent to FetchCompaniesTask", clientList.getMember().size());
-                }
+            if (fetchCompaniesQueue != null
+                    && CollectorUtils.shouldFetchCompanies(taskPoolConfiguration.isFetchCompaniesRunUnlimited(),
+                            taskPoolConfiguration.getFetchCompaniesTimeAfterHour(),
+                            taskPoolConfiguration.getFetchCompaniesTimeBeforeHour())) {
+                fetchCompaniesQueue.add(clientList.getMember().getFirst());
+                log.info("All clients ({}) sent to FetchCompaniesTask", clientList.getMember().size());
             }
-            if (fetchOrganizationsQueue != null && !clientList.getMember().isEmpty()) {
+            if (fetchOrganizationsQueue != null) {
                 fetchOrganizationsQueue.add(clientList.getMember().getFirst());
                 log.info("All clients ({}) sent to FetchOrganizationsTask", clientList.getMember().size());
             }
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             ErrorLog errorLog = CollectorUtils.createErrorLog(null,
                     "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(),
                     "500");

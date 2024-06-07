@@ -39,6 +39,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,7 +63,7 @@ public class FetchRestTaskTest {
     private ApplicationContext applicationContext;
 
     @Test
-    public void testBasicPlumbing() throws MalformedURLException, URISyntaxException, InterruptedException {
+    public void testFetchRestTask() throws MalformedURLException, URISyntaxException, InterruptedException {
         BlockingQueue<XRoadRestServiceIdentifierType> restServices = new LinkedBlockingQueue<>();
         FetchRestTask fetchRestTask = new FetchRestTask(applicationContext, restServices);
         Semaphore semaphore = new Semaphore(1);
@@ -84,7 +85,7 @@ public class FetchRestTaskTest {
 
         restServices.add(service);
 
-        Thread.sleep(Duration.ofMillis(200));
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> restServices.isEmpty());
 
         semaphore.acquire();
         fetchRestRunner.interrupt();

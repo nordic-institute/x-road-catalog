@@ -101,6 +101,7 @@ dependencies {
     testAnnotationProcessor (libs.lombok)
     testImplementation (libs.jakarta.annotation)
     testImplementation (libs.jakarta.jaxb)
+    testImplementation (libs.awaitility)
 }
 
 compileJava.dependsOn wsImport

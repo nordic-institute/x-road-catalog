@@ -47,7 +47,7 @@ public abstract class BaseFetchTask<T> {
 
     private final Semaphore semaphore;
 
-    public BaseFetchTask(final ApplicationContext applicationContext, final BlockingQueue<T> inputQueue,
+    protected BaseFetchTask(final ApplicationContext applicationContext, final BlockingQueue<T> inputQueue,
             final int poolSize) {
         this.catalogService = applicationContext.getBean(CatalogService.class);
 
@@ -69,6 +69,7 @@ public abstract class BaseFetchTask<T> {
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while handling inputs, stopping {}", getClass().getSimpleName(), e);
+            Thread.currentThread().interrupt();
         }
     }
 

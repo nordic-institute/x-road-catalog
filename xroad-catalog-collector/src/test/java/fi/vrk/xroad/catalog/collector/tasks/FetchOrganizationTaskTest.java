@@ -39,6 +39,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import org.awaitility.Awaitility;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -96,7 +97,7 @@ public class FetchOrganizationTaskTest {
         ClientType clientType = new ClientType();
         Thread fetchOrganizationsRunner = Thread.ofVirtual().start(fetchOrganizationsTask::run);
         queue.add(clientType);
-        Thread.sleep(Duration.ofMillis(100));
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> queue.isEmpty());
         semaphore.acquire();
         fetchOrganizationsRunner.interrupt();
         assertTrue(queue.isEmpty());

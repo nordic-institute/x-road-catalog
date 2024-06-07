@@ -37,6 +37,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,7 +66,7 @@ public class FetchWsdlsTaskTest {
     private int port;
 
     @Test
-    public void testBasicPlumbing() throws MalformedURLException, URISyntaxException, InterruptedException {
+    public void testFetchWsdl() throws MalformedURLException, URISyntaxException, InterruptedException {
         TaskPoolConfiguration taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",
                 "http://localhost:" + port + "/metaservices");
@@ -84,7 +85,7 @@ public class FetchWsdlsTaskTest {
         service.setServiceVersion("v1");
         wsdlServices.add(service);
 
-        Thread.sleep(Duration.ofMillis(200));
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> wsdlServices.isEmpty());
 
         semaphore.acquire();
         fetchWsdlsRunner.interrupt();

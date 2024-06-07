@@ -42,6 +42,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -88,7 +89,9 @@ public class FetchOpenApiTaskTest {
         XRoadRestServiceIdentifierType restService = new XRoadRestServiceIdentifierType();
         Thread fetchOpenApiRunner = Thread.ofVirtual().start(fetchOpenApiTask::run);
         queue.add(restService);
-        Thread.sleep(Duration.ofMillis(100));
+
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> queue.isEmpty());
+
         semaphore.acquire();
         fetchOpenApiRunner.interrupt();
         assertTrue(queue.isEmpty());

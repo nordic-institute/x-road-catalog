@@ -39,6 +39,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -97,7 +98,7 @@ public class ListMethodsTaskTest {
         clientType.setId(value);
         listedClients.add(clientType);
 
-        Thread.sleep(Duration.ofMillis(200));
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> listedClients.isEmpty());
 
         semaphore.acquire();
         listMethodsRunner.interrupt();
