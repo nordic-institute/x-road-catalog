@@ -38,7 +38,6 @@ cp -p %{src}/../../../build/libs/xroad-catalog-collector-%{version}.jar %{buildr
 cp -p %{src}/../../../build/resources/main/collector-production.properties %{buildroot}%{conf}
 cp -p %{src}/../../../build/resources/main/catalogdb-production.properties %{buildroot}%{conf}
 cp -p catalog-profile.properties %{buildroot}%{conf}
-cp -p %{src}/../../../build/resources/main/application.conf %{buildroot}%{conf}
 cp -p  ../../../../../xroad-catalog-persistence/src/main/sql/init_database.sql %{buildroot}/usr/share/xroad/sql
 cp -p  ../../../../../xroad-catalog-persistence/src/main/sql/create_tables_%{profile}.sql %{buildroot}/usr/share/xroad/sql
 cp -p %{src}/SOURCES/%{name} %{buildroot}/usr/share/xroad/bin
@@ -51,7 +50,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(600,xroad-catalog,xroad-catalog,-)
-%config(noreplace) %{conf}/application.conf
 %config(noreplace) %{conf}/collector-production.properties
 %config(noreplace) %{conf}/catalogdb-production.properties
 
