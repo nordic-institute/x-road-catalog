@@ -103,11 +103,11 @@ public class ListClientsTask {
                             taskPoolConfiguration.getFetchCompaniesTimeAfterHour(),
                             taskPoolConfiguration.getFetchCompaniesTimeBeforeHour())) {
                 fetchCompaniesQueue.add(clientList.getMember().getFirst());
-                log.info("All clients ({}) sent to FetchCompaniesTask", clientList.getMember().size());
+                log.info("Notice send to the FetchCompaniesTask to do work");
             }
             if (fetchOrganizationsQueue != null) {
                 fetchOrganizationsQueue.add(clientList.getMember().getFirst());
-                log.info("All clients ({}) sent to FetchOrganizationsTask", clientList.getMember().size());
+                log.info("Notice sent to the FetchOrganizationsTask to do work");
             }
         } catch (
 
