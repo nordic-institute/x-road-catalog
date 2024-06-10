@@ -12,20 +12,15 @@
  */
 package fi.vrk.xroad.catalog.collector.configuration;
 
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration
 @Lazy
 @ComponentScan(basePackages = {
-        "fi.vrk.xroad.catalog.collector.actors",
-        "fi.vrk.xroad.catalog.collector.extension",
         "fi.vrk.xroad.catalog.persistence"
 })
-@ImportResource({ "classpath:META-INF/cxf/cxf.xml" })
-public class ApplicationConfiguration extends SpringBootServletInitializer {
+public class ApplicationConfiguration {
 
 }
