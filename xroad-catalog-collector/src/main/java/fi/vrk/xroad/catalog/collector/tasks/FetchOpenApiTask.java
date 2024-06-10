@@ -26,7 +26,6 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -60,8 +59,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadRestServiceIdentifierTy
     private final XRoadClient xroadClient;
 
     public FetchOpenApiTask(final ApplicationContext applicationContext,
-            final BlockingQueue<XRoadRestServiceIdentifierType> openApiServices)
-            throws MalformedURLException, URISyntaxException {
+            final BlockingQueue<XRoadRestServiceIdentifierType> openApiServices) throws URISyntaxException {
         super(applicationContext, openApiServices,
                 applicationContext.getBean(TaskPoolConfiguration.class).getFetchOpenapiPoolSize());
 
@@ -75,7 +73,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadRestServiceIdentifierTy
 
         this.xroadClient = new XRoadClient(
                 ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),
-                new URI(webservicesEndpoint).toURL());
+                new URI(webservicesEndpoint));
     }
 
     @Override

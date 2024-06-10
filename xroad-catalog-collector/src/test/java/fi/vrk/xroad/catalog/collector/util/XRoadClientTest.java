@@ -15,8 +15,8 @@ package fi.vrk.xroad.catalog.collector.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -81,9 +81,9 @@ public class XRoadClientTest {
     }
 
     @Test
-    public void testCallListMethods() throws MalformedURLException {
+    public void testCallListMethods() throws URISyntaxException {
         XRoadClientIdentifierType client = getDefaultClient();
-        XRoadClient xRoadClient = new XRoadClient(client, new URL(webservicesEndpoint));
+        XRoadClient xRoadClient = new XRoadClient(client, new URI(webservicesEndpoint));
         assertFalse(xRoadClient == null);
         XRoadClientIdentifierType client2 = getDefaultClient();
         client2.setSubsystemCode(subsystemCode);
@@ -92,9 +92,9 @@ public class XRoadClientTest {
     }
 
     @Test
-    public void testCallGetWsdl() throws MalformedURLException {
+    public void testCallGetWsdl() throws Exception {
         XRoadClientIdentifierType client = getDefaultClient();
-        XRoadClient xRoadClient = new XRoadClient(client, new URL(webservicesEndpoint));
+        XRoadClient xRoadClient = new XRoadClient(client, new URI(webservicesEndpoint));
         assertFalse(xRoadClient == null);
         XRoadServiceIdentifierType service = getDefaultService();
         String wsdl = xRoadClient.getWsdl(service, catalogService);

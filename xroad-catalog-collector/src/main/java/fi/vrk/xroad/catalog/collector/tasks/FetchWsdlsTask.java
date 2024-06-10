@@ -26,7 +26,6 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.BlockingQueue;
@@ -55,8 +54,7 @@ public class FetchWsdlsTask extends BaseFetchTask<XRoadServiceIdentifierType> {
     private final XRoadClient xroadClient;
 
     public FetchWsdlsTask(final ApplicationContext applicationContext,
-            final BlockingQueue<XRoadServiceIdentifierType> wsdlServices)
-            throws MalformedURLException, URISyntaxException {
+            final BlockingQueue<XRoadServiceIdentifierType> wsdlServices) throws URISyntaxException {
         super(applicationContext, wsdlServices,
                 applicationContext.getBean(TaskPoolConfiguration.class).getFetchWsdlPoolSize());
 
@@ -69,7 +67,7 @@ public class FetchWsdlsTask extends BaseFetchTask<XRoadServiceIdentifierType> {
 
         this.xroadClient = new XRoadClient(
                 ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),
-                new URI(webservicesEndpoint).toURL());
+                new URI(webservicesEndpoint));
     }
 
     @Override

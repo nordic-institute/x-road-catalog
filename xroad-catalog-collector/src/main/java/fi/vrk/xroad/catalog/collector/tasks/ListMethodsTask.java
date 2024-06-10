@@ -26,7 +26,6 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -83,12 +82,9 @@ public class ListMethodsTask {
 
     private final Queue<XRoadRestServiceIdentifierType> restQueue;
 
-    public ListMethodsTask(final ApplicationContext applicationContext,
-            final BlockingQueue<ClientType> clientsQueue,
-            final Queue<XRoadServiceIdentifierType> wsdlQueue,
-            final Queue<XRoadRestServiceIdentifierType> restQueue,
-            final Queue<XRoadRestServiceIdentifierType> openApiQueue)
-            throws MalformedURLException, URISyntaxException {
+    public ListMethodsTask(final ApplicationContext applicationContext, final BlockingQueue<ClientType> clientsQueue,
+            final Queue<XRoadServiceIdentifierType> wsdlQueue, final Queue<XRoadRestServiceIdentifierType> restQueue,
+            final Queue<XRoadRestServiceIdentifierType> openApiQueue) throws URISyntaxException {
         this.catalogService = applicationContext.getBean(CatalogService.class);
 
         this.clientsQueue = clientsQueue;
@@ -108,7 +104,7 @@ public class ListMethodsTask {
 
         this.xroadClient = new XRoadClient(
                 ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),
-                new URI(webservicesEndpoint).toURL());
+                new URI(webservicesEndpoint));
     }
 
     public void run() {

@@ -36,7 +36,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.http.HTTPConduit;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,19 +52,19 @@ public class XRoadClient {
     static final int HTTP_CONNECTION_TIMEOUT = 30000;
     static final int HTTP_RECEIVE_TIMEOUT = 60000;
 
-    static final Map<URL, MetaServicesPort> META_SERVICE_PORTS = new HashMap<>();
+    static final Map<URI, MetaServicesPort> META_SERVICE_PORTS = new HashMap<>();
     final MetaServicesPort metaServicesPort;
 
     final XRoadClientIdentifierType clientId;
 
-    public XRoadClient(XRoadClientIdentifierType clientId, URL serverUrl) {
+    public XRoadClient(XRoadClientIdentifierType clientId, URI serverUrl) {
         this.metaServicesPort = getMetaServicesPort(serverUrl);
         final XRoadClientIdentifierType tmp = new XRoadClientIdentifierType();
         copyIdentifierType(tmp, clientId);
         this.clientId = tmp;
     }
 
-    private static synchronized MetaServicesPort getMetaServicesPort(URL serverUrl) {
+    private static synchronized MetaServicesPort getMetaServicesPort(URI serverUrl) {
         /**
          * This is currently a workaround, since the current approach results in all the
          * dispatchers creating a new port, which in turn causes a failure due to HTTP
@@ -72,7 +72,7 @@ public class XRoadClient {
          *
          * An issue is that CXF ports are not thread-safe, however that is
          * mostly for the cases of configuring it, which we do in
-         * {@link}fi.vrk.xroad.catalog.collector.util.XRoadClient#getMetaServicesPort(URL)}.
+         * {@link}fi.vrk.xroad.catalog.collector.util.XRoadClient#getMetaServicesPort(URI)}.
          * Actually using the port in multiple threads to do requests as a client should
          * be safe.
          *
@@ -144,7 +144,7 @@ public class XRoadClient {
         return response != null ? response.getService() : new ArrayList<>();
     }
 
-    public String getWsdl(XRoadServiceIdentifierType service, CatalogService catalogService) {
+    public String getWsdl(XRoadServiceIdentifierType service, CatalogService catalogService) throws Exception {
         XRoadServiceIdentifierType serviceIdentifierType = new XRoadServiceIdentifierType();
         copyIdentifierType(serviceIdentifierType, service);
         XRoadClientIdentifierType tmpClientId = new XRoadClientIdentifierType();
@@ -186,6 +186,7 @@ public class XRoadClient {
                     .subsystemCode(service.getSubsystemCode())
                     .build();
             catalogService.saveErrorLog(errorLog);
+            throw e;
         }
 
         if (!(wsdl.value instanceof byte[])) {
@@ -236,11 +237,11 @@ public class XRoadClient {
                         .subsystemCode(service.getSubsystemCode())
                         .build();
                 catalogService.saveErrorLog(errorLog);
+                throw e;
             }
         } else {
             return new String(wsdl.value, StandardCharsets.UTF_8);
         }
-        return null;
     }
 
     public String getOpenApi(XRoadRestServiceIdentifierType service,
@@ -284,7 +285,7 @@ public class XRoadClient {
         return new Holder<>(value);
     }
 
-    private static MetaServicesPort createMetaServicesPort(URL url) {
+    private static MetaServicesPort createMetaServicesPort(URI url) {
         ProducerPortService service = new ProducerPortService();
         MetaServicesPort port = service.getMetaServicesPortSoap11();
         BindingProvider bindingProvider = (BindingProvider) port;
