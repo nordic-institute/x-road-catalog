@@ -55,9 +55,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.CompanyService;
 
@@ -74,9 +71,6 @@ public class FetchCompaniesTaskTest {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Value("classpath:mock/companies/getCompanies.json")
-    private Resource companiesJSON;
-
     @Value("classpath:mock/companies/company.json")
     private Resource companyJSON;
 
@@ -89,13 +83,12 @@ public class FetchCompaniesTaskTest {
          * sure that the task can also be stopped when the program exits. The actual
          * fetch logic is mocked and tested below.
          */
-        BlockingQueue<ClientType> queue = new LinkedBlockingQueue<>();
+        BlockingQueue<String> queue = new LinkedBlockingQueue<>();
         FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, queue);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchCompaniesTask, "semaphore", semaphore);
-        ClientType clientType = new ClientType();
         Thread fetchCompaniesRunner = Thread.ofVirtual().start(fetchCompaniesTask::run);
-        queue.add(clientType);
+        queue.add("");
 
         Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> queue.isEmpty());
 
@@ -106,35 +99,18 @@ public class FetchCompaniesTaskTest {
     }
 
     @Test
-    public void testFetchCompaniesForClient() throws JSONException, IOException {
+    public void testFetchCompanyForClient() throws JSONException, IOException {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
             FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, null);
 
-            final JSONObject getCompaniesResponse = new JSONObject(
-                    companiesJSON.getContentAsString(StandardCharsets.UTF_8));
-            mock.when(() -> OrganizationUtil.getCompanies(any(), any(), any(), any()))
-                    .thenReturn(getCompaniesResponse);
-
             final JSONObject getCompanyResponse = new JSONObject(
                     companyJSON.getContentAsString(StandardCharsets.UTF_8));
-            mock.when(() -> OrganizationUtil.getCompany(any(), any(), any(), any()))
-                    .thenReturn(getCompanyResponse);
-            ClientType clientType = new ClientType();
-            XRoadClientIdentifierType value = new XRoadClientIdentifierType();
-            value.setXRoadInstance("INSTANCE");
-            value.setMemberClass("COM");
-            value.setMemberCode("1234567-9");
-            value.setSubsystemCode("SUBSYSTEM");
-            value.setServiceCode("aService");
-            value.setServiceVersion("v1");
-            value.setObjectType(XRoadObjectType.SERVICE);
-            clientType.setId(value);
+            mock.when(() -> OrganizationUtil.getCompany(any(), any(), any())).thenReturn(getCompanyResponse);
 
-            fetchCompaniesTask.fetchCompaniesForCLient(clientType);
+            fetchCompaniesTask.fetchCompanyData("1234567-9");
 
-            mock.verify(() -> OrganizationUtil.getCompanies(any(), any(), any(), any()), times(1));
-            mock.verify(() -> OrganizationUtil.getCompany(any(), any(), any(), any()), times(4));
-            verify(companyService, times(4)).saveCompany(any());
+            mock.verify(() -> OrganizationUtil.getCompany(any(), any(), any()), times(1));
+            verify(companyService, times(1)).saveCompany(any());
         }
     }
 

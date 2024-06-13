@@ -51,6 +51,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -368,17 +369,19 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public void saveAllMembersAndSubsystems(Collection<Member> members) {
+    public Set<Member> saveAllMembersAndSubsystems(Collection<Member> members) {
         LocalDateTime now = LocalDateTime.now();
         // process members
         Map<MemberId, Member> unprocessedOldMembers = new HashMap<>();
         StreamSupport.stream(memberRepository.findAll().spliterator(), false)
                 .forEach(member -> unprocessedOldMembers.put(member.createKey(), member));
+        Set<Member> newMembers = new HashSet<>();
 
         for (Member member : members) {
             Member oldMember = unprocessedOldMembers.get(member.createKey());
             if (oldMember == null) {
                 // brand new item
+                newMembers.add(member);
                 member.getStatusInfo().setTimestampsForNew(now);
                 for (Subsystem subsystem : member.getAllSubsystems()) {
                     subsystem.getStatusInfo().setTimestampsForNew(now);
@@ -395,6 +398,7 @@ public class CatalogServiceImpl implements CatalogService {
         // now unprocessedOldMembers should all be removed (either already removed, or
         // will be now)
         removeUnprocessedOldMembers(now, unprocessedOldMembers);
+        return newMembers;
     }
 
     @Override

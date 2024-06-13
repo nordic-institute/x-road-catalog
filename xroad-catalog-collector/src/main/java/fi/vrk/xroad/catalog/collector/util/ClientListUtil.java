@@ -13,7 +13,11 @@
 package fi.vrk.xroad.catalog.collector.util;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
@@ -29,9 +33,8 @@ public final class ClientListUtil {
     }
 
     public static ClientList clientListFromResponse(String url) {
-        // return REST_TEMPLATE.getForObject(url, ClientList.class);
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "text/xml");
+        headers.setAccept(List.of(MediaType.TEXT_XML));
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         ResponseEntity<ClientList> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, requestEntity,
                 ClientList.class);

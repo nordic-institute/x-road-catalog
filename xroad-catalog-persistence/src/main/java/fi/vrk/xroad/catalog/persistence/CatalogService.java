@@ -30,6 +30,7 @@ import org.springframework.data.domain.Page;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * CRUD methods for catalog objects. no business logic (e.g. hash calculation),
@@ -233,8 +234,9 @@ public interface CatalogService {
      *                member.subsystems collection populated, and each subsystem
      *                should
      *                have subsystem.member populated as well.
+     * @return Set of Member entities representing new members saved to the database
      */
-    void saveAllMembersAndSubsystems(Collection<Member> members);
+    Set<Member> saveAllMembersAndSubsystems(Collection<Member> members);
 
     /**
      * Stores services for given subsystem. Does not modify the associated Subsystem

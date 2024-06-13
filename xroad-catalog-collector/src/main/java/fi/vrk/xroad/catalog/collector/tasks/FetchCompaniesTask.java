@@ -28,6 +28,7 @@ package fi.vrk.xroad.catalog.collector.tasks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 
@@ -37,7 +38,6 @@ import org.springframework.context.ApplicationContext;
 
 import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.CompanyService;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
@@ -59,20 +59,18 @@ public class FetchCompaniesTask {
 
     private final String fetchCompaniesUrl;
 
-    private final Integer fetchCompaniesLimit;
-
     private final CatalogService catalogService;
 
     private final CompanyService companyService;
 
-    private final BlockingQueue<ClientType> fetchCompaniesQueue;
+    private final BlockingQueue<String> fetchCompaniesQueue;
 
     private final TaskPoolConfiguration taskPoolConfiguration;
 
     private final Semaphore semaphore;
 
     public FetchCompaniesTask(final ApplicationContext applicationContext,
-            final BlockingQueue<ClientType> fetchCompaniesQueue) {
+            final BlockingQueue<String> fetchCompaniesQueue) {
         this.catalogService = applicationContext.getBean(CatalogService.class);
         this.companyService = applicationContext.getBean(CompanyService.class);
 
@@ -80,7 +78,6 @@ public class FetchCompaniesTask {
 
         this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         this.fetchCompaniesUrl = taskPoolConfiguration.getFetchCompaniesUrl();
-        this.fetchCompaniesLimit = taskPoolConfiguration.getFetchCompaniesLimit();
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getFetchCompaniesPoolSize());
 
@@ -93,9 +90,9 @@ public class FetchCompaniesTask {
                 log.debug("Waiting for data ... ");
 
                 // take() blocks until an element becomes available or it gets interrupted
-                ClientType client = fetchCompaniesQueue.take();
+                String businessId = fetchCompaniesQueue.take();
                 semaphore.acquire();
-                Thread.ofVirtual().start(() -> fetchCompaniesForCLient(client));
+                Thread.ofVirtual().start(() -> fetchCompanyData(businessId));
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for data, stopping {}", getClass().getSimpleName(), e);
@@ -103,23 +100,17 @@ public class FetchCompaniesTask {
         }
     }
 
-    protected void fetchCompaniesForCLient(final ClientType client) {
+    protected void fetchCompanyData(final String businessId) {
         try {
-            JSONObject companiesJson = OrganizationUtil.getCompanies(client, fetchCompaniesLimit, fetchCompaniesUrl,
+            log.info("Fetching company information for company {}", businessId);
+
+            Optional<JSONObject> company = OrganizationUtil.getCompany(fetchCompaniesUrl, businessId,
                     catalogService);
-            JSONArray companiesArray = companiesJson.optJSONArray("results");
-            int numberOfCompanies = companiesArray.length();
-            log.info("Fetching data for {} companies", numberOfCompanies);
-            companiesArray.forEach(item -> {
-                JSONObject company = (JSONObject) item;
-                String businessCode = company.optString("businessId");
-                JSONObject companyJson = OrganizationUtil.getCompany(client, fetchCompaniesUrl, businessCode,
-                        catalogService);
-                saveData(companyJson.optJSONArray("results"));
-            });
-            log.info("Successfully saved data for {} companies", numberOfCompanies);
+            company.ifPresent(companyJson -> saveData(companyJson.optJSONArray("results")));
+
+            log.info("Company information saved for company {}", businessId);
         } catch (Exception e) {
-            log.error("Error while fetching companies for client {}", client, e);
+            log.error("Error while fetching company information for company {}", businessId, e);
         } finally {
             semaphore.release();
         }

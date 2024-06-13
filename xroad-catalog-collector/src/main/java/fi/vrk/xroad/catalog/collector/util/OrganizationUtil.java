@@ -61,6 +61,7 @@ import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -75,6 +76,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public final class OrganizationUtil {
@@ -144,49 +146,63 @@ public final class OrganizationUtil {
         }
     }
 
-    public static JSONObject getCompany(ClientType clientType, String url, String businessCode,
-            CatalogService catalogService) {
-        final String fetchCompaniesUrl = new StringBuilder().append(url)
-                .append("/").append(businessCode).toString();
+    public static Optional<JSONObject> getCompany(String url, String businessId, CatalogService catalogService)
+            throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+        final String fetchCompaniesUrl = new StringBuilder().append(url).append("/").append(businessId)
+                .toString();
         JSONObject jsonObject = new JSONObject();
         try {
-            String ret = getResponseBody(fetchCompaniesUrl);
-            jsonObject = new JSONObject(ret);
-            return jsonObject;
+            ResponseEntity<String> ret = getResponse(fetchCompaniesUrl, String.class);
+            // This is not an error, since not all institutions exist in this registry
+            if (ret.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
+                log.warn("Company with businessId {} not found at {}", businessId, fetchCompaniesUrl);
+                return Optional.empty();
+            }
+            jsonObject = new JSONObject(ret.getBody());
+            return Optional.of(jsonObject);
         } catch (KeyStoreException e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(null,
                     "KeyStoreException occurred when fetching companies from url " + url
-                            + WITH_BUSINESS_CODE + businessCode,
+                            + WITH_BUSINESS_CODE
+                            + businessId,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyStoreException occurred when fetching companies from url {} with businessCode {}",
-                    url, businessCode);
+                    url,
+                    businessId);
+            throw e;
         } catch (NoSuchAlgorithmException e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(null,
                     "NoSuchAlgorithmException occurred when fetching companies from url " + url
-                            + WITH_BUSINESS_CODE + businessCode,
+                            + WITH_BUSINESS_CODE
+                            + businessId,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("NoSuchAlgorithmException occurred when fetching companies from url {} with businessCode {}",
-                    url, businessCode);
+                    url,
+                    businessId);
+            throw e;
         } catch (KeyManagementException e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(null,
                     "KeyManagementException occurred when fetching companies from url " + url
-                            + WITH_BUSINESS_CODE + businessCode,
+                            + WITH_BUSINESS_CODE
+                            + businessId,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("KeyManagementException occurred when fetching companies from url {} with businessCode {}",
-                    url, businessCode);
+                    url,
+                    businessId);
+            throw e;
         } catch (Exception e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(clientType,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(null,
                     "Exception occurred when fetching companies from url " + url
-                            + WITH_BUSINESS_CODE + businessCode,
+                            + WITH_BUSINESS_CODE + businessId,
                     "500");
             catalogService.saveErrorLog(errorLog);
             log.error("Exception occurred when fetching companies from url {} with businessCode {}", url,
-                    businessCode);
+                    businessId);
+            throw e;
         }
-        return jsonObject;
     }
 
     public static List<String> getOrganizationIdsList(ClientType clientType, String url,
@@ -727,16 +743,21 @@ public final class OrganizationUtil {
         return itemList;
     }
 
-    public static String getResponseBody(String url)
-            throws KeyStoreException, NoSuchAlgorithmException,
-            KeyManagementException {
+    private static <T> ResponseEntity<T> getResponse(String url, Class<T> returnType)
+            throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);
         headers.setAccept(mediaTypes);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = createTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, entity, returnType);
+        return response;
+    }
+
+    private static String getResponseBody(String url)
+            throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+        ResponseEntity<String> response = getResponse(url, String.class);
 
         return response.getBody();
     }
