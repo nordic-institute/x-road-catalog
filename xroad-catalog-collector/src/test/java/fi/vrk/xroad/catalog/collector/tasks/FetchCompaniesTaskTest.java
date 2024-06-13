@@ -34,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -103,8 +104,8 @@ public class FetchCompaniesTaskTest {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
             FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, null);
 
-            final JSONObject getCompanyResponse = new JSONObject(
-                    companyJSON.getContentAsString(StandardCharsets.UTF_8));
+            final Optional<JSONObject> getCompanyResponse = Optional.ofNullable(new JSONObject(
+                    companyJSON.getContentAsString(StandardCharsets.UTF_8)));
             mock.when(() -> OrganizationUtil.getCompany(any(), any(), any())).thenReturn(getCompanyResponse);
 
             fetchCompaniesTask.fetchCompanyData("1234567-9");

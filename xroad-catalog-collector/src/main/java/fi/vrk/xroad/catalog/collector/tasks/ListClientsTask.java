@@ -55,10 +55,10 @@ public class ListClientsTask {
     private final CatalogService catalogService;
     private final Queue<ClientType> listMethodsQueue;
     private final Queue<String> fetchCompaniesQueue;
-    private final Queue<ClientType> fetchOrganizationsQueue;
+    private final Queue<String> fetchOrganizationsQueue;
 
     public ListClientsTask(ApplicationContext applicationContext, Queue<ClientType> listMethodsQueue,
-            Queue<String> fetchCompaniesQueue, Queue<ClientType> fetchOrganizationsQueue) {
+            Queue<String> fetchCompaniesQueue, Queue<String> fetchOrganizationsQueue) {
         this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         this.catalogService = applicationContext.getBean(CatalogService.class);
         this.listMethodsQueue = listMethodsQueue;
@@ -102,15 +102,12 @@ public class ListClientsTask {
                 log.info("{} new members sent to the FetchCompaniesTask", newMembers.size());
             }
             if (fetchOrganizationsQueue != null) {
-                fetchOrganizationsQueue.add(clientList.getMember().getFirst());
-                log.info("Notice sent to the FetchOrganizationsTask to do work");
+                fetchOrganizationsQueue.addAll(newMembers.stream().map(Member::getMemberCode).toList());
+                log.info("{} new members sent to the FetchOrganizationsTask", newMembers.size());
             }
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             ErrorLog errorLog = CollectorUtils.createErrorLog(null,
-                    "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(),
-                    "500");
+                    "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(), "500");
             catalogService.saveErrorLog(errorLog);
             log.error("Error when fetching listClients(url: {})", listClientsUrl, e);
         }

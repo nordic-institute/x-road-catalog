@@ -86,7 +86,7 @@ public class ListClientsTaskTest {
 
             final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
             final Queue<String> fetchCompaniesQueue = new ConcurrentLinkedQueue<>();
-            final Queue<ClientType> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<String> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
 
             final Member member1 = new Member();
             member1.setMemberCode("member1");
@@ -102,7 +102,7 @@ public class ListClientsTaskTest {
 
             assertEquals(5, listMethodsQueue.size());
             assertEquals(2, fetchCompaniesQueue.size());
-            assertEquals(1, fetchOrganisationsQueue.size());
+            assertEquals(2, fetchOrganisationsQueue.size());
         }
     }
 
@@ -128,7 +128,7 @@ public class ListClientsTaskTest {
 
             final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
             final Queue<String> fetchCompaniesQueue = new ConcurrentLinkedQueue<>();
-            final Queue<ClientType> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<String> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
 
             final Member member1 = new Member();
             member1.setMemberCode("member1");
@@ -174,7 +174,7 @@ public class ListClientsTaskTest {
 
             final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
             final Queue<String> fetchCompaniesQueue = new ConcurrentLinkedQueue<>();
-            final Queue<ClientType> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<String> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
 
             final Member member1 = new Member();
             member1.setMemberCode("member1");
@@ -190,7 +190,7 @@ public class ListClientsTaskTest {
 
             assertEquals(5, listMethodsQueue.size());
             assertEquals(2, fetchCompaniesQueue.size());
-            assertEquals(1, fetchOrganisationsQueue.size());
+            assertEquals(2, fetchOrganisationsQueue.size());
         }
     }
 
@@ -206,7 +206,7 @@ public class ListClientsTaskTest {
 
             final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
             final Queue<String> fetchCompaniesQueue = new ConcurrentLinkedQueue<>();
-            final Queue<ClientType> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<String> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
 
             Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of());
 
@@ -229,7 +229,7 @@ public class ListClientsTaskTest {
 
         final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
         final Queue<String> fetchCompaniesQueue = new ConcurrentLinkedQueue<>();
-        final Queue<ClientType> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
+        final Queue<String> fetchOrganisationsQueue = new ConcurrentLinkedQueue<>();
 
         ListClientsTask listClientsTask = new ListClientsTask(applicationContext, listMethodsQueue,
                 fetchCompaniesQueue, fetchOrganisationsQueue);

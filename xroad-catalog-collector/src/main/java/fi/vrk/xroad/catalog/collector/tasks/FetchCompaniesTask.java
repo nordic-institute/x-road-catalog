@@ -102,15 +102,13 @@ public class FetchCompaniesTask {
 
     protected void fetchCompanyData(final String businessId) {
         try {
-            log.info("Fetching company information for company {}", businessId);
+            log.info("Fetching company information for member {}", businessId);
 
             Optional<JSONObject> company = OrganizationUtil.getCompany(fetchCompaniesUrl, businessId,
                     catalogService);
             company.ifPresent(companyJson -> saveData(companyJson.optJSONArray("results")));
-
-            log.info("Company information saved for company {}", businessId);
         } catch (Exception e) {
-            log.error("Error while fetching company information for company {}", businessId, e);
+            log.error("Error while fetching company information for member {}", businessId, e);
         } finally {
             semaphore.release();
         }
@@ -130,6 +128,7 @@ public class FetchCompaniesTask {
             saveLiquidations(data.optJSONObject(i).optJSONArray("liquidations"), savedCompany);
             saveRegisteredEntries(data.optJSONObject(i).optJSONArray("registeredEntries"), savedCompany);
             saveRegisteredOffices(data.optJSONObject(i).optJSONArray("registeredOffices"), savedCompany);
+            log.info("Company information saved for member {}", savedCompany.getBusinessId());
         }
     }
 

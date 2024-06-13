@@ -71,7 +71,7 @@ public class XRoadCatalogCollector {
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final BlockingQueue<ClientType> listMethodsQueue = new LinkedBlockingQueue<>();
         final BlockingQueue<String> fetchCompaniesQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
-        final BlockingQueue<ClientType> fetchOrganizationsQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
+        final BlockingQueue<String> fetchOrganizationsQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
         final BlockingQueue<XRoadServiceIdentifierType> fetchWsdlsQueue = new LinkedBlockingQueue<>();
         final BlockingQueue<XRoadRestServiceIdentifierType> fetchRestQueue = new LinkedBlockingQueue<>();
         final BlockingQueue<XRoadRestServiceIdentifierType> fetchOpenApiQueue = new LinkedBlockingQueue<>();

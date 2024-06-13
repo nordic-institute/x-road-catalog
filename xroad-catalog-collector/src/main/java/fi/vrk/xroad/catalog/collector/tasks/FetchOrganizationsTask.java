@@ -26,11 +26,10 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,7 +37,6 @@ import org.springframework.context.ApplicationContext;
 
 import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.persistence.CatalogService;
 import fi.vrk.xroad.catalog.persistence.OrganizationService;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
@@ -67,22 +65,18 @@ public class FetchOrganizationsTask {
 
     private String fetchOrganizationsUrl;
 
-    private Integer maxOrganizationsPerRequest;
-
-    private Integer fetchOrganizationsLimit;
-
     private final CatalogService catalogService;
 
     private final OrganizationService organizationService;
 
-    private final BlockingQueue<ClientType> fetchOrganizationsQueue;
+    private final BlockingQueue<String> fetchOrganizationsQueue;
 
     private final TaskPoolConfiguration taskPoolConfiguration;
 
     private final Semaphore semaphore;
 
     public FetchOrganizationsTask(final ApplicationContext applicationContext,
-            final BlockingQueue<ClientType> fetchOrganizationsQueue) {
+            final BlockingQueue<String> fetchOrganizationsQueue) {
         this.catalogService = applicationContext.getBean(CatalogService.class);
         this.organizationService = applicationContext.getBean(OrganizationService.class);
 
@@ -90,8 +84,6 @@ public class FetchOrganizationsTask {
 
         this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         this.fetchOrganizationsUrl = taskPoolConfiguration.getFetchOrganizationsUrl();
-        this.maxOrganizationsPerRequest = taskPoolConfiguration.getMaxOrganizationsPerRequest();
-        this.fetchOrganizationsLimit = taskPoolConfiguration.getFetchOrganizationsLimit();
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getFetchOrganizationsPoolSize());
 
@@ -104,9 +96,9 @@ public class FetchOrganizationsTask {
                 log.debug("Waiting for data ... ");
 
                 // take() blocks until an element becomes available or it gets interrupted
-                ClientType client = fetchOrganizationsQueue.take();
+                String businessId = fetchOrganizationsQueue.take();
                 semaphore.acquire();
-                Thread.ofVirtual().start(() -> fetchOrganizationsForClient(client));
+                Thread.ofVirtual().start(() -> fetchOrganization(businessId));
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for data, stopping {}", getClass().getSimpleName(), e);
@@ -114,36 +106,21 @@ public class FetchOrganizationsTask {
         }
     }
 
-    protected void fetchOrganizationsForClient(final ClientType client) {
+    protected void fetchOrganization(final String businessId) {
         try {
-            List<String> organizationIds = OrganizationUtil.getOrganizationIdsList(client, fetchOrganizationsUrl,
-                    fetchOrganizationsLimit, catalogService);
-            int numberOfOrganizations = organizationIds.size();
-            log.info("Fetched {} organization GUIDs from {}", numberOfOrganizations, fetchOrganizationsUrl);
-
-            AtomicInteger elementCount = new AtomicInteger();
-            List<String> guidsList = new ArrayList<>();
-            organizationIds.forEach(id -> {
-                guidsList.add(id);
-                elementCount.getAndIncrement();
-                if (elementCount.get() % maxOrganizationsPerRequest == 0) {
-                    saveBatch(OrganizationUtil.getDataByIds(client, guidsList, fetchOrganizationsUrl, catalogService));
-                    guidsList.clear();
-                }
-                if (elementCount.get() == organizationIds.size() && !guidsList.isEmpty()) {
-                    saveBatch(OrganizationUtil.getDataByIds(client, guidsList, fetchOrganizationsUrl, catalogService));
-                }
-            });
-            log.info("Processed {} organizations", numberOfOrganizations);
+            log.info("Fetching organization information for member {}", businessId);
+            Optional<JSONArray> organization = OrganizationUtil.getOrganization(fetchOrganizationsUrl, businessId,
+                    catalogService);
+            organization.ifPresent(this::saveOrganization);
         } catch (Exception e) {
-            log.error("Error while fetching organizations for client {}", client, e);
+            log.error("Error while fetching organizations for member {}", businessId, e);
         } finally {
             semaphore.release();
         }
 
     }
 
-    private void saveBatch(JSONArray data) {
+    private void saveOrganization(final JSONArray data) {
         for (int i = 0; i < data.length(); i++) {
             Organization organization = OrganizationUtil.createOrganization(data.optJSONObject(i));
             JSONObject dataJson = data.optJSONObject(i);
@@ -154,6 +131,7 @@ public class FetchOrganizationsTask {
             savePhoneNumbers(dataJson, savedOrganization);
             saveWebPages(dataJson, savedOrganization);
             saveAddresses(dataJson, savedOrganization);
+            log.info("Organization information saved for member {}", savedOrganization.getBusinessCode());
         }
     }
 
