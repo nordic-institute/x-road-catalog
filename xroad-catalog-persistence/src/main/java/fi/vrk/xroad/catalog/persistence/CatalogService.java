@@ -341,4 +341,15 @@ public interface CatalogService {
      */
     void deleteOldErrorLogEntries(Integer daysBefore);
 
+    /**
+     * Returns a batch of Member codes for members that haven't had their Company or
+     * Organization data updated for
+     * the specified number of days.
+     *
+     * @param daysSinceLastUpdate number of days since last update
+     * @param batchSize           number of items to return
+     * @return List of Member codes
+     */
+    Set<String> getMembersRequiringExternalUpdate(int daysSinceLastUpdate, int batchSize);
+
 }

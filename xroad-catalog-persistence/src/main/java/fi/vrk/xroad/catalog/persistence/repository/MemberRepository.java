@@ -27,12 +27,10 @@ import java.util.Set;
 
 public interface MemberRepository extends CrudRepository<Member, Long> {
 
-    @EntityGraph(value = "member.full-tree.graph",
-            type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph(value = "member.full-tree.graph", type = EntityGraph.EntityGraphType.FETCH)
     Set<Member> findAll();
 
-    @EntityGraph(value = "member.full-tree.graph",
-            type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph(value = "member.full-tree.graph", type = EntityGraph.EntityGraphType.FETCH)
     @Query("SELECT m FROM Member m WHERE m.statusInfo.removed IS NULL")
     Set<Member> findAllActive();
 
@@ -47,16 +45,18 @@ public interface MemberRepository extends CrudRepository<Member, Long> {
 
     // uses named query Member.findAllChangedBetween
     Set<Member> findAllChangedBetween(@Param("startDate") LocalDateTime startDate,
-                                      @Param("endDate") LocalDateTime endDate);
+            @Param("endDate") LocalDateTime endDate);
 
     // uses named query Member.findActiveChangedBetween
     Set<Member> findActiveChangedBetween(@Param("startDate") LocalDateTime startDate,
-                                         @Param("endDate") LocalDateTime endDate);
+            @Param("endDate") LocalDateTime endDate);
+
     /**
      * Returns only active items (non-deleted)
+     * 
      * @param xRoadInstance X-Road instance parameter, for example FI
-     * @param memberClass X-Road member class, for example GOF
-     * @param memberCode X-Road member class, for example Company code
+     * @param memberClass   X-Road member class, for example GOF
+     * @param memberCode    X-Road member class, for example Company code
      * @return Member found
      */
     @Query("SELECT m FROM Member m WHERE m.xRoadInstance = :xRoadInstance "
@@ -64,13 +64,23 @@ public interface MemberRepository extends CrudRepository<Member, Long> {
             + "AND m.memberCode = :memberCode "
             + "AND m.statusInfo.removed IS NULL")
     Member findActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-                                  @Param("memberClass") String memberClass,
-                                  @Param("memberCode") String memberCode);
+            @Param("memberClass") String memberClass,
+            @Param("memberCode") String memberCode);
 
     @Query(value = "SELECT 1", nativeQuery = true)
     Integer checkConnection();
 
     @Query(value = "SELECT MAX(fetched) FROM member", nativeQuery = true)
     LocalDateTime findLatestFetched();
+
+    @Query(value = "SELECT mem.member_code"
+            + " FROM member mem"
+            + " LEFT JOIN company com ON mem.member_code = com.business_id"
+            + " LEFT JOIN organization org ON mem.member_code = org.business_code"
+            + " WHERE DATE_PART('day', (now() - LEAST(mem.fetched, com.fetched, org.fetched))) >= :unchangedForDays"
+            + " ORDER BY LEAST(mem.fetched, com.fetched, org.fetched) ASC"
+            + " LIMIT :batchLimit", nativeQuery = true)
+    Set<String> findMembersRequiringExternalUpdate(@Param("unchangedForDays") Integer unchangedForDays,
+            @Param("batchLimit") Integer batchLimit);
 
 }

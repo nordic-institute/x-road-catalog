@@ -49,7 +49,7 @@ import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ListClientsTask {
+public class ListClientsTask implements Runnable {
 
     private final TaskPoolConfiguration taskPoolConfiguration;
     private final CatalogService catalogService;

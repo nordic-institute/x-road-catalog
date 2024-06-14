@@ -40,7 +40,6 @@ import fi.vrk.xroad.catalog.persistence.repository.RestRepository;
 import fi.vrk.xroad.catalog.persistence.repository.ServiceRepository;
 import fi.vrk.xroad.catalog.persistence.repository.SubsystemRepository;
 import fi.vrk.xroad.catalog.persistence.repository.WsdlRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -62,7 +61,6 @@ import java.util.stream.StreamSupport;
 /**
  * Implementation for catalogservice CRUD
  */
-@Slf4j
 @Component("catalogService")
 @Transactional
 public class CatalogServiceImpl implements CatalogService {
@@ -288,18 +286,15 @@ public class CatalogServiceImpl implements CatalogService {
         List<Service> services = serviceRepository.findAllActive();
         LocalDateTime dateInPast = startDateTime;
         while (isDateBetweenDates(dateInPast, startDateTime, endDateTime)) {
-            // TODO: Why are we using AtomicLong here?
-            AtomicLong totalDistinctServices = new AtomicLong();
+            long totalDistinctServices = 0;
             List<Service> servicesBetweenDates = services.stream()
                     .filter(p -> p.getStatusInfo().getCreated().isBefore(endDateTime))
                     .toList();
             if (!servicesBetweenDates.isEmpty()) {
-                totalDistinctServices
-                        .set(servicesBetweenDates.stream().map(Service::getServiceCode).distinct().count());
+                totalDistinctServices = servicesBetweenDates.stream().map(Service::getServiceCode).distinct().count();
 
-                DistinctServiceStatistics serviceStatistics = DistinctServiceStatistics.builder()
-                        .created(dateInPast)
-                        .numberOfDistinctServices(totalDistinctServices.longValue()).build();
+                DistinctServiceStatistics serviceStatistics = DistinctServiceStatistics.builder().created(dateInPast)
+                        .numberOfDistinctServices(totalDistinctServices).build();
 
                 serviceStatisticsList.add(serviceStatistics);
             }
@@ -607,6 +602,11 @@ public class CatalogServiceImpl implements CatalogService {
                 .servicesLastFetched(serviceRepository.findLatestFetched())
                 .subsystemsLastFetched(subsystemRepository.findLatestFetched())
                 .wsdlsLastFetched(wsdlRepository.findLatestFetched()).build();
+    }
+
+    @Override
+    public Set<String> getMembersRequiringExternalUpdate(int daysSinceLastUpdate, int batchSize) {
+        return memberRepository.findMembersRequiringExternalUpdate(daysSinceLastUpdate, batchSize);
     }
 
     private void handleOldMember(LocalDateTime now, Member member, Member oldMember) {

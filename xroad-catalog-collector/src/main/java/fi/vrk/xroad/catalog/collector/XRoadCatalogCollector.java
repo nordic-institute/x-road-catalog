@@ -35,6 +35,7 @@ import fi.vrk.xroad.catalog.collector.tasks.FetchRestTask;
 import fi.vrk.xroad.catalog.collector.tasks.FetchWsdlsTask;
 import fi.vrk.xroad.catalog.collector.tasks.ListClientsTask;
 import fi.vrk.xroad.catalog.collector.tasks.ListMethodsTask;
+import fi.vrk.xroad.catalog.collector.tasks.UpdateExternalsTask;
 import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
@@ -65,6 +66,8 @@ public class XRoadCatalogCollector {
             }
         }
 
+        final TaskPoolConfiguration taskPoolConfiguration = context.getBean(TaskPoolConfiguration.class);
+
         final boolean isFIProfile = Arrays.stream(env.getActiveProfiles())
                 .anyMatch(str -> str.equalsIgnoreCase(FI_PROFILE));
 
@@ -78,34 +81,41 @@ public class XRoadCatalogCollector {
 
         if (isFIProfile) {
             log.info("FI profile detected, starting up organizations and companies fetchers");
+
             final FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(context, fetchCompaniesQueue);
-            Thread.ofVirtual().start(fetchCompaniesTask::run);
+            Thread.ofVirtual().start(fetchCompaniesTask);
 
             final FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(context,
                     fetchOrganizationsQueue);
-            Thread.ofVirtual().start(fetchOrganizationsTask::run);
+            Thread.ofVirtual().start(fetchOrganizationsTask);
+
+            final UpdateExternalsTask updateExternalsTask = new UpdateExternalsTask(context, fetchCompaniesQueue,
+                    fetchOrganizationsQueue);
+            long externalInterval = taskPoolConfiguration.getFetchExternalInterval();
+            log.info("Starting up external sources updater with interval of {}", externalInterval);
+
+            scheduler.scheduleWithFixedDelay(updateExternalsTask, 0, externalInterval, TimeUnit.MINUTES);
         }
 
         final FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(context, fetchWsdlsQueue);
-        Thread.ofVirtual().start(fetchWsdlsTask::run);
+        Thread.ofVirtual().start(fetchWsdlsTask);
 
         final FetchRestTask fetchRestTask = new FetchRestTask(context, fetchRestQueue);
-        Thread.ofVirtual().start(fetchRestTask::run);
+        Thread.ofVirtual().start(fetchRestTask);
 
         final FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(context, fetchOpenApiQueue);
-        Thread.ofVirtual().start(fetchOpenApiTask::run);
+        Thread.ofVirtual().start(fetchOpenApiTask);
 
         final ListMethodsTask listMethodsTask = new ListMethodsTask(context, listMethodsQueue, fetchWsdlsQueue,
-                fetchRestQueue,
-                fetchOpenApiQueue);
-        Thread.ofVirtual().start(listMethodsTask::run);
+                fetchRestQueue, fetchOpenApiQueue);
+        Thread.ofVirtual().start(listMethodsTask);
 
         // The ListClientsTask is the main task that starts the whole process and
         // gathers information that the other tasks will react on to do work
         final ListClientsTask listClientsTask = new ListClientsTask(context, listMethodsQueue, fetchCompaniesQueue,
                 fetchOrganizationsQueue);
 
-        long collectorInterval = context.getBean(TaskPoolConfiguration.class).getCollectorInterval();
+        long collectorInterval = taskPoolConfiguration.getCollectorInterval();
         log.info("Starting up catalog collector with collector interval of {}", collectorInterval);
 
         scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);

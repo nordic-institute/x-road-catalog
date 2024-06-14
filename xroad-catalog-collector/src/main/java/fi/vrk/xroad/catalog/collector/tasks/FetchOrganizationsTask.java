@@ -61,7 +61,7 @@ import fi.vrk.xroad.catalog.persistence.entity.WebPage;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FetchOrganizationsTask {
+public class FetchOrganizationsTask implements Runnable {
 
     private String fetchOrganizationsUrl;
 

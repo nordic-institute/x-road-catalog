@@ -74,23 +74,31 @@ public class TaskPoolConfiguration {
     @Value("${xroad-catalog.fetch-companies-url}")
     private String fetchCompaniesUrl;
 
-    @Value("${xroad-catalog.max-organizations-per-request:100}")
-    private int maxOrganizationsPerRequest;
+    @Value("${xroad-catalog.fetch-external-limit:500}")
+    private int fetchExternalLimit;
 
-    @Value("${xroad-catalog.fetch-companies-limit:1000}")
-    private int fetchCompaniesLimit;
+    @Value("${xroad-catalog.fetch-external-update-after-days:7}")
+    private int fetchExternalUpdateAfterDays;
 
-    @Value("${xroad-catalog.fetch-organizations-limit:2000}")
-    private int fetchOrganizationsLimit;
+    @Value("${xroad-catalog.fetch-external-interval-min:20}")
+    private long fetchExternalInterval;
 
-    @Value("${xroad-catalog.fetch-companies-run-unlimited:false}")
-    private boolean fetchCompaniesRunUnlimited;
+    @Value("${xroad-catalog.fetch-external-run-unlimited:false}")
+    private boolean fetchExternalRunUnlimited;
 
-    @Value("${xroad-catalog.fetch-companies-time-after-hour:3}")
-    private int fetchCompaniesTimeAfterHour;
+    @Value("${xroad-catalog.fetch-external-time-after-hour:3}")
+    private int fetchExternalTimeAfterHour;
 
-    @Value("${xroad-catalog.fetch-companies-time-before-hour:4}")
-    private int fetchCompaniesTimeBeforeHour;
+    @Value("${xroad-catalog.fetch-external-time-before-hour:4}")
+    private int fetchExternalTimeBeforeHour;
+
+    @Value("${xroad-catalog.fetch-organizations-pool-size:10}")
+    private int fetchOrganizationsPoolSize;
+
+    @Value("${xroad-catalog.fetch-companies-pool-size:10}")
+    private int fetchCompaniesPoolSize;
+
+    // Parameters handling database log storage
 
     @Value("${xroad-catalog.flush-log-time-after-hour:3}")
     private int flushLogTimeAfterHour;
@@ -101,6 +109,8 @@ public class TaskPoolConfiguration {
     @Value("${xroad-catalog.error-log-length-in-days:90}")
     private int errorLogLengthInDays;
 
+    // Parameters controlling how often data is collected from the X-Road instance
+
     @Value("${xroad-catalog.fetch-run-unlimited:false}")
     private boolean fetchRunUnlimited;
 
@@ -110,7 +120,7 @@ public class TaskPoolConfiguration {
     @Value("${xroad-catalog.fetch-time-before-hour:4}")
     private int fetchTimeBeforeHour;
 
-    // Collector internal parameters
+    // Collector internal pool parameters
 
     @Value("${xroad-catalog.collector-interval-min:20}")
     private long collectorInterval;
@@ -126,11 +136,5 @@ public class TaskPoolConfiguration {
 
     @Value("${xroad-catalog.fetch-rest-pool-size:10}")
     private int fetchRestPoolSize;
-
-    @Value("${xroad-catalog.fetch-organizations-pool-size:10}")
-    private int fetchOrganizationsPoolSize;
-
-    @Value("${xroad-catalog.fetch-companies-pool-size:10}")
-    private int fetchCompaniesPoolSize;
 
 }

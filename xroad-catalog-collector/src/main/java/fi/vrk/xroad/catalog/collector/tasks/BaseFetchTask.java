@@ -39,7 +39,7 @@ import fi.vrk.xroad.catalog.persistence.entity.SubsystemId;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class BaseFetchTask<T> {
+public abstract class BaseFetchTask<T> implements Runnable {
 
     protected final CatalogService catalogService;
 

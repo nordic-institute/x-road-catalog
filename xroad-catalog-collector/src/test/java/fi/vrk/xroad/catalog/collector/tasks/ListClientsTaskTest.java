@@ -70,7 +70,6 @@ public class ListClientsTaskTest {
             TaskPoolConfiguration conf = applicationContext.getBean(TaskPoolConfiguration.class);
 
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", true);
-            ReflectionTestUtils.setField(conf, "fetchCompaniesRunUnlimited", true);
 
             ClientList clientList = new ClientList();
             clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member1", null));
@@ -156,10 +155,6 @@ public class ListClientsTaskTest {
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", false);
             ReflectionTestUtils.setField(conf, "fetchTimeAfterHour", 0);
             ReflectionTestUtils.setField(conf, "fetchTimeBeforeHour", 23);
-
-            ReflectionTestUtils.setField(conf, "fetchCompaniesRunUnlimited", false);
-            ReflectionTestUtils.setField(conf, "fetchCompaniesTimeAfterHour", 0);
-            ReflectionTestUtils.setField(conf, "fetchCompaniesTimeBeforeHour", 23);
 
             ClientList clientList = new ClientList();
             clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member1", null));

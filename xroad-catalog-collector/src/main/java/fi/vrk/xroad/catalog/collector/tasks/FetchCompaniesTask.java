@@ -55,7 +55,7 @@ import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FetchCompaniesTask {
+public class FetchCompaniesTask implements Runnable {
 
     private final String fetchCompaniesUrl;
 

@@ -50,7 +50,7 @@ import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ListMethodsTask {
+public class ListMethodsTask implements Runnable {
 
     private static final String SERVICE_TYPE_REST = "REST";
 
