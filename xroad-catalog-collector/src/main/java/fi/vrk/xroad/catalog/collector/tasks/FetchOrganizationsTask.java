@@ -77,6 +77,7 @@ public class FetchOrganizationsTask implements Runnable {
 
     public FetchOrganizationsTask(final ApplicationContext applicationContext,
             final BlockingQueue<String> fetchOrganizationsQueue) {
+      
         this.catalogService = applicationContext.getBean(CatalogService.class);
         this.organizationService = applicationContext.getBean(OrganizationService.class);
 

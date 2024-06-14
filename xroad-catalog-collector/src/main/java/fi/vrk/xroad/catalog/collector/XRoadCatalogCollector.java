@@ -115,6 +115,7 @@ public class XRoadCatalogCollector {
         final ListClientsTask listClientsTask = new ListClientsTask(context, listMethodsQueue, fetchCompaniesQueue,
                 fetchOrganizationsQueue);
 
+
         long collectorInterval = taskPoolConfiguration.getCollectorInterval();
         log.info("Starting up catalog collector with collector interval of {}", collectorInterval);
 
