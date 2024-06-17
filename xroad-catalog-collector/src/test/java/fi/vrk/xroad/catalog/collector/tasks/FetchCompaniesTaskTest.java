@@ -115,4 +115,17 @@ public class FetchCompaniesTaskTest {
         }
     }
 
+    @Test
+    public void testFetchCompanyForClientNotFound() throws JSONException, IOException {
+        try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
+            FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, null);
+
+            mock.when(() -> OrganizationUtil.getCompany(any(), any(), any())).thenReturn(Optional.empty());
+
+            fetchCompaniesTask.fetchCompanyData("1234567-9");
+
+            mock.verify(() -> OrganizationUtil.getCompany(any(), any(), any()), times(1));
+            verify(companyService, times(0)).saveCompany(any());
+        }
+    }
 }

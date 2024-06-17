@@ -111,4 +111,19 @@ public class FetchOrganizationTaskTest {
             verify(organizationService, times(1)).saveOrganization(any());
         }
     }
+
+    @Test
+    public void testFetchOrganizationsForClientNotFound() throws JSONException, IOException {
+        try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
+            FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(applicationContext,
+                    null);
+
+            mock.when(() -> OrganizationUtil.getOrganization(any(), any(), any())).thenReturn(Optional.empty());
+
+            fetchOrganizationsTask.fetchOrganization("1234");
+
+            mock.verify(() -> OrganizationUtil.getOrganization(any(), any(), any()), times(1));
+            verify(organizationService, times(0)).saveOrganization(any());
+        }
+    }
 }
