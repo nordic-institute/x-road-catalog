@@ -16,7 +16,7 @@ lombok = "1.18.32"
 mockito = "5.12.0"
 postgresql = "42.7.3"
 spring-boot = "3.2.5"
-spring-doc = "1.8.0"
+spring-doc = "2.5.0"
 wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
 sonarqube = "5.0.0.4638"
@@ -48,7 +48,7 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "spring.boot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring.boot" }
 spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "spring.boot" }
-spring-doc = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "spring.doc" }
+spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring.doc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 

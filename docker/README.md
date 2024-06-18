@@ -18,5 +18,5 @@ The `compose.yml` file has been configured so that the services can access the `
 
 There are only two ports open to the host machine:
 
-* `5080` for the `adminer` service web UI for accessing the database
-* `8070` for the `xroad-catalog-lister` service API
+* `5080` for the `adminer` service web UI for accessing the database.
+* `8070` for the `xroad-catalog-lister` service API. This port also allows you to access the `Swagger UI` under path `/api-docs`.
