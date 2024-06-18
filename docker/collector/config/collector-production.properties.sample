@@ -1,0 +1,38 @@
+# X-Road instance parameters
+xroad-catalog.xroad-instance=
+xroad-catalog.member-class=
+xroad-catalog.member-code=
+xroad-catalog.subsystem-code=
+
+# Security server URLs
+xroad-catalog.security-server-host=http://ss0:8080
+xroad-catalog.webservices-endpoint=${xroad-catalog.security-server-host}
+xroad-catalog.list-clients-host=${xroad-catalog.security-server-host}
+xroad-catalog.fetch-wsdl-host=${xroad-catalog.security-server-host}
+xroad-catalog.fetch-openapi-host=${xroad-catalog.security-server-host}
+
+# Error log configurations
+xroad-catalog.flush-log-time-after-hour=3
+xroad-catalog.flush-log-time-before-hour=4
+xroad-catalog.error-log-length-in-days=90
+
+xroad-catalog.collector-interval-min=5
+xroad-catalog.fetch-run-unlimited=true
+xroad-catalog.fetch-time-after-hour=3
+xroad-catalog.fetch-time-before-hour=4
+
+# Collector pool configurations
+xroad-catalog.list-methods-pool-size=5
+xroad-catalog.fetch-wsdl-pool-size=5
+xroad-catalog.fetch-openapi-pool-size=5
+xroad-catalog.fetch-rest-pool-size=5
+
+# Parameters related to the "fi" profile
+xroad-catalog.fetch-organizations-url=
+xroad-catalog.fetch-companies-url=
+xroad-catalog.fetch-external-limit=1
+xroad-catalog.fetch-external-update-after-days=1
+xroad-catalog.fetch-external-interval-min=5
+xroad-catalog.fetch-external-run-unlimited=true
+xroad-catalog.fetch-organizations-pool-size=1
+xroad-catalog.fetch-companies-pool-size=1

@@ -1,0 +1,73 @@
+name: xrd-catalog-service-dev
+
+services:
+  xrd-catalog-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: xroad_catalog
+      POSTGRES_USER: xroad_catalog
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - xrd-catalog-db-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - xrd-catalog-network
+  adminer:
+    image: adminer
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 5080:8080
+    depends_on:
+      - xrd-catalog-db
+    networks:
+      - xrd-catalog-network
+  xrd-catalog-collector:
+    build:
+      context: ../.
+      dockerfile: docker/collector/Dockerfile
+    # environment:
+    #   CATALOG_PROFILE: FI
+    volumes:
+      - ./collector/config:/etc/xroad/xroad-catalog:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - xrd-catalog-db
+    networks:
+      - xrd-catalog-network
+      - xroad-network
+  xrd-confclient:
+    build:
+      dockerfile: confclient/Dockerfile
+    volumes:
+      - xrd-confclient-data:/etc/xroad/globalconf
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - xroad-network
+  xrd-catalog-lister:
+    build:
+      context: ../.
+      dockerfile: docker/lister/Dockerfile
+    volumes:
+      - ./lister/config:/etc/xroad/xroad-catalog:ro
+      - xrd-confclient-data:/etc/xroad/globalconf:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8070:8070
+    depends_on:
+      - xrd-catalog-db
+      - xrd-confclient
+    networks:
+      - xrd-catalog-network
+      - xroad-network
+
+volumes:
+  xrd-catalog-db-data:
+  xrd-confclient-data:
+networks:
+  xrd-catalog-network:
+    name: xrd-catalog-network
+    driver: bridge
+  xroad-network:
+    external: true
