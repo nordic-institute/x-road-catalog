@@ -13,6 +13,9 @@ The module is implemented using JAVA virtual threads:
 * `FetchOrganizationsTask` - fetches a list of public organizations from an external API and stores them to the db.
 * `FetchCompaniesTask` - fetches a list of private companies from an external API and stores them to the db.
 
+The following diagram gives a high-level overview of how the tasks are executed:
+![Process diagram](collector_process.svg "Process diagram")
+
 See also the [Installation Guide](../doc/xroad_catalog_installation_guide.md) and
 [User Guide](../doc/xroad_catalog_user_guide.md).
 
