@@ -56,7 +56,7 @@ public class OrganizationHeartbeatControllerTests {
         given(organizationService.getLastOrganizationCollectionData()).willReturn(lastCollectionData);
         ResponseEntity<String> response = restTemplate.getForEntity("/api/organizationHeartbeat", String.class);
         assertNotNull(response.getBody());
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         JSONObject json = new JSONObject(response.getBody());
         assertTrue(json.getBoolean("appWorking"));
         assertTrue(json.getBoolean("dbWorking"));
@@ -73,7 +73,7 @@ public class OrganizationHeartbeatControllerTests {
 
         ResponseEntity<String> response = restTemplate.getForEntity("/api/organizationHeartbeat", String.class);
         assertNotNull(response.getBody());
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
 
         JSONObject json = new JSONObject(response.getBody());
         assertTrue(json.getBoolean("appWorking"));
