@@ -192,6 +192,7 @@ public class XRoadClient {
         if (!(wsdl.value instanceof byte[])) {
             DataHandler dh = null;
             final Client client = ClientProxy.getClient(metaServicesPort);
+            @SuppressWarnings("unchecked")
             final Collection<Attachment> attachments = (Collection<Attachment>) client.getResponseContext()
                     .get(Message.ATTACHMENTS);
             if (attachments != null && attachments.size() == 1) {
