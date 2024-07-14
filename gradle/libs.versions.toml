@@ -22,6 +22,7 @@ wsdl2java = "2.0.2"
 sonarqube = "5.1.0.4882"
 hierynomus-license = "0.16.1"
 awaitility = "4.2.1"
+liquibase = "4.28.0"
 
 [libraries]
 commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons.beanutils" }
@@ -51,6 +52,8 @@ spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-se
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "spring.doc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
+liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
+liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
 
 [bundles]
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation

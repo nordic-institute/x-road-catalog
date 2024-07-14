@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="021-fi-sequences-organization_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="organization_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="organization_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="organization_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE organization_id_seq OWNED BY organization.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-organization_name_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="organization_name_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="organization_name_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="organization_name_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE organization_name_id_seq OWNED BY organization_name.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-organization_description_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="organization_description_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="organization_description_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="organization_description_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE organization_description_id_seq OWNED BY organization_description.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-email_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="email_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="email_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="email_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE email_id_seq OWNED BY email.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-phone_number_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="phone_number_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="phone_number_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="phone_number_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE phone_number_id_seq OWNED BY phone_number.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-web_page_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="web_page_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="web_page_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="web_page_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE web_page_id_seq OWNED BY web_page.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-address_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="address_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="address_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="address_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE address_id_seq OWNED BY address.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-street_address_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="street_address_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="street_address_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="street_address_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE street_address_id_seq OWNED BY street_address.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-post_office_box_address_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="post_office_box_address_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="post_office_box_address_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="post_office_box_address_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE post_office_box_address_id_seq OWNED BY post_office_box_address.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-street_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="street_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="street_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="street_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE street_id_seq OWNED BY street.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-street_address_post_office_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="street_address_post_office_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="street_address_post_office_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="street_address_post_office_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE street_address_post_office_id_seq OWNED BY street_address_post_office.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-street_address_municipality_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="street_address_municipality_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="street_address_municipality_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="street_address_municipality_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE street_address_municipality_id_seq OWNED BY street_address_municipality.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-post_office_box_address_municipality_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="post_office_box_address_municipality_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="post_office_box_address_municipality_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="post_office_box_address_municipality_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE post_office_box_address_municipality_id_seq OWNED BY post_office_box_address_municipality.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-street_address_municipality_name_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="street_address_municipality_name_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="street_address_municipality_name_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="street_address_municipality_name_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE street_address_municipality_name_id_seq OWNED BY street_address_municipality_name.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-post_office_box_address_municipality_name_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN"
+                       onFailMessage="post_office_box_address_municipality_name_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="post_office_box_address_municipality_name_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="post_office_box_address_municipality_name_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE post_office_box_address_municipality_name_id_seq OWNED BY post_office_box_address_municipality_name.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-street_address_additional_information_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="street_address_additional_information_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="street_address_additional_information_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="street_address_additional_information_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE street_address_additional_information_id_seq OWNED BY street_address_additional_information.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-post_office_box_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="post_office_box_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="post_office_box_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="post_office_box_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE post_office_box_id_seq OWNED BY post_office_box.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-post_office_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="post_office_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="post_office_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="post_office_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE post_office_id_seq OWNED BY post_office.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-post_office_box_address_additional_information_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN"
+                       onFailMessage="post_office_box_address_additional_information_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="post_office_box_address_additional_information_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="post_office_box_address_additional_information_id_seq" startValue="1"
+                        incrementBy="1"/>
+        <sql>ALTER SEQUENCE post_office_box_address_additional_information_id_seq OWNED BY post_office_box_address_additional_information.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-company_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="company_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="company_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="company_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE company_id_seq OWNED BY company.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-business_name_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="business_name_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="business_name_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="business_name_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE business_name_id_seq OWNED BY business_name.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-business_auxiliary_name_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="business_auxiliary_name_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="business_auxiliary_name_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="business_auxiliary_name_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE business_auxiliary_name_id_seq OWNED BY business_auxiliary_name.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-business_address_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="business_address_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="business_address_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="business_address_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE business_address_id_seq OWNED BY business_address.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-company_form_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="company_form_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="company_form_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="company_form_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE company_form_id_seq OWNED BY company_form.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-liquidation_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="liquidation_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="liquidation_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="liquidation_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE liquidation_id_seq OWNED BY liquidation.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-business_line_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="business_line_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="business_line_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="business_line_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE business_line_id_seq OWNED BY business_line.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-language_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="language_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="language_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="language_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE language_id_seq OWNED BY language.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-registered_office_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="registered_office_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="registered_office_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="registered_office_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE registered_office_id_seq OWNED BY registered_office.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-contact_detail_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="contact_detail_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="contact_detail_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="contact_detail_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE contact_detail_id_seq OWNED BY contact_detail.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-registered_entry_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="registered_entry_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="registered_entry_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="registered_entry_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE registered_entry_id_seq OWNED BY registered_entry.id;</sql>
+    </changeSet>
+    <changeSet id="021-fi-sequences-business_id_change_id_seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="business_id_change_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="business_id_change_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="business_id_change_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE business_id_change_id_seq OWNED BY business_id_change.id;</sql>
+    </changeSet>
+</databaseChangeLog>

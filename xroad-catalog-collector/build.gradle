@@ -90,9 +90,11 @@ dependencies {
     implementation (libs.cxf.core)
     implementation (libs.cxf.spring.starter)
     implementation (libs.lombok)
+    implementation (libs.liquibase)
     annotationProcessor (libs.lombok)
     wsimport (libs.jaxb.maven)
     implementation (libs.bundles.jaxb)
+    compileOnly (libs.liquibase.hibernate6)
     testImplementation (libs.spring.boot.test) {
         exclude group: 'org.mockito', module :'mockito-core'
     }
