@@ -11,6 +11,8 @@ on:
       - 'xroad-catalog-persistence/src/**'
       - '.github/**'
       - 'gradle/libs.versions.toml' # So that dependabot PRs are tested
+      - 'xroad-catalog-collector/packages/**'
+      - 'xroad-catalog-lister/packages/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
