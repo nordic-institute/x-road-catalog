@@ -50,15 +50,15 @@ public class TestUtil {
         assertNull(statusInfo.getRemoved());
     }
 
-    public Optional getEntity(Iterable entities, Long l) {
+    public <T> Optional<T> getEntity(Iterable<T> entities, Long l) {
         return StreamSupport.stream(entities.spliterator(), false)
                 .filter(e -> getIdentifier(e).equals(l))
                 .findFirst();
     }
 
-    public Set<Long> getIds(Iterable entities) {
+    public <T> Set<Long> getIds(Iterable<T> entities) {
         Set<Long> set = new HashSet<Long>();
-        for (Object entity : entities) {
+        for (T entity : entities) {
             Long id = getIdentifier(entity);
             set.add(id);
         }
