@@ -35,7 +35,7 @@ import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "xroad-catalog.app-name=X-Road Catalog Lister", "xroad-catalog.app-version=1.0.3" })
-@ActiveProfiles({ "default", "fi" })
+@ActiveProfiles({ "test", "fi" })
 public class OrganizationHeartbeatControllerTests {
 
     @Autowired
