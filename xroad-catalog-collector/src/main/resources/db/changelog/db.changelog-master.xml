@@ -7,10 +7,11 @@
         Please make sure to include the path "db/changelog/"
         <include file="db/changelog/the_XML_file_name_goes_here.xml" />
     -->
+    <include file="/db/changelog/collector/000-users.xml" context="@users" />
     <include file="/db/changelog/collector/010-common-tables.xml" />
     <include file="/db/changelog/collector/011-common-sequences.xml" />
     <include file="/db/changelog/collector/012-common-indexes.xml" />
-    <include file="/db/changelog/collector/020-fi-tables.xml" context="fi" />
-    <include file="/db/changelog/collector/021-fi-sequences.xml" context="fi" />
-    <include file="/db/changelog/collector/022-fi-indexes.xml" context="fi" />
+    <include file="/db/changelog/collector/020-fi-tables.xml" context="@fi" />
+    <include file="/db/changelog/collector/021-fi-sequences.xml" context="@fi" />
+    <include file="/db/changelog/collector/022-fi-indexes.xml" context="@fi" />
 </databaseChangeLog>

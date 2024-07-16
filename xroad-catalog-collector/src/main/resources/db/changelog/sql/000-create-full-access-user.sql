@@ -1,0 +1,8 @@
+CREATE ROLE xroad_catalog_collector NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS CONNECTION LIMIT -1 PASSWORD '${users.collector.password}';
+GRANT USAGE ON SCHEMA public TO xroad_catalog_collector;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO xroad_catalog_collector;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO xroad_catalog_collector;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO xroad_catalog_collector;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO xroad_catalog_collector;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO xroad_catalog_collector;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO xroad_catalog_collector;
