@@ -10,7 +10,7 @@
                 SELECT count(*) FROM pg_roles WHERE rolname = '${users.collector.username}';
             </sqlCheck>
         </preConditions>
-        <sqlFile path="db/changelog/sql/000-drop-user.sql"/>
+        <sqlFile path="db/changelog/sql/000-drop-full-access-user.sql"/>
     </changeSet>
     <changeSet id="000-users-collector-create" author="niis" dbms="postgresql">
         <preConditions onFail="MARK_RAN" onFailMessage="Failed to create full-access user because it already exists">
@@ -19,5 +19,21 @@
             </sqlCheck>
         </preConditions>
         <sqlFile path="db/changelog/sql/000-create-full-access-user.sql"/>
+    </changeSet>
+    <changeSet id="000-users-lister-drop" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="Failed to remove read-only user because it does not exist">
+            <sqlCheck expectedResult="1">
+                SELECT count(*) FROM pg_roles WHERE rolname = '${users.lister.username}';
+            </sqlCheck>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/000-drop-readonly-user.sql"/>
+    </changeSet>
+    <changeSet id="000-users-lister-create" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="Failed to create read-only user because it already exists">
+            <sqlCheck expectedResult="0">
+                SELECT count(*) FROM pg_roles WHERE rolname = '${users.lister.username}';
+            </sqlCheck>
+        </preConditions>
+        <sqlFile path="db/changelog/sql/000-create-readonly-user.sql"/>
     </changeSet>
 </databaseChangeLog>
