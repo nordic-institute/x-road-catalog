@@ -44,7 +44,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -59,8 +58,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = { "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml" })
-@ActiveProfiles({ "default", "fi" })
+@ActiveProfiles({ "test", "fi" })
 public class OrganizationControllerTests {
 
     private static final String ORG_BUSINESS_CODE = "0123456-9";
@@ -88,7 +86,7 @@ public class OrganizationControllerTests {
         // Get Organization not found
         ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/0-12345",
                 String.class);
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(404, response.getStatusCode().value());
         assertNull(response.getBody());
     }
 
@@ -99,7 +97,7 @@ public class OrganizationControllerTests {
         ResponseEntity<String> response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + COMPANY_BUSINESS_ID
                         + "?startDate=2010-01-01&endDate=2022-01-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         JSONObject json = new JSONObject(response.getBody());
         JSONArray changedValues = json.optJSONArray("changedValueList");
         assertTrue(json.optBoolean("changed"));
@@ -110,7 +108,7 @@ public class OrganizationControllerTests {
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
                         + "?startDate=2010-01-01&endDate=2022-01-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         json = new JSONObject(response.getBody());
         changedValues = json.optJSONArray("changedValueList");
         assertTrue(json.optBoolean("changed"));
@@ -120,7 +118,7 @@ public class OrganizationControllerTests {
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + COMPANY_BUSINESS_ID
                         + "?startDate=2021-01-01&endDate=2022-01-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         json = new JSONObject(response.getBody());
         changedValues = json.optJSONArray("changedValueList");
         assertTrue(json.optBoolean("changed"));
@@ -130,7 +128,7 @@ public class OrganizationControllerTests {
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
                         + "?startDate=2021-01-01&endDate=2022-01-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         json = new JSONObject(response.getBody());
         changedValues = json.optJSONArray("changedValueList");
         assertTrue(json.optBoolean("changed"));
@@ -140,32 +138,32 @@ public class OrganizationControllerTests {
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
                         + "?startDate=01-01-2022&endDate=2022-06-01", String.class);
-        assertEquals(400, response.getStatusCodeValue());
+        assertEquals(400, response.getStatusCode().value());
 
         // Get OrganizationChanges for CompanyData not found
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + COMPANY_BUSINESS_ID
                         + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
 
         // Get OrganizationChanges for OrganizationData not found
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
                         + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
 
         // Get OrganizationChanges when business code is invalid
         response = restTemplate
                 .getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE
                         + "?startDate=2022-01-01&endDate=2022-06-01", String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
 
         // Get OrganizationChanges when dates are null
         response = restTemplate.getForEntity("/api/getOrganizationChanges/" + ORG_BUSINESS_CODE, String.class);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals("{\"changed\":false,\"changedValueList\":[]}", response.getBody());
     }
 
@@ -174,7 +172,7 @@ public class OrganizationControllerTests {
         ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/" + ORG_BUSINESS_CODE,
                 String.class);
         assertNotNull(response.getBody());
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         JSONObject json = new JSONObject(response.getBody());
         JSONObject organizationData = json.optJSONObject("organizationData");
         JSONObject companyData = json.optJSONObject("companyData");
@@ -201,7 +199,7 @@ public class OrganizationControllerTests {
         ResponseEntity<String> response = restTemplate.getForEntity("/api/getOrganization/" + COMPANY_BUSINESS_ID,
                 String.class);
         assertNotNull(response.getBody());
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         JSONObject json = new JSONObject(response.getBody());
         JSONObject organizationData = json.optJSONObject("organizationData");
         JSONObject companyData = json.optJSONObject("companyData");

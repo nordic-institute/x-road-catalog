@@ -144,16 +144,16 @@ public class MemberRepositoryTest {
         // 3-6 have different parts changed, #7 has all parts changed
         log.info("found changed members with ids: " + testUtil.getIds(members));
         assertEquals(5, Iterables.size(members));
-        Set ids = testUtil.getIds(members);
+        Set<Long> ids = testUtil.getIds(members);
         assertTrue(ids.containsAll(Arrays.asList(3L, 4L, 5L, 6L, 7L)));
         log.info("found members:");
         for (Member member: members) {
             log(member);
         }
         // verify that member #7 was fetched correctly with all the bits and pieces
-        Optional optionalMember = testUtil.getEntity(members, 7L);
+        Optional<Member> optionalMember = testUtil.getEntity(members, 7L);
         assertTrue(optionalMember.isPresent());
-        Member member7 = (Member) optionalMember.get();
+        Member member7 = optionalMember.get();
         assertEquals(3, member7.getActiveSubsystems().size());
         ArrayList<Service> allServices7 = new ArrayList<>();
         for (Subsystem s: member7.getActiveSubsystems()) {

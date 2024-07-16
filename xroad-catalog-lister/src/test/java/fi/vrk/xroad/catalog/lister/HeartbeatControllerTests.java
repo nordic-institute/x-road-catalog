@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import java.time.LocalDateTime;
 
@@ -33,6 +34,7 @@ import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "xroad-catalog.app-name=X-Road Catalog Lister", "xroad-catalog.app-version=1.0.3" })
+@ActiveProfiles({ "test", "fi" })
 public class HeartbeatControllerTests {
 
     @Autowired
@@ -53,7 +55,7 @@ public class HeartbeatControllerTests {
         given(catalogService.getLastCollectionData()).willReturn(lastCollectionData);
         ResponseEntity<String> response = restTemplate.getForEntity("/api/heartbeat", String.class);
         assertNotNull(response.getBody());
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         JSONObject json = new JSONObject(response.getBody());
         assertTrue(json.getBoolean("appWorking"));
         assertTrue(json.getBoolean("dbWorking"));
@@ -73,7 +75,7 @@ public class HeartbeatControllerTests {
 
         ResponseEntity<String> response = restTemplate.getForEntity("/api/heartbeat", String.class);
         assertNotNull(response.getBody());
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
 
         JSONObject json = new JSONObject(response.getBody());
         assertTrue(json.getBoolean("appWorking"));

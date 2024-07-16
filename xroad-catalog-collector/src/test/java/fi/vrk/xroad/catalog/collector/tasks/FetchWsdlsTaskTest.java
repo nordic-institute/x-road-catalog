@@ -44,6 +44,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import fi.vrk.xroad.catalog.collector.configuration.DevelopmentConfiguration;
@@ -54,6 +55,9 @@ import fi.vrk.xroad.catalog.persistence.CatalogService;
 
 @SpringBootTest(classes = { DevelopmentConfiguration.class,
         TaskPoolConfiguration.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = {
+        "spring.liquibase.enabled=false"
+})
 public class FetchWsdlsTaskTest {
 
     @MockBean

@@ -34,7 +34,8 @@ import fi.vrk.xroad.catalog.persistence.CatalogService;
 
 @SpringBootTest(classes = DevelopmentConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-        "xroad-catalog.webservices-endpoint=http://localhost:${local.server.port}/metaservices"
+        "xroad-catalog.webservices-endpoint=http://localhost:${local.server.port}/metaservices",
+        "spring.liquibase.enabled=false"
 })
 public class XRoadClientTest {
 

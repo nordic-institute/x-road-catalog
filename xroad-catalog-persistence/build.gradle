@@ -17,7 +17,6 @@ repositories {
 
 dependencies {
     implementation (libs.spring.boot.jpa)
-    implementation (libs.h2.database)
     implementation (libs.postgresql)
     implementation (libs.guava)
     implementation (libs.lombok)
@@ -25,6 +24,7 @@ dependencies {
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
     testImplementation (libs.lombok)
+    testImplementation (libs.h2.database)
     testAnnotationProcessor (libs.lombok)
 }
 

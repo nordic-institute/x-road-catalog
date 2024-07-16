@@ -144,7 +144,7 @@ public class JaxbCatalogServiceTest {
         assertNotNull(s223.getRemoved());
     }
 
-    private Collection<String> getPropertyValues(Iterable items, String propertyName) throws IllegalAccessException,
+    private <T> Collection<String> getPropertyValues(Iterable<T> items, String propertyName) throws IllegalAccessException,
             NoSuchMethodException, InvocationTargetException {
         List<String> values = new ArrayList<>();
         for (Object item : items) {
@@ -158,9 +158,9 @@ public class JaxbCatalogServiceTest {
         return (String) PropertyUtils.getProperty(item, propertyName);
     }
 
-    private Object getItem(Iterable items, String propertyName, String value) throws IllegalAccessException,
+    private <T> T getItem(Iterable<T> items, String propertyName, String value) throws IllegalAccessException,
             NoSuchMethodException, InvocationTargetException {
-        for (Object item : items) {
+        for (T item : items) {
             if (value.equals(getStringProperty(propertyName, item))) {
                 return item;
             }

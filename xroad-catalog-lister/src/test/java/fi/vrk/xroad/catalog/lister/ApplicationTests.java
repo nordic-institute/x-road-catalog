@@ -75,7 +75,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({ "default", "fi" })
+@ActiveProfiles({ "test", "fi" })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ApplicationTests {
 
@@ -190,7 +190,8 @@ public class ApplicationTests {
             exceptionMessage = e.getMessage();
         }
         assertTrue(thrown);
-        assertEquals(exceptionMessage, "Service with xRoadInstance \"dev-cs\", " +
+        assertEquals(exceptionMessage, "Service with xRoadInstance \"dev-cs\", "
+                +
                 "memberClass \"PUB\", memberCode \"14151328\", subsystemCode \"TestSubSystem\", serviceCode \"testService123\" "
                 +
                 "and serviceVersion \"v1\" not found");
@@ -719,7 +720,8 @@ public class ApplicationTests {
             exceptionMessage = e.getMessage();
         }
         assertTrue(thrown);
-        assertEquals(exceptionMessage, "ErrorLog entries since " + request.getStartDateTime().toString() +
+        assertEquals(exceptionMessage, "ErrorLog entries since " + request.getStartDateTime().toString()
+                +
                 " until " + request.getEndDateTime().toString() + " not found");
     }
 
