@@ -1,1 +1,0 @@
-CREATE USER xroad_catalog_lister WITH NOCREATEDB PASSWORD '332815';

@@ -9,7 +9,6 @@ services:
       POSTGRES_PASSWORD: secret
     volumes:
       - xrd-catalog-db-data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
       - xrd-catalog-network
