@@ -76,12 +76,10 @@ PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" /usr/bin/postgresql-setup initd
 systemctl start postgresql
 
 if sudo -u postgres psql -lqt |cut -d \| -f 1 | grep -qw xroad_catalog ; then
-    echo "Database already exists, creating only non-existing tables"
-    sudo -u postgres psql --file=/usr/share/xroad/sql/create_tables_%{profile}.sql
+    echo "Database already exists, no other action is required."
 else
-    echo "Initializing database and creating tables"
+    echo "Initializing database..."
     sudo -u postgres psql --file=/usr/share/xroad/sql/init_database.sql
-    sudo -u postgres psql --file=/usr/share/xroad/sql/create_tables_%{profile}.sql
 fi
 
 %systemd_post %{name}.service
