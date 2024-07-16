@@ -5,41 +5,19 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="000-users-collector-drop" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="User xroad_catalog_collector does not exist">
+        <preConditions onFail="MARK_RAN" onFailMessage="Failed to remove full-access user because it does not exist">
             <sqlCheck expectedResult="1">
-                SELECT count(*) FROM pg_roles WHERE rolname = 'xroad_catalog_collector';
+                SELECT count(*) FROM pg_roles WHERE rolname = '${users.collector.username}';
             </sqlCheck>
         </preConditions>
-        <sql>
-            DROP OWNED BY xroad_catalog_collector;
-            DROP USER xroad_catalog_collector;
-        </sql>
+        <sqlFile path="db/changelog/sql/000-drop-user.sql"/>
     </changeSet>
     <changeSet id="000-users-collector-create" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="User xroad_catalog_collector exists">
+        <preConditions onFail="MARK_RAN" onFailMessage="Failed to create full-access user because it already exists">
             <sqlCheck expectedResult="0">
-                SELECT count(*) FROM pg_roles WHERE rolname = 'xroad_catalog_collector';
+                SELECT count(*) FROM pg_roles WHERE rolname = '${users.collector.username}';
             </sqlCheck>
         </preConditions>
         <sqlFile path="db/changelog/sql/000-create-full-access-user.sql"/>
-    </changeSet>
-    <changeSet id="000-users-lister-drop" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="User xroad_catalog_lister does not exist">
-            <sqlCheck expectedResult="1">
-                SELECT count(*) FROM pg_roles WHERE rolname = 'xroad_catalog_lister';
-            </sqlCheck>
-        </preConditions>
-        <sql>
-            DROP OWNED BY xroad_catalog_lister;
-            DROP USER xroad_catalog_lister;
-        </sql>
-    </changeSet>
-    <changeSet id="000-users-lister-create" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="User xroad_catalog_lister exists">
-            <sqlCheck expectedResult="0">
-                SELECT count(*) FROM pg_roles WHERE rolname = 'xroad_catalog_lister';
-            </sqlCheck>
-        </preConditions>
-        <sqlFile path="db/changelog/sql/000-create-readonly-user.sql"/>
     </changeSet>
 </databaseChangeLog>

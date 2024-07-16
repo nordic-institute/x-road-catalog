@@ -16,5 +16,5 @@ spring.liquibase.show-summary=verbose
 spring.liquibase.contexts=users
 spring.liquibase.user=xroad_catalog
 spring.liquibase.password=secret
-spring.liquibase.parameters.users.collector.password=xroad_catalog_collector
-spring.liquibase.parameters.users.lister.password=xroad_catalog_lister
+spring.liquibase.parameters.users.collector.username=${spring.datasource.username}
+spring.liquibase.parameters.users.collector.password=${spring.datasource.password}

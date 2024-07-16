@@ -55,8 +55,8 @@ services:
     ports:
       - 8070:8070
     depends_on:
+      - xrd-catalog-db
       - xrd-confclient
-      - xrd-catalog-collector
     networks:
       - xrd-catalog-network
       - xroad-network
