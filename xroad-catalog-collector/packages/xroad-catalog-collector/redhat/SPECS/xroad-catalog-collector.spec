@@ -39,7 +39,6 @@ cp -p %{src}/../../../build/resources/main/collector-production.properties %{bui
 cp -p %{src}/../../../build/resources/main/catalogdb-production.properties %{buildroot}%{conf}
 cp -p catalog-profile.properties %{buildroot}%{conf}
 cp -p  ../../../../../xroad-catalog-persistence/src/main/sql/init_database.sql %{buildroot}/usr/share/xroad/sql
-cp -p  ../../../../../xroad-catalog-persistence/src/main/sql/create_tables_%{profile}.sql %{buildroot}/usr/share/xroad/sql
 cp -p %{src}/SOURCES/%{name} %{buildroot}/usr/share/xroad/bin
 cp -p %{src}/SOURCES/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{src}/../../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
@@ -56,7 +55,6 @@ rm -rf %{buildroot}
 %attr(644, xroad-catalog, xroad-catalog) %{conf}/catalogdb-production.properties
 %attr(644, xroad-catalog, xroad-catalog) %{conf}/catalog-profile.properties
 %attr(644,root,root) /usr/share/xroad/sql/init_database.sql
-%attr(644,root,root) /usr/share/xroad/sql/create_tables_%{profile}.sql
 %attr(644,root,root) %{_unitdir}/%{name}.service
 %attr(755,xroad-catalog,xroad-catalog) %{jlib}/%{name}.jar
 %attr(744,xroad-catalog,xroad-catalog) /usr/share/xroad/bin/%{name}
@@ -76,12 +74,10 @@ PGSETUP_INITDB_OPTIONS="--auth-host=md5 -E UTF8" /usr/bin/postgresql-setup initd
 systemctl start postgresql
 
 if sudo -u postgres psql -lqt |cut -d \| -f 1 | grep -qw xroad_catalog ; then
-    echo "Database already exists, creating only non-existing tables"
-    sudo -u postgres psql --file=/usr/share/xroad/sql/create_tables_%{profile}.sql
+    echo "Database already exists, no other action is required."
 else
-    echo "Initializing database and creating tables"
+    echo "Initializing database..."
     sudo -u postgres psql --file=/usr/share/xroad/sql/init_database.sql
-    sudo -u postgres psql --file=/usr/share/xroad/sql/create_tables_%{profile}.sql
 fi
 
 %systemd_post %{name}.service
