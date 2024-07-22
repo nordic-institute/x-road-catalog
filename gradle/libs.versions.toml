@@ -1,7 +1,7 @@
 [versions]
 commons-beanutils = "1.9.4"
 commons-csv = "1.11.0"
-cxf = "4.0.4"
+cxf = "4.0.5"
 guava = "33.2.1-jre"
 h2 = "2.3.230"
 httpclient = "5.3.1"
