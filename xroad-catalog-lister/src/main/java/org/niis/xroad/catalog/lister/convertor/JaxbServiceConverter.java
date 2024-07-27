@@ -10,15 +10,15 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.convertor;
 
 import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
 import fi.vrk.xroad.catalog.lister.generated.Member;
 import fi.vrk.xroad.catalog.lister.generated.ServiceList;
 import fi.vrk.xroad.catalog.lister.generated.SubsystemList;
 import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
@@ -30,10 +30,10 @@ import java.util.List;
 public class JaxbServiceConverter implements JaxbServiceConversion {
 
     @Override
-    public Collection<Member> convertMembers(Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> members,
+    public Collection<Member> convertMembers(Iterable<org.niis.xroad.catalog.persistence.entity.Member> members,
             boolean onlyActiveChildren) {
         List<Member> converted = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.persistence.entity.Member member : members) {
+        for (org.niis.xroad.catalog.persistence.entity.Member member : members) {
             Member cm = new Member();
             cm.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(member.getStatusInfo().getChanged()));
             cm.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(member.getStatusInfo().getCreated()));
@@ -97,9 +97,9 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
 
     @Override
     public Collection<ErrorLog> convertErrorLog(
-            Iterable<fi.vrk.xroad.catalog.persistence.entity.ErrorLog> errorLogEntries) {
+            Iterable<org.niis.xroad.catalog.persistence.entity.ErrorLog> errorLogEntries) {
         List<ErrorLog> converted = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.persistence.entity.ErrorLog errorLog : errorLogEntries) {
+        for (org.niis.xroad.catalog.persistence.entity.ErrorLog errorLog : errorLogEntries) {
             ErrorLog er = new ErrorLog();
             er.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(errorLog.getCreated()));
             er.setMessage(errorLog.getMessage());

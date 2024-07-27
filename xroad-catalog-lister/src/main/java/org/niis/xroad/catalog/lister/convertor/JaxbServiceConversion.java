@@ -10,12 +10,12 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.convertor;
 
 import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
 import fi.vrk.xroad.catalog.lister.generated.Member;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.context.annotation.Profile;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -32,7 +32,7 @@ public interface JaxbServiceConversion {
      * @param onlyActiveChildren if true, convert only active subsystems
      * @return Collection of Members (JAXB generated)
      */
-    Collection<Member> convertMembers(Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> members,
+    Collection<Member> convertMembers(Iterable<org.niis.xroad.catalog.persistence.entity.Member> members,
             boolean onlyActiveChildren);
 
     /**
@@ -63,6 +63,6 @@ public interface JaxbServiceConversion {
      * @param errorLogEntries Iterable of ErrorLog entities
      * @return Collection of ErrorLog entries (JAXB generated)
      */
-    Collection<ErrorLog> convertErrorLog(Iterable<fi.vrk.xroad.catalog.persistence.entity.ErrorLog> errorLogEntries);
+    Collection<ErrorLog> convertErrorLog(Iterable<org.niis.xroad.catalog.persistence.entity.ErrorLog> errorLogEntries);
 
 }
