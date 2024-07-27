@@ -10,7 +10,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.endpoint;
 
 import com.google.common.collect.Lists;
 
@@ -30,10 +30,12 @@ import fi.vrk.xroad.catalog.lister.generated.ListMembers;
 import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
 import fi.vrk.xroad.catalog.lister.generated.Member;
 import fi.vrk.xroad.catalog.lister.generated.MemberList;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
+import fi.vrk.xroad.catalog.lister.service.JaxbCatalogService;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.OpenApi;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.entity.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -104,7 +106,7 @@ public class ServiceEndpointImpl implements ServiceEndpoint {
     public IsProviderResponse isProvider(@RequestPayload IsProvider request) {
         AtomicReference<Boolean> isProvider = new AtomicReference<>();
         isProvider.set(Boolean.FALSE);
-        fi.vrk.xroad.catalog.persistence.entity.Member member = catalogService.getMember(request.getXRoadInstance(),
+        org.niis.xroad.catalog.persistence.entity.Member member = catalogService.getMember(request.getXRoadInstance(),
                 request.getMemberClass(), request.getMemberCode());
 
         if (member == null) {

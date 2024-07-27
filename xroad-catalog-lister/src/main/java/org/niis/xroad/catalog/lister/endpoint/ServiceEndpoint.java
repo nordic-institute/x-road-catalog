@@ -10,16 +10,20 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.endpoint;
 
-import fi.vrk.xroad.catalog.lister.generated.GetCompanies;
-import fi.vrk.xroad.catalog.lister.generated.GetCompaniesResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetOrganizations;
-import fi.vrk.xroad.catalog.lister.generated.GetOrganizationsResponse;
-import fi.vrk.xroad.catalog.lister.generated.HasCompanyChanged;
-import fi.vrk.xroad.catalog.lister.generated.HasCompanyChangedResponse;
-import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
-import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetErrors;
+import fi.vrk.xroad.catalog.lister.generated.GetErrorsResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPI;
+import fi.vrk.xroad.catalog.lister.generated.GetOpenAPIResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceType;
+import fi.vrk.xroad.catalog.lister.generated.GetServiceTypeResponse;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdl;
+import fi.vrk.xroad.catalog.lister.generated.GetWsdlResponse;
+import fi.vrk.xroad.catalog.lister.generated.IsProvider;
+import fi.vrk.xroad.catalog.lister.generated.IsProviderResponse;
+import fi.vrk.xroad.catalog.lister.generated.ListMembers;
+import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
@@ -27,26 +31,34 @@ import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
 @Endpoint
-@Profile("fi")
-public interface OrganizationEndpoint {
+@Profile({ "default", "fi" })
+public interface ServiceEndpoint {
 
     String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";
 
     String NOT_FOUND = " not found";
 
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetOrganizations")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ListMembers")
     @ResponsePayload
-    GetOrganizationsResponse getOrganizations(@RequestPayload GetOrganizations request);
+    ListMembersResponse listMembers(@RequestPayload ListMembers request);
 
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "HasOrganizationChanged")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetServiceType")
     @ResponsePayload
-    HasOrganizationChangedResponse hasOrganizationChanged(@RequestPayload HasOrganizationChanged request);
+    GetServiceTypeResponse getServiceType(@RequestPayload GetServiceType request);
 
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetCompanies")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "IsProvider")
     @ResponsePayload
-    GetCompaniesResponse getCompanies(@RequestPayload GetCompanies request);
+    IsProviderResponse isProvider(@RequestPayload IsProvider request);
 
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "HasCompanyChanged")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetWsdl")
     @ResponsePayload
-    HasCompanyChangedResponse hasCompanyChanged(@RequestPayload HasCompanyChanged request);
+    GetWsdlResponse getWsdl(@RequestPayload GetWsdl request);
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetOpenAPI")
+    @ResponsePayload
+    GetOpenAPIResponse getOpenApi(@RequestPayload GetOpenAPI request);
+
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetErrors")
+    @ResponsePayload
+    GetErrorsResponse getErrors(@RequestPayload GetErrors request);
 }

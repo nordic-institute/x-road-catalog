@@ -10,7 +10,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.endpoint;
 
 import com.google.common.collect.Lists;
 import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
@@ -27,7 +27,10 @@ import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
 import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
 import fi.vrk.xroad.catalog.lister.generated.Organization;
 import fi.vrk.xroad.catalog.lister.generated.OrganizationList;
+import fi.vrk.xroad.catalog.lister.service.JaxbCompanyService;
+import fi.vrk.xroad.catalog.lister.service.JaxbOrganizationService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
