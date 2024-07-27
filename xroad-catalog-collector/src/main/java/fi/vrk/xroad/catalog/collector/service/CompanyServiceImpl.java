@@ -89,11 +89,6 @@ public class CompanyServiceImpl implements CompanyService {
     RegisteredOfficeRepository registeredOfficeRepository;
 
     @Override
-    public Iterable<Company> getCompanies(String businessId) {
-        return companyRepository.findAllByBusinessId(businessId);
-    }
-
-    @Override
     public Company saveCompany(Company company) {
         Optional<Company> foundCompany = companyRepository.findAny(company.getBusinessId(), company.getCompanyForm(),
                 company.getName());

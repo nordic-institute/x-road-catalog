@@ -34,12 +34,6 @@ import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
 public interface CompanyService {
 
     /**
-     * @param businessId Only interested in companies with this businessId value
-     * @return Iterable of Company entities
-     */
-    Iterable<Company> getCompanies(String businessId);
-
-    /**
      * Saves given company data. The company can either be a new one, or an update
      * to an existing one.
      * Updates "changed" field based on whether data is different compared to last
