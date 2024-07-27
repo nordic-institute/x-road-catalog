@@ -43,10 +43,10 @@ import fi.vrk.xroad.catalog.collector.util.XRoadClient;
 import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.Member;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

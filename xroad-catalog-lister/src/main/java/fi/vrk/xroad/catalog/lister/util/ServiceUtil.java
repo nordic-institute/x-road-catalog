@@ -12,12 +12,12 @@
  */
 package fi.vrk.xroad.catalog.lister.util;
 
-import fi.vrk.xroad.catalog.lister.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import fi.vrk.xroad.catalog.lister.SharedParamsParser;
-import fi.vrk.xroad.catalog.persistence.dto.DescriptorInfo;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerDataList;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerInfo;
-import fi.vrk.xroad.catalog.persistence.dto.MemberDataList;
+import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
+import org.niis.xroad.catalog.lister.dto.MemberDataList;
 import org.apache.commons.csv.CSVPrinter;
 import org.xml.sax.SAXException;
 import java.io.IOException;

@@ -33,8 +33,8 @@ import org.springframework.context.ApplicationContext;
 
 import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.CollectorUtils;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

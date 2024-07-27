@@ -1,13 +1,13 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2016-2023 Finnish Digital Agency
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package fi.vrk.xroad.catalog.collector.util;
@@ -23,8 +23,8 @@ import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import jakarta.activation.DataHandler;
 import jakarta.xml.ws.BindingProvider;
 import jakarta.xml.ws.Holder;
@@ -34,6 +34,7 @@ import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.http.HTTPConduit;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -104,7 +105,7 @@ public class XRoadClient {
      * Calls the service using JAX-WS endpoints that have been generated from wsdl
      */
     public List<XRoadServiceIdentifierType> getMethods(XRoadClientIdentifierType member,
-            CatalogService catalogService) {
+                                                       CatalogService catalogService) {
         XRoadServiceIdentifierType serviceIdentifierType = new XRoadServiceIdentifierType();
         copyIdentifierType(serviceIdentifierType, member);
 
@@ -192,8 +193,7 @@ public class XRoadClient {
         if (!(wsdl.value instanceof byte[])) {
             DataHandler dh = null;
             final Client client = ClientProxy.getClient(metaServicesPort);
-            @SuppressWarnings("unchecked")
-            final Collection<Attachment> attachments = (Collection<Attachment>) client.getResponseContext()
+            @SuppressWarnings("unchecked") final Collection<Attachment> attachments = (Collection<Attachment>) client.getResponseContext()
                     .get(Message.ATTACHMENTS);
             if (attachments != null && attachments.size() == 1) {
                 dh = attachments.iterator().next().getDataHandler();
@@ -246,12 +246,12 @@ public class XRoadClient {
     }
 
     public String getOpenApi(XRoadRestServiceIdentifierType service,
-            String host,
-            String xRoadInstance,
-            String memberClass,
-            String memberCode,
-            String subsystemCode,
-            CatalogService catalogService) {
+                             String host,
+                             String xRoadInstance,
+                             String memberClass,
+                             String memberCode,
+                             String subsystemCode,
+                             CatalogService catalogService) {
         ClientType clientType = new ClientType();
         XRoadClientIdentifierType xRoadClientIdentifierType = new XRoadClientIdentifierType();
         xRoadClientIdentifierType.setXRoadInstance(service.getXRoadInstance());

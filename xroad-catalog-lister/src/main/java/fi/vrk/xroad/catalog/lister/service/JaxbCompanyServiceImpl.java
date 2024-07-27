@@ -13,8 +13,8 @@
 package fi.vrk.xroad.catalog.lister.service;
 
 import fi.vrk.xroad.catalog.lister.convertor.JaxbOrganizationConverter;
-import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
-import fi.vrk.xroad.catalog.persistence.CompanyService;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Company;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange;
@@ -26,13 +26,13 @@ import fi.vrk.xroad.catalog.persistence.entity.Language;
 import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
-import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
-import fi.vrk.xroad.catalog.lister.generated.Company;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

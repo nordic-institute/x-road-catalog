@@ -12,7 +12,7 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.catalog.persistence.CatalogService;
+import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;

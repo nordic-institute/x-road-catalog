@@ -30,7 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 public final class CollectorUtils {
 

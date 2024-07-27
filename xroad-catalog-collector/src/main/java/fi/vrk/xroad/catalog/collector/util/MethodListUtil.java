@@ -1,21 +1,21 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2016-2023 Finnish Digital Agency
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package fi.vrk.xroad.catalog.collector.util;
 
 import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,6 +25,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,12 +42,12 @@ public final class MethodListUtil {
     }
 
     public static List<XRoadRestServiceIdentifierType> methodListFromResponse(ClientType clientType,
-            String host,
-            String xRoadInstance,
-            String memberClass,
-            String memberCode,
-            String subsystemCode,
-            CatalogService catalogService) {
+                                                                              String host,
+                                                                              String xRoadInstance,
+                                                                              String memberClass,
+                                                                              String memberCode,
+                                                                              String subsystemCode,
+                                                                              CatalogService catalogService) {
         final String url = new StringBuilder().append(host).append("/r1/")
                 .append(clientType.getId().getXRoadInstance()).append("/")
                 .append(clientType.getId().getMemberClass()).append("/")
@@ -92,12 +93,12 @@ public final class MethodListUtil {
     }
 
     public static String openApiFromResponse(ClientType clientType,
-            String host,
-            String xRoadInstance,
-            String memberClass,
-            String memberCode,
-            String subsystemCode,
-            CatalogService catalogService) {
+                                             String host,
+                                             String xRoadInstance,
+                                             String memberClass,
+                                             String memberCode,
+                                             String subsystemCode,
+                                             CatalogService catalogService) {
         final String url = new StringBuilder().append(host).append("/r1/")
                 .append(clientType.getId().getXRoadInstance()).append("/")
                 .append(clientType.getId().getMemberClass()).append("/")
@@ -122,7 +123,7 @@ public final class MethodListUtil {
     }
 
     private static String createHeader(String xRoadInstance, String memberClass, String memberCode,
-            String subsystemCode) {
+                                       String subsystemCode) {
         return new StringBuilder()
                 .append(xRoadInstance).append("/")
                 .append(memberClass).append("/")
@@ -131,7 +132,7 @@ public final class MethodListUtil {
     }
 
     private static JSONObject getJSON(String url, ClientType clientType, String xRoadClientHeader,
-            CatalogService catalogService) {
+                                      CatalogService catalogService) {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);

@@ -33,9 +33,9 @@ import org.springframework.context.ApplicationContext;
 
 import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.ServiceId;
-import fi.vrk.xroad.catalog.persistence.entity.SubsystemId;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.ServiceId;
+import org.niis.xroad.catalog.persistence.entity.SubsystemId;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -13,13 +13,13 @@
 package fi.vrk.xroad.catalog.lister;
 
 import com.google.common.collect.Lists;
-import fi.vrk.xroad.catalog.persistence.dto.DescriptorInfo;
-import fi.vrk.xroad.catalog.persistence.dto.Email;
-import fi.vrk.xroad.catalog.persistence.dto.MemberInfo;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerData;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerDataList;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerInfo;
-import fi.vrk.xroad.catalog.persistence.dto.SubsystemName;
+import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
+import fi.vrk.xroad.catalog.lister.dto.Email;
+import org.niis.xroad.catalog.lister.dto.MemberInfo;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerData;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
+import fi.vrk.xroad.catalog.lister.dto.SubsystemName;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;

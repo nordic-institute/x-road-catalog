@@ -14,7 +14,6 @@ package fi.vrk.xroad.catalog.lister.service;
 
 import fi.vrk.xroad.catalog.lister.convertor.JaxbOrganizationConverter;
 import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
-import fi.vrk.xroad.catalog.persistence.OrganizationService;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
 import fi.vrk.xroad.catalog.persistence.entity.OrganizationDescription;

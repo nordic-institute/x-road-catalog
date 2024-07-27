@@ -12,12 +12,12 @@
  */
 package fi.vrk.xroad.catalog.lister.util;
 
-import fi.vrk.xroad.catalog.lister.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import fi.vrk.xroad.catalog.lister.generated.OPENAPI;
 import fi.vrk.xroad.catalog.lister.generated.WSDL;
-import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.entity.OpenApi;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;

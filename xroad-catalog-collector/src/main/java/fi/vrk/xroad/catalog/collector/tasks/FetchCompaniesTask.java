@@ -38,8 +38,8 @@ import org.springframework.context.ApplicationContext;
 
 import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.CompanyService;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import fi.vrk.xroad.catalog.collector.service.CompanyService;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange;
