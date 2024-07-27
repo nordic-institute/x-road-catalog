@@ -10,25 +10,41 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.controller;
 
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import fi.vrk.xroad.catalog.lister.dto.HeartbeatResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import java.time.LocalDateTime;
 
+@RestController
+@RequestMapping("/api")
+@PropertySource("classpath:version.properties")
+@Profile({"default", "fi"})
+public class HeartbeatController implements HeartbeatOperations {
 
-@RequestMapping("/default")
-@Profile("fi")
-public interface OrganizationOperations {
+    @Value("${xroad-catalog.app-name}")
+    private String appName;
 
-    @GetMapping(path = {"/getOrganization/{businessCode}"}, produces = "application/json")
-    ResponseEntity<?> getOrganization(@PathVariable String businessCode);
+    @Value("${xroad-catalog.app-version}")
+    private String appVersion;
 
-    @GetMapping(path = {"/getOrganizationChanges/{businessCode}"}, produces = "application/json")
-    ResponseEntity<?> getOrganizationChanges(@PathVariable String businessCode,
-                                             @RequestParam(required = false) String startDate,
-                                             @RequestParam(required = false) String endDate);
+    @Autowired
+    private CatalogService catalogService;
+
+    @Override
+    public HeartbeatResponse getHeartbeat() {
+        return HeartbeatResponse.builder()
+                .appName(appName)
+                .appVersion(appVersion)
+                .systemTime(LocalDateTime.now())
+                .dbWorking(catalogService.checkDatabaseConnection())
+                .lastCollectionData(catalogService.getLastCollectionData())
+                .appWorking(Boolean.TRUE).build();
+    }
 }

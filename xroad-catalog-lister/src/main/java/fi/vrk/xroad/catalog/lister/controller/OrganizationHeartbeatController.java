@@ -10,11 +10,11 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.controller;
 
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.OrganizationService;
-import fi.vrk.xroad.catalog.persistence.dto.OrganizationHeartbeatResponse;
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import fi.vrk.xroad.catalog.lister.service.OrganizationService;
+import fi.vrk.xroad.catalog.lister.dto.OrganizationHeartbeatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
 @RequestMapping("/api")
 @PropertySource("classpath:version.properties")
 @Profile("fi")
-public class OrganizationHeartbeatController implements OrganizationHeartbeat {
+public class OrganizationHeartbeatController implements OrganizationHeartbeatOperations {
 
     @Value("${xroad-catalog.app-name}")
     private String appName;

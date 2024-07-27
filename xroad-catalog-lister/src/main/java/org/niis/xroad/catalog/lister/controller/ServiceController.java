@@ -10,27 +10,29 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.controller;
 
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import fi.vrk.xroad.catalog.lister.SharedParamsParser;
 import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
-import fi.vrk.xroad.catalog.persistence.dto.DescriptorInfo;
-import fi.vrk.xroad.catalog.persistence.dto.DistinctServiceStatistics;
-import fi.vrk.xroad.catalog.persistence.dto.DistinctServiceStatisticsResponse;
-import fi.vrk.xroad.catalog.persistence.dto.EndpointData;
-import fi.vrk.xroad.catalog.persistence.dto.ErrorLogResponse;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerDataList;
-import fi.vrk.xroad.catalog.persistence.dto.SecurityServerInfo;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.dto.ListOfServicesResponse;
-import fi.vrk.xroad.catalog.persistence.dto.MemberDataList;
-import fi.vrk.xroad.catalog.persistence.dto.ServiceEndpointsResponse;
-import fi.vrk.xroad.catalog.persistence.dto.ServiceResponse;
-import fi.vrk.xroad.catalog.persistence.dto.ServiceStatistics;
-import fi.vrk.xroad.catalog.persistence.dto.ServiceStatisticsResponse;
-import fi.vrk.xroad.catalog.persistence.dto.XRoadData;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
-import fi.vrk.xroad.catalog.persistence.entity.Rest;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
+import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
+import org.niis.xroad.catalog.lister.dto.DistinctServiceStatistics;
+import fi.vrk.xroad.catalog.lister.dto.DistinctServiceStatisticsResponse;
+import org.niis.xroad.catalog.lister.dto.EndpointData;
+import org.niis.xroad.catalog.lister.dto.ErrorLogResponse;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
+import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import fi.vrk.xroad.catalog.lister.dto.ListOfServicesResponse;
+import org.niis.xroad.catalog.lister.dto.MemberDataList;
+import fi.vrk.xroad.catalog.lister.dto.ServiceEndpointsResponse;
+import fi.vrk.xroad.catalog.lister.dto.ServiceResponse;
+import org.niis.xroad.catalog.lister.dto.ServiceStatistics;
+import fi.vrk.xroad.catalog.lister.dto.ServiceStatisticsResponse;
+import org.niis.xroad.catalog.lister.dto.XRoadData;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.entity.Rest;
+import org.niis.xroad.catalog.persistence.entity.Service;
 import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.csv.CSVFormat;

@@ -10,41 +10,19 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.controller;
 
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.dto.HeartbeatResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import fi.vrk.xroad.catalog.lister.dto.HeartbeatResponse;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import java.time.LocalDateTime;
 
-@RestController
-@RequestMapping("/api")
-@PropertySource("classpath:version.properties")
+
+@RequestMapping("/default")
 @Profile({"default", "fi"})
-public class HeartbeatController implements Heartbeat {
+public interface HeartbeatOperations {
 
-    @Value("${xroad-catalog.app-name}")
-    private String appName;
+    @GetMapping(path = "/heartbeat", produces = "application/json")
+    HeartbeatResponse getHeartbeat();
 
-    @Value("${xroad-catalog.app-version}")
-    private String appVersion;
-
-    @Autowired
-    private CatalogService catalogService;
-
-    @Override
-    public HeartbeatResponse getHeartbeat() {
-        return HeartbeatResponse.builder()
-                .appName(appName)
-                .appVersion(appVersion)
-                .systemTime(LocalDateTime.now())
-                .dbWorking(catalogService.checkDatabaseConnection())
-                .lastCollectionData(catalogService.getLastCollectionData())
-                .appWorking(Boolean.TRUE).build();
-    }
 }

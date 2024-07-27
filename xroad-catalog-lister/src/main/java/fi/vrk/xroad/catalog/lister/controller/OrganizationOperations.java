@@ -10,19 +10,25 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.controller;
 
-import fi.vrk.xroad.catalog.persistence.dto.HeartbeatResponse;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RequestMapping("/default")
-@Profile({"default", "fi"})
-public interface Heartbeat {
+@Profile("fi")
+public interface OrganizationOperations {
 
-    @GetMapping(path = "/heartbeat", produces = "application/json")
-    HeartbeatResponse getHeartbeat();
+    @GetMapping(path = {"/getOrganization/{businessCode}"}, produces = "application/json")
+    ResponseEntity<?> getOrganization(@PathVariable String businessCode);
 
+    @GetMapping(path = {"/getOrganizationChanges/{businessCode}"}, produces = "application/json")
+    ResponseEntity<?> getOrganizationChanges(@PathVariable String businessCode,
+                                             @RequestParam(required = false) String startDate,
+                                             @RequestParam(required = false) String endDate);
 }

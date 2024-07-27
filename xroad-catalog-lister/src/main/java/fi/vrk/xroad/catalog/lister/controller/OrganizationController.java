@@ -10,17 +10,20 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.controller;
 
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import fi.vrk.xroad.catalog.lister.service.JaxbCompanyService;
+import fi.vrk.xroad.catalog.lister.service.JaxbOrganizationService;
 import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
 import fi.vrk.xroad.catalog.lister.util.OrganizationUtil;
 import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
-import fi.vrk.xroad.catalog.persistence.CompanyService;
-import fi.vrk.xroad.catalog.persistence.OrganizationService;
-import fi.vrk.xroad.catalog.persistence.dto.CompanyData;
-import fi.vrk.xroad.catalog.persistence.dto.OrganizationChanged;
-import fi.vrk.xroad.catalog.persistence.dto.OrganizationDTO;
-import fi.vrk.xroad.catalog.persistence.dto.OrganizationData;
+import fi.vrk.xroad.catalog.lister.service.CompanyService;
+import fi.vrk.xroad.catalog.lister.service.OrganizationService;
+import fi.vrk.xroad.catalog.lister.dto.CompanyData;
+import fi.vrk.xroad.catalog.lister.dto.OrganizationChanged;
+import fi.vrk.xroad.catalog.lister.dto.OrganizationDTO;
+import fi.vrk.xroad.catalog.lister.dto.OrganizationData;
 import fi.vrk.xroad.catalog.persistence.entity.Company;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
 import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
@@ -142,9 +145,9 @@ public class OrganizationController implements OrganizationOperations {
                     .ok(OrganizationChanged.builder().changed(false).changedValueList(new ArrayList<>()).build());
         }
         if (changedValues.iterator().hasNext()) {
-            List<fi.vrk.xroad.catalog.persistence.dto.ChangedValue> changedValueList = new ArrayList<>();
+            List<fi.vrk.xroad.catalog.lister.dto.ChangedValue> changedValueList = new ArrayList<>();
             changedValues.forEach(
-                    changedValue -> changedValueList.add(fi.vrk.xroad.catalog.persistence.dto.ChangedValue.builder()
+                    changedValue -> changedValueList.add(fi.vrk.xroad.catalog.lister.dto.ChangedValue.builder()
                             .name(changedValue.getName())
                             .build()));
             organizationChanged = OrganizationChanged.builder().changed(true).changedValueList(changedValueList)
