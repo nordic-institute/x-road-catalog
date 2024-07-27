@@ -10,21 +10,28 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence.repository;
+package org.niis.xroad.catalog.persistence.repository;
 
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
-    /**
-     * Returns also removed items
-     */
-    List<Wsdl> findAnyByExternalId(String externalId);
+public interface SubsystemRepository extends CrudRepository<Subsystem, Long> {
 
-    @Query(value = "SELECT MAX(fetched) FROM wsdl", nativeQuery = true)
+    @Query("SELECT s FROM Subsystem s WHERE s.subsystemCode = :subsystemCode "
+            + "AND s.member.xRoadInstance = :xRoadInstance "
+            + "AND s.member.memberClass = :memberClass "
+            + "AND s.member.memberCode = :memberCode "
+            + "AND s.statusInfo.removed IS NULL")
+    Subsystem findActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+                                     @Param("memberClass") String memberClass,
+                                     @Param("memberCode") String memberCode,
+                                     @Param("subsystemCode") String subsystemCode);
+
+    @Query(value = "SELECT MAX(fetched) FROM subsystem", nativeQuery = true)
     LocalDateTime findLatestFetched();
 }
+

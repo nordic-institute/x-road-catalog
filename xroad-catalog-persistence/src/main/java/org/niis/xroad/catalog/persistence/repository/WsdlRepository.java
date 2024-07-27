@@ -10,28 +10,21 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence.repository;
+package org.niis.xroad.catalog.persistence.repository;
 
-import fi.vrk.xroad.catalog.persistence.entity.Endpoint;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface EndpointRepository extends CrudRepository<Endpoint, Long> {
+public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
     /**
      * Returns also removed items
      */
-    List<Endpoint> findAnyByService(Service service);
+    List<Wsdl> findAnyByExternalId(String externalId);
 
-    @Query(value = "SELECT MAX(fetched) FROM endpoint", nativeQuery = true)
+    @Query(value = "SELECT MAX(fetched) FROM wsdl", nativeQuery = true)
     LocalDateTime findLatestFetched();
-
-    @Query("SELECT e FROM Endpoint e WHERE e.service = :service "
-            + "AND e.method = :method AND e.path = :path ")
-    Endpoint findAnyByServicePathAndMethod(@Param("service") Service service, @Param("method") String method,
-            @Param("path") String path);
 }

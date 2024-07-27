@@ -10,21 +10,28 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence.repository;
+package org.niis.xroad.catalog.persistence.repository;
 
-import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
+import org.niis.xroad.catalog.persistence.entity.Endpoint;
+import org.niis.xroad.catalog.persistence.entity.Service;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface OpenApiRepository extends CrudRepository<OpenApi, Long> {
+public interface EndpointRepository extends CrudRepository<Endpoint, Long> {
     /**
      * Returns also removed items
      */
-    List<OpenApi> findAnyByExternalId(String externalId);
+    List<Endpoint> findAnyByService(Service service);
 
-    @Query(value = "SELECT MAX(fetched) FROM open_api", nativeQuery = true)
+    @Query(value = "SELECT MAX(fetched) FROM endpoint", nativeQuery = true)
     LocalDateTime findLatestFetched();
+
+    @Query("SELECT e FROM Endpoint e WHERE e.service = :service "
+            + "AND e.method = :method AND e.path = :path ")
+    Endpoint findAnyByServicePathAndMethod(@Param("service") Service service, @Param("method") String method,
+            @Param("path") String path);
 }
