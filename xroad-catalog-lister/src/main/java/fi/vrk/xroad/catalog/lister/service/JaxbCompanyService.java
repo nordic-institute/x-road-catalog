@@ -10,38 +10,35 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.service;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
-import fi.vrk.xroad.catalog.lister.generated.Member;
+import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import fi.vrk.xroad.catalog.lister.generated.Company;
 
-public interface JaxbCatalogService {
-
-    /**
-     * Returns all members that have had some part of member->substem->service->wsdl
-     * graph
-     * changed after <code>startDateTime</code>. If startDateTime = null, returns
-     * all members
-     * altogether.
-     *
-     * All substem->service->wsdl items are always returned, whether they are
-     * removed items
-     * or not, and whether they have been updated since startDateTime or not.
-     *
-     * @param startDateTime creation datetime from
-     * @param endDateTime   creation datetime to
-     * @return Iterable of JAXB generated Members
-     */
-    Iterable<Member> getAllMembers(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime);
+public interface JaxbCompanyService {
 
     /**
-     * Returns all errorLog entries
-     * 
+     * Returns whether some values of Company have changed
+     *
+     * @param businessID    businessId of a company
      * @param startDateTime creation datetime from
      * @param endDateTime   creation datetime to
-     * @return Iterable of JAXB generated ErrorLog entries
+     * @return Iterable of JAXB generated ChangedValues
      */
-    Iterable<ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime);
+    Iterable<ChangedValue> getChangedCompanyValues(String businessID,
+            XMLGregorianCalendar startDateTime,
+            XMLGregorianCalendar endDateTime);
+
+    /**
+     * Returns all companies
+     *
+     * All subitems of company are always returned
+     *
+     * @param businessId businessId of a company
+     * @return Iterable of JAXB generated Companies
+     */
+    Iterable<Company> getCompanies(String businessId);
+
 }

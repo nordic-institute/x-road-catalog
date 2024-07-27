@@ -10,8 +10,10 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.service;
 
+import fi.vrk.xroad.catalog.lister.convertor.JaxbOrganizationConverter;
+import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import fi.vrk.xroad.catalog.persistence.OrganizationService;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
@@ -35,6 +37,7 @@ import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
 import fi.vrk.xroad.catalog.lister.generated.Organization;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;

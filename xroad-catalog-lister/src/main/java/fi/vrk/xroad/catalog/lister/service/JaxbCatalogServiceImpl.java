@@ -10,12 +10,14 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package fi.vrk.xroad.catalog.lister.service;
 
-import fi.vrk.xroad.catalog.persistence.CatalogService;
+import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
+import org.niis.xroad.catalog.lister.service.CatalogService;
 import fi.vrk.xroad.catalog.lister.generated.Member;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -34,7 +36,7 @@ public class JaxbCatalogServiceImpl implements JaxbCatalogService {
 
     @Override
     public Iterable<Member> getAllMembers(XMLGregorianCalendar startDateTime, XMLGregorianCalendar endDateTime) {
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.Member> entities;
+        Iterable<org.niis.xroad.catalog.persistence.entity.Member> entities;
         if (startDateTime != null && endDateTime != null) {
             entities = catalogService.getAllMembers(jaxbServiceConverter.toLocalDateTime(startDateTime),
                     jaxbServiceConverter.toLocalDateTime(endDateTime));
@@ -48,7 +50,7 @@ public class JaxbCatalogServiceImpl implements JaxbCatalogService {
     @Override
     public Iterable<fi.vrk.xroad.catalog.lister.generated.ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime,
             XMLGregorianCalendar endDateTime) {
-        Iterable<fi.vrk.xroad.catalog.persistence.entity.ErrorLog> entities;
+        Iterable<ErrorLog> entities;
         entities = catalogService.getErrorLog(jaxbServiceConverter.toLocalDateTime(startDateTime),
                 jaxbServiceConverter.toLocalDateTime(endDateTime));
         return jaxbServiceConverter.convertErrorLog(entities);
