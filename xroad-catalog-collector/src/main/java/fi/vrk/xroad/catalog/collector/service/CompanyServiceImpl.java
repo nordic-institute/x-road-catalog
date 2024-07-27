@@ -10,7 +10,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence;
+package fi.vrk.xroad.catalog.collector.service;
 
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
@@ -24,7 +24,7 @@ import fi.vrk.xroad.catalog.persistence.entity.Language;
 import fi.vrk.xroad.catalog.persistence.entity.Liquidation;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredEntry;
 import fi.vrk.xroad.catalog.persistence.entity.RegisteredOffice;
-import fi.vrk.xroad.catalog.persistence.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.entity.StatusInfo;
 import fi.vrk.xroad.catalog.persistence.repository.BusinessAddressRepository;
 import fi.vrk.xroad.catalog.persistence.repository.BusinessAuxiliaryNameRepository;
 import fi.vrk.xroad.catalog.persistence.repository.BusinessIdChangeRepository;

@@ -10,23 +10,12 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence;
+package org.niis.xroad.catalog.collector.service;
 
-import fi.vrk.xroad.catalog.persistence.dto.LastCollectionData;
-import fi.vrk.xroad.catalog.persistence.dto.DistinctServiceStatistics;
-import fi.vrk.xroad.catalog.persistence.dto.MemberDataList;
-import fi.vrk.xroad.catalog.persistence.dto.ServiceStatistics;
-import fi.vrk.xroad.catalog.persistence.dto.XRoadData;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
-import fi.vrk.xroad.catalog.persistence.entity.Member;
-import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
-import fi.vrk.xroad.catalog.persistence.entity.Rest;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.ServiceId;
-import fi.vrk.xroad.catalog.persistence.entity.SubsystemId;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-
+import org.niis.xroad.catalog.lister.dto.*;
+import org.niis.xroad.catalog.persistence.entity.*;
 import org.springframework.data.domain.Page;
+
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
