@@ -12,7 +12,6 @@
  */
 package fi.vrk.xroad.catalog.collector.service;
 
-import fi.vrk.xroad.catalog.lister.dto.LastOrganizationCollectionData;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
@@ -25,7 +24,6 @@ import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
 import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
 import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
 import fi.vrk.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
 import fi.vrk.xroad.catalog.persistence.entity.Street;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddress;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
@@ -54,9 +52,11 @@ import fi.vrk.xroad.catalog.persistence.repository.StreetAddressRepository;
 import fi.vrk.xroad.catalog.persistence.repository.StreetRepository;
 import fi.vrk.xroad.catalog.persistence.repository.WebPageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.persistence.entity.StatusInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -127,23 +127,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Autowired
     CompanyRepository companyRepository;
-
-    @Override
-    public LastOrganizationCollectionData getLastOrganizationCollectionData() {
-        return LastOrganizationCollectionData.builder()
-                .organizationsLastFetched(organizationRepository.findLatestFetched())
-                .companiesLastFetched(companyRepository.findLatestFetched()).build();
-    }
-
-    @Override
-    public Iterable<Organization> getOrganizations(String businessCode) {
-        return organizationRepository.findAllByBusinessCode(businessCode);
-    }
-
-    @Override
-    public Optional<Organization> getOrganization(String guid) {
-        return organizationRepository.findAnyByOrganizationGuid(guid);
-    }
 
     @Override
     @Transactional

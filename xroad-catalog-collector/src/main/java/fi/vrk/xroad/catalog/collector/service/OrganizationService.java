@@ -12,7 +12,6 @@
  */
 package fi.vrk.xroad.catalog.collector.service;
 
-import fi.vrk.xroad.catalog.lister.dto.LastOrganizationCollectionData;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
@@ -33,8 +32,6 @@ import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
 import fi.vrk.xroad.catalog.persistence.entity.WebPage;
 
-import java.util.Optional;
-
 /**
  * CRUD methods for organization related objects. no business logic (e.g. hash
  * calculation),
@@ -42,28 +39,6 @@ import java.util.Optional;
  * Organization entities have time stamps created, updated and deleted.
  */
 public interface OrganizationService {
-
-    /**
-     * Retrieves latest collection data
-     * 
-     * @return LastCollectionData
-     */
-    LastOrganizationCollectionData getLastOrganizationCollectionData();
-
-    /**
-     * @param businessCode Only interested in organizations with this businessCode
-     *                     value
-     * @return Iterable of Organization entities
-     */
-    Iterable<Organization> getOrganizations(String businessCode);
-
-    /**
-     * Returns the full Organization object.
-     * 
-     * @param guid guid of an organization
-     * @return Organization, if any
-     */
-    Optional<Organization> getOrganization(String guid);
 
     /**
      * Saves given organization data. The organization can either be a new one, or
