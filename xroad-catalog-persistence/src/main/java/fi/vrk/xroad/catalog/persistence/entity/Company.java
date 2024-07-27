@@ -37,6 +37,7 @@ import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
+import org.niis.xroad.catalog.persistence.entity.StatusInfo;
 
 @Entity
 @Getter

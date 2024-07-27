@@ -10,19 +10,21 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence.entity;
+package org.niis.xroad.catalog.persistence.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
-@EqualsAndHashCode
-@AllArgsConstructor
-public class MemberId {
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public class SubsystemId extends MemberId {
+
     @Getter
-    private String xRoadInstance;
-    @Getter
-    private String memberClass;
-    @Getter
-    private String memberCode;
+    private String subsystemCode;
+
+    public SubsystemId(String xRoadInstance, String memberClass, String memberCode, String subsystemCode) {
+        super(xRoadInstance, memberClass, memberCode);
+        this.subsystemCode = subsystemCode;
+    }
 }

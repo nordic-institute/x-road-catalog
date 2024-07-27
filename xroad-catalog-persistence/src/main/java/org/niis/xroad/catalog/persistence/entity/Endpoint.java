@@ -10,61 +10,53 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence.entity;
+package org.niis.xroad.catalog.persistence.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode(exclude = { "id" })
-@Builder
-public class ErrorLog {
+@ToString(exclude = "service")
+public class Endpoint {
     @Id
     @Column(nullable = false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ERROR_LOG_GEN")
-    @SequenceGenerator(name = "ERROR_LOG_GEN", sequenceName = "ERROR_LOG_ID_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ENDPOINT_GEN")
+    @SequenceGenerator(name = "ENDPOINT_GEN", sequenceName = "ENDPOINT_ID_SEQ", allocationSize = 1)
     private long id;
+    @ManyToOne
+    @JoinColumn(name = "SERVICE_ID")
+    private Service service;
+
     @Column(nullable = false)
-    private String message;
+    private String method;
+
     @Column(nullable = false)
-    private String code;
-    @Column(nullable = false)
-    private LocalDateTime created;
-    @Column
-    private String xRoadInstance;
-    @Column
-    private String memberClass;
-    @Column
-    private String memberCode;
-    @Column
-    private String subsystemCode;
-    @Column
-    private String groupCode;
-    @Column
-    private String serviceCode;
-    @Column
-    private String serviceVersion;
-    @Column
-    private String securityCategoryCode;
-    @Column
-    private String serverCode;
+    private String path;
+    @Embedded
+    private StatusInfo statusInfo = new StatusInfo();
+
+    public Endpoint() {
+        // Empty constructor
+    }
+
+    public Endpoint(Service service, String method, String path) {
+        this.service = service;
+        this.method = method;
+        this.path = path;
+        statusInfo.setTimestampsForNew(LocalDateTime.now());
+    }
+
 }

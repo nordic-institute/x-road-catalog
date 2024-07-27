@@ -10,11 +10,13 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence.entity;
+package org.niis.xroad.catalog.persistence.entity;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -27,24 +29,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Getter
 @Setter
 @ToString(exclude = "service")
-public class Rest {
+public class OpenApi {
     @Id
     @Column(nullable = false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REST_GEN")
-    @SequenceGenerator(name = "REST_GEN", sequenceName = "REST_ID_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPEN_API_GEN")
+    @SequenceGenerator(name = "OPEN_API_GEN", sequenceName = "OPEN_API_ID_SEQ", allocationSize = 1)
     private long id;
-
     @ManyToOne
     @JoinColumn(name = "SERVICE_ID")
     private Service service;
-
     // this is not lazy loaded since hibernate would need build-time bytecode
     // enhancement
     // this could be optimized e.g. by not mapping this data to JPA entity, and
@@ -57,11 +55,11 @@ public class Rest {
     @Embedded
     private StatusInfo statusInfo = new StatusInfo();
 
-    public Rest() {
+    public OpenApi() {
         // Empty constructor
     }
 
-    public Rest(Service service, String data, String externalId) {
+    public OpenApi(Service service, String data, String externalId) {
         this.service = service;
         this.data = data;
         this.externalId = externalId;
