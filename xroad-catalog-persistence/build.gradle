@@ -37,10 +37,6 @@ test {
     finalizedBy jacocoTestReport
 }
 
-tasks.withType(org.springframework.boot.gradle.tasks.run.BootRun) {
-    systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'default')
-}
-
 bootJar {
     enabled = false
 }
@@ -48,10 +44,6 @@ bootJar {
 jar {
     enabled = true
     archiveClassifier = ''
-}
-
-springBoot {
-    mainClass = 'fi.vrk.xroad.catalog.persistence.Application'
 }
 
 jacocoTestReport {

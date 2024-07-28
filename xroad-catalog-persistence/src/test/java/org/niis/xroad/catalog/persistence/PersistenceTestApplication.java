@@ -10,19 +10,23 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence;
+package org.niis.xroad.catalog.persistence;
 
+import fi.vrk.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
-@EntityScan(basePackageClasses = { Application.class, Jsr310JpaConverters.class })
 @SpringBootApplication
-public class Application {
+@ComponentScan(basePackageClasses = Jsr310JpaConverters.class)
+@Import({PersistenceDefaultConfiguration.class, PersistenceVrkConfiguration.class})
+public class PersistenceTestApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class);
+        SpringApplication.run(PersistenceTestApplication.class);
     }
 
 }
