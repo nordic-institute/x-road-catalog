@@ -12,27 +12,16 @@
  */
 package fi.vrk.xroad.catalog.persistence;
 
-import org.springframework.beans.BeanUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import fi.vrk.xroad.catalog.persistence.entity.Member;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.StatusInfo;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.StreamSupport;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Component
 public class TestUtil {
@@ -42,13 +31,6 @@ public class TestUtil {
 
     @Autowired
     EntityManager entityManager;
-
-    public static void verifySavedStatusInfo(StatusInfo statusInfo) {
-        assertNotNull(statusInfo.getCreated());
-        assertNotNull(statusInfo.getChanged());
-        assertNotNull(statusInfo.getFetched());
-        assertNull(statusInfo.getRemoved());
-    }
 
     public <T> Optional<T> getEntity(Iterable<T> entities, Long l) {
         return StreamSupport.stream(entities.spliterator(), false)
@@ -65,7 +47,7 @@ public class TestUtil {
         return set;
     }
 
-    public Long getIdentifier(Object entity) {
+    private Long getIdentifier(Object entity) {
         return (Long) entityManagerFactory.getPersistenceUnitUtil().getIdentifier(entity);
     }
 
@@ -73,109 +55,4 @@ public class TestUtil {
         return LocalDateTime.of(year, month, day, 0, 0, 0);
     }
 
-    public Member createTestMember(String name) {
-        LocalDateTime now = LocalDateTime.now();
-        Member member = new Member();
-        member.setName(name);
-        member.setXRoadInstance("FI");
-        member.setMemberClass("GOV");
-        member.setMemberCode("code-" + name);
-        member.getStatusInfo().setCreated(now);
-        member.getStatusInfo().setChanged(now);
-
-        Subsystem ss1 = createSubsystem(name, now, "ss1");
-        Subsystem ss2 = createSubsystem(name, now, "ss2");
-        ss1.setMember(member);
-        ss2.setMember(member);
-        member.setSubsystems(new HashSet<>());
-        member.getAllSubsystems().add(ss1);
-        member.getAllSubsystems().add(ss2);
-
-        Service s1 = createService(name, now, "service1");
-        Service s2 = createService(name, now, "service2");
-
-        s1.setSubsystem(ss1);
-        s2.setSubsystem(ss1);
-        ss1.setServices(new HashSet<>());
-        ss1.getAllServices().add(s1);
-        ss1.getAllServices().add(s2);
-
-        Wsdl wsdl = new Wsdl();
-        s1.setWsdl(wsdl);
-        wsdl.setService(s1);
-        wsdl.setData("<?xml version=\"1.0\" standalone=\"no\"?><wsdl/>");
-        wsdl.setExternalId("external-id-" + name);
-        wsdl.getStatusInfo().setTimestampsForNew(now);
-
-        return member;
-    }
-
-    private Service createService(String memberName, LocalDateTime d, String serviceName) {
-        Service s1 = new Service(null, memberName + "-" + serviceName, "v1");
-        s1.getStatusInfo().setTimestampsForNew(d);
-        return s1;
-    }
-
-    private Subsystem createSubsystem(String memberName, LocalDateTime date, String ssName) {
-        Subsystem ss1 = new Subsystem();
-        ss1.setSubsystemCode(memberName + "-" + ssName);
-        ss1.getStatusInfo().setTimestampsForNew(date);
-        return ss1;
-    }
-
-    public Member createTestMember(String memberCode, int subsystems) {
-        Member fooMember = new Member("dev-cs", "PUB", memberCode, "UnitTestMember-" + memberCode);
-        fooMember.setSubsystems(new HashSet<>());
-        for (int i = 0; i < subsystems; i++) {
-            Subsystem subsystem1 = new Subsystem(null, "subsystem" + i);
-            fooMember.getAllSubsystems().add(subsystem1);
-            subsystem1.setMember(fooMember);
-        }
-        return fooMember;
-    }
-
-    public void shallowCopyFields(Member from, Member to) {
-        // only copy simple non-jpa-magical primitive properties
-        BeanUtils.copyProperties(from, to, "id", "statusInfo", "subsystems");
-    }
-
-    public void shallowCopyFields(Subsystem from, Subsystem to) {
-        // only copy simple non-jpa-magical primitive properties
-        BeanUtils.copyProperties(from, to, "id", "statusInfo", "member", "services");
-    }
-
-    public void shallowCopyFields(Service from, Service to) {
-        // only copy simple non-jpa-magical primitive properties
-        BeanUtils.copyProperties(from, to, "id", "statusInfo", "subsystem", "wsdl", "openApi");
-    }
-
-    public void entityManagerDetach(Object entity) {
-        entityManager.detach(entity);
-    }
-
-    public void entityManagerFlush() {
-        entityManager.flush();
-    }
-
-    public void entityManagerClear() {
-        entityManager.clear();
-    }
-
-    public void assertEqualities(StatusInfo original, StatusInfo checked,
-            boolean sameCreated, boolean sameChanged,
-            boolean sameRemoved, boolean sameFetched) {
-
-        assertEquals(sameCreated, Objects.equals(original.getCreated(), checked.getCreated()));
-        assertEquals(sameChanged, Objects.equals(original.getChanged(), checked.getChanged()));
-        assertEquals(sameRemoved, Objects.equals(original.getRemoved(), checked.getRemoved()));
-        assertEquals(sameFetched, Objects.equals(original.getFetched(), checked.getFetched()));
-    }
-
-    public void assertAllSame(StatusInfo original, StatusInfo checked) {
-        assertEqualities(original, checked, true, true, true, true);
-    }
-
-    public void assertFetchedIsOnlyDifferent(StatusInfo original, StatusInfo checked) {
-        assertEqualities(original, checked, true, true, true, false);
-    }
 }
