@@ -12,7 +12,7 @@
  */
 package org.niis.xroad.catalog.persistence;
 
-import fi.dvv.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import fi.dvv.xroad.catalog.persistence.configuration.PersistenceFinlandConfiguration;
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,7 +22,7 @@ import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 
 @SpringBootApplication
 @ComponentScan(basePackageClasses = Jsr310JpaConverters.class)
-@Import({PersistenceDefaultConfiguration.class, PersistenceVrkConfiguration.class})
+@Import({PersistenceDefaultConfiguration.class, PersistenceFinlandConfiguration.class})
 public class PersistenceTestApplication {
 
     public static void main(String[] args) {

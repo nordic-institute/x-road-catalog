@@ -12,11 +12,11 @@
  */
 package org.niis.xroad.catalog.collector;
 
-import fi.dvv.xroad.catalog.collector.configuration.CatalogVrkConfiguration;
+import fi.dvv.xroad.catalog.collector.configuration.CatalogFinlandConfiguration;
 import fi.dvv.xroad.catalog.collector.tasks.FetchCompaniesTask;
 import fi.dvv.xroad.catalog.collector.tasks.FetchOrganizationsTask;
 import fi.dvv.xroad.catalog.collector.tasks.UpdateExternalsTask;
-import fi.dvv.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import fi.dvv.xroad.catalog.persistence.configuration.PersistenceFinlandConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.CatalogDefaultConfiguration;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
@@ -48,9 +48,9 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 @Import({
         PersistenceDefaultConfiguration.class,
-        PersistenceVrkConfiguration.class,
+        PersistenceFinlandConfiguration.class,
         CatalogDefaultConfiguration.class,
-        CatalogVrkConfiguration.class
+        CatalogFinlandConfiguration.class
 })
 public class XRoadCatalogCollector {
 

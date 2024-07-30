@@ -33,5 +33,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = "fi.dvv.xroad.catalog.persistence")
 @EnableJpaRepositories("fi.dvv.xroad.catalog.persistence.repository")
 @EntityScan("fi.dvv.xroad.catalog.persistence.entity")
-public class PersistenceVrkConfiguration {
+public class PersistenceFinlandConfiguration {
 }

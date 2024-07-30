@@ -12,8 +12,8 @@
  */
 package org.niis.xroad.catalog.lister;
 
-import fi.dvv.xroad.catalog.lister.configuration.ListerVrkConfiguration;
-import fi.dvv.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import fi.dvv.xroad.catalog.lister.configuration.ListerFinlandConfiguration;
+import fi.dvv.xroad.catalog.persistence.configuration.PersistenceFinlandConfiguration;
 import org.niis.xroad.catalog.lister.configuration.ListerDefaultConfiguration;
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -23,9 +23,9 @@ import org.springframework.context.annotation.Import;
 @SpringBootApplication
 @Import({
         PersistenceDefaultConfiguration.class,
-        PersistenceVrkConfiguration.class,
+        PersistenceFinlandConfiguration.class,
         ListerDefaultConfiguration.class,
-        ListerVrkConfiguration.class
+        ListerFinlandConfiguration.class
 })
 public class ListerApplication {
 
