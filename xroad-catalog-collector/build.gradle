@@ -42,7 +42,7 @@ tasks.withType(Jar).configureEach {
 }
 
 springBoot {
-    mainClass = 'fi.vrk.xroad.catalog.collector.XRoadCatalogCollector'
+    mainClass = 'org.niis.xroad.catalog.collector.XRoadCatalogCollector'
 }
 
 task wsImport {
@@ -64,7 +64,7 @@ task wsImport {
                     destdir: destdir,
                     wsdl: wsdl,
                     wsdllocation: "/schema/metaservices.wsdl",
-                    package: "fi.vrk.xroad.catalog.collector.wsimport",
+                    package: "org.niis.xroad.catalog.collector.wsimport",
                     keep: "true"
             ) {
                 produces(dir: sourcedestdir, includes: "**/*.java")
