@@ -93,11 +93,11 @@ INSERT INTO wsdl (id, service_id, data, external_id, created, changed, fetched, 
 VALUES (9, 4, '<?xml version="1.0" standalone="no"?><wsdl-61-1-1-1-changed/>', '9999', '2016-01-01 00:00:00+02', '2017-01-02 00:00:00+02', '2017-01-02 00:00:00+02', NULL);
 
 INSERT INTO open_api (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (1, 11, '<openapi>', '3003', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
+VALUES (1, 11, '<openapi>', '3003', '2016-01-01 00:00:00+02', '2016-01-02 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
 INSERT INTO open_api (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (2, 12, '<openapi>', '3004', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
+VALUES (2, 12, '<openapi>', '3004', '2016-01-01 00:00:00+02', '2016-01-02 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
 INSERT INTO open_api (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (3, 13, '<openapi>', '3005', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
+VALUES (3, 13, '<openapi>', '3005', '2016-01-01 00:00:00+02', '2016-01-02 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
 
 INSERT INTO rest (id, service_id, data, external_id, created, changed, fetched, removed)
 VALUES (1, 13, '{"endpoint_list": []}}', '3003', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
@@ -116,7 +116,7 @@ INSERT INTO endpoint (id, service_id, method, path, created, changed, fetched, r
 VALUES (3, 12, 'POST', '/setOtherData', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
 
 INSERT INTO organization (id, organization_type, publishing_status, business_code, guid, created, changed, fetched, removed)
-VALUES (1, 'Municipality', 'Published', '0123456-9', 'abcdef123456', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
+VALUES (1, 'Municipality', 'Published', '0123456-9', 'abcdef123456', '2016-01-02 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
 
 INSERT INTO organization_name (id, organization_id, language, type, value, created, changed, fetched, removed)
 VALUES (1, 1, 'fi', 'Name', 'Vaasan kaupunki', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
