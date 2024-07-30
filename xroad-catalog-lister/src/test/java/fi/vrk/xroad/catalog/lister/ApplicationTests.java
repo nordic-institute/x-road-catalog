@@ -12,44 +12,49 @@
  */
 package fi.vrk.xroad.catalog.lister;
 
-import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
-import fi.vrk.xroad.catalog.lister.generated.Company;
-import fi.vrk.xroad.catalog.lister.generated.Email;
-import fi.vrk.xroad.catalog.lister.generated.EmailList;
-import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
-import fi.vrk.xroad.catalog.lister.generated.GetCompanies;
-import fi.vrk.xroad.catalog.lister.generated.GetCompaniesResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetErrors;
-import fi.vrk.xroad.catalog.lister.generated.GetErrorsResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetOpenAPI;
-import fi.vrk.xroad.catalog.lister.generated.GetOpenAPIResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetOrganizations;
-import fi.vrk.xroad.catalog.lister.generated.GetOrganizationsResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetServiceType;
-import fi.vrk.xroad.catalog.lister.generated.GetServiceTypeResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetWsdl;
-import fi.vrk.xroad.catalog.lister.generated.GetWsdlResponse;
-import fi.vrk.xroad.catalog.lister.generated.HasCompanyChanged;
-import fi.vrk.xroad.catalog.lister.generated.HasCompanyChangedResponse;
-import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
-import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
-import fi.vrk.xroad.catalog.lister.generated.IsProvider;
-import fi.vrk.xroad.catalog.lister.generated.IsProviderResponse;
-import fi.vrk.xroad.catalog.lister.generated.ListMembers;
-import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
-import fi.vrk.xroad.catalog.lister.generated.Member;
-import fi.vrk.xroad.catalog.lister.generated.Organization;
-import fi.vrk.xroad.catalog.lister.generated.WebPage;
-import fi.vrk.xroad.catalog.lister.generated.WebPageList;
+import org.niis.xroad.catalog.lister.service.JaxbCatalogService;
+import fi.vrk.xroad.catalog.lister.service.JaxbCompanyService;
+import fi.vrk.xroad.catalog.lister.service.JaxbOrganizationService;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.niis.xroad.catalog.lister.ListerApplication;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.generated.ChangedValue;
+import org.niis.xroad.catalog.lister.generated.Company;
+import org.niis.xroad.catalog.lister.generated.Email;
+import org.niis.xroad.catalog.lister.generated.EmailList;
+import org.niis.xroad.catalog.lister.generated.ErrorLog;
+import org.niis.xroad.catalog.lister.generated.GetCompanies;
+import org.niis.xroad.catalog.lister.generated.GetCompaniesResponse;
+import org.niis.xroad.catalog.lister.generated.GetErrors;
+import org.niis.xroad.catalog.lister.generated.GetErrorsResponse;
+import org.niis.xroad.catalog.lister.generated.GetOpenAPI;
+import org.niis.xroad.catalog.lister.generated.GetOpenAPIResponse;
+import org.niis.xroad.catalog.lister.generated.GetOrganizations;
+import org.niis.xroad.catalog.lister.generated.GetOrganizationsResponse;
+import org.niis.xroad.catalog.lister.generated.GetServiceType;
+import org.niis.xroad.catalog.lister.generated.GetServiceTypeResponse;
+import org.niis.xroad.catalog.lister.generated.GetWsdl;
+import org.niis.xroad.catalog.lister.generated.GetWsdlResponse;
+import org.niis.xroad.catalog.lister.generated.HasCompanyChanged;
+import org.niis.xroad.catalog.lister.generated.HasCompanyChangedResponse;
+import org.niis.xroad.catalog.lister.generated.HasOrganizationChanged;
+import org.niis.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
+import org.niis.xroad.catalog.lister.generated.IsProvider;
+import org.niis.xroad.catalog.lister.generated.IsProviderResponse;
+import org.niis.xroad.catalog.lister.generated.ListMembers;
+import org.niis.xroad.catalog.lister.generated.ListMembersResponse;
+import org.niis.xroad.catalog.lister.generated.Member;
+import org.niis.xroad.catalog.lister.generated.Organization;
+import org.niis.xroad.catalog.lister.generated.WebPage;
+import org.niis.xroad.catalog.lister.generated.WebPageList;
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.OpenApi;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -58,6 +63,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.ClassUtils;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.soap.client.SoapFaultClientException;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -70,7 +76,10 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -857,7 +866,7 @@ public class ApplicationTests {
     }
 
     private void mockProvider(String xRoadInstance, String memberClass, String memberCode) {
-        fi.vrk.xroad.catalog.persistence.entity.Member member = new fi.vrk.xroad.catalog.persistence.entity.Member();
+        org.niis.xroad.catalog.persistence.entity.Member member = new org.niis.xroad.catalog.persistence.entity.Member();
         member.setXRoadInstance(xRoadInstance);
         member.setMemberClass(memberClass);
         member.setMemberCode(memberCode);
@@ -872,7 +881,7 @@ public class ApplicationTests {
     }
 
     private void mockNoProvider(String xRoadInstance, String memberClass, String memberCode) {
-        fi.vrk.xroad.catalog.persistence.entity.Member member = new fi.vrk.xroad.catalog.persistence.entity.Member();
+        org.niis.xroad.catalog.persistence.entity.Member member = new org.niis.xroad.catalog.persistence.entity.Member();
         member.setXRoadInstance(xRoadInstance);
         member.setMemberClass(memberClass);
         member.setMemberCode(memberCode);
