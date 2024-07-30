@@ -1,5 +1,4 @@
 plugins {
-    alias (libs.plugins.spring.boot)
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -35,10 +34,6 @@ test {
         includeEngines 'junit-jupiter'
     }
     finalizedBy jacocoTestReport
-}
-
-bootJar {
-    enabled = false
 }
 
 jar {
