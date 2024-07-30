@@ -103,222 +103,178 @@ public class MockMetaServicesImpl implements MetaServicesPort {
         return MessageFormat.format(WSDL_TEMPLATE, serviceCode, serviceVersion);
     }
 
-    private static final String WSDL_TEMPLATE = "<wsdl:definitions xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"\n"
-            +
-            "                  xmlns:tns=\"http://vrk-test.x-road.fi/producer\"\n" +
-            "                  xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\"\n" +
-            "                  xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\"\n" +
-            "                  xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"\n" +
-            "                  xmlns:id=\"http://x-road.eu/xsd/identifiers\"\n" +
-            "                  name=\"testService\" targetNamespace=\"http://vrk-test.x-road.fi/producer\">\n"
-            +
-            "    <wsdl:types>\n" +
-            "        <!-- Schema for identifiers (reduced) -->\n" +
-            "        <xsd:schema elementFormDefault=\"qualified\"\n" +
-            "                    targetNamespace=\"http://x-road.eu/xsd/identifiers\"\n"
-            +
-            "                    xmlns=\"http://x-road.eu/xsd/identifiers\">\n" +
-            "            <xsd:simpleType name=\"XRoadObjectType\">\n" +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Enumeration for X-Road identifier\n"
-            +
-            "                        types that can be used in requests.\n" +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "                <xsd:restriction base=\"xsd:string\">\n" +
-            "                    <xsd:enumeration value=\"MEMBER\" />\n" +
-            "                    <xsd:enumeration value=\"SUBSYSTEM\" />\n" +
-            "                    <xsd:enumeration value=\"SERVICE\" />\n" +
-            "                </xsd:restriction>\n" +
-            "            </xsd:simpleType>\n" +
-            "            <xsd:element name=\"xRoadInstance\" type=\"xsd:string\">\n"
-            +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Identifies the X-Road instance.\n"
-            +
-            "                        This field is applicable to all identifier\n" +
-            "                        types.\n" +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "            </xsd:element>\n" +
-            "            <xsd:element name=\"memberClass\" type=\"xsd:string\">\n" +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Type of the member (company,\n"
-            +
-            "                        government institution, private person, etc.)\n"
-            +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "            </xsd:element>\n" +
-            "            <xsd:element name=\"memberCode\" type=\"xsd:string\">\n" +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Code that uniquely identifies a\n"
-            +
-            "                        member of given member type.\n" +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "            </xsd:element>\n" +
-            "            <xsd:element name=\"subsystemCode\" type=\"xsd:string\">\n"
-            +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Code that uniquely identifies a\n"
-            +
-            "                        subsystem of given SDSB member.\n" +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "            </xsd:element>\n" +
-            "            <xsd:element name=\"serviceCode\" type=\"xsd:string\">\n" +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Code that uniquely identifies a\n"
-            +
-            "                        service offered by given SDSB member or\n" +
-            "                        subsystem.\n" +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "            </xsd:element>\n" +
-            "            <xsd:element name=\"serviceVersion\" type=\"xsd:string\">\n"
-            +
-            "                <xsd:annotation>\n" +
-            "                    <xsd:documentation>Version of the service.\n" +
-            "                    </xsd:documentation>\n" +
-            "                </xsd:annotation>\n" +
-            "            </xsd:element>\n" +
-            "            <xsd:attribute name=\"objectType\" type=\"XRoadObjectType\" />\n"
-            +
-            "            <xsd:complexType name=\"XRoadClientIdentifierType\">\n" +
-            "                <xsd:sequence>\n" +
-            "                    <xsd:element ref=\"xRoadInstance\" />\n" +
-            "                    <xsd:element ref=\"memberClass\" />\n" +
-            "                    <xsd:element ref=\"memberCode\" />\n" +
-            "                    <xsd:element minOccurs=\"0\" ref=\"subsystemCode\" />\n"
-            +
-            "                </xsd:sequence>\n" +
-            "                <xsd:attribute ref=\"objectType\" use=\"required\" />\n"
-            +
-            "            </xsd:complexType>\n" +
-            "            <xsd:complexType name=\"XRoadServiceIdentifierType\">\n" +
-            "                <xsd:sequence>\n" +
-            "                    <xsd:element ref=\"xRoadInstance\" />\n" +
-            "                    <xsd:element ref=\"memberClass\" />\n" +
-            "                    <xsd:element ref=\"memberCode\" />\n" +
-            "                    <xsd:element minOccurs=\"0\" ref=\"subsystemCode\" />\n"
-            +
-            "                    <xsd:element ref=\"serviceCode\" />\n" +
-            "                    <xsd:element minOccurs=\"0\" ref=\"serviceVersion\" />\n"
-            +
-            "                </xsd:sequence>\n" +
-            "                <xsd:attribute ref=\"objectType\" use=\"required\" />\n"
-            +
-            "            </xsd:complexType>\n" +
-            "        </xsd:schema>\n" +
-            " \n" +
-            "        <!-- Schema for request headers -->\n" +
-            "        <xsd:schema xmlns=\"http://www.w3.org/2001/XMLSchema\"\n" +
-            "                    targetNamespace=\"http://x-road.eu/xsd/xroad.xsd\"\n"
-            +
-            "                    elementFormDefault=\"qualified\">\n" +
-            "            \n" +
-            "            <xsd:element name=\"client\" type=\"id:XRoadClientIdentifierType\" />\n"
-            +
-            "            <xsd:element name=\"service\" type=\"id:XRoadServiceIdentifierType\" />\n"
-            +
-            "            <xsd:element name=\"userId\" type=\"xsd:string\" />\n" +
-            "            <xsd:element name=\"id\" type=\"xsd:string\" />\n" +
-            "            <xsd:element name=\"protocolVersion\" type=\"xsd:string\" />\n"
-            +
-            "        </xsd:schema>\n" +
-            "                  \n" +
-            "        <!-- Schema for requests (reduced) -->\n" +
-            "        <xsd:schema targetNamespace=\"http://vrk-test.x-road.fi/producer\">           \n"
-            +
-            "            <xsd:element name=\"{0}\" nillable=\"true\" />\n" +
-            "            <xsd:element name=\"{0}Response\">\n" +
-            "                <xsd:complexType>\n" +
-            "                    <xsd:sequence>\n" +
-            "                        <xsd:element name=\"response\">\n" +
-            "                            <xsd:complexType>\n" +
-            "                                <xsd:sequence>\n" +
-            "                                    <xsd:element name=\"data\" type=\"xsd:string\">\n"
-            +
-            "                                        <xsd:annotation>\n" +
-            "                                            <xsd:documentation>\n" +
-            "                                                Service response\n" +
-            "                                            </xsd:documentation>\n" +
-            "                                        </xsd:annotation>\n" +
-            "                                    </xsd:element>\n" +
-            "                                </xsd:sequence>\n" +
-            "                            </xsd:complexType>\n" +
-            "                        </xsd:element>\n" +
-            "                    </xsd:sequence>\n" +
-            "                </xsd:complexType>\n" +
-            "            </xsd:element>   \n" +
-            "        </xsd:schema>\n" +
-            "    </wsdl:types>\n" +
-            " \n" +
-            "    <wsdl:message name=\"requestheader\">\n" +
-            "        <wsdl:part name=\"client\" element=\"xrd:client\" />\n" +
-            "        <wsdl:part name=\"service\" element=\"xrd:service\" />\n" +
-            "        <wsdl:part name=\"userId\" element=\"xrd:userId\" />\n" +
-            "        <wsdl:part name=\"id\" element=\"xrd:id\" />\n" +
-            "        <wsdl:part name=\"protocolVersion\" element=\"xrd:protocolVersion\" />\n"
-            +
-            "    </wsdl:message>\n" +
-            "     \n" +
-            "    <wsdl:message name=\"{0}\">\n" +
-            "        <wsdl:part name=\"body\" element=\"tns:{0}\"/>\n" +
-            "    </wsdl:message>\n" +
-            "    <wsdl:message name=\"{0}Response\">\n" +
-            "        <wsdl:part name=\"body\" element=\"tns:{0}Response\"/>\n" +
-            "    </wsdl:message>\n" +
-            "   \n" +
-            "    <wsdl:portType name=\"testServicePortType\">\n" +
-            "        <wsdl:operation name=\"{0}\">\n" +
-            "            <wsdl:input message=\"tns:{0}\"/>\n" +
-            "            <wsdl:output message=\"tns:{0}Response\"/>\n" +
-            "        </wsdl:operation>\n" +
-            "    </wsdl:portType>\n" +
-            "   \n" +
-            "    <wsdl:binding name=\"testServiceBinding\" type=\"tns:testServicePortType\">\n"
-            +
-            "        <soap:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\" />\n"
-            +
-            "        <wsdl:operation name=\"{0}\">\n" +
-            "            <soap:operation soapAction=\"\" style=\"document\" />\n" +
-            "            <id:version>{1}</id:version>\n" +
-            "            <wsdl:input>\n" +
-            "                <soap:body parts=\"body\" use=\"literal\"/>\n" +
-            "                <soap:header message=\"tns:requestheader\" part=\"client\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"service\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"userId\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"id\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"protocolVersion\" use=\"literal\"/>\n"
-            +
-            "            </wsdl:input>\n" +
-            "            <wsdl:output>\n" +
-            "                <soap:body parts=\"body\" use=\"literal\"/>\n" +
-            "                <soap:header message=\"tns:requestheader\" part=\"client\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"service\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"userId\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"id\" use=\"literal\"/>\n"
-            +
-            "                <soap:header message=\"tns:requestheader\" part=\"protocolVersion\" use=\"literal\"/>\n"
-            +
-            "            </wsdl:output>\n" +
-            "        </wsdl:operation>\n" +
-            "    </wsdl:binding>\n" +
-            "    <wsdl:service name=\"testService\">\n" +
-            "        <wsdl:port binding=\"tns:testServiceBinding\" name=\"testServicePort\">\n"
-            +
-            "            <soap:address location=\"SOME-SERVICE_ENDPOINT\"/>\n" +
-            "        </wsdl:port>\n" +
-            "    </wsdl:service>\n" +
-            "</wsdl:definitions>";
-
+    private static final String WSDL_TEMPLATE =
+                    """
+                    <wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                                      xmlns:tns="http://vrk-test.x-road.fi/producer"
+                                      xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                                      xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+                                      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                      xmlns:id="http://x-road.eu/xsd/identifiers"
+                                      name="testService" targetNamespace="http://vrk-test.x-road.fi/producer">
+                        <wsdl:types>
+                            <!-- Schema for identifiers (reduced) -->
+                            <xsd:schema elementFormDefault="qualified"
+                                        targetNamespace="http://x-road.eu/xsd/identifiers"
+                                        xmlns="http://x-road.eu/xsd/identifiers">
+                                <xsd:simpleType name="XRoadObjectType">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Enumeration for X-Road identifier
+                                            types that can be used in requests.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                    <xsd:restriction base="xsd:string">
+                                        <xsd:enumeration value="MEMBER" />
+                                        <xsd:enumeration value="SUBSYSTEM" />
+                                        <xsd:enumeration value="SERVICE" />
+                                    </xsd:restriction>
+                                </xsd:simpleType>
+                                <xsd:element name="xRoadInstance" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Identifies the X-Road instance.
+                                            This field is applicable to all identifier
+                                            types.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="memberClass" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Type of the member (company,
+                                            government institution, private person, etc.)
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="memberCode" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Code that uniquely identifies a
+                                            member of given member type.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="subsystemCode" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Code that uniquely identifies a
+                                            subsystem of given SDSB member.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="serviceCode" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Code that uniquely identifies a
+                                            service offered by given SDSB member or
+                                            subsystem.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="serviceVersion" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Version of the service.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:attribute name="objectType" type="XRoadObjectType" />
+                                <xsd:complexType name="XRoadClientIdentifierType">
+                                    <xsd:sequence>
+                                        <xsd:element ref="xRoadInstance" />
+                                        <xsd:element ref="memberClass" />
+                                        <xsd:element ref="memberCode" />
+                                        <xsd:element minOccurs="0" ref="subsystemCode" />
+                                    </xsd:sequence>
+                                    <xsd:attribute ref="objectType" use="required" />
+                                </xsd:complexType>
+                                <xsd:complexType name="XRoadServiceIdentifierType">
+                                    <xsd:sequence>
+                                        <xsd:element ref="xRoadInstance" />
+                                        <xsd:element ref="memberClass" />
+                                        <xsd:element ref="memberCode" />
+                                        <xsd:element minOccurs="0" ref="subsystemCode" />
+                                        <xsd:element ref="serviceCode" />
+                                        <xsd:element minOccurs="0" ref="serviceVersion" />
+                                    </xsd:sequence>
+                                    <xsd:attribute ref="objectType" use="required" />
+                                </xsd:complexType>
+                            </xsd:schema>
+                            <!-- Schema for request headers -->
+                            <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema"
+                                        targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+                                        elementFormDefault="qualified">
+                                <xsd:element name="client" type="id:XRoadClientIdentifierType" />
+                                <xsd:element name="service" type="id:XRoadServiceIdentifierType" />
+                                <xsd:element name="userId" type="xsd:string" />
+                                <xsd:element name="id" type="xsd:string" />
+                                <xsd:element name="protocolVersion" type="xsd:string" />
+                            </xsd:schema>
+                            <!-- Schema for requests (reduced) -->
+                            <xsd:schema targetNamespace="http://vrk-test.x-road.fi/producer">
+                                <xsd:element name="{0}" nillable="true" />
+                                <xsd:element name="{0}Response">
+                                    <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:element name="response">
+                                                <xsd:complexType>
+                                                    <xsd:sequence>
+                                                        <xsd:element name="data" type="xsd:string">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation>
+                                                                    Service response
+                                                                </xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:element>
+                                                    </xsd:sequence>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                        </xsd:sequence>
+                                    </xsd:complexType>
+                                </xsd:element>
+                            </xsd:schema>
+                        </wsdl:types>
+                        <wsdl:message name="requestheader">
+                            <wsdl:part name="client" element="xrd:client" />
+                            <wsdl:part name="service" element="xrd:service" />
+                            <wsdl:part name="userId" element="xrd:userId" />
+                            <wsdl:part name="id" element="xrd:id" />
+                            <wsdl:part name="protocolVersion" element="xrd:protocolVersion" />
+                        </wsdl:message>
+                        <wsdl:message name="{0}">
+                            <wsdl:part name="body" element="tns:{0}"/>
+                        </wsdl:message>
+                        <wsdl:message name="{0}Response">
+                            <wsdl:part name="body" element="tns:{0}Response"/>
+                        </wsdl:message>
+                        <wsdl:portType name="testServicePortType">
+                            <wsdl:operation name="{0}">
+                                <wsdl:input message="tns:{0}"/>
+                                <wsdl:output message="tns:{0}Response"/>
+                            </wsdl:operation>
+                        </wsdl:portType>
+                        <wsdl:binding name="testServiceBinding" type="tns:testServicePortType">
+                            <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+                            <wsdl:operation name="{0}">
+                                <soap:operation soapAction="" style="document" />
+                                <id:version>{1}</id:version>
+                                <wsdl:input>
+                                    <soap:body parts="body" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="client" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="service" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="userId" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="id" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                                </wsdl:input>
+                                <wsdl:output>
+                                    <soap:body parts="body" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="client" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="service" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="userId" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="id" use="literal"/>
+                                    <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                                </wsdl:output>
+                            </wsdl:operation>
+                        </wsdl:binding>
+                        <wsdl:service name="testService">
+                            <wsdl:port binding="tns:testServiceBinding" name="testServicePort">
+                                <soap:address location="SOME-SERVICE_ENDPOINT"/>
+                            </wsdl:port>
+                        </wsdl:service>
+                    </wsdl:definitions>
+                    """;
 }
