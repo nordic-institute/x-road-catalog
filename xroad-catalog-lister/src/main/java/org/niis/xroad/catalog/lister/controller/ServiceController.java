@@ -12,35 +12,33 @@
  */
 package org.niis.xroad.catalog.lister.controller;
 
-import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import fi.vrk.xroad.catalog.lister.SharedParamsParser;
-import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
 import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
-import org.niis.xroad.catalog.lister.dto.DistinctServiceStatistics;
 import fi.vrk.xroad.catalog.lister.dto.DistinctServiceStatisticsResponse;
-import org.niis.xroad.catalog.lister.dto.EndpointData;
-import org.niis.xroad.catalog.lister.dto.ErrorLogResponse;
+import fi.vrk.xroad.catalog.lister.dto.ListOfServicesResponse;
 import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
 import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
-import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.vrk.xroad.catalog.lister.dto.ListOfServicesResponse;
-import org.niis.xroad.catalog.lister.dto.MemberDataList;
 import fi.vrk.xroad.catalog.lister.dto.ServiceEndpointsResponse;
 import fi.vrk.xroad.catalog.lister.dto.ServiceResponse;
-import org.niis.xroad.catalog.lister.dto.ServiceStatistics;
 import fi.vrk.xroad.catalog.lister.dto.ServiceStatisticsResponse;
+import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
+import jakarta.ws.rs.core.MediaType;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.niis.xroad.catalog.lister.dto.DistinctServiceStatistics;
+import org.niis.xroad.catalog.lister.dto.EndpointData;
+import org.niis.xroad.catalog.lister.dto.ErrorLogResponse;
+import org.niis.xroad.catalog.lister.dto.MemberDataList;
+import org.niis.xroad.catalog.lister.dto.ServiceStatistics;
 import org.niis.xroad.catalog.lister.dto.XRoadData;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.entity.Rest;
 import org.niis.xroad.catalog.persistence.entity.Service;
-import jakarta.ws.rs.core.MediaType;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +46,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
@@ -57,7 +56,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@PropertySource("classpath:lister.properties")
 @Profile({ "default", "fi" })
 public class ServiceController implements ServiceOperations {
 

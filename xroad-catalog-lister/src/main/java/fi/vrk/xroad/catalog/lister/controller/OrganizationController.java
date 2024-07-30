@@ -12,24 +12,23 @@
  */
 package fi.vrk.xroad.catalog.lister.controller;
 
-import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
-import fi.vrk.xroad.catalog.lister.service.JaxbCompanyService;
-import fi.vrk.xroad.catalog.lister.service.JaxbOrganizationService;
-import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
-import fi.vrk.xroad.catalog.lister.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
-import fi.vrk.xroad.catalog.lister.service.CompanyService;
-import fi.vrk.xroad.catalog.lister.service.OrganizationService;
 import fi.vrk.xroad.catalog.lister.dto.CompanyData;
 import fi.vrk.xroad.catalog.lister.dto.OrganizationChanged;
 import fi.vrk.xroad.catalog.lister.dto.OrganizationDTO;
 import fi.vrk.xroad.catalog.lister.dto.OrganizationData;
+import fi.vrk.xroad.catalog.lister.service.CompanyService;
+import fi.vrk.xroad.catalog.lister.service.JaxbCompanyService;
+import fi.vrk.xroad.catalog.lister.service.JaxbOrganizationService;
+import fi.vrk.xroad.catalog.lister.service.OrganizationService;
+import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
+import fi.vrk.xroad.catalog.lister.util.OrganizationUtil;
+import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
 import fi.vrk.xroad.catalog.persistence.entity.Company;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.niis.xroad.catalog.lister.generated.ChangedValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +41,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@PropertySource("classpath:lister.properties")
 @Profile("fi")
 public class OrganizationController implements OrganizationOperations {
 
