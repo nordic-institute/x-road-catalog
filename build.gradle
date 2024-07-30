@@ -33,7 +33,7 @@ ext {
 
 
 allprojects {
-    group = 'fi.vrk.xroad'
+    group = 'org.niis.xroad'
     version = project_version
 
     tasks.withType(JavaCompile).configureEach {

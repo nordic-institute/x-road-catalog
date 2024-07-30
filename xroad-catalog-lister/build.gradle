@@ -8,7 +8,7 @@ plugins {
     id 'catalogservice.java-checks'
 }
 
-group 'fi.vrk.xroad.catalog.lister'
+group 'org.niis.xroad.catalog.lister'
 sourceCompatibility = 21
 targetCompatibility = 21
 
