@@ -13,7 +13,8 @@
 package org.niis.xroad.catalog.lister.endpoint;
 
 import com.google.common.collect.Lists;
-
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.niis.xroad.catalog.lister.generated.ErrorLog;
 import org.niis.xroad.catalog.lister.generated.ErrorLogList;
 import org.niis.xroad.catalog.lister.generated.GetErrors;
@@ -30,19 +31,18 @@ import org.niis.xroad.catalog.lister.generated.ListMembers;
 import org.niis.xroad.catalog.lister.generated.ListMembersResponse;
 import org.niis.xroad.catalog.lister.generated.Member;
 import org.niis.xroad.catalog.lister.generated.MemberList;
-import org.niis.xroad.catalog.lister.service.JaxbCatalogService;
-import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.niis.xroad.catalog.lister.service.JaxbCatalogService;
 import org.niis.xroad.catalog.persistence.entity.OpenApi;
-import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.niis.xroad.catalog.persistence.entity.Service;
-import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 @Endpoint

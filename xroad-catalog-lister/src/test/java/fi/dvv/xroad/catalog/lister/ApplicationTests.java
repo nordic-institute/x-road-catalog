@@ -12,10 +12,8 @@
  */
 package fi.dvv.xroad.catalog.lister;
 
-import org.niis.xroad.catalog.lister.service.JaxbCatalogService;
 import fi.dvv.xroad.catalog.lister.service.JaxbCompanyService;
 import fi.dvv.xroad.catalog.lister.service.JaxbOrganizationService;
-import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -51,6 +49,8 @@ import org.niis.xroad.catalog.lister.generated.Organization;
 import org.niis.xroad.catalog.lister.generated.WebPage;
 import org.niis.xroad.catalog.lister.generated.WebPageList;
 import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.niis.xroad.catalog.lister.service.JaxbCatalogService;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.persistence.entity.OpenApi;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;

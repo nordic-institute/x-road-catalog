@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;

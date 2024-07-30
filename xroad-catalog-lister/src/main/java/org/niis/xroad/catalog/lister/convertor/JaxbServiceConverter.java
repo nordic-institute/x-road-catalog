@@ -20,6 +20,7 @@ import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

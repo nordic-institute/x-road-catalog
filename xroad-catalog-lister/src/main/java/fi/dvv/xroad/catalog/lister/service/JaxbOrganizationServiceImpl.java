@@ -13,7 +13,6 @@
 package fi.dvv.xroad.catalog.lister.service;
 
 import fi.dvv.xroad.catalog.lister.convertor.JaxbOrganizationConverter;
-import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import fi.dvv.xroad.catalog.persistence.entity.Address;
 import fi.dvv.xroad.catalog.persistence.entity.Email;
 import fi.dvv.xroad.catalog.persistence.entity.OrganizationDescription;
@@ -32,13 +31,15 @@ import fi.dvv.xroad.catalog.persistence.entity.StreetAddressMunicipality;
 import fi.dvv.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
 import fi.dvv.xroad.catalog.persistence.entity.StreetAddressPostOffice;
 import fi.dvv.xroad.catalog.persistence.entity.WebPage;
-import org.niis.xroad.catalog.lister.generated.ChangedValue;
-import org.niis.xroad.catalog.lister.generated.Organization;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.generated.ChangedValue;
+import org.niis.xroad.catalog.lister.generated.Organization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

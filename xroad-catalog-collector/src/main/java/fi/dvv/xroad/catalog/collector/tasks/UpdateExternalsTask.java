@@ -26,10 +26,10 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
-import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.springframework.context.ApplicationContext;
 

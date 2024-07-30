@@ -13,6 +13,10 @@
 package fi.dvv.xroad.catalog.lister.endpoint;
 
 import com.google.common.collect.Lists;
+import fi.dvv.xroad.catalog.lister.service.JaxbCompanyService;
+import fi.dvv.xroad.catalog.lister.service.JaxbOrganizationService;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.niis.xroad.catalog.lister.generated.ChangedValue;
 import org.niis.xroad.catalog.lister.generated.ChangedValueList;
 import org.niis.xroad.catalog.lister.generated.Company;
@@ -27,10 +31,6 @@ import org.niis.xroad.catalog.lister.generated.HasOrganizationChanged;
 import org.niis.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
 import org.niis.xroad.catalog.lister.generated.Organization;
 import org.niis.xroad.catalog.lister.generated.OrganizationList;
-import fi.dvv.xroad.catalog.lister.service.JaxbCompanyService;
-import fi.dvv.xroad.catalog.lister.service.JaxbOrganizationService;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;

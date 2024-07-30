@@ -12,8 +12,8 @@
  */
 package org.niis.xroad.catalog.lister.parser;
 
-import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

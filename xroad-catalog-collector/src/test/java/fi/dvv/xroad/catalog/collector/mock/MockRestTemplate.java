@@ -12,9 +12,9 @@
  */
 package fi.dvv.xroad.catalog.collector.mock;
 
-import org.niis.xroad.catalog.collector.exception.CatalogCollectorRuntimeException;
 import com.sun.net.httpserver.HttpServer;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.exception.CatalogCollectorRuntimeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 

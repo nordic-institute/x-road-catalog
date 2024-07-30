@@ -12,6 +12,7 @@
  */
 package org.niis.xroad.catalog.lister.interceptor;
 
+import jakarta.xml.soap.SOAPException;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.soap.SoapHeader;
@@ -20,7 +21,6 @@ import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.server.SoapEndpointInterceptor;
 
 import javax.xml.XMLConstants;
-import jakarta.xml.soap.SOAPException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;

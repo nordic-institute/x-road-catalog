@@ -12,13 +12,14 @@
  */
 package org.niis.xroad.catalog.lister.dto;
 
-import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+
 import java.io.Serializable;
 import java.util.List;
 

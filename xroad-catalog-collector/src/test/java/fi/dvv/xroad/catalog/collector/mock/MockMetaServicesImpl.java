@@ -12,6 +12,11 @@
  */
 package fi.dvv.xroad.catalog.collector.mock;
 
+import jakarta.annotation.Resource;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.WebServiceContext;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.wsimport.AllowedMethods;
 import org.niis.xroad.catalog.collector.wsimport.AllowedMethodsResponse;
@@ -23,11 +28,7 @@ import org.niis.xroad.catalog.collector.wsimport.MetaServicesPort;
 import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import jakarta.annotation.Resource;
-import jakarta.jws.WebService;
-import jakarta.xml.ws.Holder;
-import jakarta.xml.ws.WebServiceContext;
-import lombok.extern.slf4j.Slf4j;
+
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 

@@ -26,11 +26,11 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
-import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.springframework.beans.factory.annotation.Autowired;

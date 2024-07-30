@@ -12,13 +12,14 @@
  */
 package org.niis.xroad.catalog.lister.service;
 
-import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
-import org.niis.xroad.catalog.lister.generated.Member;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
+import org.niis.xroad.catalog.lister.generated.Member;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 @Component

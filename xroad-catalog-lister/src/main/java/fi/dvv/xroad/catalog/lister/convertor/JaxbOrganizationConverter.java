@@ -13,7 +13,6 @@
 package fi.dvv.xroad.catalog.lister.convertor;
 
 import fi.dvv.xroad.catalog.lister.util.JaxbOrganizationUtil;
-import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.lister.generated.AddressList;
 import org.niis.xroad.catalog.lister.generated.Company;
 import org.niis.xroad.catalog.lister.generated.EmailList;
@@ -22,7 +21,9 @@ import org.niis.xroad.catalog.lister.generated.OrganizationDescriptionList;
 import org.niis.xroad.catalog.lister.generated.OrganizationNameList;
 import org.niis.xroad.catalog.lister.generated.PhoneNumberList;
 import org.niis.xroad.catalog.lister.generated.WebPageList;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

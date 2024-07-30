@@ -72,6 +72,7 @@ import fi.dvv.xroad.catalog.persistence.entity.StreetAddressMunicipality;
 import fi.dvv.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
 import fi.dvv.xroad.catalog.persistence.entity.StreetAddressPostOffice;
 import fi.dvv.xroad.catalog.persistence.entity.WebPage;
+
 import java.util.ArrayList;
 import java.util.List;
 

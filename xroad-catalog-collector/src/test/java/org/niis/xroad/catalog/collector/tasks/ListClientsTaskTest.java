@@ -26,12 +26,12 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
-import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.niis.xroad.catalog.collector.wsimport.ClientList;
 import org.niis.xroad.catalog.collector.wsimport.ClientType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;

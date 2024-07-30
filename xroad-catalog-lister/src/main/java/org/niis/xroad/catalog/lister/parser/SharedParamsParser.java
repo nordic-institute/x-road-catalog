@@ -13,6 +13,7 @@
 package org.niis.xroad.catalog.lister.parser;
 
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.dto.DescriptorInfo;
 import org.niis.xroad.catalog.lister.dto.Email;
 import org.niis.xroad.catalog.lister.dto.MemberInfo;
@@ -20,7 +21,6 @@ import org.niis.xroad.catalog.lister.dto.SecurityServerData;
 import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
 import org.niis.xroad.catalog.lister.dto.SecurityServerInfo;
 import org.niis.xroad.catalog.lister.dto.SubsystemName;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;

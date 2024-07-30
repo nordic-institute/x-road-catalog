@@ -12,6 +12,16 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
+import jakarta.activation.DataHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Holder;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.cxf.endpoint.Client;
+import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.message.Attachment;
+import org.apache.cxf.message.Message;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.wsimport.ClientType;
 import org.niis.xroad.catalog.collector.wsimport.GetWsdl;
 import org.niis.xroad.catalog.collector.wsimport.GetWsdlResponse;
@@ -23,17 +33,7 @@ import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import jakarta.activation.DataHandler;
-import jakarta.xml.ws.BindingProvider;
-import jakarta.xml.ws.Holder;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.cxf.endpoint.Client;
-import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.message.Attachment;
-import org.apache.cxf.message.Message;
-import org.apache.cxf.transport.http.HTTPConduit;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

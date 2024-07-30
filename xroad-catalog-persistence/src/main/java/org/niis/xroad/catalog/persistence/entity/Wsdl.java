@@ -12,12 +12,6 @@
  */
 package org.niis.xroad.catalog.persistence.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -29,6 +23,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter

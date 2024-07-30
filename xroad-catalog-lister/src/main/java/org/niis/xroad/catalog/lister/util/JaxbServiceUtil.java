@@ -18,6 +18,7 @@ import org.niis.xroad.catalog.lister.generated.WSDL;
 import org.niis.xroad.catalog.persistence.entity.OpenApi;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Wsdl;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;

@@ -12,12 +12,13 @@
  */
 package org.niis.xroad.catalog.persistence.repository;
 
-import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Set;

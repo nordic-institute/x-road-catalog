@@ -26,7 +26,6 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import fi.dvv.xroad.catalog.collector.service.OrganizationService;
 import fi.dvv.xroad.catalog.collector.util.OrganizationUtil;
 import org.awaitility.Awaitility;
@@ -35,6 +34,7 @@ import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

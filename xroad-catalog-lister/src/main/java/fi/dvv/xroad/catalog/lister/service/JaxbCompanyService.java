@@ -12,10 +12,10 @@
  */
 package fi.dvv.xroad.catalog.lister.service;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.niis.xroad.catalog.lister.generated.ChangedValue;
 import org.niis.xroad.catalog.lister.generated.Company;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 public interface JaxbCompanyService {
 

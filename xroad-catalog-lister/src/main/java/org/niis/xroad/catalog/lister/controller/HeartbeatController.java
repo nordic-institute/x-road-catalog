@@ -12,14 +12,15 @@
  */
 package org.niis.xroad.catalog.lister.controller;
 
-import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.lister.dto.HeartbeatResponse;
+import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.time.LocalDateTime;
 
 @RestController

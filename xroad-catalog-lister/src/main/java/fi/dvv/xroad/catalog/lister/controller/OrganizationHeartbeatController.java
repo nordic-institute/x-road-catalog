@@ -12,9 +12,9 @@
  */
 package fi.dvv.xroad.catalog.lister.controller;
 
-import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import fi.dvv.xroad.catalog.lister.dto.OrganizationHeartbeatResponse;
+import fi.dvv.xroad.catalog.lister.service.OrganizationService;
+import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;

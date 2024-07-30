@@ -13,8 +13,6 @@
 package fi.dvv.xroad.catalog.lister.service;
 
 import fi.dvv.xroad.catalog.lister.convertor.JaxbOrganizationConverter;
-import org.niis.xroad.catalog.lister.generated.ChangedValue;
-import org.niis.xroad.catalog.lister.generated.Company;
 import fi.dvv.xroad.catalog.persistence.entity.BusinessAddress;
 import fi.dvv.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
 import fi.dvv.xroad.catalog.persistence.entity.BusinessIdChange;
@@ -30,6 +28,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.generated.ChangedValue;
+import org.niis.xroad.catalog.lister.generated.Company;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -12,10 +12,11 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import org.niis.xroad.catalog.collector.wsimport.XRoadIdentifierType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadIdentifierType;
+
 import java.util.List;
 
 /**

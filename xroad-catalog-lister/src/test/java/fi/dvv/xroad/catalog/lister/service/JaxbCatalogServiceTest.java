@@ -13,20 +13,19 @@
 package fi.dvv.xroad.catalog.lister.service;
 
 import com.google.common.collect.Iterables;
-import org.niis.xroad.catalog.lister.service.JaxbCatalogServiceImpl;
-import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
-import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
-import org.niis.xroad.catalog.lister.service.CatalogService;
-import org.niis.xroad.catalog.lister.service.CatalogServiceImpl;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Service;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.niis.xroad.catalog.persistence.entity.Wsdl;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.niis.xroad.catalog.lister.service.CatalogServiceImpl;
+import org.niis.xroad.catalog.lister.service.JaxbCatalogServiceImpl;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
+import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +38,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JaxbCatalogServiceTest {

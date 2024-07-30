@@ -12,19 +12,18 @@
  */
 package org.niis.xroad.catalog.lister.interceptor;
 
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.server.EndpointInterceptor;
 import org.springframework.ws.soap.saaj.SaajSoapMessage;
 import org.w3c.dom.CDATASection;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import jakarta.xml.soap.SOAPBody;
-import jakarta.xml.soap.SOAPEnvelope;
-import jakarta.xml.soap.SOAPMessage;
-import jakarta.xml.soap.SOAPPart;
-
-import org.w3c.dom.Node;
 import javax.xml.namespace.QName;
 import java.util.Iterator;
 

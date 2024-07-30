@@ -13,18 +13,19 @@
 package org.niis.xroad.catalog.persistence.repository;
 
 import fi.dvv.xroad.catalog.persistence.TestUtil;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 public class SubsystemRepositoryTest {
