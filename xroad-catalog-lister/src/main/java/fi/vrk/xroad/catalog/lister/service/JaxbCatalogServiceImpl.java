@@ -14,7 +14,7 @@ package fi.vrk.xroad.catalog.lister.service;
 
 import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.vrk.xroad.catalog.lister.generated.Member;
+import org.niis.xroad.catalog.lister.generated.Member;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
@@ -48,7 +48,7 @@ public class JaxbCatalogServiceImpl implements JaxbCatalogService {
     }
 
     @Override
-    public Iterable<fi.vrk.xroad.catalog.lister.generated.ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime,
+    public Iterable<org.niis.xroad.catalog.lister.generated.ErrorLog> getErrorLog(XMLGregorianCalendar startDateTime,
             XMLGregorianCalendar endDateTime) {
         Iterable<ErrorLog> entities;
         entities = catalogService.getErrorLog(jaxbServiceConverter.toLocalDateTime(startDateTime),

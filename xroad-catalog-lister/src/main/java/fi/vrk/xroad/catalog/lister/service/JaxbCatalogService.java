@@ -14,8 +14,8 @@ package fi.vrk.xroad.catalog.lister.service;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
-import fi.vrk.xroad.catalog.lister.generated.Member;
+import org.niis.xroad.catalog.lister.generated.ErrorLog;
+import org.niis.xroad.catalog.lister.generated.Member;
 
 public interface JaxbCatalogService {
 

@@ -12,10 +12,10 @@
  */
 package org.niis.xroad.catalog.lister.convertor;
 
-import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
-import fi.vrk.xroad.catalog.lister.generated.Member;
-import fi.vrk.xroad.catalog.lister.generated.ServiceList;
-import fi.vrk.xroad.catalog.lister.generated.SubsystemList;
+import org.niis.xroad.catalog.lister.generated.ErrorLog;
+import org.niis.xroad.catalog.lister.generated.Member;
+import org.niis.xroad.catalog.lister.generated.ServiceList;
+import org.niis.xroad.catalog.lister.generated.SubsystemList;
 import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
@@ -57,11 +57,11 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
     }
 
     @Override
-    public Collection<fi.vrk.xroad.catalog.lister.generated.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
+    public Collection<org.niis.xroad.catalog.lister.generated.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
             boolean onlyActiveChildren) {
-        List<fi.vrk.xroad.catalog.lister.generated.Subsystem> converted = new ArrayList<>();
+        List<org.niis.xroad.catalog.lister.generated.Subsystem> converted = new ArrayList<>();
         for (Subsystem subsystem : subsystems) {
-            fi.vrk.xroad.catalog.lister.generated.Subsystem cs = new fi.vrk.xroad.catalog.lister.generated.Subsystem();
+            org.niis.xroad.catalog.lister.generated.Subsystem cs = new org.niis.xroad.catalog.lister.generated.Subsystem();
             cs.setChanged(JaxbServiceUtil.toXmlGregorianCalendar(subsystem.getStatusInfo().getChanged()));
             cs.setCreated(JaxbServiceUtil.toXmlGregorianCalendar(subsystem.getStatusInfo().getCreated()));
             cs.setFetched(JaxbServiceUtil.toXmlGregorianCalendar(subsystem.getStatusInfo().getFetched()));
@@ -81,9 +81,9 @@ public class JaxbServiceConverter implements JaxbServiceConversion {
     }
 
     @Override
-    public Collection<fi.vrk.xroad.catalog.lister.generated.Service> convertServices(Iterable<Service> services,
+    public Collection<org.niis.xroad.catalog.lister.generated.Service> convertServices(Iterable<Service> services,
             boolean onlyActiveChildren) {
-        List<fi.vrk.xroad.catalog.lister.generated.Service> converted = new ArrayList<>();
+        List<org.niis.xroad.catalog.lister.generated.Service> converted = new ArrayList<>();
         for (Service service : services) {
             converted.add(JaxbServiceUtil.convertService(service, onlyActiveChildren));
         }

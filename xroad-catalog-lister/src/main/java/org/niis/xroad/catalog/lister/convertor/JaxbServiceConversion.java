@@ -12,8 +12,8 @@
  */
 package org.niis.xroad.catalog.lister.convertor;
 
-import fi.vrk.xroad.catalog.lister.generated.ErrorLog;
-import fi.vrk.xroad.catalog.lister.generated.Member;
+import org.niis.xroad.catalog.lister.generated.ErrorLog;
+import org.niis.xroad.catalog.lister.generated.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.context.annotation.Profile;
@@ -42,7 +42,7 @@ public interface JaxbServiceConversion {
      * @param onlyActiveChildren if true, convert only active subsystems
      * @return collection of XML objects
      */
-    Collection<fi.vrk.xroad.catalog.lister.generated.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
+    Collection<org.niis.xroad.catalog.lister.generated.Subsystem> convertSubsystems(Iterable<Subsystem> subsystems,
             boolean onlyActiveChildren);
 
     /**
@@ -52,7 +52,7 @@ public interface JaxbServiceConversion {
      * @param onlyActiveChildren if true, convert only active subsystems
      * @return collection of XML objects
      */
-    Collection<fi.vrk.xroad.catalog.lister.generated.Service> convertServices(Iterable<Service> services,
+    Collection<org.niis.xroad.catalog.lister.generated.Service> convertServices(Iterable<Service> services,
             boolean onlyActiveChildren);
 
     LocalDateTime toLocalDateTime(XMLGregorianCalendar calendar);

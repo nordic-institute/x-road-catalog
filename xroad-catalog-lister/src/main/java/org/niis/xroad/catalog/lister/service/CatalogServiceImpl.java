@@ -82,10 +82,6 @@ public class CatalogServiceImpl implements CatalogService {
         return memberRepository.findAll();
     }
 
-    public Iterable<Member> getActiveMembers(LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        return memberRepository.findActiveChangedBetween(startDateTime, endDateTime);
-    }
-
     @Override
     public Iterable<Member> getAllMembers(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         return memberRepository.findAllChangedBetween(startDateTime, endDateTime);

@@ -13,8 +13,8 @@
 package fi.vrk.xroad.catalog.lister.service;
 
 import fi.vrk.xroad.catalog.lister.convertor.JaxbOrganizationConverter;
-import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
-import fi.vrk.xroad.catalog.lister.generated.Company;
+import org.niis.xroad.catalog.lister.generated.ChangedValue;
+import org.niis.xroad.catalog.lister.generated.Company;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessIdChange;

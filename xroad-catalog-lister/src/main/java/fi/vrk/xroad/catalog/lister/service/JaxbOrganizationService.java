@@ -12,8 +12,8 @@
  */
 package fi.vrk.xroad.catalog.lister.service;
 
-import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
-import fi.vrk.xroad.catalog.lister.generated.Organization;
+import org.niis.xroad.catalog.lister.generated.ChangedValue;
+import org.niis.xroad.catalog.lister.generated.Organization;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 public interface JaxbOrganizationService {

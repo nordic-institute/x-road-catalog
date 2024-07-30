@@ -12,18 +12,18 @@
  */
 package org.niis.xroad.catalog.lister.endpoint;
 
-import fi.vrk.xroad.catalog.lister.generated.GetErrors;
-import fi.vrk.xroad.catalog.lister.generated.GetErrorsResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetOpenAPI;
-import fi.vrk.xroad.catalog.lister.generated.GetOpenAPIResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetServiceType;
-import fi.vrk.xroad.catalog.lister.generated.GetServiceTypeResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetWsdl;
-import fi.vrk.xroad.catalog.lister.generated.GetWsdlResponse;
-import fi.vrk.xroad.catalog.lister.generated.IsProvider;
-import fi.vrk.xroad.catalog.lister.generated.IsProviderResponse;
-import fi.vrk.xroad.catalog.lister.generated.ListMembers;
-import fi.vrk.xroad.catalog.lister.generated.ListMembersResponse;
+import org.niis.xroad.catalog.lister.generated.GetErrors;
+import org.niis.xroad.catalog.lister.generated.GetErrorsResponse;
+import org.niis.xroad.catalog.lister.generated.GetOpenAPI;
+import org.niis.xroad.catalog.lister.generated.GetOpenAPIResponse;
+import org.niis.xroad.catalog.lister.generated.GetServiceType;
+import org.niis.xroad.catalog.lister.generated.GetServiceTypeResponse;
+import org.niis.xroad.catalog.lister.generated.GetWsdl;
+import org.niis.xroad.catalog.lister.generated.GetWsdlResponse;
+import org.niis.xroad.catalog.lister.generated.IsProvider;
+import org.niis.xroad.catalog.lister.generated.IsProviderResponse;
+import org.niis.xroad.catalog.lister.generated.ListMembers;
+import org.niis.xroad.catalog.lister.generated.ListMembersResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;

@@ -12,14 +12,14 @@
  */
 package fi.vrk.xroad.catalog.lister.endpoint;
 
-import fi.vrk.xroad.catalog.lister.generated.GetCompanies;
-import fi.vrk.xroad.catalog.lister.generated.GetCompaniesResponse;
-import fi.vrk.xroad.catalog.lister.generated.GetOrganizations;
-import fi.vrk.xroad.catalog.lister.generated.GetOrganizationsResponse;
-import fi.vrk.xroad.catalog.lister.generated.HasCompanyChanged;
-import fi.vrk.xroad.catalog.lister.generated.HasCompanyChangedResponse;
-import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChanged;
-import fi.vrk.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
+import org.niis.xroad.catalog.lister.generated.GetCompanies;
+import org.niis.xroad.catalog.lister.generated.GetCompaniesResponse;
+import org.niis.xroad.catalog.lister.generated.GetOrganizations;
+import org.niis.xroad.catalog.lister.generated.GetOrganizationsResponse;
+import org.niis.xroad.catalog.lister.generated.HasCompanyChanged;
+import org.niis.xroad.catalog.lister.generated.HasCompanyChangedResponse;
+import org.niis.xroad.catalog.lister.generated.HasOrganizationChanged;
+import org.niis.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;

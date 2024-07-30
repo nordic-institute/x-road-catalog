@@ -26,7 +26,7 @@ import fi.vrk.xroad.catalog.lister.dto.OrganizationDTO;
 import fi.vrk.xroad.catalog.lister.dto.OrganizationData;
 import fi.vrk.xroad.catalog.persistence.entity.Company;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
-import fi.vrk.xroad.catalog.lister.generated.ChangedValue;
+import org.niis.xroad.catalog.lister.generated.ChangedValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
