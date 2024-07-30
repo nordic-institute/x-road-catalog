@@ -24,14 +24,26 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.tasks;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.collector.XRoadCatalogCollector;
+import org.niis.xroad.catalog.collector.configuration.DevelopmentConfiguration;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Queue;
@@ -39,30 +51,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-import fi.vrk.xroad.catalog.collector.configuration.DevelopmentConfiguration;
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-
-@SpringBootTest(classes = { DevelopmentConfiguration.class,
+@SpringBootTest(classes = { DevelopmentConfiguration.class, XRoadCatalogCollector.class,
         TaskPoolConfiguration.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {
-        "spring.liquibase.enabled=false"
-})
 public class ListMethodsTaskTest {
 
     @MockBean
@@ -76,7 +71,7 @@ public class ListMethodsTaskTest {
 
     @Test
     public void testListMethodsTaskSavesServicesAndGetsDescriptors()
-            throws MalformedURLException, URISyntaxException, InterruptedException {
+            throws URISyntaxException, InterruptedException {
         TaskPoolConfiguration taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         ReflectionTestUtils.setField(taskPoolConfiguration, "securityServerHost", "http://localhost:" + port);
         ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",

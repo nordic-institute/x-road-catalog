@@ -26,10 +26,23 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import fi.vrk.xroad.catalog.collector.service.OrganizationService;
+import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
+import org.awaitility.Awaitility;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,24 +52,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import org.awaitility.Awaitility;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.OrganizationService;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = TaskPoolConfiguration.class)
 public class FetchOrganizationTaskTest {

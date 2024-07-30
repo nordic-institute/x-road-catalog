@@ -10,18 +10,19 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence;
+package org.niis.xroad.catalog.collector.service;
 
-import fi.vrk.xroad.catalog.persistence.entity.Member;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
 import com.google.common.collect.Lists;
-import fi.vrk.xroad.catalog.persistence.repository.MemberRepository;
-import fi.vrk.xroad.catalog.persistence.repository.SubsystemRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.niis.xroad.catalog.collector.TestUtil;
+import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +72,7 @@ public class SaveMissingSubsystemTest {
         originalService = ss1original.getAllServices().iterator().next();
         originalWsdl = originalService.getWsdl();
         ss1original.getAllServices().size();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         // prepare saved items

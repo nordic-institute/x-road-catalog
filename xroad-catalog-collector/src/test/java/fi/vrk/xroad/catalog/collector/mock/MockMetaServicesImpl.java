@@ -12,17 +12,17 @@
  */
 package fi.vrk.xroad.catalog.collector.mock;
 
-import fi.vrk.xroad.catalog.collector.util.ClientTypeUtil;
-import fi.vrk.xroad.catalog.collector.wsimport.AllowedMethods;
-import fi.vrk.xroad.catalog.collector.wsimport.AllowedMethodsResponse;
-import fi.vrk.xroad.catalog.collector.wsimport.GetWsdl;
-import fi.vrk.xroad.catalog.collector.wsimport.GetWsdlResponse;
-import fi.vrk.xroad.catalog.collector.wsimport.ListMethods;
-import fi.vrk.xroad.catalog.collector.wsimport.ListMethodsResponse;
-import fi.vrk.xroad.catalog.collector.wsimport.MetaServicesPort;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.wsimport.AllowedMethods;
+import org.niis.xroad.catalog.collector.wsimport.AllowedMethodsResponse;
+import org.niis.xroad.catalog.collector.wsimport.GetWsdl;
+import org.niis.xroad.catalog.collector.wsimport.GetWsdlResponse;
+import org.niis.xroad.catalog.collector.wsimport.ListMethods;
+import org.niis.xroad.catalog.collector.wsimport.ListMethodsResponse;
+import org.niis.xroad.catalog.collector.wsimport.MetaServicesPort;
+import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import jakarta.annotation.Resource;
 import jakarta.jws.WebService;
 import jakarta.xml.ws.Holder;

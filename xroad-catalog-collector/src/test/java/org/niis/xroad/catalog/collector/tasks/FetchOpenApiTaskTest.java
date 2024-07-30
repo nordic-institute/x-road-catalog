@@ -24,12 +24,25 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.tasks;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.Endpoint;
+import org.niis.xroad.catalog.collector.util.MethodListUtil;
+import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -42,24 +55,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.Endpoint;
-import fi.vrk.xroad.catalog.collector.util.MethodListUtil;
-import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = TaskPoolConfiguration.class)
 public class FetchOpenApiTaskTest {

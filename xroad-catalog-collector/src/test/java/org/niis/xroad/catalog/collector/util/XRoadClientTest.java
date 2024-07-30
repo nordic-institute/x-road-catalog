@@ -10,33 +10,31 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.util;
+package org.niis.xroad.catalog.collector.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import fi.vrk.xroad.catalog.collector.mock.MockMetaServicesImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.collector.XRoadCatalogCollector;
+import org.niis.xroad.catalog.collector.configuration.DevelopmentConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.TestPropertySource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import fi.vrk.xroad.catalog.collector.configuration.DevelopmentConfiguration;
-import fi.vrk.xroad.catalog.collector.mock.MockMetaServicesImpl;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-
-@SpringBootTest(classes = DevelopmentConfiguration.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {
-        "xroad-catalog.webservices-endpoint=http://localhost:${local.server.port}/metaservices",
-        "spring.liquibase.enabled=false"
-})
+@SpringBootTest(classes = {DevelopmentConfiguration.class, XRoadCatalogCollector.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class XRoadClientTest {
 
     @MockBean
@@ -57,8 +55,15 @@ public class XRoadClientTest {
     @Value("${xroad-catalog.subsystem-code}")
     private String subsystemCode;
 
-    @Value("${xroad-catalog.webservices-endpoint}")
+    @LocalServerPort
+    private int port;
+
     private String webservicesEndpoint;
+
+    @BeforeEach
+    public void setUp() {
+        webservicesEndpoint = "http://localhost:%s/metaservices".formatted(port);
+    }
 
     private XRoadClientIdentifierType getDefaultClient() {
         XRoadClientIdentifierType client = new XRoadClientIdentifierType();

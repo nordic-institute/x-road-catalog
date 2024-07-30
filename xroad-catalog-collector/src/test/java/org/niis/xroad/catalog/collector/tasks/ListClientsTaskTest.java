@@ -24,35 +24,34 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.tasks;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
+import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.wsimport.ClientList;
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.persistence.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.ClientListUtil;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientList;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.entity.Member;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = TaskPoolConfiguration.class)
 public class ListClientsTaskTest {

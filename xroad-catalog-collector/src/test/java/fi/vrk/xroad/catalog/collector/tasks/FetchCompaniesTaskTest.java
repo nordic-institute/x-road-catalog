@@ -26,25 +26,16 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
-
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import fi.vrk.xroad.catalog.collector.service.CompanyService;
+import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
 import org.awaitility.Awaitility;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,10 +45,18 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import fi.vrk.xroad.catalog.persistence.CatalogService;
-import fi.vrk.xroad.catalog.persistence.CompanyService;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = TaskPoolConfiguration.class)
 @TestPropertySource(properties = { "xroad-catalog.fetch-companies-url=" })

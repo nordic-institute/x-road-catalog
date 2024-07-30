@@ -10,46 +10,38 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.persistence;
-
-import fi.vrk.xroad.catalog.persistence.dto.DistinctServiceStatistics;
-import fi.vrk.xroad.catalog.persistence.dto.LastCollectionData;
-import fi.vrk.xroad.catalog.persistence.dto.MemberDataList;
-import fi.vrk.xroad.catalog.persistence.dto.ServiceStatistics;
-import fi.vrk.xroad.catalog.persistence.dto.XRoadData;
-import fi.vrk.xroad.catalog.persistence.entity.Endpoint;
-import fi.vrk.xroad.catalog.persistence.entity.ErrorLog;
-import fi.vrk.xroad.catalog.persistence.entity.Member;
-import fi.vrk.xroad.catalog.persistence.entity.OpenApi;
-import fi.vrk.xroad.catalog.persistence.entity.Rest;
-import fi.vrk.xroad.catalog.persistence.entity.Service;
-import fi.vrk.xroad.catalog.persistence.entity.ServiceId;
-import fi.vrk.xroad.catalog.persistence.entity.Subsystem;
-import fi.vrk.xroad.catalog.persistence.entity.SubsystemId;
-import fi.vrk.xroad.catalog.persistence.entity.Wsdl;
-import fi.vrk.xroad.catalog.persistence.repository.EndpointRepository;
-import fi.vrk.xroad.catalog.persistence.repository.ErrorLogRepository;
-import fi.vrk.xroad.catalog.persistence.repository.MemberRepository;
-import fi.vrk.xroad.catalog.persistence.repository.OpenApiRepository;
-import fi.vrk.xroad.catalog.persistence.repository.RestRepository;
-import fi.vrk.xroad.catalog.persistence.repository.ServiceRepository;
-import fi.vrk.xroad.catalog.persistence.repository.SubsystemRepository;
-import fi.vrk.xroad.catalog.persistence.repository.WsdlRepository;
+package org.niis.xroad.catalog.collector.service;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.collector.TestUtil;
+import org.niis.xroad.catalog.persistence.entity.Endpoint;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.OpenApi;
+import org.niis.xroad.catalog.persistence.entity.Rest;
+import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.entity.ServiceId;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.entity.SubsystemId;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.repository.EndpointRepository;
+import org.niis.xroad.catalog.persistence.repository.ErrorLogRepository;
+import org.niis.xroad.catalog.persistence.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.repository.OpenApiRepository;
+import org.niis.xroad.catalog.persistence.repository.RestRepository;
+import org.niis.xroad.catalog.persistence.repository.ServiceRepository;
+import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
+import org.niis.xroad.catalog.persistence.repository.WsdlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -107,157 +99,11 @@ public class CatalogServiceTest {
     TestUtil testUtil;
 
     @Test
-    public void testGetWsdl() {
-        Wsdl wsdl = catalogService.getWsdl("1000");
-        assertNotNull(wsdl);
-        assertEquals("<?xml version=\"1.0\" standalone=\"no\"?><wsdl-6-1-1-1-changed/>", wsdl.getData());
-        assertEquals(7, wsdl.getService().getSubsystem().getId());
-    }
-
-    @Test
-    public void testGetWsdlNotFound() {
-        Wsdl wsdl = catalogService.getWsdl("9899");
-        assertNull(wsdl);
-    }
-
-    @Test
-    public void testGetWsdlMultipleException() {
-        try {
-            catalogService.getWsdl("9999");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("multiple matches found to 9999"));
-        }
-    }
-
-    @Test
-    public void testGetOpenApi() {
-        OpenApi openApi = catalogService.getOpenApi("3003");
-        assertNotNull(openApi);
-        assertEquals("<openapi>", openApi.getData());
-        assertEquals(8, openApi.getService().getSubsystem().getId());
-    }
-
-    @Test
-    public void testGetOpenApiNotFound() {
-        OpenApi openApi = catalogService.getOpenApi("9899");
-        assertNull(openApi);
-    }
-
-    @Test
-    public void testGetOpenApiMultipleException() {
-        try {
-            catalogService.getOpenApi("3004");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("multiple matches found to 3004"));
-        }
-    }
-
-    @Test
-    public void testGetRest() {
-        Service service = serviceRepository.findById(13L).get();
-        Rest rest = catalogService.getRest(service);
-        assertNotNull(rest);
-        assertEquals("{\"endpoint_list\": []}}", rest.getData());
-        assertEquals(8, rest.getService().getSubsystem().getId());
-    }
-
-    @Test
-    public void testGetRestNotFound() {
-        Service service = serviceRepository.findById(12L).get();
-        Rest rest = catalogService.getRest(service);
-        assertNull(rest);
-    }
-
-    @Test
-    public void testGetRestMultipleException() {
-        try {
-            Service service = serviceRepository.findById(1L).get();
-            catalogService.getRest(service);
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("multiple matches found to"));
-        }
-    }
-
-    @Test
-    public void testGetErrorLog() {
-        LocalDateTime changedAfter = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0);
-        LocalDateTime endDate = LocalDateTime.of(2022, Month.JANUARY, 1, 0, 0, 0);
-        Iterable<ErrorLog> errorLogEntries = catalogService.getErrorLog(changedAfter, endDate);
-        assertNotNull(errorLogEntries);
-        assertEquals(true, errorLogEntries.iterator().hasNext());
-    }
-
-    @Test
-    public void testGetErrorsForSubsystem() {
-        XRoadData xRoadData = XRoadData.builder().xRoadInstance("DEV").memberClass("GOV").memberCode("1234")
-                .subsystemCode("TestSubsystem").build();
-        Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
-                LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
-        assertNotNull(errorLogEntries);
-        assertEquals(1, errorLogEntries.getNumberOfElements());
-        assertEquals(1, errorLogEntries.getTotalPages());
-    }
-
-    @Test
-    public void testGetErrorsForMemberCode() {
-        XRoadData xRoadData = XRoadData.builder().xRoadInstance("DEV").memberClass("GOV").memberCode("1234")
-                .subsystemCode(null).build();
-        Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
-                LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
-        assertNotNull(errorLogEntries);
-        assertEquals(2, errorLogEntries.getNumberOfElements());
-        assertEquals(1, errorLogEntries.getTotalPages());
-    }
-
-    @Test
-    public void testGetErrorsForMemberClass() {
-        XRoadData xRoadData = XRoadData.builder().xRoadInstance("DEV").memberClass("GOV").memberCode(null)
-                .subsystemCode(null).build();
-        Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
-                LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
-        assertNotNull(errorLogEntries);
-        assertEquals(3, errorLogEntries.getNumberOfElements());
-        assertEquals(1, errorLogEntries.getTotalPages());
-    }
-
-    @Test
-    public void testGetErrorsForInstance() {
-        XRoadData xRoadData = XRoadData.builder().xRoadInstance("DEV").memberClass(null).memberCode(null)
-                .subsystemCode(null).build();
-        Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
-                LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
-        assertNotNull(errorLogEntries);
-        assertEquals(4, errorLogEntries.getNumberOfElements());
-        assertEquals(1, errorLogEntries.getTotalPages());
-    }
-
-    @Test
-    public void testGetErrorsAll() {
-        XRoadData xRoadData = XRoadData.builder().xRoadInstance(null).memberClass(null).memberCode(null)
-                .subsystemCode(null).build();
-        Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
-                LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
-        assertNotNull(errorLogEntries);
-        assertEquals(7, errorLogEntries.getNumberOfElements());
-        assertEquals(1, errorLogEntries.getTotalPages());
-    }
-
-    @Test
     public void testSaveErrorLog() {
         ErrorLog errorLog = ErrorLog.builder().message("Error").code("500")
                 .created(LocalDateTime.now()).build();
         ErrorLog savedErrorLog = catalogService.saveErrorLog(errorLog);
         assertNotNull(savedErrorLog);
-    }
-
-    @Test
-    public void testEntityTreesFetchedCorrectly() throws InterruptedException {
-        assertEntityTreeFetchedCorrectly(catalogService.getAllMembers());
-        assertEntityTreeFetchedCorrectly(catalogService.getActiveMembers());
-        LocalDateTime modifiedSince1800 = LocalDateTime.of(1800, 1, 1, 0, 0);
-        LocalDateTime endDate = LocalDateTime.of(2022, Month.JANUARY, 1, 0, 0, 0);
-        assertEntityTreeFetchedCorrectly(catalogService.getAllMembers(modifiedSince1800, endDate));
-        assertEntityTreeFetchedCorrectly(catalogService.getActiveMembers(modifiedSince1800, endDate));
     }
 
     private void assertEntityTreeFetchedCorrectly(Iterable<Member> members) {
@@ -324,8 +170,7 @@ public class CatalogServiceTest {
     }
 
     private void assertMemberAndSubsystemCounts(int members, int activeMembers, int subsystems, int activeSubsystems) {
-        assertEquals(members, Iterables.size(catalogService.getAllMembers()));
-        assertEquals(activeMembers, Iterables.size(catalogService.getActiveMembers()));
+        assertEquals(members, Iterables.size(memberRepository.findAll()));
         assertEquals(subsystems, Iterables.size(subsystemRepository.findAll()));
         assertEquals(activeSubsystems, StreamSupport.stream(subsystemRepository.findAll().spliterator(), false)
                 .filter(s -> !s.getStatusInfo().isRemoved())
@@ -360,51 +205,6 @@ public class CatalogServiceTest {
 
         Member member3 = memberRepository.findById(1L).get();
         assertNotEquals(changed, member3.getStatusInfo().getChanged());
-    }
-
-    @Test
-    public void testGetMember() {
-        Member member = memberRepository.findById(1L).get();
-        Member foundMember = catalogService.getMember(member.getXRoadInstance(),
-                member.getMemberClass(), member.getMemberCode());
-        assertNotNull(foundMember);
-    }
-
-    @Test
-    public void testGetActiveMembersSince() {
-        // all non-deleted members that contain parts that were modified since 1.1.2007
-        // (3-7)
-        Iterable<Member> members = catalogService.getActiveMembers(
-                testUtil.createDate(1, 1, 2017),
-                testUtil.createDate(1, 1, 2022));
-        log.info("found members: " + testUtil.getIds(members));
-        assertEquals(Arrays.asList(3L, 4L, 5L, 6L, 7L),
-                new ArrayList<>(testUtil.getIds(members)));
-    }
-
-    @Test
-    public void testGetAllMembersSince() {
-        // all members that contain parts that were modified since 1.1.2007 (3-8)
-        Iterable<Member> members = catalogService.getAllMembers(
-                testUtil.createDate(1, 1, 2017),
-                testUtil.createDate(1, 1, 2022));
-        log.info("found members: " + testUtil.getIds(members));
-        assertEquals(Arrays.asList(3L, 4L, 5L, 6L, 7L, 8L),
-                new ArrayList<Long>(testUtil.getIds(members)));
-    }
-
-    @Test
-    public void testGetAllMembers() {
-        Iterable<Member> members = catalogService.getAllMembers();
-        assertEquals(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L),
-                new ArrayList<Long>(testUtil.getIds(members)));
-    }
-
-    @Test
-    public void testGetActiveMembers() {
-        Iterable<Member> members = catalogService.getActiveMembers();
-        assertEquals(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L),
-                new ArrayList<Long>(testUtil.getIds(members)));
     }
 
     @Test
@@ -568,42 +368,6 @@ public class CatalogServiceTest {
     }
 
     @Test
-    public void testGetService() {
-        Service service = serviceRepository.findById(1L).get();
-        Service foundService = catalogService.getService(service.getSubsystem().getMember().getXRoadInstance(),
-                service.getSubsystem().getMember().getMemberClass(),
-                service.getSubsystem().getMember().getMemberCode(),
-                service.getServiceCode(),
-                service.getSubsystem().getSubsystemCode(),
-                service.getServiceVersion());
-        assertNotNull(foundService);
-    }
-
-    @Test
-    public void testGetServiceNullVersion() {
-        Service service = serviceRepository.findById(10L).get();
-        Service foundService = catalogService.getService(service.getSubsystem().getMember().getXRoadInstance(),
-                service.getSubsystem().getMember().getMemberClass(),
-                service.getSubsystem().getMember().getMemberCode(),
-                service.getServiceCode(),
-                service.getSubsystem().getSubsystemCode(),
-                service.getServiceVersion());
-        assertNotNull(foundService);
-    }
-
-    @Test
-    public void testGetServices() {
-        Service service = serviceRepository.findById(1L).get();
-        List<Service> foundServices = catalogService.getServices(service.getSubsystem().getMember().getXRoadInstance(),
-                service.getSubsystem().getMember().getMemberClass(),
-                service.getSubsystem().getMember().getMemberCode(),
-                service.getSubsystem().getSubsystemCode(),
-                service.getServiceCode());
-        assertNotNull(foundServices);
-        assertEquals(1, foundServices.size());
-    }
-
-    @Test
     public void testSaveRemovedServices() {
         // test data:
         // member (7) -> subsystem (8) -> service (6) -> wsdl (4)
@@ -616,7 +380,7 @@ public class CatalogServiceTest {
         Service originalService6 = serviceRepository.findById(6L).get();
         Service originalRemovedService8 = serviceRepository.findById(8L).get();
         Service originalRemovedService9 = serviceRepository.findById(9L).get();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         // remove all services = save subsystem with empty services-collection
@@ -636,10 +400,10 @@ public class CatalogServiceTest {
         assertEquals(Arrays.asList(5L, 6L, 8L, 9L, 10L, 11L, 12L, 13L, 14L),
                 new ArrayList<>(testUtil.getIds(checkedSub.getAllServices())));
         assertTrue(checkedSub.getActiveServices().isEmpty());
-        Service checkedService5 = (Service) testUtil.getEntity(checkedSub.getAllServices(), 5L).get();
-        Service checkedService6 = (Service) testUtil.getEntity(checkedSub.getAllServices(), 6L).get();
-        Service checkedService8 = (Service) testUtil.getEntity(checkedSub.getAllServices(), 8L).get();
-        Service checkedService9 = (Service) testUtil.getEntity(checkedSub.getAllServices(), 9L).get();
+        Service checkedService5 = testUtil.getEntity(checkedSub.getAllServices(), 5L).get();
+        Service checkedService6 = testUtil.getEntity(checkedSub.getAllServices(), 6L).get();
+        Service checkedService8 = testUtil.getEntity(checkedSub.getAllServices(), 8L).get();
+        Service checkedService9 = testUtil.getEntity(checkedSub.getAllServices(), 9L).get();
 
         assertTrue(checkedService5.getStatusInfo().isRemoved());
         assertTrue(checkedService6.getStatusInfo().isRemoved());
@@ -663,7 +427,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = originalWsdl.getService().createKey();
         SubsystemId originalSubsystemId = originalWsdl.getService().getSubsystem().createKey();
         assertEquals("SubsystemId(subsystemCode=subsystem_7-1)", originalSubsystemId.toString());
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         catalogService.saveWsdl(originalSubsystemId, originalServiceId, originalWsdl.getData());
@@ -685,7 +449,7 @@ public class CatalogServiceTest {
         Service originalService = originalOpenApi.getService();
         ServiceId originalServiceId = originalOpenApi.getService().createKey();
         SubsystemId originalSubsystemId = originalOpenApi.getService().getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         catalogService.saveOpenApi(originalSubsystemId, originalServiceId, originalOpenApi.getData());
@@ -876,7 +640,7 @@ public class CatalogServiceTest {
         testUtil.entityManagerClear();
 
         Service checkedService = serviceRepository.findById(13L).get();
-        Rest foundRest = catalogService.getRest(checkedService);
+        Rest foundRest = restRepository.findAnyByService(checkedService).getFirst();
         assertNotNull(foundRest);
         Rest checkedRest = checkedService.getRest();
         log.info("externalId [{}]", checkedRest.getExternalId());
@@ -1030,41 +794,6 @@ public class CatalogServiceTest {
     }
 
     @Test
-    public void testGetLastCollectionData() {
-        LastCollectionData lastCollectionData = catalogService.getLastCollectionData();
-        assertEquals(2017, lastCollectionData.getMembersLastFetched().getYear());
-        assertEquals(2016, lastCollectionData.getOpenapisLastFetched().getYear());
-        assertEquals(2017, lastCollectionData.getServicesLastFetched().getYear());
-        assertEquals(2017, lastCollectionData.getSubsystemsLastFetched().getYear());
-        assertEquals(2017, lastCollectionData.getWsdlsLastFetched().getYear());
-    }
-
-    @Test
-    public void testGetServiceStatistics() throws JSONException {
-        LocalDateTime startDateTime = LocalDateTime.of(2014, 1, 1, 0, 0);
-        LocalDateTime endDateTime = LocalDateTime.of(2022, 1, 1, 0, 0);
-        List<ServiceStatistics> serviceStatistics = catalogService.getServiceStatistics(startDateTime, endDateTime);
-        assertEquals(2923, serviceStatistics.size());
-    }
-
-    @Test
-    public void testGetDistinctServiceStatistics() throws JSONException {
-        LocalDateTime startDateTime = LocalDateTime.of(2014, 1, 1, 0, 0);
-        LocalDateTime endDateTime = LocalDateTime.of(2022, 1, 1, 0, 0);
-        List<DistinctServiceStatistics> distinctServiceStatistics = catalogService
-                .getDistinctServiceStatistics(startDateTime, endDateTime);
-        assertEquals(2923, distinctServiceStatistics.size());
-    }
-
-    @Test
-    public void testGetMemberData() throws JSONException {
-        LocalDateTime startDateTime = LocalDateTime.of(2014, 1, 1, 0, 0);
-        LocalDateTime endDateTime = LocalDateTime.of(2022, 1, 1, 0, 0);
-        List<MemberDataList> members = catalogService.getMemberData(startDateTime, endDateTime);
-        assertEquals(2923, members.size());
-    }
-
-    @Test
     public void testSaveServices() {
         Service oldService = serviceRepository.findById(14L).get();
         oldService.getStatusInfo().setRemoved(null);
@@ -1206,11 +935,6 @@ public class CatalogServiceTest {
         Set<ErrorLog> foundErrorLogs = errorLogRepository.findAny(LocalDateTime.now().minusDays((int) daysBefore + 1),
                 LocalDateTime.now());
         assertEquals(0, foundErrorLogs.size());
-    }
-
-    @Test
-    public void testCheckDatabaseConnection() {
-        assertTrue(catalogService.checkDatabaseConnection());
     }
 
 }
