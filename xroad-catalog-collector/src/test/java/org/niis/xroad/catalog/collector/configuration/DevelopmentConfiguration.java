@@ -12,7 +12,6 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
-import fi.dvv.xroad.catalog.collector.configuration.CatalogFinlandConfiguration;
 import fi.dvv.xroad.catalog.collector.mock.MockMetaServicesImpl;
 import fi.dvv.xroad.catalog.collector.mock.MockRestTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,7 @@ import org.springframework.web.client.RestOperations;
 @Configuration
 @Profile({ "development", "default", "fi" })
 @Slf4j
-public class DevelopmentConfiguration extends CatalogFinlandConfiguration {
+public class DevelopmentConfiguration extends CatalogDefaultConfiguration {
 
     @Bean
     @Qualifier("listClientsRestOperations")
