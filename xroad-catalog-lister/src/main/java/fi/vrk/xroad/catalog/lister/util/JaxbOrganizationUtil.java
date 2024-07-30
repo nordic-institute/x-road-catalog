@@ -65,6 +65,8 @@ import org.niis.xroad.catalog.lister.generated.StreetAddressPostOffice;
 import org.niis.xroad.catalog.lister.generated.StreetAddressPostOfficeList;
 import org.niis.xroad.catalog.lister.generated.StreetList;
 import org.niis.xroad.catalog.lister.generated.WebPage;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

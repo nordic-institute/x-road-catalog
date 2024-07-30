@@ -10,35 +10,33 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister.dto;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+package org.niis.xroad.catalog.lister.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.catalog.lister.dto.LastCollectionData;
+import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class HeartbeatResponse implements Serializable {
+@EqualsAndHashCode
+@Getter
+@Setter
+public class SecurityServerData implements Serializable {
 
-    private static final long serialVersionUID = 4048861576368846345L;
+    private static final long serialVersionUID = 4049961366368846285L;
 
-    private Boolean appWorking;
+    private MemberInfo owner;
 
-    private Boolean dbWorking;
+    private String serverCode;
 
-    private String appName;
+    private String address;
 
-    private String appVersion;
-
-    private LocalDateTime systemTime;
-
-    private LastCollectionData lastCollectionData;
-
+    private List<MemberInfo> clients;
 }

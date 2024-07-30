@@ -13,7 +13,7 @@
 package org.niis.xroad.catalog.lister.controller;
 
 import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.vrk.xroad.catalog.lister.dto.HeartbeatResponse;
+import org.niis.xroad.catalog.lister.dto.HeartbeatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;

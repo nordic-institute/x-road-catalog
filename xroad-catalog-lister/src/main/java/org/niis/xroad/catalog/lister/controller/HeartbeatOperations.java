@@ -12,7 +12,7 @@
  */
 package org.niis.xroad.catalog.lister.controller;
 
-import fi.vrk.xroad.catalog.lister.dto.HeartbeatResponse;
+import org.niis.xroad.catalog.lister.dto.HeartbeatResponse;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

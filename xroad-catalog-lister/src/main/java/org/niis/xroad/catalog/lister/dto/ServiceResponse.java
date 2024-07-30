@@ -10,7 +10,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister.dto;
+package org.niis.xroad.catalog.lister.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +18,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.niis.xroad.catalog.lister.dto.MemberInfo;
 
 import java.io.Serializable;
 import java.util.List;
@@ -29,15 +28,9 @@ import java.util.List;
 @EqualsAndHashCode
 @Getter
 @Setter
-public class SecurityServerData implements Serializable {
+public class ServiceResponse implements Serializable {
 
-    private static final long serialVersionUID = 4049961366368846285L;
+    private static final long serialVersionUID = 4049861322378846285L;
 
-    private MemberInfo owner;
-
-    private String serverCode;
-
-    private String address;
-
-    private List<MemberInfo> clients;
+    private transient List<ServiceEndpointsResponse> listOfServices;
 }

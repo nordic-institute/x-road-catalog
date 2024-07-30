@@ -10,16 +10,16 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister.parser;
 
 import com.google.common.collect.Lists;
-import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
-import fi.vrk.xroad.catalog.lister.dto.Email;
+import org.niis.xroad.catalog.lister.dto.DescriptorInfo;
+import org.niis.xroad.catalog.lister.dto.Email;
 import org.niis.xroad.catalog.lister.dto.MemberInfo;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerData;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
-import fi.vrk.xroad.catalog.lister.dto.SubsystemName;
+import org.niis.xroad.catalog.lister.dto.SecurityServerData;
+import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
+import org.niis.xroad.catalog.lister.dto.SecurityServerInfo;
+import org.niis.xroad.catalog.lister.dto.SubsystemName;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;

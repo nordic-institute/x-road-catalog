@@ -30,7 +30,7 @@ import org.niis.xroad.catalog.lister.generated.ListMembers;
 import org.niis.xroad.catalog.lister.generated.ListMembersResponse;
 import org.niis.xroad.catalog.lister.generated.Member;
 import org.niis.xroad.catalog.lister.generated.MemberList;
-import fi.vrk.xroad.catalog.lister.service.JaxbCatalogService;
+import org.niis.xroad.catalog.lister.service.JaxbCatalogService;
 import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.OpenApi;

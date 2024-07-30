@@ -13,7 +13,7 @@
 package fi.vrk.xroad.catalog.lister.convertor;
 
 import fi.vrk.xroad.catalog.lister.util.JaxbOrganizationUtil;
-import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.lister.generated.AddressList;
 import org.niis.xroad.catalog.lister.generated.Company;
 import org.niis.xroad.catalog.lister.generated.EmailList;

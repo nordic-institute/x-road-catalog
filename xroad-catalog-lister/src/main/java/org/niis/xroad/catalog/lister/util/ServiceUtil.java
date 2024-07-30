@@ -10,16 +10,18 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister.util;
+package org.niis.xroad.catalog.lister.util;
 
-import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
-import fi.vrk.xroad.catalog.lister.SharedParamsParser;
-import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
-import org.niis.xroad.catalog.lister.dto.MemberDataList;
 import org.apache.commons.csv.CSVPrinter;
+import org.niis.xroad.catalog.lister.dto.DescriptorInfo;
+import org.niis.xroad.catalog.lister.dto.MemberDataList;
+import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
+import org.niis.xroad.catalog.lister.dto.SecurityServerInfo;
+import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
+import org.niis.xroad.catalog.lister.parser.SharedParamsParser;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import javax.xml.parsers.ParserConfigurationException;
 
 public final class ServiceUtil {
 

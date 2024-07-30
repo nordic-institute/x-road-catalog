@@ -16,7 +16,7 @@ import org.niis.xroad.catalog.lister.generated.ErrorLog;
 import org.niis.xroad.catalog.lister.generated.Member;
 import org.niis.xroad.catalog.lister.generated.ServiceList;
 import org.niis.xroad.catalog.lister.generated.SubsystemList;
-import fi.vrk.xroad.catalog.lister.util.JaxbServiceUtil;
+import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;

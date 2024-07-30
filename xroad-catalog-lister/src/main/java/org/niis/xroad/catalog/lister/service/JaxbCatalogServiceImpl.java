@@ -10,10 +10,9 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister.service;
+package org.niis.xroad.catalog.lister.service;
 
 import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
-import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.lister.generated.Member;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

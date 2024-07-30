@@ -12,16 +12,16 @@
  */
 package org.niis.xroad.catalog.lister.controller;
 
-import fi.vrk.xroad.catalog.lister.SharedParamsParser;
-import fi.vrk.xroad.catalog.lister.dto.DescriptorInfo;
-import fi.vrk.xroad.catalog.lister.dto.DistinctServiceStatisticsResponse;
-import fi.vrk.xroad.catalog.lister.dto.ListOfServicesResponse;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerDataList;
-import fi.vrk.xroad.catalog.lister.dto.SecurityServerInfo;
-import fi.vrk.xroad.catalog.lister.dto.ServiceEndpointsResponse;
-import fi.vrk.xroad.catalog.lister.dto.ServiceResponse;
-import fi.vrk.xroad.catalog.lister.dto.ServiceStatisticsResponse;
-import fi.vrk.xroad.catalog.lister.util.ServiceUtil;
+import org.niis.xroad.catalog.lister.parser.SharedParamsParser;
+import org.niis.xroad.catalog.lister.dto.DescriptorInfo;
+import org.niis.xroad.catalog.lister.dto.DistinctServiceStatisticsResponse;
+import org.niis.xroad.catalog.lister.dto.ListOfServicesResponse;
+import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
+import org.niis.xroad.catalog.lister.dto.SecurityServerInfo;
+import org.niis.xroad.catalog.lister.dto.ServiceEndpointsResponse;
+import org.niis.xroad.catalog.lister.dto.ServiceResponse;
+import org.niis.xroad.catalog.lister.dto.ServiceStatisticsResponse;
+import org.niis.xroad.catalog.lister.util.ServiceUtil;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
