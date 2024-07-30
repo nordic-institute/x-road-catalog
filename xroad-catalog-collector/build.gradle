@@ -111,12 +111,7 @@ test {
     useJUnitPlatform {
         includeEngines 'junit-jupiter'
     }
-    systemProperty 'spring.config.name', 'collector,catalogdb'
     finalizedBy jacocoTestReport
-}
-
-bootRun {
-    systemProperty 'spring.config.name', 'collector,catalogdb'
 }
 
 jacocoTestReport {
