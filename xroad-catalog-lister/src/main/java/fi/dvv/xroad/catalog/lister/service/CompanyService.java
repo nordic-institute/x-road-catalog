@@ -14,15 +14,12 @@ package fi.dvv.xroad.catalog.lister.service;
 
 import fi.dvv.xroad.catalog.persistence.entity.Company;
 
-/**
- * CRUD methods for company related objects. no business logic (e.g. hash
- * calculation),
- * just persistence-related logic.
- * Company entities have time stamps created, updated and deleted.
- */
+
 public interface CompanyService {
 
     /**
+     * Return all companies for a given businessId
+     *
      * @param businessId Only interested in companies with this businessId value
      * @return Iterable of Company entities
      */

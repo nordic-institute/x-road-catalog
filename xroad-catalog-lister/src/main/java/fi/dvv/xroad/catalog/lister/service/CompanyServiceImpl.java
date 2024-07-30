@@ -14,15 +14,11 @@ package fi.dvv.xroad.catalog.lister.service;
 
 import fi.dvv.xroad.catalog.persistence.entity.Company;
 import fi.dvv.xroad.catalog.persistence.repository.CompanyRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Implementation for companyservice CRUD
- */
-@Slf4j
+
 @Component("companyService")
 @Transactional
 public class CompanyServiceImpl implements CompanyService {

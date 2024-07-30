@@ -17,12 +17,6 @@ import fi.dvv.xroad.catalog.persistence.entity.Organization;
 
 import java.util.Optional;
 
-/**
- * CRUD methods for organization related objects. no business logic (e.g. hash
- * calculation),
- * just persistence-related logic.
- * Organization entities have time stamps created, updated and deleted.
- */
 public interface OrganizationService {
 
     /**
@@ -33,6 +27,8 @@ public interface OrganizationService {
     LastOrganizationCollectionData getLastOrganizationCollectionData();
 
     /**
+     * Return all organizations for a given businessCode
+     *
      * @param businessCode Only interested in organizations with this businessCode
      *                     value
      * @return Iterable of Organization entities

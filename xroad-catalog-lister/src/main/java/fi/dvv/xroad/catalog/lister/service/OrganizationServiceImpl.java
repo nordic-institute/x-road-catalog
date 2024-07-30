@@ -16,17 +16,12 @@ import fi.dvv.xroad.catalog.lister.dto.LastOrganizationCollectionData;
 import fi.dvv.xroad.catalog.persistence.entity.Organization;
 import fi.dvv.xroad.catalog.persistence.repository.CompanyRepository;
 import fi.dvv.xroad.catalog.persistence.repository.OrganizationRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-/**
- * Implementation for organizationservice CRUD
- */
-@Slf4j
 @Component("organizationService")
 @Transactional
 public class OrganizationServiceImpl implements OrganizationService {
