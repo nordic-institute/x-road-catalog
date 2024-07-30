@@ -12,9 +12,9 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
-import fi.vrk.xroad.catalog.collector.configuration.CatalogVrkConfiguration;
-import fi.vrk.xroad.catalog.collector.mock.MockMetaServicesImpl;
-import fi.vrk.xroad.catalog.collector.mock.MockRestTemplate;
+import fi.dvv.xroad.catalog.collector.configuration.CatalogVrkConfiguration;
+import fi.dvv.xroad.catalog.collector.mock.MockMetaServicesImpl;
+import fi.dvv.xroad.catalog.collector.mock.MockRestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;

@@ -12,22 +12,22 @@
  */
 package org.niis.xroad.catalog.collector;
 
-import fi.vrk.xroad.catalog.collector.configuration.CatalogVrkConfiguration;
-import fi.vrk.xroad.catalog.collector.tasks.FetchCompaniesTask;
+import fi.dvv.xroad.catalog.collector.configuration.CatalogVrkConfiguration;
+import fi.dvv.xroad.catalog.collector.tasks.FetchCompaniesTask;
+import fi.dvv.xroad.catalog.collector.tasks.FetchOrganizationsTask;
+import fi.dvv.xroad.catalog.collector.tasks.UpdateExternalsTask;
+import fi.dvv.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.CatalogDefaultConfiguration;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.tasks.FetchOpenApiTask;
-import fi.vrk.xroad.catalog.collector.tasks.FetchOrganizationsTask;
 import org.niis.xroad.catalog.collector.tasks.FetchRestTask;
 import org.niis.xroad.catalog.collector.tasks.FetchWsdlsTask;
 import org.niis.xroad.catalog.collector.tasks.ListClientsTask;
 import org.niis.xroad.catalog.collector.tasks.ListMethodsTask;
-import fi.vrk.xroad.catalog.collector.tasks.UpdateExternalsTask;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.ClientType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import fi.vrk.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.configuration.CatalogDefaultConfiguration;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

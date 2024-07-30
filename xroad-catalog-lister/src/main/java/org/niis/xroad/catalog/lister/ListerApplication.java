@@ -12,8 +12,8 @@
  */
 package org.niis.xroad.catalog.lister;
 
-import fi.vrk.xroad.catalog.lister.configuration.ListerVrkConfiguration;
-import fi.vrk.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import fi.dvv.xroad.catalog.lister.configuration.ListerVrkConfiguration;
+import fi.dvv.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
 import org.niis.xroad.catalog.lister.configuration.ListerDefaultConfiguration;
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;

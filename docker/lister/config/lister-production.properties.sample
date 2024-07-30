@@ -7,5 +7,5 @@ xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
 springdoc.api-docs.enabled=true
 springdoc.swagger-ui.enabled=true
 springdoc.swagger-ui.path=/api-docs
-springdoc.packagesToScan=fi.vrk.xroad
+springdoc.packagesToScan=org.niis.xroad,fi.dvv.xroad
 

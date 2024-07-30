@@ -12,7 +12,7 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import fi.vrk.xroad.catalog.collector.mock.MockMetaServicesImpl;
+import fi.dvv.xroad.catalog.collector.mock.MockMetaServicesImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.collector.XRoadCatalogCollector;

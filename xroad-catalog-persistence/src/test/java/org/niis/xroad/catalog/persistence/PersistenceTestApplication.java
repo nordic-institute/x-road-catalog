@@ -12,7 +12,7 @@
  */
 package org.niis.xroad.catalog.persistence;
 
-import fi.vrk.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import fi.dvv.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
