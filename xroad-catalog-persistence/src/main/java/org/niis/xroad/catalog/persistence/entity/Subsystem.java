@@ -63,18 +63,18 @@ public class Subsystem {
         // Empty constructor
     }
 
+    public Subsystem(Member member, String subsystemCode) {
+        this.member = member;
+        this.subsystemCode = subsystemCode;
+        statusInfo.setTimestampsForNew(LocalDateTime.now());
+    }
+
     public SubsystemId createKey() {
         return new SubsystemId(
                 getMember().getXRoadInstance(),
                 getMember().getMemberClass(),
                 getMember().getMemberCode(),
                 subsystemCode);
-    }
-
-    public Subsystem(Member member, String subsystemCode) {
-        this.member = member;
-        this.subsystemCode = subsystemCode;
-        statusInfo.setTimestampsForNew(LocalDateTime.now());
     }
 
     public Set<Service> getActiveServices() {
