@@ -219,7 +219,7 @@ public class CatalogServiceTest {
         Service originalService6 = serviceRepository.findById(6L).get();
         Service originalRemovedService8 = serviceRepository.findById(8L).get();
         Service originalRemovedService9 = serviceRepository.findById(9L).get();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         Subsystem savedSub = new Subsystem();
@@ -259,7 +259,7 @@ public class CatalogServiceTest {
         Subsystem originalSub = subsystemRepository.findById(8L).get();
         Member originalMember = originalSub.getMember();
         Service originalService6 = serviceRepository.findById(6L).get();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
 
         Subsystem savedSub = new Subsystem();
         testUtil.shallowCopyFields(originalSub, savedSub);
@@ -307,7 +307,7 @@ public class CatalogServiceTest {
         Service originalService6 = serviceRepository.findById(6L).get();
         Service originalRemovedService8 = serviceRepository.findById(8L).get();
         Service originalRemovedService9 = serviceRepository.findById(9L).get();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         Subsystem savedSub = new Subsystem();
@@ -471,7 +471,7 @@ public class CatalogServiceTest {
         Service originalService = originalRest.getService();
         ServiceId originalServiceId = originalRest.getService().createKey();
         SubsystemId originalSubsystemId = originalRest.getService().getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         catalogService.saveRest(originalSubsystemId, originalServiceId, originalRest.getData());
@@ -496,7 +496,7 @@ public class CatalogServiceTest {
         Service originalService = originalWsdl.getService();
         ServiceId originalServiceId = originalWsdl.getService().createKey();
         SubsystemId originalSubsystemId = originalWsdl.getService().getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         catalogService.saveWsdl(originalSubsystemId, originalServiceId, originalWsdl.getData() + "-modification");
@@ -518,7 +518,7 @@ public class CatalogServiceTest {
         Service originalService = originalOpenApi.getService();
         ServiceId originalServiceId = originalOpenApi.getService().createKey();
         SubsystemId originalSubsystemId = originalOpenApi.getService().getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         catalogService.saveOpenApi(originalSubsystemId, originalServiceId, originalOpenApi.getData() + "-modification");
@@ -540,7 +540,7 @@ public class CatalogServiceTest {
         Service originalService = originalRest.getService();
         ServiceId originalServiceId = originalRest.getService().createKey();
         SubsystemId originalSubsystemId = originalRest.getService().getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         catalogService.saveRest(originalSubsystemId, originalServiceId, originalRest.getData() + "-modification");
@@ -589,7 +589,7 @@ public class CatalogServiceTest {
         Service oldService = serviceRepository.findById(12L).get();
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         Service aService = new Service(oldService.getSubsystem(), "code", "version");
@@ -624,7 +624,7 @@ public class CatalogServiceTest {
         Service oldService = serviceRepository.findById(13L).get();
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         Service aService = new Service(oldService.getSubsystem(), "code", "version");
@@ -664,7 +664,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
         Wsdl originalWsdl = oldService.getWsdl();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerFlush();
         testUtil.entityManagerClear();
 
@@ -692,7 +692,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
         OpenApi originalOpenApi = oldService.getOpenApi();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerFlush();
         testUtil.entityManagerClear();
 
@@ -720,7 +720,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
         Rest originalRest = oldService.getRest();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerFlush();
         testUtil.entityManagerClear();
 
@@ -746,7 +746,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
         Wsdl originalWsdl = oldService.getWsdl();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         try {
@@ -764,7 +764,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
         OpenApi originalOpenApi = oldService.getOpenApi();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         try {
@@ -782,7 +782,7 @@ public class CatalogServiceTest {
         ServiceId originalServiceId = oldService.createKey();
         SubsystemId originalSubsystemId = oldService.getSubsystem().createKey();
         Rest originalRest = oldService.getRest();
-        // detach, so we dont modify those objects in the next steps
+        // detach, so we don't modify those objects in the next steps
         testUtil.entityManagerClear();
 
         try {
