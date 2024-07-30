@@ -71,7 +71,7 @@ bootRun {
 }
 
 springBoot {
-    mainClass = 'fi.vrk.xroad.catalog.lister.ListerApplication'
+    mainClass = 'org.niis.xroad.catalog.lister.ListerApplication'
 }
 
 jacocoTestReport {

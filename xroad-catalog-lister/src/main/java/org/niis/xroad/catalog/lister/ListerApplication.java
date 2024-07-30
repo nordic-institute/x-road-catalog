@@ -10,15 +10,23 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.lister;
+package org.niis.xroad.catalog.lister;
 
-import org.niis.xroad.catalog.lister.service.CatalogService;
+import fi.vrk.xroad.catalog.lister.configuration.ListerVrkConfiguration;
+import fi.vrk.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import org.niis.xroad.catalog.lister.configuration.ListerDefaultConfiguration;
+import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 
-@ComponentScan(basePackageClasses = {ListerApplication.class, CatalogService.class})
 @SpringBootApplication
+@Import({
+        PersistenceDefaultConfiguration.class,
+        PersistenceVrkConfiguration.class,
+        ListerDefaultConfiguration.class,
+        ListerVrkConfiguration.class
+})
 public class ListerApplication {
 
     public static void main(String[] args) {
