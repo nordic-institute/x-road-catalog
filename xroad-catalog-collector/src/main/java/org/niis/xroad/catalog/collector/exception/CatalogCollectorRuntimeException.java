@@ -10,30 +10,15 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.util;
+package org.niis.xroad.catalog.collector.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+public class CatalogCollectorRuntimeException extends RuntimeException {
 
-import java.io.Serializable;
+    public CatalogCollectorRuntimeException(String s) {
+        super(s);
+    }
 
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-@Getter
-@Setter
-@ToString
-public class Endpoint implements Serializable {
-
-    private static final long serialVersionUID = 4049961366399946785L;
-
-    private String method;
-
-    private String path;
+    public CatalogCollectorRuntimeException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
 }

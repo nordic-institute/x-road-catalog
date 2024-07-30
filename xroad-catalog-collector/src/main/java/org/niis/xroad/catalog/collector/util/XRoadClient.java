@@ -10,19 +10,19 @@
  * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.util;
+package org.niis.xroad.catalog.collector.util;
 
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.GetWsdl;
-import fi.vrk.xroad.catalog.collector.wsimport.GetWsdlResponse;
-import fi.vrk.xroad.catalog.collector.wsimport.ListMethods;
-import fi.vrk.xroad.catalog.collector.wsimport.ListMethodsResponse;
-import fi.vrk.xroad.catalog.collector.wsimport.MetaServicesPort;
-import fi.vrk.xroad.catalog.collector.wsimport.ProducerPortService;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.collector.wsimport.GetWsdl;
+import org.niis.xroad.catalog.collector.wsimport.GetWsdlResponse;
+import org.niis.xroad.catalog.collector.wsimport.ListMethods;
+import org.niis.xroad.catalog.collector.wsimport.ListMethodsResponse;
+import org.niis.xroad.catalog.collector.wsimport.MetaServicesPort;
+import org.niis.xroad.catalog.collector.wsimport.ProducerPortService;
+import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import jakarta.activation.DataHandler;
@@ -73,7 +73,7 @@ public class XRoadClient {
          *
          * An issue is that CXF ports are not thread-safe, however that is
          * mostly for the cases of configuring it, which we do in
-         * {@link}fi.vrk.xroad.catalog.collector.util.XRoadClient#getMetaServicesPort(URI)}.
+         * {@link}org.niis.xroad.catalog.collector.util.XRoadClient#getMetaServicesPort(URI)}.
          * Actually using the port in multiple threads to do requests as a client should
          * be safe.
          *

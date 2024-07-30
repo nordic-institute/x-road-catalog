@@ -10,35 +10,17 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.util;
+package fi.vrk.xroad.catalog.collector.configuration;
 
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
-import java.util.List;
-
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.client.RestTemplate;
-
-import fi.vrk.xroad.catalog.collector.wsimport.ClientList;
-
-public final class ClientListUtil {
-
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
-
-    private ClientListUtil() {
-        // Private empty constructor
-    }
-
-    public static ClientList clientListFromResponse(String url) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(List.of(MediaType.TEXT_XML));
-        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-        ResponseEntity<ClientList> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, requestEntity,
-                ClientList.class);
-        return response.getBody();
-    }
+@Configuration
+@Lazy
+@ComponentScan(basePackages = {
+        "fi.vrk.xroad.catalog.collector"
+})
+public class CatalogVrkConfiguration {
 
 }

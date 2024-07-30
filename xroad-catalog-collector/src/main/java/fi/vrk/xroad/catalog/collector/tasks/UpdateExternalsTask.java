@@ -26,16 +26,15 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import java.util.Queue;
-import java.util.Set;
-
-import org.springframework.context.ApplicationContext;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.CollectorUtils;
+import org.niis.xroad.catalog.collector.util.CollectorUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
+
+import java.util.Queue;
+import java.util.Set;
 
 @Slf4j
 public class UpdateExternalsTask implements Runnable {

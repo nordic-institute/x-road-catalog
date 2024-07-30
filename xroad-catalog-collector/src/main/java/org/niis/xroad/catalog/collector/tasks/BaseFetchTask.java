@@ -24,19 +24,18 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.tasks;
+
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xroad.catalog.persistence.entity.ServiceId;
+import org.niis.xroad.catalog.persistence.entity.SubsystemId;
+import org.springframework.context.ApplicationContext;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
-
-import org.springframework.context.ApplicationContext;
-
-import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.persistence.entity.ServiceId;
-import org.niis.xroad.catalog.persistence.entity.SubsystemId;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class BaseFetchTask<T> implements Runnable {

@@ -10,9 +10,31 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector;
+package org.niis.xroad.catalog.collector;
 
-import java.net.MalformedURLException;
+import fi.vrk.xroad.catalog.collector.configuration.CatalogVrkConfiguration;
+import fi.vrk.xroad.catalog.collector.tasks.FetchCompaniesTask;
+import org.niis.xroad.catalog.collector.tasks.FetchOpenApiTask;
+import fi.vrk.xroad.catalog.collector.tasks.FetchOrganizationsTask;
+import org.niis.xroad.catalog.collector.tasks.FetchRestTask;
+import org.niis.xroad.catalog.collector.tasks.FetchWsdlsTask;
+import org.niis.xroad.catalog.collector.tasks.ListClientsTask;
+import org.niis.xroad.catalog.collector.tasks.ListMethodsTask;
+import fi.vrk.xroad.catalog.collector.tasks.UpdateExternalsTask;
+import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import fi.vrk.xroad.catalog.persistence.configuration.PersistenceVrkConfiguration;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.CatalogDefaultConfiguration;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -22,32 +44,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.tasks.FetchCompaniesTask;
-import fi.vrk.xroad.catalog.collector.tasks.FetchOpenApiTask;
-import fi.vrk.xroad.catalog.collector.tasks.FetchOrganizationsTask;
-import fi.vrk.xroad.catalog.collector.tasks.FetchRestTask;
-import fi.vrk.xroad.catalog.collector.tasks.FetchWsdlsTask;
-import fi.vrk.xroad.catalog.collector.tasks.ListClientsTask;
-import fi.vrk.xroad.catalog.collector.tasks.ListMethodsTask;
-import fi.vrk.xroad.catalog.collector.tasks.UpdateExternalsTask;
-import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @SpringBootApplication
+@Import({
+        PersistenceDefaultConfiguration.class,
+        PersistenceVrkConfiguration.class,
+        CatalogDefaultConfiguration.class,
+        CatalogVrkConfiguration.class
+})
 public class XRoadCatalogCollector {
 
     private static final String FI_PROFILE = "fi";
 
-    public static void main(String[] args) throws MalformedURLException, URISyntaxException {
+    public static void main(String[] args) throws URISyntaxException {
 
         ApplicationContext context = SpringApplication.run(XRoadCatalogCollector.class, args);
 
@@ -92,7 +101,7 @@ public class XRoadCatalogCollector {
             final UpdateExternalsTask updateExternalsTask = new UpdateExternalsTask(context, fetchCompaniesQueue,
                     fetchOrganizationsQueue);
             long externalInterval = taskPoolConfiguration.getFetchExternalInterval();
-            log.info("Starting up external sources updater with interval of {}", externalInterval);
+            log.info("Starting up external sources updater with interval of {} minutes", externalInterval);
 
             scheduler.scheduleWithFixedDelay(updateExternalsTask, 0, externalInterval, TimeUnit.MINUTES);
         }
@@ -117,7 +126,7 @@ public class XRoadCatalogCollector {
 
 
         long collectorInterval = taskPoolConfiguration.getCollectorInterval();
-        log.info("Starting up catalog collector with collector interval of {}", collectorInterval);
+        log.info("Starting up catalog collector with collector interval of {} minutes", collectorInterval);
 
         scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);
 

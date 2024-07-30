@@ -24,24 +24,17 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.util;
+package org.niis.xroad.catalog.collector.util;
+
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-
 public final class CollectorUtils {
 
     private CollectorUtils() {
-    }
-
-    public static boolean shouldFetchCompanies(boolean fetchUnlimited, int fetchHourAfter, int fetchHourBefore) {
-        if (fetchUnlimited) {
-            return true;
-        }
-        return isTimeBetweenHours(fetchHourAfter, fetchHourBefore);
     }
 
     public static boolean isTimeBetweenHours(int fetchHourAfter, int fetchHourBefore) {

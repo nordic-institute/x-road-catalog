@@ -24,22 +24,21 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.tasks;
+
+import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.util.Endpoint;
+import org.niis.xroad.catalog.collector.util.MethodListUtil;
+import org.niis.xroad.catalog.collector.util.XRoadClient;
+import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.springframework.context.ApplicationContext;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-
-import org.springframework.context.ApplicationContext;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.ClientTypeUtil;
-import fi.vrk.xroad.catalog.collector.util.Endpoint;
-import fi.vrk.xroad.catalog.collector.util.MethodListUtil;
-import fi.vrk.xroad.catalog.collector.util.XRoadClient;
-import fi.vrk.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FetchOpenApiTask extends BaseFetchTask<XRoadRestServiceIdentifierType> {

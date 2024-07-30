@@ -12,6 +12,7 @@
  */
 package fi.vrk.xroad.catalog.collector.util;
 
+import org.niis.xroad.catalog.collector.exception.CatalogCollectorRuntimeException;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.BusinessAddress;
@@ -23,6 +24,7 @@ import fi.vrk.xroad.catalog.persistence.entity.Company;
 import fi.vrk.xroad.catalog.persistence.entity.CompanyForm;
 import fi.vrk.xroad.catalog.persistence.entity.ContactDetail;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
+import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import fi.vrk.xroad.catalog.persistence.entity.Language;
 import fi.vrk.xroad.catalog.persistence.entity.Liquidation;

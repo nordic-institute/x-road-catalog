@@ -24,19 +24,8 @@
  */
 package fi.vrk.xroad.catalog.collector.tasks;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Semaphore;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.context.ApplicationContext;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
-import org.niis.xroad.catalog.collector.service.CatalogService;
 import fi.vrk.xroad.catalog.collector.service.OrganizationService;
+import fi.vrk.xroad.catalog.collector.util.OrganizationUtil;
 import fi.vrk.xroad.catalog.persistence.entity.Address;
 import fi.vrk.xroad.catalog.persistence.entity.Email;
 import fi.vrk.xroad.catalog.persistence.entity.Organization;
@@ -57,6 +46,16 @@ import fi.vrk.xroad.catalog.persistence.entity.StreetAddressMunicipalityName;
 import fi.vrk.xroad.catalog.persistence.entity.StreetAddressPostOffice;
 import fi.vrk.xroad.catalog.persistence.entity.WebPage;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.springframework.context.ApplicationContext;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
 
 @Slf4j
 public class FetchOrganizationsTask implements Runnable {

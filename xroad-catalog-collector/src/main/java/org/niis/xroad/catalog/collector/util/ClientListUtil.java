@@ -10,15 +10,33 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.util;
+package org.niis.xroad.catalog.collector.util;
 
-public class CatalogCollectorRuntimeException extends RuntimeException {
+import org.niis.xroad.catalog.collector.wsimport.ClientList;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
-    public CatalogCollectorRuntimeException(String s) {
-        super(s);
+import java.util.List;
+
+public final class ClientListUtil {
+
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
+    private ClientListUtil() {
+        // Private empty constructor
     }
 
-    public CatalogCollectorRuntimeException(String s, Throwable throwable) {
-        super(s, throwable);
+    public static ClientList clientListFromResponse(String url) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.TEXT_XML));
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+        ResponseEntity<ClientList> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, requestEntity,
+                ClientList.class);
+        return response.getBody();
     }
+
 }

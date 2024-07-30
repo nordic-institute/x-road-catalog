@@ -22,29 +22,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.tasks;
+
+import org.niis.xroad.catalog.collector.util.ClientListUtil;
+import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.CollectorUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.wsimport.ClientList;
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.MemberId;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-
-import org.springframework.context.ApplicationContext;
-
-import fi.vrk.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import fi.vrk.xroad.catalog.collector.util.ClientListUtil;
-import fi.vrk.xroad.catalog.collector.util.ClientTypeUtil;
-import fi.vrk.xroad.catalog.collector.util.CollectorUtils;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientList;
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
-import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.MemberId;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ListClientsTask implements Runnable {

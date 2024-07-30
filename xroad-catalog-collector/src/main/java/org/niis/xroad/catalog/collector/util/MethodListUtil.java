@@ -10,10 +10,10 @@
  * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package fi.vrk.xroad.catalog.collector.util;
+package org.niis.xroad.catalog.collector.util;
 
-import fi.vrk.xroad.catalog.collector.wsimport.ClientType;
-import fi.vrk.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.wsimport.ClientType;
+import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import lombok.extern.slf4j.Slf4j;
@@ -112,10 +112,10 @@ public final class MethodListUtil {
         return (json != null) ? json.toString() : "";
     }
 
-    public static List<fi.vrk.xroad.catalog.collector.util.Endpoint> getEndpointList(
+    public static List<Endpoint> getEndpointList(
             XRoadRestServiceIdentifierType service) {
-        List<fi.vrk.xroad.catalog.collector.util.Endpoint> endpointList = new ArrayList<>();
-        for (fi.vrk.xroad.catalog.collector.util.Endpoint endpoint : service.getEndpoints()) {
+        List<Endpoint> endpointList = new ArrayList<>();
+        for (Endpoint endpoint : service.getEndpoints()) {
             endpointList.add(Endpoint.builder().method(endpoint.getMethod()).path(endpoint.getPath())
                     .build());
         }

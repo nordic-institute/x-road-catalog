@@ -24,7 +24,7 @@
  *  THE SOFTWARE.
  *
  */
-package fi.vrk.xroad.catalog.collector.configuration;
+package org.niis.xroad.catalog.collector.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
