@@ -31,7 +31,8 @@ public class SecurityServerDataListDTOTest {
         SecurityServerDataList securityServerDataList1 = new SecurityServerDataList();
         securityServerDataList1.setSecurityServerDataList(securityServerDataList);
         SecurityServerDataList securityServerDataList2 = new SecurityServerDataList(securityServerDataList);
-        SecurityServerDataList securityServerDataList3 = SecurityServerDataList.builder().securityServerDataList(securityServerDataList).build();
+        SecurityServerDataList securityServerDataList3 = SecurityServerDataList.builder().securityServerDataList(securityServerDataList)
+                .build();
         assertEquals(securityServerDataList1, securityServerDataList2);
         assertEquals(securityServerDataList1, securityServerDataList3);
         assertEquals(securityServerDataList2, securityServerDataList3);

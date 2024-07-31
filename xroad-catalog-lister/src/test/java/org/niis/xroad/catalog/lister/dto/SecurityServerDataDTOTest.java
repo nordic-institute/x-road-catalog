@@ -37,7 +37,8 @@ public class SecurityServerDataDTOTest {
         securityServerData1.setAddress(address);
         securityServerData1.setClients(clients);
         SecurityServerData securityServerData2 = new SecurityServerData(owner, serverCode, address, clients);
-        SecurityServerData securityServerData3 = SecurityServerData.builder().owner(owner).serverCode(serverCode).address(address).clients(clients).build();
+        SecurityServerData securityServerData3 = SecurityServerData.builder().owner(owner).serverCode(serverCode).address(address)
+                .clients(clients).build();
         assertEquals(securityServerData1, securityServerData2);
         assertEquals(securityServerData1, securityServerData3);
         assertEquals(securityServerData2, securityServerData3);

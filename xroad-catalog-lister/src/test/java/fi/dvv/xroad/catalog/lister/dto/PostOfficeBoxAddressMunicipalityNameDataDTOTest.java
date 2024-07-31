@@ -38,10 +38,10 @@ public class PostOfficeBoxAddressMunicipalityNameDataDTOTest {
         postOfficeBoxAddressMunicipalityNameData1.setChanged(changed);
         postOfficeBoxAddressMunicipalityNameData1.setFetched(fetched);
         postOfficeBoxAddressMunicipalityNameData1.setRemoved(null);
-        PostOfficeBoxAddressMunicipalityNameData postOfficeBoxAddressMunicipalityNameData2 = new PostOfficeBoxAddressMunicipalityNameData(language, value,
-                created, changed, fetched, null);
-        PostOfficeBoxAddressMunicipalityNameData postOfficeBoxAddressMunicipalityNameData3 = PostOfficeBoxAddressMunicipalityNameData.builder().language(language)
-                .value(value).created(created).changed(changed).fetched(fetched).removed(null).build();
+        PostOfficeBoxAddressMunicipalityNameData postOfficeBoxAddressMunicipalityNameData2 = new PostOfficeBoxAddressMunicipalityNameData(
+                language, value, created, changed, fetched, null);
+        PostOfficeBoxAddressMunicipalityNameData postOfficeBoxAddressMunicipalityNameData3 = PostOfficeBoxAddressMunicipalityNameData
+                .builder().language(language).value(value).created(created).changed(changed).fetched(fetched).removed(null).build();
         assertEquals(postOfficeBoxAddressMunicipalityNameData1, postOfficeBoxAddressMunicipalityNameData2);
         assertEquals(postOfficeBoxAddressMunicipalityNameData1, postOfficeBoxAddressMunicipalityNameData3);
         assertEquals(postOfficeBoxAddressMunicipalityNameData2, postOfficeBoxAddressMunicipalityNameData3);
@@ -69,5 +69,3 @@ public class PostOfficeBoxAddressMunicipalityNameDataDTOTest {
     }
 
 }
-
-

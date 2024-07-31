@@ -39,10 +39,10 @@ public class StreetAddressAdditionalInformationDataDTOTest {
         streetAddressAdditionalInformationData1.setChanged(changed);
         streetAddressAdditionalInformationData1.setFetched(fetched);
         streetAddressAdditionalInformationData1.setRemoved(null);
-        StreetAddressAdditionalInformationData streetAddressAdditionalInformationData2 = new StreetAddressAdditionalInformationData(language, value, created,
-                changed, fetched, null);
-        StreetAddressAdditionalInformationData streetAddressAdditionalInformationData3 = StreetAddressAdditionalInformationData.builder().language(language)
-                .value(value).created(created).changed(changed).fetched(fetched).removed(null).build();
+        StreetAddressAdditionalInformationData streetAddressAdditionalInformationData2 = new StreetAddressAdditionalInformationData(
+                language, value, created, changed, fetched, null);
+        StreetAddressAdditionalInformationData streetAddressAdditionalInformationData3 = StreetAddressAdditionalInformationData.builder()
+                .language(language).value(value).created(created).changed(changed).fetched(fetched).removed(null).build();
         assertEquals(streetAddressAdditionalInformationData1, streetAddressAdditionalInformationData2);
         assertEquals(streetAddressAdditionalInformationData1, streetAddressAdditionalInformationData3);
         assertEquals(streetAddressAdditionalInformationData2, streetAddressAdditionalInformationData3);

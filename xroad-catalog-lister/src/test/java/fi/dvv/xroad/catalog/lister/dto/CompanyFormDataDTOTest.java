@@ -50,7 +50,8 @@ public class CompanyFormDataDTOTest {
         CompanyFormData companyFormData2 = new CompanyFormData(source, version, name, language, type, registrationDate, null,
                 created, changed, fetched, null);
         CompanyFormData companyFormData3 = CompanyFormData.builder().source(source).version(version).name(name).language(language)
-                .type(type).registrationDate(registrationDate).endDate(null).created(created).changed(changed).fetched(fetched).removed(null).build();
+                .type(type).registrationDate(registrationDate).endDate(null).created(created).changed(changed).fetched(fetched)
+                .removed(null).build();
         assertEquals(companyFormData1, companyFormData2);
         assertEquals(companyFormData1, companyFormData3);
         assertEquals(companyFormData2, companyFormData3);
@@ -69,5 +70,3 @@ public class CompanyFormDataDTOTest {
     }
 
 }
-
-

@@ -38,7 +38,8 @@ public class HeartbeatResponseDTOTest {
         heartbeatResponse1.setAppVersion(appVersion);
         heartbeatResponse1.setSystemTime(systemTime);
         heartbeatResponse1.setLastCollectionData(lastCollectionData);
-        HeartbeatResponse heartbeatResponse2 = new HeartbeatResponse(appWorking, dbWorking, appName, appVersion, systemTime, lastCollectionData);
+        HeartbeatResponse heartbeatResponse2 = new HeartbeatResponse(appWorking, dbWorking, appName, appVersion, systemTime,
+                lastCollectionData);
         HeartbeatResponse heartbeatResponse3 = HeartbeatResponse.builder().appWorking(appWorking).dbWorking(dbWorking)
                 .appName(appName).appVersion(appVersion).systemTime(systemTime).lastCollectionData(lastCollectionData).build();
         assertEquals(heartbeatResponse1, heartbeatResponse2);

@@ -41,29 +41,33 @@ public class PostOfficeBoxAddressMunicipalityDataDTOTest {
         postOfficeBoxAddressMunicipalityData1.setChanged(changed);
         postOfficeBoxAddressMunicipalityData1.setFetched(fetched);
         postOfficeBoxAddressMunicipalityData1.setRemoved(null);
-        PostOfficeBoxAddressMunicipalityData postOfficeBoxAddressMunicipalityData2 = new PostOfficeBoxAddressMunicipalityData(code, postOfficeBoxAddressMunicipalityNames,
-                created, changed, fetched, null);
-        PostOfficeBoxAddressMunicipalityData postOfficeBoxAddressMunicipalityData3 = PostOfficeBoxAddressMunicipalityData.builder().code(code)
-                .postOfficeBoxAddressMunicipalityNames(postOfficeBoxAddressMunicipalityNames).created(created).changed(changed).fetched(fetched).removed(null).build();
+        PostOfficeBoxAddressMunicipalityData postOfficeBoxAddressMunicipalityData2 = new PostOfficeBoxAddressMunicipalityData(code,
+                postOfficeBoxAddressMunicipalityNames, created, changed, fetched, null);
+        PostOfficeBoxAddressMunicipalityData postOfficeBoxAddressMunicipalityData3 = PostOfficeBoxAddressMunicipalityData.builder()
+                .code(code).postOfficeBoxAddressMunicipalityNames(postOfficeBoxAddressMunicipalityNames).created(created).changed(changed)
+                .fetched(fetched).removed(null).build();
         assertEquals(postOfficeBoxAddressMunicipalityData1, postOfficeBoxAddressMunicipalityData2);
         assertEquals(postOfficeBoxAddressMunicipalityData1, postOfficeBoxAddressMunicipalityData3);
         assertEquals(postOfficeBoxAddressMunicipalityData2, postOfficeBoxAddressMunicipalityData3);
         assertEquals(code, postOfficeBoxAddressMunicipalityData1.getCode());
-        assertEquals(postOfficeBoxAddressMunicipalityNames, postOfficeBoxAddressMunicipalityData1.getPostOfficeBoxAddressMunicipalityNames());
+        assertEquals(postOfficeBoxAddressMunicipalityNames, postOfficeBoxAddressMunicipalityData1
+                .getPostOfficeBoxAddressMunicipalityNames());
         assertEquals(created, postOfficeBoxAddressMunicipalityData1.getCreated());
         assertEquals(changed, postOfficeBoxAddressMunicipalityData1.getChanged());
         assertEquals(fetched, postOfficeBoxAddressMunicipalityData1.getFetched());
         assertNotEquals(0, postOfficeBoxAddressMunicipalityData1.hashCode());
         assertEquals(true, postOfficeBoxAddressMunicipalityData1.equals(postOfficeBoxAddressMunicipalityData2));
         assertEquals(code, postOfficeBoxAddressMunicipalityData2.getCode());
-        assertEquals(postOfficeBoxAddressMunicipalityNames, postOfficeBoxAddressMunicipalityData2.getPostOfficeBoxAddressMunicipalityNames());
+        assertEquals(postOfficeBoxAddressMunicipalityNames, postOfficeBoxAddressMunicipalityData2
+                .getPostOfficeBoxAddressMunicipalityNames());
         assertEquals(created, postOfficeBoxAddressMunicipalityData2.getCreated());
         assertEquals(changed, postOfficeBoxAddressMunicipalityData2.getChanged());
         assertEquals(fetched, postOfficeBoxAddressMunicipalityData2.getFetched());
         assertNotEquals(0, postOfficeBoxAddressMunicipalityData2.hashCode());
         assertEquals(true, postOfficeBoxAddressMunicipalityData2.equals(postOfficeBoxAddressMunicipalityData3));
         assertEquals(code, postOfficeBoxAddressMunicipalityData3.getCode());
-        assertEquals(postOfficeBoxAddressMunicipalityNames, postOfficeBoxAddressMunicipalityData3.getPostOfficeBoxAddressMunicipalityNames());
+        assertEquals(postOfficeBoxAddressMunicipalityNames, postOfficeBoxAddressMunicipalityData3
+                .getPostOfficeBoxAddressMunicipalityNames());
         assertEquals(created, postOfficeBoxAddressMunicipalityData3.getCreated());
         assertEquals(changed, postOfficeBoxAddressMunicipalityData3.getChanged());
         assertEquals(fetched, postOfficeBoxAddressMunicipalityData3.getFetched());
@@ -71,7 +75,4 @@ public class PostOfficeBoxAddressMunicipalityDataDTOTest {
         assertEquals(true, postOfficeBoxAddressMunicipalityData3.equals(postOfficeBoxAddressMunicipalityData1));
 
     }
-
 }
-
-

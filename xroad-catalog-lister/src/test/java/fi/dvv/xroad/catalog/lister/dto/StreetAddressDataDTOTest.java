@@ -55,8 +55,8 @@ public class StreetAddressDataDTOTest {
         streetAddressData1.setChanged(changed);
         streetAddressData1.setFetched(fetched);
         streetAddressData1.setRemoved(null);
-        StreetAddressData streetAddressData2 = new StreetAddressData(streetNumber, postalCode, latitude, longitude, coordinateState, streets,
-                postOffices, municipalities, additionalInformation, created, changed, fetched, null);
+        StreetAddressData streetAddressData2 = new StreetAddressData(streetNumber, postalCode, latitude, longitude, coordinateState,
+                streets, postOffices, municipalities, additionalInformation, created, changed, fetched, null);
         StreetAddressData streetAddressData3 = StreetAddressData.builder().streetNumber(streetNumber).postalCode(postalCode)
                 .latitude(latitude).longitude(longitude).coordinateState(coordinateState).streets(streets)
                 .postOffices(postOffices).municipalities(municipalities).additionalInformation(additionalInformation)

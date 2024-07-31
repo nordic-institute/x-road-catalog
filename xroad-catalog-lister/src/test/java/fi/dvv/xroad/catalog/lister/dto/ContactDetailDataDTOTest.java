@@ -51,7 +51,8 @@ public class ContactDetailDataDTOTest {
         ContactDetailData contactDetailData2 = new ContactDetailData(source, version, language, value, type, registrationDate, null,
                 created, changed, fetched, null);
         ContactDetailData contactDetailData3 = ContactDetailData.builder().source(source).version(version).language(language).value(value)
-                .type(type).registrationDate(registrationDate).endDate(null).created(created).changed(changed).fetched(fetched).removed(null).build();
+                .type(type).registrationDate(registrationDate).endDate(null).created(created).changed(changed).fetched(fetched)
+                .removed(null).build();
         assertEquals(contactDetailData1, contactDetailData2);
         assertEquals(contactDetailData1, contactDetailData3);
         assertEquals(contactDetailData2, contactDetailData3);
@@ -71,7 +72,4 @@ public class ContactDetailDataDTOTest {
         assertNotEquals(0, contactDetailData3.hashCode());
         assertEquals(true, contactDetailData3.equals(contactDetailData1));
     }
-
 }
-
-

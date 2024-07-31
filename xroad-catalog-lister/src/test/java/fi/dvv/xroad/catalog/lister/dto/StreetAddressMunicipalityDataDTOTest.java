@@ -40,10 +40,11 @@ public class StreetAddressMunicipalityDataDTOTest {
         streetAddressMunicipalityData1.setChanged(changed);
         streetAddressMunicipalityData1.setFetched(fetched);
         streetAddressMunicipalityData1.setRemoved(null);
-        StreetAddressMunicipalityData streetAddressMunicipalityData2 = new StreetAddressMunicipalityData(code, streetAddressMunicipalityNames,
-                created, changed, fetched, null);
+        StreetAddressMunicipalityData streetAddressMunicipalityData2 = new StreetAddressMunicipalityData(code,
+                streetAddressMunicipalityNames, created, changed, fetched, null);
         StreetAddressMunicipalityData streetAddressMunicipalityData3 = StreetAddressMunicipalityData.builder().code(code)
-                .streetAddressMunicipalityNames(streetAddressMunicipalityNames).created(created).changed(changed).fetched(fetched).removed(null).build();
+                .streetAddressMunicipalityNames(streetAddressMunicipalityNames).created(created).changed(changed).fetched(fetched)
+                .removed(null).build();
         assertEquals(streetAddressMunicipalityData1, streetAddressMunicipalityData2);
         assertEquals(streetAddressMunicipalityData1, streetAddressMunicipalityData3);
         assertEquals(streetAddressMunicipalityData2, streetAddressMunicipalityData3);

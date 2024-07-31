@@ -56,9 +56,9 @@ public class CompanyDataDTOTest {
         companyData1.setLiquidations(new ArrayList<>());
         companyData1.setRegisteredEntries(new ArrayList<>());
         companyData1.setRegisteredOffices(new ArrayList<>());
-        CompanyData companyData2 = new CompanyData(businessCode, created, changed, fetched, null, companyForm, detailsUri, name, registrationDate,
-                new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
-                new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        CompanyData companyData2 = new CompanyData(businessCode, created, changed, fetched, null, companyForm, detailsUri, name,
+                registrationDate, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
+                new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         CompanyData companyData3 = CompanyData.builder().businessCode(businessCode).created(created).changed(changed).fetched(fetched)
                 .removed(null).companyForm(companyForm).detailsUri(detailsUri).name(name).registrationDate(registrationDate)
                 .businessAddresses(new ArrayList<>()).businessAuxiliaryNames(new ArrayList<>()).businessIdChanges(new ArrayList<>())

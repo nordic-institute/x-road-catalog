@@ -32,7 +32,8 @@ public class OrganizationChangedDTOTest {
         organizationChanged1.setChanged(changed);
         organizationChanged1.setChangedValueList(changedValueList);
         OrganizationChanged organizationChanged2 = new OrganizationChanged(changed, changedValueList);
-        OrganizationChanged organizationChanged3 = OrganizationChanged.builder().changed(changed).changedValueList(changedValueList).build();
+        OrganizationChanged organizationChanged3 = OrganizationChanged.builder().changed(changed).changedValueList(changedValueList)
+                .build();
         assertEquals(organizationChanged1, organizationChanged2);
         assertEquals(organizationChanged1, organizationChanged3);
         assertEquals(organizationChanged2, organizationChanged3);

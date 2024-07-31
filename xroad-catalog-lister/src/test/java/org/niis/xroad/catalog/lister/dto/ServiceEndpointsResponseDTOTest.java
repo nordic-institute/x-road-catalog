@@ -41,10 +41,11 @@ public class ServiceEndpointsResponseDTOTest {
         serviceEndpointsResponse1.setServiceCode(serviceCode);
         serviceEndpointsResponse1.setServiceVersion(serviceVersion);
         serviceEndpointsResponse1.setEndpointList(endpointList);
-        ServiceEndpointsResponse serviceEndpointsResponse2 = new ServiceEndpointsResponse(xRoadInstance, memberClass, memberCode, subsystemCode,
-                serviceCode, serviceVersion, endpointList);
-        ServiceEndpointsResponse serviceEndpointsResponse3 = ServiceEndpointsResponse.builder().xRoadInstance(xRoadInstance).memberClass(memberClass)
-                .memberCode(memberCode).subsystemCode(subsystemCode).serviceCode(serviceCode).serviceVersion(serviceVersion).endpointList(endpointList).build();
+        ServiceEndpointsResponse serviceEndpointsResponse2 = new ServiceEndpointsResponse(xRoadInstance, memberClass, memberCode,
+                subsystemCode, serviceCode, serviceVersion, endpointList);
+        ServiceEndpointsResponse serviceEndpointsResponse3 = ServiceEndpointsResponse.builder().xRoadInstance(xRoadInstance)
+                .memberClass(memberClass).memberCode(memberCode).subsystemCode(subsystemCode).serviceCode(serviceCode)
+                .serviceVersion(serviceVersion).endpointList(endpointList).build();
         assertEquals(serviceEndpointsResponse1, serviceEndpointsResponse2);
         assertEquals(serviceEndpointsResponse1, serviceEndpointsResponse3);
         assertEquals(serviceEndpointsResponse2, serviceEndpointsResponse3);

@@ -51,7 +51,8 @@ public class PostOfficeBoxAddressDataDTOTest {
                 additionalInformation, postOffices, postOfficeBoxes, created, changed, fetched, null);
         PostOfficeBoxAddressData postOfficeBoxAddressData3 = PostOfficeBoxAddressData.builder().postalCode(postalCode)
                 .postOfficeBoxAddressMunicipalities(postOfficeBoxAddressMunicipalities).additionalInformation(additionalInformation)
-                .postOffices(postOffices).postOfficeBoxes(postOfficeBoxes).created(created).changed(changed).fetched(fetched).removed(null).build();
+                .postOffices(postOffices).postOfficeBoxes(postOfficeBoxes).created(created).changed(changed).fetched(fetched)
+                .removed(null).build();
         assertEquals(postOfficeBoxAddressData1, postOfficeBoxAddressData2);
         assertEquals(postOfficeBoxAddressData1, postOfficeBoxAddressData3);
         assertEquals(postOfficeBoxAddressData2, postOfficeBoxAddressData3);
@@ -79,5 +80,3 @@ public class PostOfficeBoxAddressDataDTOTest {
     }
 
 }
-
-

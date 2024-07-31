@@ -46,10 +46,11 @@ public class RegisteredEntryDataDTOTest {
         registeredEntryData1.setChanged(changed);
         registeredEntryData1.setFetched(fetched);
         registeredEntryData1.setRemoved(null);
-        RegisteredEntryData registeredEntryData2 = new RegisteredEntryData(description, status, register, language, authority, registrationDate,
-                null, created, changed, fetched, null);
-        RegisteredEntryData registeredEntryData3 = RegisteredEntryData.builder().description(description).status(status).register(register).language(language)
-                .authority(authority).registrationDate(registrationDate).endDate(null).created(created).changed(changed).fetched(fetched).removed(null).build();
+        RegisteredEntryData registeredEntryData2 = new RegisteredEntryData(description, status, register, language, authority,
+                registrationDate, null, created, changed, fetched, null);
+        RegisteredEntryData registeredEntryData3 = RegisteredEntryData.builder().description(description).status(status).register(register)
+                .language(language).authority(authority).registrationDate(registrationDate).endDate(null).created(created).changed(changed)
+                .fetched(fetched).removed(null).build();
         assertEquals(registeredEntryData1, registeredEntryData2);
         assertEquals(registeredEntryData1, registeredEntryData3);
         assertEquals(registeredEntryData2, registeredEntryData3);

@@ -42,7 +42,8 @@ public class DescriptorInfoDTOTest {
         DescriptorInfo descriptorInfo2 = new DescriptorInfo(xRoadInstance, subsystemName, new ArrayList<>(), memberClass,
                 memberCode, memberName, subsystemCode);
         DescriptorInfo descriptorInfo3 = DescriptorInfo.builder().xRoadInstance(xRoadInstance).subsystemName(subsystemName)
-                .email(new ArrayList<>()).memberClass(memberClass).memberCode(memberCode).memberName(memberName).subsystemCode(subsystemCode).build();
+                .email(new ArrayList<>()).memberClass(memberClass).memberCode(memberCode).memberName(memberName)
+                .subsystemCode(subsystemCode).build();
         assertEquals(descriptorInfo1, descriptorInfo2);
         assertEquals(descriptorInfo1, descriptorInfo3);
         assertEquals(descriptorInfo2, descriptorInfo3);

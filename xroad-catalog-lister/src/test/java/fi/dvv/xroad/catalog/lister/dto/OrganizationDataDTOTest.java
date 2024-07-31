@@ -56,8 +56,8 @@ public class OrganizationDataDTOTest {
         organizationData1.setPhoneNumbers(phoneNumbers);
         organizationData1.setWebPages(webPages);
         organizationData1.setAddresses(addresses);
-        OrganizationData organizationData2 = new OrganizationData(businessCode, created, changed, fetched, null, organizationType, publishingStatus,
-                guid, organizationNames, organizationDescriptions, emails, phoneNumbers, webPages, addresses);
+        OrganizationData organizationData2 = new OrganizationData(businessCode, created, changed, fetched, null, organizationType,
+                publishingStatus, guid, organizationNames, organizationDescriptions, emails, phoneNumbers, webPages, addresses);
         OrganizationData organizationData3 = OrganizationData.builder().businessCode(businessCode).created(created).changed(changed)
                 .fetched(fetched).removed(null).organizationType(organizationType).publishingStatus(publishingStatus).guid(guid)
                 .organizationNames(organizationNames).organizationDescriptions(organizationDescriptions)

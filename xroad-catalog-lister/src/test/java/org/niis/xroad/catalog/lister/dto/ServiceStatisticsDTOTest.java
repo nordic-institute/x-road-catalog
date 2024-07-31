@@ -35,7 +35,8 @@ public class ServiceStatisticsDTOTest {
         serviceStatistics1.setNumberOfSoapServices(numberOfSoapServices);
         serviceStatistics1.setNumberOfRestServices(numberOfRestServices);
         serviceStatistics1.setNumberOfOpenApiServices(numberOfOpenApiServices);
-        ServiceStatistics serviceStatistics2 = new ServiceStatistics(created, numberOfSoapServices, numberOfRestServices, numberOfOpenApiServices);
+        ServiceStatistics serviceStatistics2 = new ServiceStatistics(created, numberOfSoapServices, numberOfRestServices,
+                numberOfOpenApiServices);
         ServiceStatistics serviceStatistics3 = ServiceStatistics.builder().created(created).numberOfSoapServices(numberOfSoapServices)
                 .numberOfRestServices(numberOfRestServices).numberOfOpenApiServices(numberOfOpenApiServices).build();
         assertEquals(serviceStatistics1, serviceStatistics2);

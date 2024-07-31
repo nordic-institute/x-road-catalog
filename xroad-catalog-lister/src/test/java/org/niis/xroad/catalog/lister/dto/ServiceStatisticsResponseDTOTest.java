@@ -30,7 +30,8 @@ public class ServiceStatisticsResponseDTOTest {
         ServiceStatisticsResponse serviceStatisticsResponse1 = new ServiceStatisticsResponse();
         serviceStatisticsResponse1.setServiceStatisticsList(serviceStatisticsList);
         ServiceStatisticsResponse serviceStatisticsResponse2 = new ServiceStatisticsResponse(serviceStatisticsList);
-        ServiceStatisticsResponse serviceStatisticsResponse3 = ServiceStatisticsResponse.builder().serviceStatisticsList(serviceStatisticsList).build();
+        ServiceStatisticsResponse serviceStatisticsResponse3 = ServiceStatisticsResponse.builder()
+                .serviceStatisticsList(serviceStatisticsList).build();
         assertEquals(serviceStatisticsResponse1, serviceStatisticsResponse2);
         assertEquals(serviceStatisticsResponse1, serviceStatisticsResponse3);
         assertEquals(serviceStatisticsResponse2, serviceStatisticsResponse3);

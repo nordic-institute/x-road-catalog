@@ -32,7 +32,8 @@ public class PostOfficeBoxAddressAdditionalInformationDataDTOTest {
         LocalDateTime created = LocalDateTime.now();
         LocalDateTime changed = LocalDateTime.now();
         LocalDateTime fetched = LocalDateTime.now();
-        PostOfficeBoxAddressAdditionalInformationData postOfficeBoxAddressAdditionalInformationData1 = new PostOfficeBoxAddressAdditionalInformationData();
+        PostOfficeBoxAddressAdditionalInformationData postOfficeBoxAddressAdditionalInformationData1 =
+                new PostOfficeBoxAddressAdditionalInformationData();
         postOfficeBoxAddressAdditionalInformationData1.setLanguage(language);
         postOfficeBoxAddressAdditionalInformationData1.setValue(value);
         postOfficeBoxAddressAdditionalInformationData1.setCreated(created);
@@ -41,7 +42,8 @@ public class PostOfficeBoxAddressAdditionalInformationDataDTOTest {
         postOfficeBoxAddressAdditionalInformationData1.setRemoved(null);
         PostOfficeBoxAddressAdditionalInformationData postOfficeBoxAddressAdditionalInformationData2
                 = new PostOfficeBoxAddressAdditionalInformationData(language, value, created, changed, fetched, null);
-        PostOfficeBoxAddressAdditionalInformationData postOfficeBoxAddressAdditionalInformationData3 = PostOfficeBoxAddressAdditionalInformationData.builder()
+        PostOfficeBoxAddressAdditionalInformationData postOfficeBoxAddressAdditionalInformationData3 =
+                PostOfficeBoxAddressAdditionalInformationData.builder()
                 .language(language).value(value).created(created).changed(changed).fetched(fetched).removed(null).build();
         assertEquals(postOfficeBoxAddressAdditionalInformationData1, postOfficeBoxAddressAdditionalInformationData2);
         assertEquals(postOfficeBoxAddressAdditionalInformationData1, postOfficeBoxAddressAdditionalInformationData3);

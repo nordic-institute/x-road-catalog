@@ -35,7 +35,8 @@ public class ServiceDataDTOTest {
         serviceData1.setServiceVersion(serviceVersion);
         serviceData1.setActive(active);
         ServiceData serviceData2 = new ServiceData(created, serviceCode, serviceVersion, active);
-        ServiceData serviceData3 = ServiceData.builder().created(created).serviceCode(serviceCode).serviceVersion(serviceVersion).active(active).build();
+        ServiceData serviceData3 = ServiceData.builder().created(created).serviceCode(serviceCode).serviceVersion(serviceVersion)
+                .active(active).build();
         assertEquals(serviceData1, serviceData2);
         assertEquals(serviceData1, serviceData3);
         assertEquals(serviceData2, serviceData3);

@@ -33,7 +33,8 @@ public class MemberInfoDTOTest {
         memberInfo1.setName(name);
         memberInfo1.setSubsystemCode(subsystemCode);
         MemberInfo memberInfo2 = new MemberInfo(memberClass, memberCode, name, subsystemCode);
-        MemberInfo memberInfo3 = MemberInfo.builder().memberClass(memberClass).memberCode(memberCode).name(name).subsystemCode(subsystemCode).build();
+        MemberInfo memberInfo3 = MemberInfo.builder().memberClass(memberClass).memberCode(memberCode).name(name)
+                .subsystemCode(subsystemCode).build();
         assertEquals(memberInfo1, memberInfo2);
         assertEquals(memberInfo1, memberInfo3);
         assertEquals(memberInfo2, memberInfo3);
