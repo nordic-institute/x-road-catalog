@@ -75,7 +75,7 @@ public class OrganizationRepositoryTest {
         LocalDateTime latestFetched = organizationRepository.findLatestFetched();
         assertEquals(2016, latestFetched.getYear());
         assertEquals(Month.JANUARY, latestFetched.getMonth());
-        assertEquals(1, latestFetched.getDayOfMonth());
+        assertEquals(2, latestFetched.getDayOfMonth());
         assertEquals(0, latestFetched.getHour());
     }
 
