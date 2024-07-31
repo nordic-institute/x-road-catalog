@@ -116,7 +116,7 @@ INSERT INTO endpoint (id, service_id, method, path, created, changed, fetched, r
 VALUES (3, 12, 'POST', '/setOtherData', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
 
 INSERT INTO organization (id, organization_type, publishing_status, business_code, guid, created, changed, fetched, removed)
-VALUES (1, 'Municipality', 'Published', '0123456-9', 'abcdef123456', '2016-01-01 00:00:00+02', '2016-01-02 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
+VALUES (1, 'Municipality', 'Published', '0123456-9', 'abcdef123456', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-02 00:00:00+02', NULL);
 
 INSERT INTO organization_name (id, organization_id, language, type, value, created, changed, fetched, removed)
 VALUES (1, 1, 'fi', 'Name', 'Vaasan kaupunki', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
