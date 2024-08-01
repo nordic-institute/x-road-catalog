@@ -14,11 +14,9 @@ package fi.dvv.xroad.catalog.lister.convertor;
 
 import org.niis.xroad.catalog.lister.generated.Company;
 import org.niis.xroad.catalog.lister.generated.Organization;
-import org.springframework.context.annotation.Profile;
 
 import java.util.Collection;
 
-@Profile("fi")
 public interface JaxbOrganizationConversion {
 
     /**

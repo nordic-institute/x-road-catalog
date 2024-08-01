@@ -38,7 +38,6 @@ import org.niis.xroad.catalog.persistence.entity.Rest;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +55,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@Profile({ "default", "fi" })
 public class ServiceController implements ServiceOperations {
 
     @Value("${xroad-catalog.shared-params-file}")

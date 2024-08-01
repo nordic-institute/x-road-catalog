@@ -16,13 +16,11 @@ import org.niis.xroad.catalog.lister.generated.ErrorLog;
 import org.niis.xroad.catalog.lister.generated.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.springframework.context.annotation.Profile;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
-@Profile({ "default", "fi" })
 public interface JaxbServiceConversion {
 
     /**

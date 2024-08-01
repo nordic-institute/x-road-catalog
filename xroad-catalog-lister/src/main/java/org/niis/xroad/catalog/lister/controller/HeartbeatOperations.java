@@ -13,13 +13,11 @@
 package org.niis.xroad.catalog.lister.controller;
 
 import org.niis.xroad.catalog.lister.dto.HeartbeatResponse;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @RequestMapping("/default")
-@Profile({"default", "fi"})
 public interface HeartbeatOperations {
 
     @GetMapping(path = "/heartbeat", produces = "application/json")

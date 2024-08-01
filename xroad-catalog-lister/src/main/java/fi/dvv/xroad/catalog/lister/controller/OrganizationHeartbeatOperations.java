@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @RequestMapping("/default")
-@Profile("fi")
 public interface OrganizationHeartbeatOperations {
 
     @GetMapping(path = "/organizationHeartbeat", produces = "application/json")

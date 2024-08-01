@@ -37,7 +37,6 @@ import org.niis.xroad.catalog.persistence.entity.OpenApi;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
@@ -47,7 +46,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Endpoint
 @Slf4j
-@Profile({ "default", "fi" })
 public class ServiceEndpointImpl implements ServiceEndpoint {
 
     @Autowired

@@ -12,7 +12,6 @@
  */
 package fi.dvv.xroad.catalog.lister.controller;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RequestMapping("/default")
-@Profile("fi")
 public interface OrganizationOperations {
 
     @GetMapping(path = {"/getOrganization/{businessCode}"}, produces = "application/json")

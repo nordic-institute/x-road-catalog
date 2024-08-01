@@ -32,7 +32,6 @@ import org.niis.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
 import org.niis.xroad.catalog.lister.generated.Organization;
 import org.niis.xroad.catalog.lister.generated.OrganizationList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
@@ -40,7 +39,6 @@ import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
 @Endpoint
 @Slf4j
-@Profile("fi")
 public class OrganizationEndpointImpl implements OrganizationEndpoint {
 
     @Autowired

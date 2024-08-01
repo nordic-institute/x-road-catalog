@@ -20,14 +20,12 @@ import org.niis.xroad.catalog.lister.generated.HasCompanyChanged;
 import org.niis.xroad.catalog.lister.generated.HasCompanyChangedResponse;
 import org.niis.xroad.catalog.lister.generated.HasOrganizationChanged;
 import org.niis.xroad.catalog.lister.generated.HasOrganizationChangedResponse;
-import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
 @Endpoint
-@Profile("fi")
 public interface OrganizationEndpoint {
 
     String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";

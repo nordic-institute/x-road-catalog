@@ -24,14 +24,12 @@ import org.niis.xroad.catalog.lister.generated.IsProvider;
 import org.niis.xroad.catalog.lister.generated.IsProviderResponse;
 import org.niis.xroad.catalog.lister.generated.ListMembers;
 import org.niis.xroad.catalog.lister.generated.ListMembersResponse;
-import org.springframework.context.annotation.Profile;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
 @Endpoint
-@Profile({ "default", "fi" })
 public interface ServiceEndpoint {
 
     String NAMESPACE_URI = "http://xroad.vrk.fi/xroad-catalog-lister";

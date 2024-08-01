@@ -17,7 +17,6 @@ import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +26,6 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api")
 @PropertySource("classpath:version.properties")
-@Profile("fi")
 public class OrganizationHeartbeatController implements OrganizationHeartbeatOperations {
 
     @Value("${xroad-catalog.app-name}")
