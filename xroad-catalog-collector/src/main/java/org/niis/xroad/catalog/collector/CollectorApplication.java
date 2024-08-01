@@ -41,13 +41,13 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @SpringBootApplication
-public class XRoadCatalogCollector {
+public class CollectorApplication {
 
     private static final String FI_PROFILE = "fi";
 
     public static void main(String[] args) throws URISyntaxException {
 
-        ApplicationContext context = SpringApplication.run(XRoadCatalogCollector.class, args);
+        ApplicationContext context = SpringApplication.run(CollectorApplication.class, args);
 
         final Environment env = context.getEnvironment();
 

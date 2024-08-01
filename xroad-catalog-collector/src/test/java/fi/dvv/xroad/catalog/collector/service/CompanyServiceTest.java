@@ -28,7 +28,7 @@ import fi.dvv.xroad.catalog.persistence.entity.RegisteredOffice;
 import fi.dvv.xroad.catalog.persistence.repository.CompanyRepository;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.collector.TestUtil;
-import org.niis.xroad.catalog.collector.XRoadCatalogCollector;
+import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@SpringBootTest(classes =  XRoadCatalogCollector.class)
+@SpringBootTest(classes =  CollectorApplication.class)
 @Transactional
 public class CompanyServiceTest {
 

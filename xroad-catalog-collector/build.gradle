@@ -42,7 +42,7 @@ tasks.withType(Jar).configureEach {
 }
 
 springBoot {
-    mainClass = 'org.niis.xroad.catalog.collector.XRoadCatalogCollector'
+    mainClass = 'org.niis.xroad.catalog.collector.CollectorApplication'
 }
 
 task wsImport {
