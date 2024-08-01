@@ -24,10 +24,13 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
+import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import(PersistenceDefaultConfiguration.class)
 @ComponentScan(basePackages = "org.niis.xroad.catalog.collector")
 public class CatalogDefaultConfiguration {
 }

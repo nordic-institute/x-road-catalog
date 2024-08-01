@@ -12,15 +12,13 @@
  */
 package org.niis.xroad.catalog.lister.configuration;
 
+import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Import;
 
 @Configuration
-@Lazy
-@ComponentScan(basePackages = {
-        "org.niis.xroad.catalog.lister"
-})
+@Import(PersistenceDefaultConfiguration.class)
+@ComponentScan(basePackages = "org.niis.xroad.catalog.lister")
 public class ListerDefaultConfiguration {
-
 }

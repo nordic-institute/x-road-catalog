@@ -12,13 +12,10 @@
  */
 package org.niis.xroad.catalog.collector;
 
-import fi.dvv.xroad.catalog.collector.configuration.CatalogFinlandConfiguration;
 import fi.dvv.xroad.catalog.collector.tasks.FetchCompaniesTask;
 import fi.dvv.xroad.catalog.collector.tasks.FetchOrganizationsTask;
 import fi.dvv.xroad.catalog.collector.tasks.UpdateExternalsTask;
-import fi.dvv.xroad.catalog.persistence.configuration.PersistenceFinlandConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.configuration.CatalogDefaultConfiguration;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.tasks.FetchOpenApiTask;
 import org.niis.xroad.catalog.collector.tasks.FetchRestTask;
@@ -28,11 +25,9 @@ import org.niis.xroad.catalog.collector.tasks.ListMethodsTask;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.ClientType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 import java.net.URISyntaxException;
@@ -46,12 +41,6 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @SpringBootApplication
-@Import({
-        PersistenceDefaultConfiguration.class,
-        PersistenceFinlandConfiguration.class,
-        CatalogDefaultConfiguration.class,
-        CatalogFinlandConfiguration.class
-})
 public class XRoadCatalogCollector {
 
     private static final String FI_PROFILE = "fi";
