@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 
-@Component("companyService")
+@Component
 @Transactional
 public class CompanyServiceImpl implements CompanyService {
     @Autowired

@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-@Component("organizationService")
+@Component
 @Transactional
 public class OrganizationServiceImpl implements OrganizationService {
 
