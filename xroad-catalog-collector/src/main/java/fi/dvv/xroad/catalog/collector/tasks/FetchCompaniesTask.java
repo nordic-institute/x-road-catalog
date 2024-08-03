@@ -45,7 +45,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +54,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 
 @Slf4j
+@Component
 public class FetchCompaniesTask implements Runnable {
 
     private final String fetchCompaniesUrl;
@@ -64,18 +65,15 @@ public class FetchCompaniesTask implements Runnable {
 
     private final BlockingQueue<String> fetchCompaniesQueue;
 
-    private final TaskPoolConfiguration taskPoolConfiguration;
-
     private final Semaphore semaphore;
 
-    public FetchCompaniesTask(final ApplicationContext applicationContext,
-            final BlockingQueue<String> fetchCompaniesQueue) {
-        this.catalogService = applicationContext.getBean(CatalogService.class);
-        this.companyService = applicationContext.getBean(CompanyService.class);
+    public FetchCompaniesTask(final CatalogService catalogService, CompanyService companyService,
+                              final TaskPoolConfiguration taskPoolConfiguration, final BlockingQueue<String> fetchCompaniesQueue) {
+        this.catalogService = catalogService;
+        this.companyService = companyService;
 
         this.fetchCompaniesQueue = fetchCompaniesQueue;
 
-        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         this.fetchCompaniesUrl = taskPoolConfiguration.getFetchCompaniesUrl();
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getFetchCompaniesPoolSize());
@@ -83,7 +81,7 @@ public class FetchCompaniesTask implements Runnable {
     }
 
     public void run() {
-        log.info("Starting {} with pool size {}", getClass().getSimpleName(), semaphore.availablePermits());
+        log.info("Starting FetchCompaniesTask with pool size {}", semaphore.availablePermits());
         try {
             while (true) {
                 log.debug("Waiting for data ... ");

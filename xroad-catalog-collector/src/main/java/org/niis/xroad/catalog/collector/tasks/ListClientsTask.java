@@ -26,6 +26,7 @@ package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.events.NewMembersEventPublisher;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
@@ -37,7 +38,7 @@ import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.MemberId;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,24 +47,24 @@ import java.util.Queue;
 import java.util.Set;
 
 @Slf4j
+@Component
 public class ListClientsTask implements Runnable {
 
     private final TaskPoolConfiguration taskPoolConfiguration;
     private final CatalogService catalogService;
     private final Queue<ClientType> listMethodsQueue;
-    private final Queue<String> fetchCompaniesQueue;
-    private final Queue<String> fetchOrganizationsQueue;
+    private final NewMembersEventPublisher newMembersEventPublisher;
 
-    public ListClientsTask(ApplicationContext applicationContext, Queue<ClientType> listMethodsQueue,
-                           Queue<String> fetchCompaniesQueue, Queue<String> fetchOrganizationsQueue) {
-        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
-        this.catalogService = applicationContext.getBean(CatalogService.class);
+    public ListClientsTask(CatalogService catalogService, TaskPoolConfiguration taskPoolConfiguration, Queue<ClientType> listMethodsQueue,
+                           NewMembersEventPublisher newMembersEventPublisher) {
+        this.taskPoolConfiguration = taskPoolConfiguration;
+        this.catalogService = catalogService;
         this.listMethodsQueue = listMethodsQueue;
-        this.fetchCompaniesQueue = fetchCompaniesQueue;
-        this.fetchOrganizationsQueue = fetchOrganizationsQueue;
+        this.newMembersEventPublisher = newMembersEventPublisher;
     }
 
     public void run() {
+        log.info("Starting ListClientsTask");
         if (CollectorUtils.isTimeBetweenHours(taskPoolConfiguration.getFlushLogTimeAfterHour(),
                 taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
             catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
@@ -92,16 +93,8 @@ public class ListClientsTask implements Runnable {
 
             log.info("All subsystems ({}) sent to ListMethodsTask", subsystems.size());
 
-            // The fetchCompaniesQueue and fetchOrganizationsQueue should only be
-            // initialized if the FI profile is active.
-            if (fetchCompaniesQueue != null) {
-                fetchCompaniesQueue.addAll(newMembers.stream().map(Member::getMemberCode).toList());
-                log.info("{} new members sent to the FetchCompaniesTask", newMembers.size());
-            }
-            if (fetchOrganizationsQueue != null) {
-                fetchOrganizationsQueue.addAll(newMembers.stream().map(Member::getMemberCode).toList());
-                log.info("{} new members sent to the FetchOrganizationsTask", newMembers.size());
-            }
+            newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).toList());
+            log.info("{} new members were published as event", newMembers.size());
         } catch (Exception e) {
             ErrorLog errorLog = CollectorUtils.createErrorLog(null,
                     "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(), "500");

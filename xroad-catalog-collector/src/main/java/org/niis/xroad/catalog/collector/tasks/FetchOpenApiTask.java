@@ -28,12 +28,13 @@ package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
+@Component
 public class FetchOpenApiTask extends BaseFetchTask<XRoadRestServiceIdentifierType> {
 
     private final String xroadSecurityServerHost;
@@ -55,14 +57,15 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadRestServiceIdentifierTy
 
     private final String webservicesEndpoint;
 
+    private CatalogService catalogService;
+
     private final XRoadClient xroadClient;
 
-    public FetchOpenApiTask(final ApplicationContext applicationContext,
-            final BlockingQueue<XRoadRestServiceIdentifierType> openApiServices) throws URISyntaxException {
-        super(applicationContext, openApiServices,
-                applicationContext.getBean(TaskPoolConfiguration.class).getFetchOpenapiPoolSize());
+    public FetchOpenApiTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
+                            final BlockingQueue<XRoadRestServiceIdentifierType> openApiServicesQueue) throws URISyntaxException {
+        super(openApiServicesQueue, taskPoolConfiguration.getFetchOpenapiPoolSize());
+        this.catalogService = catalogService;
 
-        TaskPoolConfiguration taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
         this.xroadInstance = taskPoolConfiguration.getXroadInstance();
         this.memberCode = taskPoolConfiguration.getMemberCode();

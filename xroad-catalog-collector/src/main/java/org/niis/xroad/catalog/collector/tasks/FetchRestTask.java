@@ -30,26 +30,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
+@Component
 public class FetchRestTask extends BaseFetchTask<XRoadRestServiceIdentifierType> {
 
     private static final String METHOD = "method";
 
     private static final String PATH = "path";
 
-    public FetchRestTask(final ApplicationContext applicationContext,
-            final BlockingQueue<XRoadRestServiceIdentifierType> restServices) {
-        super(applicationContext, restServices,
-                applicationContext.getBean(TaskPoolConfiguration.class).getFetchRestPoolSize());
+    private final CatalogService catalogService;
+
+    public FetchRestTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
+            final BlockingQueue<XRoadRestServiceIdentifierType> restServicesQueue) {
+        super(restServicesQueue, taskPoolConfiguration.getFetchRestPoolSize());
+        this.catalogService = catalogService;
     }
 
     @Override

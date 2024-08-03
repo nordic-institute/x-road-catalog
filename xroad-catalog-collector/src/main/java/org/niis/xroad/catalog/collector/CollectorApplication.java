@@ -12,19 +12,7 @@
  */
 package org.niis.xroad.catalog.collector;
 
-import fi.dvv.xroad.catalog.collector.tasks.FetchCompaniesTask;
-import fi.dvv.xroad.catalog.collector.tasks.FetchOrganizationsTask;
-import fi.dvv.xroad.catalog.collector.tasks.UpdateExternalsTask;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
-import org.niis.xroad.catalog.collector.tasks.FetchOpenApiTask;
-import org.niis.xroad.catalog.collector.tasks.FetchRestTask;
-import org.niis.xroad.catalog.collector.tasks.FetchWsdlsTask;
-import org.niis.xroad.catalog.collector.tasks.ListClientsTask;
-import org.niis.xroad.catalog.collector.tasks.ListMethodsTask;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -32,18 +20,10 @@ import org.springframework.core.env.Environment;
 
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @SpringBootApplication
 public class CollectorApplication {
-
-    private static final String FI_PROFILE = "fi";
 
     public static void main(String[] args) throws URISyntaxException {
 
@@ -63,62 +43,6 @@ public class CollectorApplication {
                 System.setProperty("javax.net.ssl.keyStorePassword", keystorePw);
             }
         }
-
-        final TaskPoolConfiguration taskPoolConfiguration = context.getBean(TaskPoolConfiguration.class);
-
-        final boolean isFIProfile = Arrays.stream(env.getActiveProfiles())
-                .anyMatch(str -> str.equalsIgnoreCase(FI_PROFILE));
-
-        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        final BlockingQueue<ClientType> listMethodsQueue = new LinkedBlockingQueue<>();
-        final BlockingQueue<String> fetchCompaniesQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
-        final BlockingQueue<String> fetchOrganizationsQueue = isFIProfile ? new LinkedBlockingQueue<>() : null;
-        final BlockingQueue<XRoadServiceIdentifierType> fetchWsdlsQueue = new LinkedBlockingQueue<>();
-        final BlockingQueue<XRoadRestServiceIdentifierType> fetchRestQueue = new LinkedBlockingQueue<>();
-        final BlockingQueue<XRoadRestServiceIdentifierType> fetchOpenApiQueue = new LinkedBlockingQueue<>();
-
-        if (isFIProfile) {
-            log.info("FI profile detected, starting up organizations and companies fetchers");
-
-            final FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(context, fetchCompaniesQueue);
-            Thread.ofVirtual().start(fetchCompaniesTask);
-
-            final FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(context,
-                    fetchOrganizationsQueue);
-            Thread.ofVirtual().start(fetchOrganizationsTask);
-
-            final UpdateExternalsTask updateExternalsTask = new UpdateExternalsTask(context, fetchCompaniesQueue,
-                    fetchOrganizationsQueue);
-            long externalInterval = taskPoolConfiguration.getFetchExternalInterval();
-            log.info("Starting up external sources updater with interval of {} minutes", externalInterval);
-
-            scheduler.scheduleWithFixedDelay(updateExternalsTask, 0, externalInterval, TimeUnit.MINUTES);
-        }
-
-        final FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(context, fetchWsdlsQueue);
-        Thread.ofVirtual().start(fetchWsdlsTask);
-
-        final FetchRestTask fetchRestTask = new FetchRestTask(context, fetchRestQueue);
-        Thread.ofVirtual().start(fetchRestTask);
-
-        final FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(context, fetchOpenApiQueue);
-        Thread.ofVirtual().start(fetchOpenApiTask);
-
-        final ListMethodsTask listMethodsTask = new ListMethodsTask(context, listMethodsQueue, fetchWsdlsQueue,
-                fetchRestQueue, fetchOpenApiQueue);
-        Thread.ofVirtual().start(listMethodsTask);
-
-        // The ListClientsTask is the main task that starts the whole process and
-        // gathers information that the other tasks will react on to do work
-        final ListClientsTask listClientsTask = new ListClientsTask(context, listMethodsQueue, fetchCompaniesQueue,
-                fetchOrganizationsQueue);
-
-
-        long collectorInterval = taskPoolConfiguration.getCollectorInterval();
-        log.info("Starting up catalog collector with collector interval of {} minutes", collectorInterval);
-
-        scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);
-
     }
 
 }

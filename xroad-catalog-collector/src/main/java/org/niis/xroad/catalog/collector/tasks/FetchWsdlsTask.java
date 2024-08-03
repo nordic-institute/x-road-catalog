@@ -28,41 +28,34 @@ package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
+@Component
 public class FetchWsdlsTask extends BaseFetchTask<XRoadServiceIdentifierType> {
 
-    private final String xroadInstance;
-
-    private final String memberCode;
-
-    private final String memberClass;
-
-    private final String subsystemCode;
-
-    private final String webservicesEndpoint;
+    private CatalogService catalogService;
 
     private final XRoadClient xroadClient;
 
-    public FetchWsdlsTask(final ApplicationContext applicationContext,
-            final BlockingQueue<XRoadServiceIdentifierType> wsdlServices) throws URISyntaxException {
-        super(applicationContext, wsdlServices,
-                applicationContext.getBean(TaskPoolConfiguration.class).getFetchWsdlPoolSize());
+    public FetchWsdlsTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
+            final BlockingQueue<XRoadServiceIdentifierType> wsdlServicesQueue) throws URISyntaxException {
+        super(wsdlServicesQueue, taskPoolConfiguration.getFetchWsdlPoolSize());
+        this.catalogService = catalogService;
 
-        TaskPoolConfiguration taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
-        this.xroadInstance = taskPoolConfiguration.getXroadInstance();
-        this.memberCode = taskPoolConfiguration.getMemberCode();
-        this.memberClass = taskPoolConfiguration.getMemberClass();
-        this.subsystemCode = taskPoolConfiguration.getSubsystemCode();
-        this.webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
+        String xroadInstance = taskPoolConfiguration.getXroadInstance();
+        String memberCode = taskPoolConfiguration.getMemberCode();
+        String memberClass = taskPoolConfiguration.getMemberClass();
+        String subsystemCode = taskPoolConfiguration.getSubsystemCode();
+        String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
 
         this.xroadClient = new XRoadClient(
                 ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),

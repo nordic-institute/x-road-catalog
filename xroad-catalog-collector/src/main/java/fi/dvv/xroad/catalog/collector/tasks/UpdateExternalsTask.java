@@ -31,12 +31,13 @@ import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.Queue;
 import java.util.Set;
 
 @Slf4j
+@Component
 public class UpdateExternalsTask implements Runnable {
 
     private final TaskPoolConfiguration taskPoolConfiguration;
@@ -44,15 +45,16 @@ public class UpdateExternalsTask implements Runnable {
     private final Queue<String> fetchCompaniesQueue;
     private final Queue<String> fetchOrganizationsQueue;
 
-    public UpdateExternalsTask(ApplicationContext applicationContext, Queue<String> fetchCompaniesQueue,
-            Queue<String> fetchOrganizationsQueue) {
-        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
-        this.catalogService = applicationContext.getBean(CatalogService.class);
+    public UpdateExternalsTask(TaskPoolConfiguration taskPoolConfiguration, CatalogService catalogService,
+                               Queue<String> fetchCompaniesQueue, Queue<String> fetchOrganizationsQueue) {
+        this.taskPoolConfiguration = taskPoolConfiguration;
+        this.catalogService = catalogService;
         this.fetchCompaniesQueue = fetchCompaniesQueue;
         this.fetchOrganizationsQueue = fetchOrganizationsQueue;
     }
 
     public void run() {
+        log.info("Starting UpdateExternalsTask");
         if (taskPoolConfiguration.isFetchExternalRunUnlimited()
                 || CollectorUtils.isTimeBetweenHours(taskPoolConfiguration.getFetchExternalTimeAfterHour(),
                         taskPoolConfiguration.getFetchExternalTimeBeforeHour())) {
@@ -78,7 +80,5 @@ public class UpdateExternalsTask implements Runnable {
             catalogService.saveErrorLog(errorLog);
             log.error("Error when updating member companies and organizations", e);
         }
-
     }
-
 }

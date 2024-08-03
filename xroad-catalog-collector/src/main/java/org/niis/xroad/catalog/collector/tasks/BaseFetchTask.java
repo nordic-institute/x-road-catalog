@@ -27,12 +27,10 @@
 package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.niis.xroad.catalog.persistence.entity.ServiceId;
 import org.niis.xroad.catalog.persistence.entity.SubsystemId;
-import org.springframework.context.ApplicationContext;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -40,15 +38,11 @@ import java.util.concurrent.Semaphore;
 @Slf4j
 public abstract class BaseFetchTask<T> implements Runnable {
 
-    protected final CatalogService catalogService;
-
     private final BlockingQueue<T> inputQueue;
 
     private final Semaphore semaphore;
 
-    protected BaseFetchTask(final ApplicationContext applicationContext, final BlockingQueue<T> inputQueue,
-            final int poolSize) {
-        this.catalogService = applicationContext.getBean(CatalogService.class);
+    protected BaseFetchTask(final BlockingQueue<T> inputQueue, final int poolSize) {
 
         this.inputQueue = inputQueue;
 

@@ -38,7 +38,7 @@ import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,6 +49,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 
 @Slf4j
+@Component
 public class ListMethodsTask implements Runnable {
 
     private static final String SERVICE_TYPE_REST = "REST";
@@ -81,17 +82,18 @@ public class ListMethodsTask implements Runnable {
 
     private final Queue<XRoadRestServiceIdentifierType> restQueue;
 
-    public ListMethodsTask(final ApplicationContext applicationContext, final BlockingQueue<ClientType> clientsQueue,
-            final Queue<XRoadServiceIdentifierType> wsdlQueue, final Queue<XRoadRestServiceIdentifierType> restQueue,
-            final Queue<XRoadRestServiceIdentifierType> openApiQueue) throws URISyntaxException {
-        this.catalogService = applicationContext.getBean(CatalogService.class);
+    public ListMethodsTask(final CatalogService  catalogService, final BlockingQueue<ClientType> listMethodsQueue,
+            final Queue<XRoadServiceIdentifierType> wsdlServicesQueue, final Queue<XRoadRestServiceIdentifierType> restServicesQueue,
+            final Queue<XRoadRestServiceIdentifierType> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration)
+            throws URISyntaxException {
+        this.catalogService = catalogService;
 
-        this.clientsQueue = clientsQueue;
-        this.wsdlQueue = wsdlQueue;
-        this.openApiQueue = openApiQueue;
-        this.restQueue = restQueue;
+        this.clientsQueue = listMethodsQueue;
+        this.wsdlQueue = wsdlServicesQueue;
+        this.openApiQueue = openApiServicesQueue;
+        this.restQueue = restServicesQueue;
 
-        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
+        this.taskPoolConfiguration = taskPoolConfiguration;
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
         this.xroadInstance = taskPoolConfiguration.getXroadInstance();
         this.memberCode = taskPoolConfiguration.getMemberCode();

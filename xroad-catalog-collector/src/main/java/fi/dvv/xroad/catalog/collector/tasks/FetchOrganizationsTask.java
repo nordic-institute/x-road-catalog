@@ -50,7 +50,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,9 +58,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 
 @Slf4j
+@Component
 public class FetchOrganizationsTask implements Runnable {
 
-    private String fetchOrganizationsUrl;
+    private final String fetchOrganizationsUrl;
 
     private final CatalogService catalogService;
 
@@ -68,19 +69,16 @@ public class FetchOrganizationsTask implements Runnable {
 
     private final BlockingQueue<String> fetchOrganizationsQueue;
 
-    private final TaskPoolConfiguration taskPoolConfiguration;
-
     private final Semaphore semaphore;
 
-    public FetchOrganizationsTask(final ApplicationContext applicationContext,
-                                  final BlockingQueue<String> fetchOrganizationsQueue) {
+    public FetchOrganizationsTask(final CatalogService catalogService, OrganizationService organizationService,
+                                  final TaskPoolConfiguration taskPoolConfiguration, final BlockingQueue<String> fetchOrganizationsQueue) {
 
-        this.catalogService = applicationContext.getBean(CatalogService.class);
-        this.organizationService = applicationContext.getBean(OrganizationService.class);
+        this.catalogService = catalogService;
+        this.organizationService = organizationService;
 
         this.fetchOrganizationsQueue = fetchOrganizationsQueue;
 
-        this.taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         this.fetchOrganizationsUrl = taskPoolConfiguration.getFetchOrganizationsUrl();
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getFetchOrganizationsPoolSize());
@@ -88,7 +86,7 @@ public class FetchOrganizationsTask implements Runnable {
     }
 
     public void run() {
-        log.info("Starting {} with pool size {}", getClass().getSimpleName(), semaphore.availablePermits());
+        log.info("Starting FetchOrganizationsTask with pool size {}", semaphore.availablePermits());
         try {
             while (true) {
                 log.debug("Waiting for data ... ");
