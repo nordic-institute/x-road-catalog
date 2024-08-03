@@ -26,13 +26,11 @@ spring:
 xroad-catalog:
   collector-interval-min: 20
   error-log-length-in-days: 90
-  fetch-companies-pool-size: 1
-  fetch-companies-url: https://avoindata.prh.fi/bis/v1
-  fetch-external-interval-min: 20
+  features:
+    country:
+      fi:
+        enabled: true
   fetch-openapi-pool-size: 1
-  fetch-organizations-pool-size: 1
-  # Parameters related to the "fi" profile
-  fetch-organizations-url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
   fetch-rest-pool-size: 1
   fetch-run-unlimited: false
   fetch-time-after-hour: 3
@@ -52,6 +50,21 @@ xroad-catalog:
   subsystem-code: ''
   webservices-endpoint: ${xroad-catalog.security-server-host}
   xroad-instance: ''
+  country:
+    fi:
+      fetch:
+        companies:
+          pool-size: 1
+          url: https://avoindata.prh.fi/bis/v1
+        organizations:
+          pool-size: 1
+          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+        external-limit: 500
+        external-update-after-days: 7
+        external-interval-min: 20
+        external-run-unlimited: false
+        external-time-after-hour: 3
+        external-time-before-hour: 4
 
 # Increasing logging levels in tests for better debugging
 logging:

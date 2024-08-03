@@ -44,12 +44,7 @@ xroad-catalog:
     country:
       fi:
         enabled: false
-  fetch-companies-pool-size: 10
-  fetch-companies-url: ''
-  fetch-external-interval-min: 20
   fetch-openapi-pool-size: 10
-  fetch-organizations-pool-size: 10
-  fetch-organizations-url: ''
   fetch-rest-pool-size: 10
   fetch-run-unlimited: false
   fetch-time-after-hour: 3
@@ -67,3 +62,18 @@ xroad-catalog:
   subsystem-code: ''
   webservices-endpoint: ${xroad-catalog.security-server-host}
   xroad-instance: ''
+  country:
+    fi:
+      fetch:
+        companies:
+          pool-size: 10
+          url: ''
+        organizations:
+          pool-size: 10
+          url: ''
+        external-limit: 500
+        external-update-after-days: 7
+        external-interval-min: 20
+        external-run-unlimited: false
+        external-time-after-hour: 3
+        external-time-before-hour: 4

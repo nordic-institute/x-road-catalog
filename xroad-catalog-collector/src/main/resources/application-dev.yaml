@@ -25,16 +25,26 @@ xroad-catalog:
     country:
       fi:
         enabled: true
-  fetch-companies-pool-size: 1
-  fetch-companies-url: https://avoindata.prh.fi/bis/v1
-  fetch-external-interval-min: 1
   fetch-openapi-pool-size: 1
-  fetch-organizations-pool-size: 1
-  fetch-organizations-url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
   fetch-rest-pool-size: 1
   fetch-wsdl-pool-size: 1
   list-methods-pool-size: 5
   security-server-host: http://localhost:4310
+  country:
+    fi:
+      fetch:
+        companies:
+          pool-size: 1
+          url: https://avoindata.prh.fi/bis/v1
+        organizations:
+          pool-size: 1
+          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+        external-limit: 500
+        external-update-after-days: 7
+        external-interval-min: 1
+        external-run-unlimited: false
+        external-time-after-hour: 3
+        external-time-before-hour: 4
 
 # Increasing logging levels in local development environment for better debugging
 logging:
