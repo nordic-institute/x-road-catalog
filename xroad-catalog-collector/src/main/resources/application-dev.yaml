@@ -36,12 +36,7 @@ xroad-catalog:
         organizations:
           pool-size: 1
           url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
-        external-limit: 500
-        external-update-after-days: 7
         external-interval-min: 1
-        external-run-unlimited: false
-        external-time-after-hour: 3
-        external-time-before-hour: 4
 
 # Increasing logging levels in local development environment for better debugging
 logging:
