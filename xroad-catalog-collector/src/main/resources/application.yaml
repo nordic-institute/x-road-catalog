@@ -1,0 +1,77 @@
+# X-Road instance parameters
+xroad-catalog:
+  xroad-instance: ""
+  member-class: ""
+  member-code: ""
+  subsystem-code: ""
+  collector-interval-min: 20
+  security-server-host: ""
+  webservices-endpoint: "${xroad-catalog.security-server-host}"
+  list-clients-host: "${xroad-catalog.security-server-host}"
+  fetch-wsdl-host: "${xroad-catalog.security-server-host}"
+  fetch-openapi-host: "${xroad-catalog.security-server-host}"
+  features:
+    country:
+      fi:
+        enabled: false
+  fetch-organizations-url: ""
+  fetch-companies-url: ""
+  fetch-external-interval-min: 20
+  max-organizations-per-request: 100
+  fetch-organizations-limit: 2000
+  fetch-companies-limit: 1000
+  fetch-companies-run-unlimited: false
+  fetch-companies-time-after-hour: 3
+  fetch-companies-time-before-hour: 4
+  flush-log-time-after-hour: 3
+  flush-log-time-before-hour: 4
+  error-log-length-in-days: 90
+  fetch-run-unlimited: false
+  fetch-time-after-hour: 3
+  fetch-time-before-hour: 4
+  ssl-keystore: "/etc/xroad/xroad-catalog/keystore"
+  ssl-keystore-password: "changeit"
+  list-methods-pool-size: 50
+  fetch-wsdl-pool-size: 10
+  fetch-openapi-pool-size: 10
+  fetch-rest-pool-size: 10
+  fetch-organizations-pool-size: 10
+  fetch-companies-pool-size: 10
+
+spring:
+  main:
+    web-application-type: servlet
+    allow-bean-definition-overriding: true
+  jpa:
+    database: POSTGRESQL
+    show-sql: false
+    open-in-view: false
+    generate-ddl: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ""
+    username: xroad_catalog_collector
+    password: ""
+  liquibase:
+    enabled: true
+    change-log: "classpath:db/changelog/db.changelog-master.xml"
+    show-summary: verbose
+    contexts: users
+    user: xroad_catalog
+    password: ""
+    parameters:
+      users:
+        collector:
+          username: xroad_catalog_collector
+          password: ""
+        lister:
+          username: xroad_catalog_lister
+          password: ""
+  sql:
+    init:
+      platform: postgres
