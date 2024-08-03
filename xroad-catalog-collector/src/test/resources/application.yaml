@@ -29,7 +29,6 @@ xroad-catalog:
   fetch-companies-pool-size: 1
   fetch-companies-url: https://avoindata.prh.fi/bis/v1
   fetch-external-interval-min: 20
-  fetch-openapi-host: ${xroad-catalog.security-server-host}
   fetch-openapi-pool-size: 1
   fetch-organizations-pool-size: 1
   # Parameters related to the "fi" profile
@@ -38,7 +37,6 @@ xroad-catalog:
   fetch-run-unlimited: false
   fetch-time-after-hour: 3
   fetch-time-before-hour: 4
-  fetch-wsdl-host: ${xroad-catalog.security-server-host}
   fetch-wsdl-pool-size: 1
   flush-log-time-after-hour: 3
   flush-log-time-before-hour: 4

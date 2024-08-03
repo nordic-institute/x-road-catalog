@@ -59,12 +59,6 @@ public class TaskPoolConfiguration {
     @Value("${xroad-catalog.list-clients-host}")
     private String listClientsHost;
 
-    @Value("${xroad-catalog.fetch-wsdl-host}")
-    private String fetchWsdlHost;
-
-    @Value("${xroad-catalog.fetch-openapi-host}")
-    private String fetchOpenapiHost;
-
     // Parameters related to the "fi" profile
 
     @Value("${xroad-catalog.fetch-organizations-url}")
