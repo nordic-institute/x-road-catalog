@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Implementation for catalogservice CRUD
  */
-@Component("catalogService")
+@Component
 @Transactional
 public class CatalogServiceImpl implements CatalogService {
 

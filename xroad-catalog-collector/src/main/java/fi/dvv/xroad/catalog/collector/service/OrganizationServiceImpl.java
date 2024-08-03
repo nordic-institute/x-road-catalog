@@ -64,7 +64,7 @@ import java.util.Optional;
  * Implementation for organizationservice CRUD
  */
 @Slf4j
-@Component("organizationService")
+@Component
 @Transactional
 public class OrganizationServiceImpl implements OrganizationService {
 

@@ -49,7 +49,7 @@ import java.util.Optional;
  * Implementation for companyservice CRUD
  */
 @Slf4j
-@Component("companyService")
+@Component
 @Transactional
 public class CompanyServiceImpl implements CompanyService {
 
