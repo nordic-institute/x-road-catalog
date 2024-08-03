@@ -44,16 +44,11 @@ xroad-catalog:
     country:
       fi:
         enabled: false
-  fetch-companies-limit: 1000
   fetch-companies-pool-size: 10
-  fetch-companies-run-unlimited: false
-  fetch-companies-time-after-hour: 3
-  fetch-companies-time-before-hour: 4
   fetch-companies-url: ''
   fetch-external-interval-min: 20
   fetch-openapi-host: ${xroad-catalog.security-server-host}
   fetch-openapi-pool-size: 10
-  fetch-organizations-limit: 2000
   fetch-organizations-pool-size: 10
   fetch-organizations-url: ''
   fetch-rest-pool-size: 10
@@ -66,7 +61,6 @@ xroad-catalog:
   flush-log-time-before-hour: 4
   list-clients-host: ${xroad-catalog.security-server-host}
   list-methods-pool-size: 50
-  max-organizations-per-request: 100
   member-class: ''
   member-code: ''
   security-server-host: ''
