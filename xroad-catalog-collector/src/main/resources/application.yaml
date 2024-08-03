@@ -40,10 +40,6 @@ spring:
 xroad-catalog:
   collector-interval-min: 20
   error-log-length-in-days: 90
-  features:
-    country:
-      fi:
-        enabled: false
   fetch-openapi-pool-size: 10
   fetch-rest-pool-size: 10
   fetch-run-unlimited: false
@@ -62,8 +58,11 @@ xroad-catalog:
   subsystem-code: ''
   webservices-endpoint: ${xroad-catalog.security-server-host}
   xroad-instance: ''
+  # Country specific settings
   country:
     fi:
+      # if enabled, URLs must be provided in order for Finland specific services and tasks to be executed properly
+      enabled: false
       fetch:
         companies:
           pool-size: 10

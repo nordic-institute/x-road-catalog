@@ -26,10 +26,6 @@ spring:
 xroad-catalog:
   collector-interval-min: 20
   error-log-length-in-days: 90
-  features:
-    country:
-      fi:
-        enabled: true
   fetch-openapi-pool-size: 1
   fetch-rest-pool-size: 1
   fetch-run-unlimited: false
@@ -52,6 +48,7 @@ xroad-catalog:
   xroad-instance: ''
   country:
     fi:
+      enabled: true
       fetch:
         companies:
           pool-size: 1

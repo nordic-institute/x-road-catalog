@@ -34,6 +34,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan(basePackages = "fi.dvv.xroad.catalog.persistence")
 @EnableJpaRepositories("fi.dvv.xroad.catalog.persistence.repository")
 @EntityScan("fi.dvv.xroad.catalog.persistence.entity")
-@ConditionalOnProperty(name = "xroad-catalog.features.country.fi.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "xroad-catalog.country.fi.enabled", havingValue = "true")
 public class PersistenceFinlandConfiguration {
 }
