@@ -24,6 +24,7 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
+import fi.dvv.xroad.catalog.collector.configuration.FinlandTaskPoolConfiguration;
 import fi.dvv.xroad.catalog.collector.service.OrganizationService;
 import fi.dvv.xroad.catalog.collector.util.OrganizationUtil;
 import fi.dvv.xroad.catalog.persistence.entity.Address;
@@ -48,7 +49,6 @@ import fi.dvv.xroad.catalog.persistence.entity.WebPage;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.springframework.stereotype.Component;
 
@@ -72,16 +72,16 @@ public class FetchOrganizationsTask implements Runnable {
     private final Semaphore semaphore;
 
     public FetchOrganizationsTask(final CatalogService catalogService, OrganizationService organizationService,
-                                  final TaskPoolConfiguration taskPoolConfiguration, final BlockingQueue<String> fetchOrganizationsQueue) {
+                                  final FinlandTaskPoolConfiguration finlandTaskPoolConfiguration, final BlockingQueue<String> fetchOrganizationsQueue) {
 
         this.catalogService = catalogService;
         this.organizationService = organizationService;
 
         this.fetchOrganizationsQueue = fetchOrganizationsQueue;
 
-        this.fetchOrganizationsUrl = taskPoolConfiguration.getFetchOrganizationsUrl();
+        this.fetchOrganizationsUrl = finlandTaskPoolConfiguration.getFetchOrganizationsUrl();
 
-        this.semaphore = new Semaphore(taskPoolConfiguration.getFetchOrganizationsPoolSize());
+        this.semaphore = new Semaphore(finlandTaskPoolConfiguration.getFetchOrganizationsPoolSize());
 
     }
 

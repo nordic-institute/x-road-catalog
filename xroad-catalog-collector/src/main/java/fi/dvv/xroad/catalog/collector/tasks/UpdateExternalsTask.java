@@ -26,8 +26,8 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
+import fi.dvv.xroad.catalog.collector.configuration.FinlandTaskPoolConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
@@ -40,14 +40,14 @@ import java.util.Set;
 @Component
 public class UpdateExternalsTask implements Runnable {
 
-    private final TaskPoolConfiguration taskPoolConfiguration;
+    private final FinlandTaskPoolConfiguration finlandTaskPoolConfiguration;
     private final CatalogService catalogService;
     private final Queue<String> fetchCompaniesQueue;
     private final Queue<String> fetchOrganizationsQueue;
 
-    public UpdateExternalsTask(TaskPoolConfiguration taskPoolConfiguration, CatalogService catalogService,
+    public UpdateExternalsTask(FinlandTaskPoolConfiguration finlandTaskPoolConfiguration, CatalogService catalogService,
                                Queue<String> fetchCompaniesQueue, Queue<String> fetchOrganizationsQueue) {
-        this.taskPoolConfiguration = taskPoolConfiguration;
+        this.finlandTaskPoolConfiguration = finlandTaskPoolConfiguration;
         this.catalogService = catalogService;
         this.fetchCompaniesQueue = fetchCompaniesQueue;
         this.fetchOrganizationsQueue = fetchOrganizationsQueue;
@@ -55,9 +55,9 @@ public class UpdateExternalsTask implements Runnable {
 
     public void run() {
         log.info("Starting UpdateExternalsTask");
-        if (taskPoolConfiguration.isFetchExternalRunUnlimited()
-                || CollectorUtils.isTimeBetweenHours(taskPoolConfiguration.getFetchExternalTimeAfterHour(),
-                        taskPoolConfiguration.getFetchExternalTimeBeforeHour())) {
+        if (finlandTaskPoolConfiguration.isFetchExternalRunUnlimited()
+                || CollectorUtils.isTimeBetweenHours(finlandTaskPoolConfiguration.getFetchExternalTimeAfterHour(),
+                        finlandTaskPoolConfiguration.getFetchExternalTimeBeforeHour())) {
             updateMemberCompanyAndOrganizations();
         }
     }
@@ -65,11 +65,11 @@ public class UpdateExternalsTask implements Runnable {
     private void updateMemberCompanyAndOrganizations() {
         try {
             Set<String> members = catalogService.getMembersRequiringExternalUpdate(
-                    taskPoolConfiguration.getFetchExternalUpdateAfterDays(),
-                    taskPoolConfiguration.getFetchExternalLimit());
+                    finlandTaskPoolConfiguration.getFetchExternalUpdateAfterDays(),
+                    finlandTaskPoolConfiguration.getFetchExternalLimit());
 
             log.info("Sending {} members requiring external update to workers, batch limit {}", members.size(),
-                    taskPoolConfiguration.getFetchExternalLimit());
+                    finlandTaskPoolConfiguration.getFetchExternalLimit());
 
             fetchCompaniesQueue.addAll(members);
             fetchOrganizationsQueue.addAll(members);

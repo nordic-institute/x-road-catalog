@@ -24,9 +24,9 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
+import fi.dvv.xroad.catalog.collector.configuration.FinlandTaskPoolConfiguration;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class FinlandTasksInitializer implements ApplicationListener<ApplicationStartedEvent> {
     @Autowired
-    private TaskPoolConfiguration taskPoolConfiguration;
+    private FinlandTaskPoolConfiguration finlandTaskPoolConfiguration;
     @Autowired
     private FetchCompaniesTask fetchCompaniesTask;
     @Autowired
@@ -59,7 +59,7 @@ public class FinlandTasksInitializer implements ApplicationListener<ApplicationS
         Thread.ofVirtual().start(fetchCompaniesTask);
         Thread.ofVirtual().start(fetchOrganizationsTask);
 
-        long externalInterval = taskPoolConfiguration.getFetchExternalInterval();
+        long externalInterval = finlandTaskPoolConfiguration.getFetchExternalInterval();
         log.info("Starting up external sources updater with interval of {} minutes", externalInterval);
 
         scheduler.scheduleWithFixedDelay(updateExternalsTask, 0, externalInterval, TimeUnit.MINUTES);
