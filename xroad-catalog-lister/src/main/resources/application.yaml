@@ -1,41 +1,46 @@
 spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: ''
+    url: ''
+    username: xroad_catalog_lister
   jpa:
-    generate-ddl: 'false'
+    database: POSTGRESQL
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-    database: POSTGRESQL
-    show-sql: 'false'
-    hibernate:
-      ddl-auto: none
-    open-in-view: 'false'
-  datasource:
-    password: ''
-    driver-class-name: org.postgresql.Driver
-    username: xroad_catalog_lister
-    url: ''
+    show-sql: false
   liquibase:
-    enabled: 'false'
+    enabled: false
   sql:
     init:
       platform: postgres
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
-        ws: DEBUG
-      hibernate: ERROR
+
+# OpenAPI documentation
+springdoc:
+  api-docs:
+    enabled: true
+  packagesToScan: org.niis.xroad,fi.dvv.xroad
+  swagger-ui:
+    enabled: true
+    path: /api-docs
+
+# X-Road instance parameters
 xroad-catalog:
-  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
   features:
     country:
       fi:
-        enabled: 'false'
-springdoc:
-  swagger-ui:
-    enabled: 'true'
-    path: /api-docs
-  api-docs:
-    enabled: 'true'
-  packagesToScan: org.niis.xroad,fi.dvv.xroad
+        enabled: false
+  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
+
+logging:
+  level:
+    org:
+      hibernate: ERROR
+      springframework:
+        web: DEBUG
+        ws: DEBUG

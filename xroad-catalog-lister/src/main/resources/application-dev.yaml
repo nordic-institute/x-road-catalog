@@ -1,41 +1,31 @@
-logging:
-  level:
-    org:
-      apache:
-        http: DEBUG
-      springframework:
-        web:
-          server:
-            adapter:
-              HttpWebHandlerAdapter: DEBUG
-          nodeValue: TRACE
-        ws: TRACE
-        beans:
-          factory:
-            support:
-              DefaultListableBeanFactory: DEBUG
-        security: TRACE
-      hibernate:
-        orm:
-          jdbc:
-            bind: TRACE
-            extract: TRACE
-        nodeValue: ERROR
-        type: TRACE
-    liquibase: TRACE
-    javax:
-      ws:
-        rs: TRACE
+server:
+  port: '4920'
+spring:
+  datasource:
+    password: xroad_catalog_lister
+    url: jdbc:postgresql://localhost:4910/xroad_catalog
+    username: xroad_catalog_lister
+
+# X-Road instance parameters
 xroad-catalog:
-  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
   features:
     country:
       fi:
         enabled: 'true'
-spring:
-  datasource:
-    password: xroad_catalog_lister
-    username: xroad_catalog_lister
-    url: jdbc:postgresql://localhost:4910/xroad_catalog
-server:
-  port: '4920'
+  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
+
+# Increasing logging levels in local development environment for better debugging
+logging:
+  level:
+    javax.ws.rs: TRACE
+    liquibase: TRACE
+    org.apache.http: DEBUG
+    org.hibernate: ERROR
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.web: TRACE
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
+    org.springframework.ws: TRACE

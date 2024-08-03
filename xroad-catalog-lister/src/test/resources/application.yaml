@@ -1,55 +1,47 @@
-logging:
-  level:
-    org:
-      apache:
-        http: DEBUG
-      hibernate:
-        orm:
-          jdbc:
-            bind: TRACE
-            extract: TRACE
-        nodeValue: ERROR
-        type: TRACE
-      springframework:
-        security: TRACE
-        web:
-          server:
-            adapter:
-              HttpWebHandlerAdapter: DEBUG
-          nodeValue: TRACE
-        ws: TRACE
-        beans:
-          factory:
-            support:
-              DefaultListableBeanFactory: DEBUG
-    javax:
-      ws:
-        rs: TRACE
 spring:
   datasource:
     driverClassName: org.h2.Driver
     password: sa
-    username: sa
     url: jdbc:h2:mem:db;NON_KEYWORDS=TYPE,VALUE
+    username: sa
+  h2:
+    console:
+      enabled: false
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.H2Dialect
-    defer-datasource-initialization: 'true'
-    show-sql: 'false'
+    show-sql: false
+  liquibase:
+    enabled: false
   sql:
     init:
       mode: always
       platform: h2
-  h2:
-    console:
-      enabled: 'false'
-  liquibase:
-    enabled: 'false'
+
+# OpenAPI documentation
 springdoc:
-  swagger-ui:
-    enabled: 'false'
   api-docs:
-    enabled: 'false'
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# X-Road instance parameters
 xroad-catalog:
   shared-params-file: src/test/resources/shared-params.xml
+
+# Increasing logging levels in tests for better debugging
+logging:
+  level:
+    javax.ws.rs: TRACE
+    org.apache.http: DEBUG
+    org.hibernate: ERROR
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.web: TRACE
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
+    org.springframework.ws: TRACE

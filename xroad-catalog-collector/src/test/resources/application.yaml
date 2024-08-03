@@ -1,65 +1,65 @@
-# X-Road instance parameters
-xroad-catalog:
-  xroad-instance: ""
-  member-class: ""
-  member-code: ""
-  subsystem-code: ""
-  collector-interval-min: 20
-  # Security server URLs
-  security-server-host: ""
-  webservices-endpoint: "${xroad-catalog.security-server-host}"
-  list-clients-host: "${xroad-catalog.security-server-host}"
-  fetch-wsdl-host: "${xroad-catalog.security-server-host}"
-  fetch-openapi-host: "${xroad-catalog.security-server-host}"
-  # Parameters related to the "fi" profile
-  fetch-organizations-url: "https://api.palvelutietovaranto.suomi.fi/api/v11/Organization"
-  fetch-companies-url: "https://avoindata.prh.fi/bis/v1"
-  fetch-external-interval-min: 20
-  max-organizations-per-request: 100
-  fetch-organizations-limit: 2000
-  fetch-companies-limit: 1000
-  fetch-companies-run-unlimited: false
-  fetch-companies-time-after-hour: 3
-  fetch-companies-time-before-hour: 4
-  flush-log-time-after-hour: 3
-  flush-log-time-before-hour: 4
-  error-log-length-in-days: 90
-  fetch-run-unlimited: false
-  fetch-time-after-hour: 3
-  fetch-time-before-hour: 4
-  # SSL keystore parameters
-  ssl-keystore: "/etc/xroad/xroad-catalog/keystore"
-  ssl-keystore-password: "changeit"
-  list-methods-pool-size: 5
-  fetch-wsdl-pool-size: 1
-  fetch-openapi-pool-size: 1
-  fetch-rest-pool-size: 1
-  fetch-organizations-pool-size: 1
-  fetch-companies-pool-size: 1
-
 spring:
-  main:
-    web-application-type: servlet
-  liquibase:
-    enabled: false
-  jpa:
-    show-sql: false
-    database-platform: "org.hibernate.dialect.H2Dialect"
-    defer-datasource-initialization: true
-    hibernate:
-      ddl-auto: "create-drop"
+  datasource:
+    driverClassName: org.h2.Driver
+    password: sa
+    url: jdbc:h2:mem:db;NON_KEYWORDS=TYPE,VALUE
+    username: sa
   h2:
     console:
       enabled: false
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  liquibase:
+    enabled: false
+  main:
+    web-application-type: servlet
   sql:
     init:
-      platform: h2
       mode: always
-  datasource:
-    url: "jdbc:h2:mem:db;NON_KEYWORDS=TYPE,VALUE"
-    driverClassName: "org.h2.Driver"
-    username: "sa"
-    password: "sa"
+      platform: h2
+
+# X-Road instance parameters
+xroad-catalog:
+  collector-interval-min: 20
+  error-log-length-in-days: 90
+  fetch-companies-limit: 1000
+  fetch-companies-pool-size: 1
+  fetch-companies-run-unlimited: false
+  fetch-companies-time-after-hour: 3
+  fetch-companies-time-before-hour: 4
+  fetch-companies-url: https://avoindata.prh.fi/bis/v1
+  fetch-external-interval-min: 20
+  fetch-openapi-host: ${xroad-catalog.security-server-host}
+  fetch-openapi-pool-size: 1
+  fetch-organizations-limit: 2000
+  fetch-organizations-pool-size: 1
+  # Parameters related to the "fi" profile
+  fetch-organizations-url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+  fetch-rest-pool-size: 1
+  fetch-run-unlimited: false
+  fetch-time-after-hour: 3
+  fetch-time-before-hour: 4
+  fetch-wsdl-host: ${xroad-catalog.security-server-host}
+  fetch-wsdl-pool-size: 1
+  flush-log-time-after-hour: 3
+  flush-log-time-before-hour: 4
+  list-clients-host: ${xroad-catalog.security-server-host}
+  list-methods-pool-size: 5
+  max-organizations-per-request: 100
+  member-class: ''
+  member-code: ''
+  # Security server URLs
+  security-server-host: ''
+  ssl-keystore: /etc/xroad/xroad-catalog/keystore
+  # SSL keystore parameters
+  ssl-keystore-password: changeit
+  subsystem-code: ''
+  webservices-endpoint: ${xroad-catalog.security-server-host}
+  xroad-instance: ''
 
 # Increasing logging levels in tests for better debugging
 logging:
