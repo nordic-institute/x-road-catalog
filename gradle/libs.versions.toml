@@ -1,7 +1,7 @@
 [versions]
 commons-beanutils = "1.9.4"
 commons-csv = "1.11.0"
-cxf = "4.0.4"
+cxf = "4.0.5"
 guava = "33.2.1-jre"
 h2 = "2.3.230"
 httpclient = "5.3.1"
@@ -22,7 +22,7 @@ wsdl2java = "2.0.2"
 sonarqube = "5.1.0.4882"
 hierynomus-license = "0.16.1"
 awaitility = "4.2.1"
-liquibase = "4.28.0"
+liquibase = "4.29.1"
 
 [libraries]
 commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons.beanutils" }
