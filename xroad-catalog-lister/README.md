@@ -18,11 +18,6 @@ X-Road Catalog Lister can be built by running:
 ../gradlew clean build
 ```
 
-## Build RPM Packages on Non-RedHat Platform
-
-If the `default` profile is used, the `CATALOG_PROFILE` argument can be omitted. More information about profiles is 
-available in the [build instructions](../BUILD.md#profiles).
-
 ```bash
 ../gradlew clean build
 docker build -t lister-rpm packages/xroad-catalog-lister/docker --build-arg CATALOG_PROFILE=<PROFILE>

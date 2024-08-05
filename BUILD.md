@@ -86,28 +86,3 @@ new country-specific profile.
     ```
 * Profile value is provided to the respective `Dockerfile` with an argument `--build-arg CATALOG_PROFILE=fi`. Then within
   the `Dockerfile` an environment variable `CATALOG_PROFILE` is initalized with that profile value.
-* A shell script `build_rpm.sh` is run within a Docker container, which takes a `p` (profile) parameter as input, which is read from the environment variable `CATALOG_PROFILE`.
-* The shell script `build_rpm.sh` passes on the profile parameter (the script assumes the profile is `default` when no value is given with the `profile` parameter)
-  to `xroad-catalog-collector.spec` or `xroad-catalog-lister.spec` which configures a prepares the creation Systemd service for X-Road Catalog Collector or X-Road Catalog Lister.
-* Within that `.spec` file the catalog profile value will be written to a properties file:
-  ```bash
-  echo "CATALOG_PROFILE=%{profile}" >> catalog-profile.properties
-  ```
-* Then that file will be copied to `/etc/xroad/xroad-catalog` among other properties files.
-* In addition, specific db scripts will be run within that `.spec` file according to the value of the `profile`:
-  ```bash
-  sudo -u postgres psql --file=/usr/share/xroad/sql/create_tables_%{profile}.sql
-  ```
-* Finally, the profile value will be read from that properties file:
-  ```bash
-  source /etc/xroad/xroad-catalog/catalog-profile.properties
-  ```
-* Then a Systemd service will be created with the following content:
-  * For X-Road Catalog Collector:
-    ```bash
-    exec ${JAVA_HOME}/bin/java -Xms128m -Xmx2g -Dspring.profiles.active=base,production -Dspring.profiles.include=$CATALOG_PROFILE -jar /usr/lib/xroad-catalog/xroad-catalog-collector.jar --spring.config.location=/etc/xroad/xroad-catalog/ --spring.config.name=collector,catalogdb
-    ```
-  * For X-Road Catalog Lister:
-    ```bash
-    exec ${JAVA_HOME}/bin/java -Xms128m -Xmx2g -Dserver.port=8070 -Dspring.profiles.active=production -Dspring.profiles.include=$CATALOG_PROFILE -jar /usr/lib/xroad-catalog/xroad-catalog-lister.jar --spring.config.location=/etc/xroad/xroad-catalog/ --spring.config.name=lister,catalogdb
-    ```

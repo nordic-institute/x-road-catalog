@@ -27,12 +27,6 @@ X-Road Catalog Collector can be built by running:
 $ ../gradlew clean build
 ```
 
-## Build RPM Packages on Non-RedHat Platform
-
-First make sure that `xroad-catalog-persistence` is located next to `xroad-catalog-collector`. The RPM build uses sql
-files from `xroad-catalog-persistence/src/main/sql`. If the `default` profile is used, the `CATALOG_PROFILE` argument
-can be omitted. More information about profiles is available in the [build instructions](../BUILD.md#profiles).
-
 ```bash
 ../gradlew clean build
 docker build -t collector-rpm packages/xroad-catalog-collector/docker --build-arg CATALOG_PROFILE=<PROFILE>
