@@ -68,7 +68,8 @@ public class FetchCompaniesTask implements Runnable {
     private final Semaphore semaphore;
 
     public FetchCompaniesTask(final CatalogService catalogService, CompanyService companyService,
-                              final FinlandTaskPoolConfiguration finlandTaskPoolConfiguration, final BlockingQueue<String> fetchCompaniesQueue) {
+                              final FinlandTaskPoolConfiguration finlandTaskPoolConfiguration,
+                              final BlockingQueue<String> fetchCompaniesQueue) {
         this.catalogService = catalogService;
         this.companyService = companyService;
 

@@ -72,7 +72,8 @@ public class FetchOrganizationsTask implements Runnable {
     private final Semaphore semaphore;
 
     public FetchOrganizationsTask(final CatalogService catalogService, OrganizationService organizationService,
-                                  final FinlandTaskPoolConfiguration finlandTaskPoolConfiguration, final BlockingQueue<String> fetchOrganizationsQueue) {
+                                  final FinlandTaskPoolConfiguration finlandTaskPoolConfiguration,
+                                  final BlockingQueue<String> fetchOrganizationsQueue) {
 
         this.catalogService = catalogService;
         this.organizationService = organizationService;

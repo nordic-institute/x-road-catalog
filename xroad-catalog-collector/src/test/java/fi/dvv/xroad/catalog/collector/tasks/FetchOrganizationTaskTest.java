@@ -117,7 +117,7 @@ public class FetchOrganizationTaskTest {
     public void testFetchOrganizationsForClientNotFound() throws JSONException, IOException {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
             FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(catalogService, organizationService,
-                    finlandTaskPoolConfiguration,null);
+                    finlandTaskPoolConfiguration, null);
 
             mock.when(() -> OrganizationUtil.getOrganization(any(), any(), any())).thenReturn(Optional.empty());
 
