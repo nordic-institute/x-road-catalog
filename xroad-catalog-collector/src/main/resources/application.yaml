@@ -38,26 +38,33 @@ spring:
 
 # X-Road instance parameters
 xroad-catalog:
-  collector-interval-min: 20
-  error-log-length-in-days: 90
-  fetch-openapi-pool-size: 10
-  fetch-rest-pool-size: 10
-  fetch-run-unlimited: false
-  fetch-time-after-hour: 3
-  fetch-time-before-hour: 4
-  fetch-wsdl-pool-size: 10
-  flush-log-time-after-hour: 3
-  flush-log-time-before-hour: 4
-  list-clients-host: ${xroad-catalog.security-server-host}
-  list-methods-pool-size: 50
-  member-class: ''
-  member-code: ''
-  security-server-host: ''
-  ssl-keystore: /etc/xroad/xroad-catalog/keystore
-  ssl-keystore-password: changeit
-  subsystem-code: ''
-  webservices-endpoint: ${xroad-catalog.security-server-host}
-  xroad-instance: ''
+  target:
+    xroad-instance: ''
+    subsystem-code: ''
+    member-class: ''
+    member-code: ''
+  ssl-keystore:
+    location: /etc/xroad/xroad-catalog/keystore
+    password: changeit
+  urls:
+    security-server-host: ''
+    list-clients-host: ${xroad-catalog.urls.security-server-host}
+    webservices-endpoint: ${xroad-catalog.urls.security-server-host}
+  pool-size:
+    fetch-openapi: 10
+    fetch-rest: 10
+    fetch-wsdl: 10
+    list-methods: 50
+  log-storage:
+    error-log-length-in-days: 90
+    flush-log-time-after-hour: 3
+    flush-log-time-before-hour: 4
+  tasks:
+    collector-interval-min: 20
+    fetch-run-unlimited: false
+    fetch-time-after-hour: 3
+    fetch-time-before-hour: 4
+
   # Country specific settings
   country:
     fi:

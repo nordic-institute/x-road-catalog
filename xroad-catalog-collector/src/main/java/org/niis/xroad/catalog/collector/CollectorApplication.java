@@ -31,8 +31,8 @@ public class CollectorApplication {
 
         final Environment env = context.getEnvironment();
 
-        final String keystore = env.getProperty("xroad-catalog.ssl-keystore");
-        final String keystorePw = env.getProperty("xroad-catalog.ssl-keystore-password");
+        final String keystore = env.getProperty("xroad-catalog.ssl-keystore.location");
+        final String keystorePw = env.getProperty("xroad-catalog.ssl-keystore.password");
 
         if (keystore != null && !keystore.isEmpty() && keystorePw != null) {
             if (!Path.of(keystore).toFile().exists()) {

@@ -36,66 +36,66 @@ public class TaskPoolConfiguration {
 
     // X-Road instance parameters
 
-    @Value("${xroad-catalog.xroad-instance}")
+    @Value("${xroad-catalog.target.xroad-instance}")
     private String xroadInstance;
 
-    @Value("${xroad-catalog.member-class}")
+    @Value("${xroad-catalog.target.member-class}")
     private String memberClass;
 
-    @Value("${xroad-catalog.member-code}")
+    @Value("${xroad-catalog.target.member-code}")
     private String memberCode;
 
-    @Value("${xroad-catalog.subsystem-code}")
+    @Value("${xroad-catalog.target.subsystem-code}")
     private String subsystemCode;
 
     // Security server URLs
 
-    @Value("${xroad-catalog.security-server-host}")
+    @Value("${xroad-catalog.urls.security-server-host}")
     private String securityServerHost;
 
-    @Value("${xroad-catalog.webservices-endpoint}")
+    @Value("${xroad-catalog.urls.webservices-endpoint}")
     private String webservicesEndpoint;
 
-    @Value("${xroad-catalog.list-clients-host}")
+    @Value("${xroad-catalog.urls.list-clients-host}")
     private String listClientsHost;
 
     // Parameters handling database log storage
 
-    @Value("${xroad-catalog.flush-log-time-after-hour:3}")
+    @Value("${xroad-catalog.log-storage.flush-log-time-after-hour:3}")
     private int flushLogTimeAfterHour;
 
-    @Value("${xroad-catalog.flush-log-time-before-hour:4}")
+    @Value("${xroad-catalog.log-storage.flush-log-time-before-hour:4}")
     private int flushLogTimeBeforeHour;
 
-    @Value("${xroad-catalog.error-log-length-in-days:90}")
+    @Value("${xroad-catalog.log-storage.error-log-length-in-days:90}")
     private int errorLogLengthInDays;
 
     // Parameters controlling how often data is collected from the X-Road instance
 
-    @Value("${xroad-catalog.fetch-run-unlimited:false}")
+    @Value("${xroad-catalog.tasks.collector-interval-min:20}")
+    private long collectorInterval;
+
+    @Value("${xroad-catalog.tasks.fetch-run-unlimited:false}")
     private boolean fetchRunUnlimited;
 
-    @Value("${xroad-catalog.fetch-time-after-hour:3}")
+    @Value("${xroad-catalog.tasks.fetch-time-after-hour:3}")
     private int fetchTimeAfterHour;
 
-    @Value("${xroad-catalog.fetch-time-before-hour:4}")
+    @Value("${xroad-catalog.tasks.fetch-time-before-hour:4}")
     private int fetchTimeBeforeHour;
 
     // Collector internal pool parameters
 
-    @Value("${xroad-catalog.collector-interval-min:20}")
-    private long collectorInterval;
-
-    @Value("${xroad-catalog.list-methods-pool-size:50}")
+    @Value("${xroad-catalog.pool-size.list-methods:50}")
     private int listMethodsPoolSize;
 
-    @Value("${xroad-catalog.fetch-wsdl-pool-size:10}")
+    @Value("${xroad-catalog.pool-size.fetch-wsdl:10}")
     private int fetchWsdlPoolSize;
 
-    @Value("${xroad-catalog.fetch-openapi-pool-size:10}")
+    @Value("${xroad-catalog.pool-size.fetch-openapi:10}")
     private int fetchOpenapiPoolSize;
 
-    @Value("${xroad-catalog.fetch-rest-pool-size:10}")
+    @Value("${xroad-catalog.pool-size.fetch-rest:10}")
     private int fetchRestPoolSize;
 
 }

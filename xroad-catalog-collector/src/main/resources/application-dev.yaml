@@ -20,12 +20,15 @@ spring:
     user: xroad_catalog
 
 xroad-catalog:
-  collector-interval-min: 5
-  fetch-openapi-pool-size: 1
-  fetch-rest-pool-size: 1
-  fetch-wsdl-pool-size: 1
-  list-methods-pool-size: 5
-  security-server-host: http://localhost:4310
+  tasks:
+    collector-interval-min: 5
+  pool-size:
+    fetch-openapi: 1
+    fetch-rest: 1
+    fetch-wsdl: 1
+    list-methods: 5
+  urls:
+    security-server-host: http://localhost:4310
   country:
     fi:
       enabled: true
