@@ -13,7 +13,6 @@
 package fi.dvv.xroad.catalog.lister.controller;
 
 import fi.dvv.xroad.catalog.lister.dto.OrganizationHeartbeatResponse;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
