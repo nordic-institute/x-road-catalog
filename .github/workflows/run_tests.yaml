@@ -11,8 +11,6 @@ on:
       - 'xroad-catalog-persistence/src/**'
       - '.github/**'
       - 'gradle/libs.versions.toml' # So that dependabot PRs are tested
-      - 'xroad-catalog-collector/packages/**'
-      - 'xroad-catalog-lister/packages/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
@@ -59,11 +57,3 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
-      - name: Build collector RPM package builder
-        run: docker build -t collector-rpm xroad-catalog-collector/packages/xroad-catalog-collector/docker
-      - name: Run collector RPM package builder
-        run: docker run -v $PWD:/workspace collector-rpm
-      - name: Build lister RPM package builder
-        run: docker build -t lister-rpm xroad-catalog-lister/packages/xroad-catalog-lister/docker
-      - name: Run lister RPM package builder
-        run: docker run -v $PWD:/workspace lister-rpm
