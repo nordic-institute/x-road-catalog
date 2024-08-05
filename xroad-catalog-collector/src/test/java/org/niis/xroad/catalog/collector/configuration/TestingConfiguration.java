@@ -28,7 +28,7 @@ import org.springframework.web.client.RestOperations;
 
 @Configuration
 @Slf4j
-public class DevelopmentConfiguration {
+public class TestingConfiguration {
 
     @Bean
     @Qualifier("listClientsRestOperations")

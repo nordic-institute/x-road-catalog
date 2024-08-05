@@ -16,7 +16,7 @@ import fi.dvv.xroad.catalog.collector.mock.MockMetaServicesImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.collector.CollectorApplication;
-import org.niis.xroad.catalog.collector.configuration.DevelopmentConfiguration;
+import org.niis.xroad.catalog.collector.configuration.TestingConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
@@ -33,7 +33,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@SpringBootTest(classes = {DevelopmentConfiguration.class, CollectorApplication.class},
+@SpringBootTest(classes = {TestingConfiguration.class, CollectorApplication.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class XRoadClientTest {
 

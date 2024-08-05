@@ -29,8 +29,8 @@ package org.niis.xroad.catalog.collector.tasks;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.collector.CollectorApplication;
-import org.niis.xroad.catalog.collector.configuration.DevelopmentConfiguration;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.configuration.TestingConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
@@ -50,7 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest(classes = {DevelopmentConfiguration.class, CollectorApplication.class},
+@SpringBootTest(classes = {TestingConfiguration.class, CollectorApplication.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class FetchWsdlsTaskTest {
 
