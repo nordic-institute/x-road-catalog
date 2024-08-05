@@ -36,7 +36,6 @@ import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.MalformedURLException;
@@ -59,12 +58,12 @@ public class FetchRestTaskTest {
     CatalogService catalogService;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private TaskPoolConfiguration taskPoolConfiguration;
 
     @Test
     public void testFetchRestTask() throws MalformedURLException, URISyntaxException, InterruptedException {
         BlockingQueue<XRoadRestServiceIdentifierType> restServices = new LinkedBlockingQueue<>();
-        FetchRestTask fetchRestTask = new FetchRestTask(applicationContext, restServices);
+        FetchRestTask fetchRestTask = new FetchRestTask(catalogService, taskPoolConfiguration, restServices);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchRestTask, "semaphore", semaphore);
         Thread fetchRestRunner = Thread.ofVirtual().start(fetchRestTask::run);

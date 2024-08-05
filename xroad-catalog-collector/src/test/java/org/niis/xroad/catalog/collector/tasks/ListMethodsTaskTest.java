@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URISyntaxException;
@@ -64,7 +63,7 @@ public class ListMethodsTaskTest {
     CatalogService catalogService;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private TaskPoolConfiguration taskPoolConfiguration;
 
     @LocalServerPort
     private int port;
@@ -72,7 +71,6 @@ public class ListMethodsTaskTest {
     @Test
     public void testListMethodsTaskSavesServicesAndGetsDescriptors()
             throws URISyntaxException, InterruptedException {
-        TaskPoolConfiguration taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         ReflectionTestUtils.setField(taskPoolConfiguration, "securityServerHost", "http://localhost:" + port);
         ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",
                 "http://localhost:" + port + "/metaservices");
@@ -80,8 +78,8 @@ public class ListMethodsTaskTest {
         Queue<XRoadServiceIdentifierType> wsdlServices = new LinkedBlockingQueue<>();
         Queue<XRoadRestServiceIdentifierType> restServices = new LinkedBlockingQueue<>();
         Queue<XRoadRestServiceIdentifierType> openApiServices = new LinkedBlockingQueue<>();
-        ListMethodsTask listMethodsTask = new ListMethodsTask(applicationContext, listedClients, wsdlServices,
-                restServices, openApiServices);
+        ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
+                restServices, openApiServices, taskPoolConfiguration);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
         Thread listMethodsRunner = Thread.ofVirtual().start(listMethodsTask::run);

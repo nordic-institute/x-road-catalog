@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -67,7 +66,7 @@ public class FetchOpenApiTaskTest {
     CatalogService catalogService;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private TaskPoolConfiguration taskPoolConfiguration;
 
     @Value("classpath:mock/xroad/openapi/openapi.json")
     private Resource openApiFile;
@@ -82,7 +81,7 @@ public class FetchOpenApiTaskTest {
          * fetch logic is mocked and tested below.
          */
         BlockingQueue<XRoadRestServiceIdentifierType> queue = new LinkedBlockingQueue<>();
-        FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(applicationContext, queue);
+        FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, queue);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchOpenApiTask, "semaphore", semaphore);
         XRoadRestServiceIdentifierType restService = new XRoadRestServiceIdentifierType();
@@ -104,7 +103,7 @@ public class FetchOpenApiTaskTest {
                     .thenReturn(openApiResponse);
             mock.when(() -> MethodListUtil.getEndpointList(any())).thenCallRealMethod();
 
-            FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(applicationContext, new LinkedBlockingQueue<>());
+            FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, new LinkedBlockingQueue<>());
 
             XRoadRestServiceIdentifierType service = new XRoadRestServiceIdentifierType();
             service.setObjectType(XRoadObjectType.SERVICE);

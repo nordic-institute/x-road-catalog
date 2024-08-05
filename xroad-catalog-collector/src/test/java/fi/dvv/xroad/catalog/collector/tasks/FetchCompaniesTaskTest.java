@@ -26,6 +26,7 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
+import fi.dvv.xroad.catalog.collector.configuration.FinlandTaskPoolConfiguration;
 import fi.dvv.xroad.catalog.collector.service.CompanyService;
 import fi.dvv.xroad.catalog.collector.util.OrganizationUtil;
 import org.awaitility.Awaitility;
@@ -34,13 +35,12 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -57,8 +57,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-@SpringBootTest(classes = TaskPoolConfiguration.class)
+@SpringBootTest(classes = CollectorApplication.class)
 @TestPropertySource(properties = { "xroad-catalog.fetch-companies-url=" })
 public class FetchCompaniesTaskTest {
 
@@ -69,7 +70,7 @@ public class FetchCompaniesTaskTest {
     CompanyService companyService;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private FinlandTaskPoolConfiguration finlandTaskPoolConfiguration;
 
     @Value("classpath:mock/companies/company.json")
     private Resource companyJSON;
@@ -84,7 +85,7 @@ public class FetchCompaniesTaskTest {
          * fetch logic is mocked and tested below.
          */
         BlockingQueue<String> queue = new LinkedBlockingQueue<>();
-        FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, queue);
+        FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(catalogService, companyService, finlandTaskPoolConfiguration, queue);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchCompaniesTask, "semaphore", semaphore);
         Thread fetchCompaniesRunner = Thread.ofVirtual().start(fetchCompaniesTask::run);
@@ -101,7 +102,8 @@ public class FetchCompaniesTaskTest {
     @Test
     public void testFetchCompanyForClient() throws JSONException, IOException {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
-            FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, null);
+            FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(catalogService, companyService, finlandTaskPoolConfiguration,
+                    null);
 
             final Optional<JSONObject> getCompanyResponse = Optional.ofNullable(new JSONObject(
                     companyJSON.getContentAsString(StandardCharsets.UTF_8)));
@@ -117,14 +119,15 @@ public class FetchCompaniesTaskTest {
     @Test
     public void testFetchCompanyForClientNotFound() throws JSONException, IOException {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
-            FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(applicationContext, null);
+            FetchCompaniesTask fetchCompaniesTask = new FetchCompaniesTask(catalogService, companyService, finlandTaskPoolConfiguration,
+                    null);
 
             mock.when(() -> OrganizationUtil.getCompany(any(), any(), any())).thenReturn(Optional.empty());
 
             fetchCompaniesTask.fetchCompanyData("1234567-9");
 
             mock.verify(() -> OrganizationUtil.getCompany(any(), any(), any()), times(1));
-            verify(companyService, times(0)).saveCompany(any());
+            verifyNoInteractions(companyService);
         }
     }
 }

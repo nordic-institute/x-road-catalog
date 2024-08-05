@@ -26,6 +26,7 @@
  */
 package fi.dvv.xroad.catalog.collector.tasks;
 
+import fi.dvv.xroad.catalog.collector.configuration.FinlandTaskPoolConfiguration;
 import fi.dvv.xroad.catalog.collector.service.OrganizationService;
 import fi.dvv.xroad.catalog.collector.util.OrganizationUtil;
 import org.awaitility.Awaitility;
@@ -34,13 +35,12 @@ import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -56,8 +56,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-@SpringBootTest(classes = TaskPoolConfiguration.class)
+@SpringBootTest(classes = CollectorApplication.class)
 public class FetchOrganizationTaskTest {
 
     @MockBean
@@ -67,7 +68,7 @@ public class FetchOrganizationTaskTest {
     OrganizationService organizationService;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private FinlandTaskPoolConfiguration finlandTaskPoolConfiguration;
 
     @Value("classpath:mock/organizations/organizationsById.json")
     private Resource organizationsByIdJSON;
@@ -82,7 +83,8 @@ public class FetchOrganizationTaskTest {
          * fetch logic is mocked and tested below.
          */
         BlockingQueue<String> queue = new LinkedBlockingQueue<>();
-        FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(applicationContext, queue);
+        FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(catalogService, organizationService,
+                finlandTaskPoolConfiguration, queue);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchOrganizationsTask, "semaphore", semaphore);
         Thread fetchOrganizationsRunner = Thread.ofVirtual().start(fetchOrganizationsTask::run);
@@ -96,8 +98,8 @@ public class FetchOrganizationTaskTest {
     @Test
     public void testFetchOrganizationsForClient() throws JSONException, IOException {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
-            FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(applicationContext,
-                    null);
+            FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(catalogService, organizationService,
+                    finlandTaskPoolConfiguration, null);
 
             Optional<JSONArray> organizationsByIdResponse = Optional.ofNullable(new JSONArray(
                     organizationsByIdJSON.getContentAsString(StandardCharsets.UTF_8)));
@@ -114,15 +116,15 @@ public class FetchOrganizationTaskTest {
     @Test
     public void testFetchOrganizationsForClientNotFound() throws JSONException, IOException {
         try (MockedStatic<OrganizationUtil> mock = Mockito.mockStatic(OrganizationUtil.class)) {
-            FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(applicationContext,
-                    null);
+            FetchOrganizationsTask fetchOrganizationsTask = new FetchOrganizationsTask(catalogService, organizationService,
+                    finlandTaskPoolConfiguration,null);
 
             mock.when(() -> OrganizationUtil.getOrganization(any(), any(), any())).thenReturn(Optional.empty());
 
             fetchOrganizationsTask.fetchOrganization("1234");
 
             mock.verify(() -> OrganizationUtil.getOrganization(any(), any(), any()), times(1));
-            verify(organizationService, times(0)).saveOrganization(any());
+            verifyNoInteractions(organizationService);
         }
     }
 }

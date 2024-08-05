@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URISyntaxException;
@@ -59,18 +58,17 @@ public class FetchWsdlsTaskTest {
     CatalogService catalogService;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private TaskPoolConfiguration taskPoolConfiguration;
 
     @LocalServerPort
     private int port;
 
     @Test
     public void testFetchWsdl() throws URISyntaxException, InterruptedException {
-        TaskPoolConfiguration taskPoolConfiguration = applicationContext.getBean(TaskPoolConfiguration.class);
         ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",
                 "http://localhost:" + port + "/metaservices");
         BlockingQueue<XRoadServiceIdentifierType> wsdlServices = new LinkedBlockingQueue<>();
-        FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(applicationContext, wsdlServices);
+        FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchWsdlsTask, "semaphore", semaphore);
         Thread fetchWsdlsRunner = Thread.ofVirtual().start(fetchWsdlsTask::run);

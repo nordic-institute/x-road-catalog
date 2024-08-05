@@ -40,19 +40,19 @@ public class XRoadClientTest {
     @MockBean
     CatalogService catalogService;
 
-    @Value("${xroad-catalog.security-server-host}")
+    @Value("${xroad-catalog.urls.security-server-host}")
     private String xroadSecurityServerHost;
 
-    @Value("${xroad-catalog.xroad-instance}")
+    @Value("${xroad-catalog.target.xroad-instance}")
     private String xroadInstance;
 
-    @Value("${xroad-catalog.member-code}")
+    @Value("${xroad-catalog.target.member-code}")
     private String memberCode;
 
-    @Value("${xroad-catalog.member-class}")
+    @Value("${xroad-catalog.target.member-class}")
     private String memberClass;
 
-    @Value("${xroad-catalog.subsystem-code}")
+    @Value("${xroad-catalog.target.subsystem-code}")
     private String subsystemCode;
 
     @LocalServerPort
