@@ -100,8 +100,7 @@ public final class OrganizationUtil {
 
     }
 
-    public static Optional<JSONObject> getCompany(String url, String businessId, CatalogService catalogService)
-            throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+    public static Optional<JSONObject> getCompany(String url, String businessId, CatalogService catalogService) {
         final String fetchCompaniesUrl = UriComponentsBuilder.fromHttpUrl(url).pathSegment(businessId).encode()
                 .build().toString();
         JSONObject jsonObject = new JSONObject();
@@ -137,8 +136,7 @@ public final class OrganizationUtil {
         }
     }
 
-    public static Optional<JSONArray> getOrganization(String url, String businessId, CatalogService catalogService)
-            throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+    public static Optional<JSONArray> getOrganization(String url, String businessId, CatalogService catalogService) {
         final String fetchOrganizationUrl = UriComponentsBuilder.fromHttpUrl(url)
                 .pathSegment("businesscode", businessId).encode().build().toString();
         try {
@@ -277,8 +275,7 @@ public final class OrganizationUtil {
         return streetAddressMunicipalityNames;
     }
 
-    public static List<StreetAddressAdditionalInformation> createStreetAddressAdditionalInformation(
-            JSONArray jsonArray) {
+    public static List<StreetAddressAdditionalInformation> createStreetAddressAdditionalInformation(JSONArray jsonArray) {
         List<StreetAddressAdditionalInformation> additionalInformationList = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             additionalInformationList.add(StreetAddressAdditionalInformation.builder()
@@ -353,8 +350,7 @@ public final class OrganizationUtil {
                 .code(jsonObject.optString("code")).build();
     }
 
-    public static List<PostOfficeBoxAddressMunicipalityName> createPostOfficeBoxAddressMunicipalityNames(
-            JSONArray jsonArray) {
+    public static List<PostOfficeBoxAddressMunicipalityName> createPostOfficeBoxAddressMunicipalityNames(JSONArray jsonArray) {
         List<PostOfficeBoxAddressMunicipalityName> streetAddressMunicipalityNames = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             streetAddressMunicipalityNames.add(PostOfficeBoxAddressMunicipalityName.builder()
