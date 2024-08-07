@@ -56,7 +56,7 @@ import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml" })
-@ActiveProfiles({ "test", "fi" })
+@ActiveProfiles("test")
 public class ServiceControllerTests {
 
     private static final String XROAD_INSTANCE = "DEV";

@@ -40,6 +40,7 @@ import org.niis.xroad.catalog.lister.TestUtil;
 import org.niis.xroad.catalog.lister.convertor.JaxbServiceConverter;
 import org.niis.xroad.catalog.lister.generated.ChangedValue;
 import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
@@ -52,6 +53,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 public class JaxbOrganizationServiceTest {
 
     JaxbOrganizationServiceImpl service = new JaxbOrganizationServiceImpl();

@@ -26,6 +26,7 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.lang.reflect.InvocationTargetException;
@@ -43,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 public class JaxbCatalogServiceTest {
 
     public static final String PROPERTY_MEMBER_CODE = "memberCode";

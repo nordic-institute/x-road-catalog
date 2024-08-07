@@ -14,6 +14,7 @@ package org.niis.xroad.catalog.lister.dto;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 
 @SpringBootTest
+@ActiveProfiles("test")
 public class SecurityServerDataListDTOTest {
 
     @Test

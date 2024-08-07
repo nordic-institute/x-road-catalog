@@ -15,12 +15,15 @@ package fi.dvv.xroad.catalog.lister.dto;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.ListerApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @SpringBootTest(classes = ListerApplication.class)
+@ActiveProfiles("test")
 public class BusinessAddressDataDTOTest {
 
     @Test
