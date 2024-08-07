@@ -38,6 +38,7 @@ import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
 import org.niis.xroad.catalog.persistence.repository.WsdlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -60,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Slf4j
 @Transactional
 public class CatalogServiceTest {

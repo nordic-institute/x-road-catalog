@@ -42,6 +42,7 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Queue;
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @SpringBootTest(classes = CollectorApplication.class)
+@ActiveProfiles("test")
 public class ListClientsTaskTest {
 
     @Autowired

@@ -25,6 +25,7 @@ import org.niis.xroad.catalog.persistence.repository.MemberRepository;
 import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SaveMissingSubsystemTest {

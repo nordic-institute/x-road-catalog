@@ -27,10 +27,11 @@ import fi.dvv.xroad.catalog.persistence.entity.RegisteredEntry;
 import fi.dvv.xroad.catalog.persistence.entity.RegisteredOffice;
 import fi.dvv.xroad.catalog.persistence.repository.CompanyRepository;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.collector.TestUtil;
 import org.niis.xroad.catalog.collector.CollectorApplication;
+import org.niis.xroad.catalog.collector.TestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest(classes =  CollectorApplication.class)
+@ActiveProfiles("test")
 @Transactional
 public class CompanyServiceTest {
 

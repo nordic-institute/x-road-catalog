@@ -36,6 +36,7 @@ import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.MalformedURLException;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = TaskPoolConfiguration.class)
+@ActiveProfiles("test")
 public class FetchRestTaskTest {
 
     @MockBean

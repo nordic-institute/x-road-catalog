@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.URISyntaxException;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = { TestingConfiguration.class, CollectorApplication.class,
         TaskPoolConfiguration.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class ListMethodsTaskTest {
 
     @MockBean
