@@ -16,7 +16,6 @@ xroad-catalog:
 logging:
   level:
     javax.ws.rs: TRACE
-    liquibase: TRACE
     org.apache.http: DEBUG
     org.hibernate: ERROR
     org.hibernate.orm.jdbc.bind: TRACE

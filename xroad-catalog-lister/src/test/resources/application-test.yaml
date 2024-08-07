@@ -11,7 +11,6 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: create-drop
-  liquibase.enabled: false
   sql:
     init:
       mode: always
