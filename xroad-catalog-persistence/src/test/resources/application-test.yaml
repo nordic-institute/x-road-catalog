@@ -1,5 +1,5 @@
 spring:
-  h2.console.enabled: 'false'
+  h2.console.enabled: false
   sql.init:
     mode: always
     platform: h2
@@ -10,12 +10,11 @@ spring:
     password: sa
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
-    defer-datasource-initialization: 'true'
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: 'true'
+    defer-datasource-initialization: true
+    show-sql: true
+    hibernate.ddl-auto: create-drop
 
 xroad-catalog:
   country:
     fi:
-      enabled: 'true'
+      enabled: true

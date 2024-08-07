@@ -1,18 +1,14 @@
 spring:
   datasource:
     driverClassName: org.h2.Driver
-    password: sa
     url: jdbc:h2:mem:db;NON_KEYWORDS=TYPE,VALUE
     username: sa
-  h2:
-    console:
-      enabled: false
+    password: sa
+  h2.console.enabled: false
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
+    hibernate.ddl-auto: create-drop
   liquibase:
     enabled: false
   main:
