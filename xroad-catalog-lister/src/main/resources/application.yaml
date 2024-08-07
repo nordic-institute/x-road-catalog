@@ -31,10 +31,10 @@ springdoc:
 
 # X-Road instance parameters
 xroad-catalog:
+  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
   country:
     fi:
       enabled: false
-  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
 
 logging:
   level:

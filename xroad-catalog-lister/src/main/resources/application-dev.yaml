@@ -11,7 +11,6 @@ xroad-catalog:
   country:
     fi:
       enabled: true
-  shared-params-file: /etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
 
 # Increasing logging levels in local development environment for better debugging
 logging:
