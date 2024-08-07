@@ -69,6 +69,7 @@ xroad-catalog:
   country:
     fi:
       # if enabled, URLs must be provided in order for Finland specific services and tasks to be executed properly
+      # if disabled, all other fi-specific properties can be removed from profile
       enabled: false
       fetch:
         companies:
