@@ -13,11 +13,11 @@ spring:
     parameters:
       users:
         collector:
-          password: xroad_catalog_collector
           username: xroad_catalog_collector
+          password: xroad_catalog_collector
         lister:
-          password: xroad_catalog_lister
           username: xroad_catalog_lister
+          password: xroad_catalog_lister
 
 # X-Road instance parameters
 xroad-catalog:

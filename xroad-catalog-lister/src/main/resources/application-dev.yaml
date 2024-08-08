@@ -2,9 +2,9 @@ server:
   port: '4920'
 spring:
   datasource:
-    password: xroad_catalog_lister
     url: jdbc:postgresql://localhost:4910/xroad_catalog
     username: xroad_catalog_lister
+    password: xroad_catalog_lister
 
 # X-Road instance parameters
 xroad-catalog:

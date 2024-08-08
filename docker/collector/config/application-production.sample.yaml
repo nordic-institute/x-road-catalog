@@ -21,15 +21,14 @@ spring:
     parameters:
       users:
         collector:
-          password: xroad_catalog_collector
           username: xroad_catalog_collector
+          password: xroad_catalog_collector
         lister:
-          password: xroad_catalog_lister
           username: xroad_catalog_lister
+          password: xroad_catalog_lister
   main:
     allow-bean-definition-overriding: true
-    web-application-type: servlet
-  sql.init.platform: postgres
+    web-application-type: none
 
 # X-Road instance parameters
 xroad-catalog:

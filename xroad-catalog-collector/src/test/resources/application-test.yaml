@@ -12,6 +12,7 @@ spring:
   liquibase:
     enabled: false
   main:
+    # some tests require web server to be enabled
     web-application-type: servlet
   sql:
     init:
