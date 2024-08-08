@@ -24,13 +24,7 @@ See also the [Installation Guide](../doc/xroad_catalog_installation_guide.md) an
 X-Road Catalog Collector can be built by running:
 
 ```bash
-$ ../gradlew clean build
-```
-
-```bash
 ../gradlew clean build
-docker build -t collector-rpm packages/xroad-catalog-collector/docker --build-arg CATALOG_PROFILE=<PROFILE>
-docker run -v $PWD/..:/workspace collector-rpm
 ```
 
 ## Run
@@ -49,22 +43,27 @@ java -jar target/xroad-catalog-collector-1.0-SNAPSHOT.jar
 
 ## Run against a remote Security Server over an SSH tunnel
 
-First create an ssh tunnel to a local port:
+1. First create an ssh tunnel to a local port:
 
-```bash
-ssh -nNT -L <LOCAL_PORT>:<DESTINATION>:<DESTINATION_PORT> [USER@]SSH_SERVER
-```
+    ```bash
+    ssh -nNT -L <LOCAL_PORT>:<DESTINATION>:<DESTINATION_PORT> [USER@]SSH_SERVER
+    ```
 
-For example, there's a Security Server running on a machine `my-security-server.com` on an internal private network on
-port `80`. The Security Server is accessible from the machine `my-ssh-server.com`. To connect to the Security Server from
-the local machine using the local port `9000`, forward the connection using the following command:
+    For example, there's a Security Server running on a machine `my-security-server.com` on an internal private network on
+    port `80`. The Security Server is accessible from the machine `my-ssh-server.com`. To connect to the Security Server
+    from the local machine using the local port `9000`, forward the connection using the following command:
 
-```bash
-ssh -nNT -L 9000:my-security-server.com:80 my-user@my-ssh-server.com
-```
+    ```bash
+    ssh -nNT -L 9000:my-security-server.com:80 my-user@my-ssh-server.com
+    ```
 
-Then run the collector with profile `sshtest`:
+2. Then run the collector with profile `sshtest`:
 
-```bash
-java -Dspring.profiles.active=sshtest -jar build/libs/xroad-catalog-collector.jar --spring.config.name=collector,catalogdb
-```
+    ```bash
+    java -jar build/libs/xroad-catalog-collector.jar --xroad-catalog.security-server-host=http://localhost:<LOCAL_PORT>
+    ```
+    For our example and since the port is `9000`, the command would be:
+
+    ```bash
+    java -jar build/libs/xroad-catalog-collector.jar --xroad-catalog.security-server-host=http://localhost:9000
+    ```

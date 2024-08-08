@@ -18,12 +18,6 @@ X-Road Catalog Lister can be built by running:
 ../gradlew clean build
 ```
 
-```bash
-../gradlew clean build
-docker build -t lister-rpm packages/xroad-catalog-lister/docker --build-arg CATALOG_PROFILE=<PROFILE>
-docker run -v $PWD/..:/workspace lister-rpm
-```
-
 ## Run
 
 X-Road Catalog Lister can be run using Gradle:
@@ -35,5 +29,5 @@ X-Road Catalog Lister can be run using Gradle:
 or running it from a JAR file:
 
 ```bash
-java -jar build/libs/xroad-catalog-lister.jar --spring.config.name=lister,catalogdb
+java -jar build/libs/xroad-catalog-lister.jar
 ```
