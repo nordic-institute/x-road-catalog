@@ -14,30 +14,33 @@ services:
       - /etc/localtime:/etc/localtime:ro
     networks:
       - xrd-catalog-network
-#  adminer:
-#    image: adminer
-#    volumes:
-#      - /etc/localtime:/etc/localtime:ro
-#    ports:
-#      - 5080:8080
-#    depends_on:
-#      - xrd-catalog-db
-#    networks:
-#      - xrd-catalog-network
-#  xrd-catalog-collector:
-#    build:
-#      context: ../.
-#      dockerfile: docker/collector/Dockerfile
-#    # environment:
-#    #   CATALOG_PROFILE: FI
-#    volumes:
-#      - ./collector/config:/etc/xroad/xroad-catalog:ro
-#      - /etc/localtime:/etc/localtime:ro
-#    depends_on:
-#      - xrd-catalog-db
-#    networks:
-#      - xrd-catalog-network
-#      - xroad-network
+  adminer:
+    image: adminer
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 5080:8080
+    depends_on:
+      - xrd-catalog-db
+    networks:
+      - xrd-catalog-network
+  xrd-catalog-collector:
+    build:
+      context: ../.
+      dockerfile: docker/collector/Dockerfile
+#    environment:
+#      SPRING_PROFILES_ACTIVE: fi
+#      XROAD-CATALOG_COUNTRY_FI_ENABLED: false
+#      LOGGING_LEVEL_LIQUIBASE: TRACE
+#      SPRING_LIQUIBASE_CONTEXTS: users
+    volumes:
+      - ./collector/config:/etc/xroad/xroad-catalog:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - xrd-catalog-db
+    networks:
+      - xrd-catalog-network
+      - xroad-network
   xrd-confclient:
     build:
       dockerfile: confclient/Dockerfile
@@ -46,22 +49,22 @@ services:
       - /etc/localtime:/etc/localtime:ro
     networks:
       - xroad-network
-#  xrd-catalog-lister:
-#    build:
-#      context: ../.
-#      dockerfile: docker/lister/Dockerfile
-#    volumes:
-#      - ./lister/config:/etc/xroad/xroad-catalog:ro
-#      - xrd-confclient-data:/etc/xroad/globalconf:ro
-#      - /etc/localtime:/etc/localtime:ro
-#    ports:
-#      - 8070:8070
-#    depends_on:
-#      - xrd-catalog-collector
-#      - xrd-confclient
-#    networks:
-#      - xrd-catalog-network
-#      - xroad-network
+  xrd-catalog-lister:
+    build:
+      context: ../.
+      dockerfile: docker/lister/Dockerfile
+    volumes:
+      - ./lister/config:/etc/xroad/xroad-catalog:ro
+      - xrd-confclient-data:/etc/xroad/globalconf:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8070:8080
+    depends_on:
+      - xrd-catalog-collector
+      - xrd-confclient
+    networks:
+      - xrd-catalog-network
+      - xroad-network
 
 volumes:
   xrd-catalog-db-data:
