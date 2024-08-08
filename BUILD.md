@@ -41,48 +41,33 @@ as well), especially if you set up a local X-Road ecosystem.
     ```
 * The build scripts assumes the above directory structure.
 
-## Build X-Road Catalog Collector
+## Build
 
-See [xroad-catalog-collector/README.md](xroad-catalog-collector/README.md#build) for details.
+To build all modules, run the following command in the root directory:
 
-## Build X-Road Catalog Lister
+```bash
+./gradlew clean build
+```
 
+To build a specific module:
+
+* **Build X-Road Catalog Collector**  
+ See [xroad-catalog-collector/README.md](xroad-catalog-collector/README.md#build) for details.
+
+* **Build X-Road Catalog Lister**  
 See [xroad-catalog-lister/README.md](xroad-catalog-lister/README.md#build) for details.
 
-## Build X-Road Catalog Persistence
-
+* **Build X-Road Catalog Persistence**  
 See [xroad-catalog-persistence/README.md](xroad-catalog-persistence/README.md#build) for details.
 
 ## Profiles
 
-Profiles can be used to configure different features in X-Road Catalog. By default, X-Road Catalog includes four different
-profiles:
+Profiles can be used to configure different features in X-Road Catalog. By default, X-Road Catalog supports 1 profile, 
+the `default` profile with all configurations in place.
 
-* `default` - a profile used for default operation of X-Road Catalog, without any country-specific features.
-  * The default profile can be set with `spring.profiles.active=`.
-* `fi` - an extra profile used in addition to the default profile, which has country-specific (Finland) features, e.g.,
-  fetching additional data from a national business registry. Other country-specific profiles can be added if needed.
-  * The profile can be set with `spring.profiles.active=fi`.
-* `production` - a profile used in the production deployment.
-  * The profile can be set with `spring.profiles.active=production`.
-* `sshtest` - a profile used to test SSH tunneling with X-Road Catalog.
-  * The profile can be set with `spring.profiles.active=sshtest`.
-
-Multiple profiles can be activated at the same time by separating them with a comma, e.g., `spring.profiles.active=production,fi`.
+For Finland's national business registry, a feature flag is used to enable fetching additional data from the registry.
+The flag is `xroad-catalog.country.fi.enabled` and it is set to `false` by default. When the flag is set to `true`,
+corresponding features will be enabled.
 
 X-Road Catalog supports adding new profiles. For example, new country-specific features should be added by creating a
 new country-specific profile.
-
-### How Profiles Are Used During the Build?
-
-* First, a Docker image for building the X-Road Catalog rpm packages is built.
-  * For X-Road Catalog Collector:
-    ```bash
-    docker build -t collector-rpm packages/xroad-catalog-collector/docker --build-arg CATALOG_PROFILE=fi
-    ```
-  * For X-Road Catalog Lister:
-    ```bash
-    docker build -t lister-rpm packages/xroad-catalog-lister/docker --build-arg CATALOG_PROFILE=fi
-    ```
-* Profile value is provided to the respective `Dockerfile` with an argument `--build-arg CATALOG_PROFILE=fi`. Then within
-  the `Dockerfile` an environment variable `CATALOG_PROFILE` is initalized with that profile value.
