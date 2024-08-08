@@ -14,9 +14,9 @@ spring:
 
 # OpenAPI documentation
 springdoc:
+  packagesToScan: org.niis.xroad,fi.dvv.xroad
   api-docs:
     enabled: true
-  packagesToScan: org.niis.xroad,fi.dvv.xroad
   swagger-ui:
     enabled: true
     path: /api-docs
