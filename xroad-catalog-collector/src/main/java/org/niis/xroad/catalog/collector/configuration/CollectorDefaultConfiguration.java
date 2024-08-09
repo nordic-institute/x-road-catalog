@@ -32,5 +32,5 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(PersistenceDefaultConfiguration.class)
 @ComponentScan(basePackages = "org.niis.xroad.catalog.collector")
-public class CatalogDefaultConfiguration {
+public class CollectorDefaultConfiguration {
 }

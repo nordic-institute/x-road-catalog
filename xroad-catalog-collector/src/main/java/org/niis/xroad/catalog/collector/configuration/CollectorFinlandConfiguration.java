@@ -22,5 +22,5 @@ import org.springframework.context.annotation.Import;
 @Import(PersistenceFinlandConfiguration.class)
 @ComponentScan(basePackages = "fi.dvv.xroad.catalog.collector")
 @ConditionalOnProperty(name = "xroad-catalog.country.fi.enabled", havingValue = "true")
-public class CatalogFinlandConfiguration {
+public class CollectorFinlandConfiguration {
 }
