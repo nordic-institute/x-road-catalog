@@ -17,7 +17,7 @@ idea {
     }
     module {
         downloadSources = true
-        excludeDirs -= file(buildDir)
+        excludeDirs -= layout.buildDirectory.get().asFile
         // FIXME: This might be wrong with the switch to WSDL2JAVA or even not needed
         buildDir.listFiles({ d, f -> f != 'generated-sources/wsimport' } as FilenameFilter).each { excludeDirs += it }
     }
