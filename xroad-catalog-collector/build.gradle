@@ -46,8 +46,8 @@ springBoot {
 }
 
 task wsImport {
-    ext.sourcedestdir = "${buildDir}/generated-sources/wsimport"
-    ext.destdir = "${buildDir}/generated-classes/wsimport"
+    ext.sourcedestdir = layout.buildDirectory.dir("generated-sources/wsimport").get().asFile
+    ext.destdir = layout.buildDirectory.dir("generated-classes/wsimport").get().asFile
     ext.wsdl = "${projectDir}/src/main/resources/schema/metaservices.wsdl"
 
     inputs.files wsdl
