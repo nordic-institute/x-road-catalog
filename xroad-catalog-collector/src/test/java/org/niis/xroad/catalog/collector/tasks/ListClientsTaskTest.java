@@ -51,6 +51,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -100,7 +101,7 @@ public class ListClientsTaskTest {
             listClientsTask.run();
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
-            verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(any());
+            verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
 
             assertEquals(5, listMethodsQueue.size());
         }
@@ -173,7 +174,7 @@ public class ListClientsTaskTest {
             listClientsTask.run();
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
-            verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(any());
+            verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
             assertEquals(5, listMethodsQueue.size());
         }
     }

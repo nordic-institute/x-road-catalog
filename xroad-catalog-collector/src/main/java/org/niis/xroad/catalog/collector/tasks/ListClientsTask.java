@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -93,7 +94,7 @@ public class ListClientsTask implements Runnable {
 
             log.info("All subsystems ({}) sent to ListMethodsTask", subsystems.size());
 
-            newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).toList());
+            newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).collect(Collectors.toSet()));
             log.info("{} new members were published as event", newMembers.size());
         } catch (Exception e) {
             ErrorLog errorLog = CollectorUtils.createErrorLog(null,

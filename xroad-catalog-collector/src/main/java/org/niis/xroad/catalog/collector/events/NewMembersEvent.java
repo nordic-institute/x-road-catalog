@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.catalog.collector.events;
 
-import java.util.List;
+import java.util.Set;
 
-public record NewMembersEvent(List<String> newMembersCodes) {
+public record NewMembersEvent(Set<String> newMembersCodes) {
 }

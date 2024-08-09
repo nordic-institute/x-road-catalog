@@ -28,14 +28,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Component
 public class NewMembersEventPublisher {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
-    public void publishNewMembersEvent(List<String> newMembersCodes) {
+    public void publishNewMembersEvent(Set<String> newMembersCodes) {
         NewMembersEvent newMembersEvent = new NewMembersEvent(newMembersCodes);
         applicationEventPublisher.publishEvent(newMembersEvent);
     }
