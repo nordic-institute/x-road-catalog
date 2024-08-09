@@ -187,7 +187,7 @@ Optional parameters which can be configured in the same file are described below
 | `xroad-catalog.flush-log-time-before-hour`       | 4        | A parameter for setting the end of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value  `23` means ending at `23:00`.                                                             |
 | `xroad-catalog.error-log-length-in-days`         | 90       | A parameter for setting the amount in days for how long the errors logs should be kept in the db, e.g. value `90` means `for 90 days`.                                                                                                                                                                       |
 
-When using the `xroad-catalog-collector` module with the `FI` profile, the following additional optional parameters are
+When using the `xroad-catalog-collector` module with the `xroad-catalog.country.fi.enabled` feature flag set to `true`, the following additional optional parameters are
 in effect:
 
 | Parameter                                                   | Defaults | Description                                                                                                                                                                                                                                                                                                                      |

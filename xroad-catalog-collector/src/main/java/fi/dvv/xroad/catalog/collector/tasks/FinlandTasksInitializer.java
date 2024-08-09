@@ -53,7 +53,7 @@ public class FinlandTasksInitializer implements ApplicationListener<ApplicationS
     @SneakyThrows
     public void onApplicationEvent(ApplicationStartedEvent ase) {
 
-        log.info("FI profile detected, starting up organizations and companies fetchers");
+        log.info("Finland feature flag is enabled, starting up organizations and companies fetchers");
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         Thread.ofVirtual().start(fetchCompaniesTask);

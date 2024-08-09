@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FinlandTaskPoolConfiguration {
 
-    // Parameters related to the "fi" profile
+    // Parameters related to the "xroad-catalog.country.fi" features
 
     @Value("${xroad-catalog.country.fi.fetch.companies.pool-size:10}")
     private int fetchCompaniesPoolSize;

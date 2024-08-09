@@ -65,9 +65,7 @@ See [xroad-catalog-persistence/README.md](xroad-catalog-persistence/README.md#bu
 Profiles can be used to configure different features in X-Road Catalog. By default, X-Road Catalog supports 1 profile, 
 the `default` profile with all configurations in place.
 
-For Finland's national business registry, a feature flag is used to enable fetching additional data from the registry.
-The flag is `xroad-catalog.country.fi.enabled` and it is set to `false` by default. When the flag is set to `true`,
-corresponding features will be enabled.
+Fetching additional data from the Finnish Business Registry and the Suomi.fi Finnish Service Catalogue can enabled
+using the `xroad-catalog.country.fi.enabled` flag. When the flag is set to `true`, fetching the data is enabled. 
+The default value is `false`.
 
-X-Road Catalog supports adding new profiles. For example, new country-specific features should be added by creating a
-new country-specific profile.
