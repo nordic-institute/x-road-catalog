@@ -156,36 +156,36 @@ The following parameters must be manually configured in `/etc/xroad/xroad-catalo
 especially X-Road instance information and URL of Security Server.
 
 ```properties
-xroad-catalog.xroad-instance=<XROAD_INSTANCE>
-xroad-catalog.member-class=<MEMBER_CLASS>
-xroad-catalog.member-code=<MEMBER_CODE>
-xroad-catalog.subsystem-code=<SUBSYSTEM_CODE>
-xroad-catalog.security-server-host=<SECURITY_SERVER_HOST>
+xroad-catalog.target.xroad-instance=<XROAD_INSTANCE>
+xroad-catalog.target.member-class=<MEMBER_CLASS>
+xroad-catalog.target.member-code=<MEMBER_CODE>
+xroad-catalog.target.subsystem-code=<SUBSYSTEM_CODE>
+xroad-catalog.urls.security-server-host=<SECURITY_SERVER_HOST>
 ```
 
-When using the `xroad-catalog-collector` module with the `FI` profile, the following additional parameters must be
-configured in the same file:
+When using the `xroad-catalog-collector` module with the `xroad-catalog.country.fi.enabled` feature flag set to `true`,
+the following additional parameters must be configured:
 
 ```properties
-xroad-catalog.fetch-organizations-url=<ORGANIZATIONS_API_URL>
-xroad-catalog.fetch-companies-url=<COMPANIES_API_URL>
+xroad-catalog.country.fi.fetch.organizations.url=<ORGANIZATIONS_API_URL>
+xroad-catalog.country.fi.fetch.companies.url=<COMPANIES_API_URL>
 ```
 
 Optional parameters which can be configured in the same file are described below along with their default values:
 
-| Parameter                                        | Defaults | Description                                                                                                                                                                                                                                                                                                  |
-|--------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `xroad-catalog.fetch-run-unlimited`              | false    | A parameter for setting whether the X-Road Catalog Collector should try to fetch data from Security Server continuously during a day or only between certain hours, e.g. value `true` means `continously`.                                                                                                   |
-| `xroad-catalog.fetch-time-after-hour`            | 3        | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `18` means starting from `18:00`. |
-| `xroad-catalog.fetch-time-before-hour`           | 4        | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `23` means ending at `23:00`.       |
-| `xroad-catalog.collector-interval-min`           | 20       | A parameter for setting the amount of time in minutes after which the X-Road Catalog Collector should start re-fetching data from Security Server, e.g. value `20` means `every 20 minutes`.                                                                                                                 |
-| `xroad-catalog.list-methods-pool-size`           | 50       | A parameter for setting the amount of virtual threads in the pool for fetching methods metadata from Security Server, e.g. value `50` means `50 virtual threads`.                                                                                                                                            |
-| `xroad-catalog.fetch-wsdl-pool-size`             | 10       | A parameter for setting the amount of virtual threads in the pool for fetching WSDLs from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                                       |
-| `xroad-catalog.fetch-rest-pool-size`             | 10       | A parameter for setting the amount of virtual threads in the pool for fetching REST services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                               |
-| `xroad-catalog.fetch-openapi-pool-size`          | 10       | A parameter for setting the amount of virtual threads in the pool for fetching OpenAPI services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                            |
-| `xroad-catalog.flush-log-time-after-hour`        | 3        | A parameter for setting the start of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value `18` means starting from `18:00`.                                                        |
-| `xroad-catalog.flush-log-time-before-hour`       | 4        | A parameter for setting the end of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value  `23` means ending at `23:00`.                                                             |
-| `xroad-catalog.error-log-length-in-days`         | 90       | A parameter for setting the amount in days for how long the errors logs should be kept in the db, e.g. value `90` means `for 90 days`.                                                                                                                                                                       |
+| Parameter                                              | Defaults | Description                                                                                                                                                                                                                                                                                                  |
+|--------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `xroad-catalog.tasks.fetch-run-unlimited`              | false    | A parameter for setting whether the X-Road Catalog Collector should try to fetch data from Security Server continuously during a day or only between certain hours, e.g. value `true` means `continously`.                                                                                                   |
+| `xroad-catalog.tasks.fetch-time-after-hour`            | 3        | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `18` means starting from `18:00`. |
+| `xroad-catalog.tasks.fetch-time-before-hour`           | 4        | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `23` means ending at `23:00`.       |
+| `xroad-catalog.tasks.collector-interval-min`           | 20       | A parameter for setting the amount of time in minutes after which the X-Road Catalog Collector should start re-fetching data from Security Server, e.g. value `20` means `every 20 minutes`.                                                                                                                 |
+| `xroad-catalog.pool-size.list-methods`                 | 50       | A parameter for setting the amount of virtual threads in the pool for fetching methods metadata from Security Server, e.g. value `50` means `50 virtual threads`.                                                                                                                                            |
+| `xroad-catalog.pool-size.fetch-wsdl`                   | 10       | A parameter for setting the amount of virtual threads in the pool for fetching WSDLs from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                                       |
+| `xroad-catalog.pool-size.fetch-rest`                   | 10       | A parameter for setting the amount of virtual threads in the pool for fetching REST services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                               |
+| `xroad-catalog.pool-size.fetch-openapi`                | 10       | A parameter for setting the amount of virtual threads in the pool for fetching OpenAPI services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                            |
+| `xroad-catalog.log-storage.flush-log-time-after-hour`  | 3        | A parameter for setting the start of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value `18` means starting from `18:00`.                                                        |
+| `xroad-catalog.log-storage.flush-log-time-before-hour` | 4        | A parameter for setting the end of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value  `23` means ending at `23:00`.                                                             |
+| `xroad-catalog.log-storage.error-log-length-in-days`   | 90       | A parameter for setting the amount in days for how long the errors logs should be kept in the db, e.g. value `90` means `for 90 days`.                                                                                                                                                                       |
 
 When using the `xroad-catalog-collector` module with the `xroad-catalog.country.fi.enabled` feature flag set to `true`, the following additional optional parameters are
 in effect:
@@ -203,14 +203,14 @@ in effect:
 | `xroad-catalog.country.fi.fetch.external-limit`             | 500      | A parameter for setting the maximum amount of Members that should be fetched per external API in one run, e.g. value `500` means `500 members`. In the current implementation the example value would fetch `500` members information from both the `company` and `organization` API.                                            |
 | `xroad-catalog.country.fi.fetch.external-update-after-days` | 7        | A parameter for setting the amount of days after which the X-Road Catalog Collector should consider Company and Organization data stale and try to fetch data from the external API again, e.g. value `7` means `after 7 days`.                                                                                                  |
 
-In addition, update the `xroad-catalog.shared-params-file` property value in `/etc/xroad/xroad-catalog/lister-production.properties`.
+In addition, update the `xroad-catalog.shared-params-file` property value.
 The value must point to the `/etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml` X-Road global configuration file:
 
 ```properties
 xroad-catalog.shared-params-file=/etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
 ```
 
-Change also the database password in `/etc/xroad/xroad-catalog/catalogdb-production.properties`:
+Change also the database password:
 
 ```properties
 spring.datasource.password=password
@@ -254,10 +254,11 @@ keytool -keystore /etc/xroad/xroad-catalog/keystore -exportcert -rfc -alias xroa
 
 The created `xroad-catalog.cer` file must be added to the Security Server (Through UI: Security Server Clients > SELECT SERVICE > Internal Servers > Internal TLS Certificates > ADD)
 
-The keystore password can be configured in `/etc/xroad/xroad-catalog/collector-production.properties`.
+The keystore location and password can be configured using:
 
 ```properties
-xroad-catalog.ssl-keystore-password=changeit
+xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
+xroad-catalog.ssl-keystore.password=changeit
 ```
 
 ## 2.7 Post-Installation Checks
