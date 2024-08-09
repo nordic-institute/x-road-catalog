@@ -1,1 +1,5 @@
+collector/config
+lister/config
+!collector/config/*.sample.yaml
+!lister/config/*.sample.yaml
 confclient/data/configuration-anchor.xml
