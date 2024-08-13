@@ -35,9 +35,9 @@ X-Road Catalog Collector configurations are divided into three groups:
 
 Values of following configurations are expected to be provided by service's user. Otherwise, service may fail to start.
 Configurations are categorized according to their usage into different groups in the following sections.
-[!NOTE]
-Some configuration parameters are required depending on the use-case. For example, `spring.liquibase.parameters.users.*`
-parameters are only required if liquibase context include `users`.
+> [!NOTE]
+> Some configuration parameters are required depending on the use-case. For example, `spring.liquibase.parameters.users.*`
+> parameters are only required if liquibase context include `users`.
 
 #### Mandatory Data Source and Liquibase Configurations
 
@@ -99,8 +99,8 @@ values will be used.
 
 #### Optional configurations required by Finland-specific features
 
-[!NOTE]
-The following configurations will take effect only when `xroad-catalog.country.fi.enabled` is `true`
+> [!NOTE]
+> The following configurations will take effect only when `xroad-catalog.country.fi.enabled` is `true`
 
 | Parameter                                                   | Required | Defaults | Description                                                                                                                                                                                                                                                                                                                      | Since |
 |-------------------------------------------------------------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
@@ -117,9 +117,9 @@ The following configurations will take effect only when `xroad-catalog.country.f
 
 The following list of configurations must be included in the `application.yaml` file without modifications to their
 values.
-[!IMPORTANT]
-If user is not using the `application.yaml` file to customize the configurations, e.g., using spring boot profile or k8s
-configmap, service will use the default `application.yaml` which provide these values already.
+> [!IMPORTANT]
+> If user is not using the `application.yaml` file to customize the configurations, e.g., using spring boot profile or k8s
+> configmap, service will use the default `application.yaml` which provide these values already.
 
 #### Fixed values for Data Source and Liquibase Configurations
 
