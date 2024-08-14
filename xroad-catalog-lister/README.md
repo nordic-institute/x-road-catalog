@@ -1,6 +1,25 @@
-# Introduction to X-Road Catalog Lister
+# X-Road Catalog Lister
 
-The purpose of this module is to provide a web service which lists all the X-Road members and the services they provide 
+## Table of Contents
+
+- [X-Road Catalog Lister](#x-road-catalog-lister)
+    - [Table of Contents](#table-of-contents)
+    - [Introduction](#introduction)
+    - [Configuration](#configuration)
+        - [Mandatory to provide](#mandatory-to-provide)
+            - [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
+            - [Mandatory Configurations for common Features](#mandatory-configurations-for-common-features)
+        - [Optional configurations](#optional-configurations)
+            - [Optional Configurations for Finland-specific Features](#optional-configurations-for-finland-specific-features)
+        - [Fixed-Mandatory values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+            - [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
+            - [Fixed-Mandatory values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
+    - [Build](#build)
+    - [Run](#run)
+
+## Introduction
+
+The purpose of this module is to provide a web service which lists all the X-Road members and the services they provide
 together with services descriptions.
 
 A class diagram illustrating X-Road Catalog Lister implementation with the `default` and `FI` profiles:
@@ -19,10 +38,11 @@ X-Road Catalog Lister configurations are divided into three groups:
 Values of following configurations are expected to be provided by service's user. Otherwise, service may fail to start.
 Configurations are categorized according to their usage into different groups in the following sections.
 > [!NOTE]
-> Some configuration parameters are required depending on the use-case. For example, `spring.liquibase.parameters.users.*`
+> Some configuration parameters are required depending on the use-case. For
+> example, `spring.liquibase.parameters.users.*`
 > parameters are only required if liquibase context include `users`.
 
-#### Mandatory Data Source and Liquibase Configurations
+#### Mandatory Configurations for Data Source and Liquibase
 
 | Data Source and Liquibase Configurations                                                                                                                              | Required | Defaults | Comment                                                                                                                                                                               | Since |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
@@ -30,27 +50,30 @@ Configurations are categorized according to their usage into different groups in
 | [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)    | Y        |          | If database users will be created by collector's module liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.lister.username`. | 1.0.0 |
 | [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.elasticsearch.password) | Y        |          | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.lister.password`.                    | 1.0.0 |
 
-#### Mandatory configurations required by common features
+#### Mandatory Configurations for common Features
 
 | Parameter                          | Required | Defaults | Description                                                                         | Since |
 |------------------------------------|----------|----------|-------------------------------------------------------------------------------------|-------|
 | `xroad-catalog.shared-params-file` | Y        |          | A parameter for setting the path to shared params file exported from X-Road server. | 1.0.0 |
 
-#### Mandatory configurations required by Finland-specific features
+### Optional configurations
+
+#### Optional Configurations for Finland-specific Features
 
 | Configurations                     | Required | Defaults | Description                                                                                                           | Since |
 |------------------------------------|----------|----------|-----------------------------------------------------------------------------------------------------------------------|-------|
-| `xroad-catalog.country.fi.enabled` | Y        | `false`  | A parameter to enable/disable Finland specific features. If `false`, then all Finland specific endpoints are disabled | 1.0.0 |
+| `xroad-catalog.country.fi.enabled` | N        | `false`  | A parameter to enable/disable Finland specific features. If `false`, then all Finland specific endpoints are disabled | 1.0.0 |
 
 ### Fixed-Mandatory values to include in `application.yaml`
 
 The following list of configurations must be included in the `application.yaml` file without modifications to their
 values.
 > [!IMPORTANT]
-> If user is not using the `application.yaml` file to customize the configurations, e.g., using spring boot profile or k8s
+> If user is not using the `application.yaml` file to customize the configurations, e.g., using spring boot profile or
+> k8s
 > configmap, service will use the default `application.yaml` which provide these values already.
 
-#### Fixed values for Data Source and Liquibase Configurations
+#### Fixed-Mandatory Values for Data Source and Liquibase
 
 | Data Source and Liquibase Configurations                                                                                                                                             | Required | Defaults                                  | Comment                                                                             | Since |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------|-------------------------------------------------------------------------------------|-------|
@@ -62,7 +85,7 @@ values.
 | [spring.jpa.hibernate.ddl-auto](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.hibernate.ddl-auto)             | Y        | `none`                                    | Keep to `none` to prevent hiberante from trying to update the database.             | 1.0.0 |
 | spring.jpa.properties.hibernate.dialect                                                                                                                                              | Y        | `org.hibernate.dialect.PostgreSQLDialect` | PostgreSQL is the only supported RDMBS. Don't change                                | 1.0.0 |
 
-#### Fixed values for OpenAPI documentation configurations
+#### Fixed-Mandatory values for OpenAPI documentation
 
 | Spring Boot framework configurations | Required | Defaults                      | Comment                                                          | Since |
 |--------------------------------------|----------|-------------------------------|------------------------------------------------------------------|-------|

@@ -59,13 +59,3 @@ See [xroad-catalog-lister/README.md](xroad-catalog-lister/README.md#build) for d
 
 * **Build X-Road Catalog Persistence**  
 See [xroad-catalog-persistence/README.md](xroad-catalog-persistence/README.md#build) for details.
-
-## Profiles
-
-Profiles can be used to configure different features in X-Road Catalog. By default, X-Road Catalog supports 1 profile, 
-the `default` profile with all configurations in place.
-
-Fetching additional data from the Finnish Business Registry and the Suomi.fi Finnish Service Catalogue can enabled
-using the `xroad-catalog.country.fi.enabled` flag. When the flag is set to `true`, fetching the data is enabled. 
-The default value is `false`.
-

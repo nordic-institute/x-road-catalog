@@ -1,18 +1,19 @@
 # X-Road Catalog Installation Guide
-Version: 1.3.2
+Version: 1.3.3
 Doc. ID: IG-XRDCAT
 
 ---
 
 ## Version history <!-- omit in toc -->
-| Date       | Version | Description                                                                               | Author           |
-|------------|---------|-------------------------------------------------------------------------------------------|------------------|
-| 22.03.2023 | 1.0.0   | Export installation-related parts from the X-Road Catalog User Guide                      | Petteri Kivimäki |
-| 16.08.2023 | 1.1.0   | Add instructions to install and configure the `xroad-conflient` module                    | Petteri Kivimäki |
-| 09.09.2023 | 1.2.0   | Remove instructions to install the `xroad-conflient` module manually                      | Petteri Kivimäki |
-| 24.09.2023 | 1.3.0   | Add instructions to disable the automatic backup job run by the `xroad-conflient` module  | Petteri Kivimäki |
-| 10.06.2024 | 1.3.1   | Add information about default values for configurable properties                          | Raido Kaju       |
-| 14.06.2024 | 1.3.2   | Update information about company and organization task properties                         | Raido Kaju       |
+| Date       | Version | Description                                                                              | Author            |
+|------------|---------|------------------------------------------------------------------------------------------|-------------------|
+| 22.03.2023 | 1.0.0   | Export installation-related parts from the X-Road Catalog User Guide                     | Petteri Kivimäki  |
+| 16.08.2023 | 1.1.0   | Add instructions to install and configure the `xroad-conflient` module                   | Petteri Kivimäki  |
+| 09.09.2023 | 1.2.0   | Remove instructions to install the `xroad-conflient` module manually                     | Petteri Kivimäki  |
+| 24.09.2023 | 1.3.0   | Add instructions to disable the automatic backup job run by the `xroad-conflient` module | Petteri Kivimäki  |
+| 10.06.2024 | 1.3.1   | Add information about default values for configurable properties                         | Raido Kaju        |
+| 14.06.2024 | 1.3.2   | Update information about company and organization task properties                        | Raido Kaju        |
+| 14.08.2024 | 1.3.3   | Update information about Initial Configuration                                           | Mohamed Elbeltagy |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -29,6 +30,11 @@ Doc. ID: IG-XRDCAT
   * [2.4 Installation](#24-installation)
     * [2.4.1 Complete the Installation of X-Road Configuration Client](#241-complete-the-installation-of-x-road-configuration-client)
   * [2.5 Initial Configuration](#25-initial-configuration)
+    * [2.5.1 X-Road Catalog Collector](#251-x-road-catalog-collector)
+      * [2.5.1.1 X-Road Catalog Collector - Finland-specific Features](#2511-x-road-catalog-collector---finland-specific-features)
+    * [2.5.2 X-Road Catalog Lister](#252-x-road-catalog-lister)
+      * [2.5.2.1 X-Road Catalog Lister - Finland-specific Features](#2521-x-road-catalog-lister---finland-specific-features)
+    * [2.5.3 services](#253-services)
   * [2.6 SSL (optional)](#26-ssl-optional)
   * [2.7 Post-Installation Checks](#27-post-installation-checks)
   * [2.8 Logs](#28-logs)
@@ -152,73 +158,55 @@ The application log of the `xroad-confclient` module is available in `/var/log/x
 
 ## 2.5 Initial Configuration
 
-The following parameters must be manually configured in `/etc/xroad/xroad-catalog/collector-production.properties`,
-especially X-Road instance information and URL of Security Server.
+### 2.5.1 X-Road Catalog Collector
 
-```properties
-xroad-catalog.target.xroad-instance=<XROAD_INSTANCE>
-xroad-catalog.target.member-class=<MEMBER_CLASS>
-xroad-catalog.target.member-code=<MEMBER_CODE>
-xroad-catalog.target.subsystem-code=<SUBSYSTEM_CODE>
-xroad-catalog.urls.security-server-host=<SECURITY_SERVER_HOST>
-```
+To configure the collector service, you must configure all mandatory configuration parameters mentioned in
+the [X-Road Catalog Collector Configuration - Mandatory to Provide](../xroad-catalog-collector/README.md#mandatory-to-provide).  
+A list of optional configuration parameters, can be found
+in [X-Road Catalog Collector Configuration - Optional](../xroad-catalog-collector/README.md#optional-configurations).  
+Configurations parameters can be provided in an `application.yaml` file, as environment variables, or as spring boot
+custom profile.
 
-When using the `xroad-catalog-collector` module with the `xroad-catalog.country.fi.enabled` feature flag set to `true`,
-the following additional parameters must be configured:
+> [!Note]
+> Depending on configurations method being used, but if an `application.yaml` file is used, then you also must provide
+> all values
+>
+in [X-Road Catalog Collector Configuration - Fixed-Mandatory values to include in application.yaml](../xroad-catalog-collector/README.md#fixed-mandatory-values-to-include-in-applicationyaml)'
+> s sub-sections.  
+> Values must be provided as-is without modifications.
 
-```properties
-xroad-catalog.country.fi.fetch.organizations.url=<ORGANIZATIONS_API_URL>
-xroad-catalog.country.fi.fetch.companies.url=<COMPANIES_API_URL>
-```
+### 2.5.1.1 X-Road Catalog Collector - Finland-specific Features
 
-Optional parameters which can be configured in the same file are described below along with their default values:
+To enable Finland specific features, you must set the following configurations:
 
-| Parameter                                              | Defaults | Description                                                                                                                                                                                                                                                                                                  |
-|--------------------------------------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `xroad-catalog.tasks.fetch-run-unlimited`              | false    | A parameter for setting whether the X-Road Catalog Collector should try to fetch data from Security Server continuously during a day or only between certain hours, e.g. value `true` means `continously`.                                                                                                   |
-| `xroad-catalog.tasks.fetch-time-after-hour`            | 3        | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `18` means starting from `18:00`. |
-| `xroad-catalog.tasks.fetch-time-before-hour`           | 4        | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `23` means ending at `23:00`.       |
-| `xroad-catalog.tasks.collector-interval-min`           | 20       | A parameter for setting the amount of time in minutes after which the X-Road Catalog Collector should start re-fetching data from Security Server, e.g. value `20` means `every 20 minutes`.                                                                                                                 |
-| `xroad-catalog.pool-size.list-methods`                 | 50       | A parameter for setting the amount of virtual threads in the pool for fetching methods metadata from Security Server, e.g. value `50` means `50 virtual threads`.                                                                                                                                            |
-| `xroad-catalog.pool-size.fetch-wsdl`                   | 10       | A parameter for setting the amount of virtual threads in the pool for fetching WSDLs from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                                       |
-| `xroad-catalog.pool-size.fetch-rest`                   | 10       | A parameter for setting the amount of virtual threads in the pool for fetching REST services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                               |
-| `xroad-catalog.pool-size.fetch-openapi`                | 10       | A parameter for setting the amount of virtual threads in the pool for fetching OpenAPI services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                            |
-| `xroad-catalog.log-storage.flush-log-time-after-hour`  | 3        | A parameter for setting the start of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value `18` means starting from `18:00`.                                                        |
-| `xroad-catalog.log-storage.flush-log-time-before-hour` | 4        | A parameter for setting the end of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.error-log-length-in-days` parameter, e.g. value  `23` means ending at `23:00`.                                                             |
-| `xroad-catalog.log-storage.error-log-length-in-days`   | 90       | A parameter for setting the amount in days for how long the errors logs should be kept in the db, e.g. value `90` means `for 90 days`.                                                                                                                                                                       |
+1. Set the `xroad-catalog.country.fi.enabled` parameter to `true`.
+2. Make sure that `spring.liquibase.contexts` includes `fi` context. Otherwise, corresponding tables will not be created
+   in database.
+3. Provide all mandatory configurations parameters mentioned
+   in [X-Road Catalog Collector Configuration - Mandatory Configurations for Finland-specific Features](../xroad-catalog-collector/README.md#mandatory-configurations-for-finland-specific-features)).
+4. If needed, configure any optional configuration mentioned
+   in [X-Road Catalog Collector Configuration - Optional Configurations for Finland-specific Features](../xroad-catalog-collector/README.md#optional-configurations).
 
-When using the `xroad-catalog-collector` module with the `xroad-catalog.country.fi.enabled` feature flag set to `true`, the following additional optional parameters are
-in effect:
+### 2.5.2 X-Road Catalog Lister
 
-| Parameter                                                   | Defaults | Description                                                                                                                                                                                                                                                                                                                      |
-|-------------------------------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `xroad-catalog.country.fi.fetch.companies.pool-size`        | 10       | A parameter for setting the amount of virtual threads in the pool for fetching companies from the companies API, e.g. value `10` means `10 virtual threads`. This controls how many parallel requests will hit the companies API.                                                                                                |
-| `xroad-catalog.country.fi.fetch.companies.url`              |          | A parameter for setting the URL to be used to fetch companies' data                                                                                                                                                                                                                                                              |
-| `xroad-catalog.country.fi.fetch.organizations.pool-size`    | 10       | A parameter for setting the amount of virtual threads in the pool for fetching organizations from the organizations API, e.g. value `10` means `10 virtual threads`. This controls how many parallel requests will hit the organizations API.                                                                                    |
-| `xroad-catalog.country.fi.fetch.organizations.url`          |          | A parameter for setting the URL to be used to fetch organizations' data                                                                                                                                                                                                                                                          |
-| `xroad-catalog.country.fi.fetch.external-run-unlimited`     | false    | A parameter for setting whether the X-Road Catalog Collector should try to fetch data from the external API continuously during a day or only between certain hours, e.g. value `true` means `continously`.                                                                                                                      |
-| `xroad-catalog.country.fi.fetch.external-time-after-hour`   | 3        | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from the companies API continuously.                                                                                                                                                                       |
-| `xroad-catalog.country.fi.fetch.external-time-before-hour`  | 4        | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from the companies API continuously.                                                                                                                                                                         |
-| `xroad-catalog.country.fi.fetch.external-interval-min`      | 20       | A parameter for setting the amount of time in minutes after which the X-Road Catalog Collector should start re-fetching data from the external API, e.g. value `20` means `every 20 minutes`. This works together with the following two parameters to determine how often data is checked for staleness and updated in a batch. |
-| `xroad-catalog.country.fi.fetch.external-limit`             | 500      | A parameter for setting the maximum amount of Members that should be fetched per external API in one run, e.g. value `500` means `500 members`. In the current implementation the example value would fetch `500` members information from both the `company` and `organization` API.                                            |
-| `xroad-catalog.country.fi.fetch.external-update-after-days` | 7        | A parameter for setting the amount of days after which the X-Road Catalog Collector should consider Company and Organization data stale and try to fetch data from the external API again, e.g. value `7` means `after 7 days`.                                                                                                  |
+To configure the lister service, you must configure all mandatory configuration parameters mentioned in
+the [X-Road Catalog Lister Configuration - Mandatory to Provide](../xroad-catalog-lister/README.md#mandatory-to-provide).  
+Configurations parameters can be provided in an `application.yaml` file, as environment variables, or as spring boot
+custom profile.
 
-In addition, update the `xroad-catalog.shared-params-file` property value.
-The value must point to the `/etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml` X-Road global configuration file:
+> [!Note]
+> Depending on configurations method being used, but if an `application.yaml` file is used, then you also must provide
+> all values
+>
+in [X-Road Catalog Lister Configuration - Fixed-Mandatory values to include in application.yaml](../xroad-catalog-lister/README.md#fixed-mandatory-values-to-include-in-applicationyaml)'
+> s sub-sections.  
+> Values must be provided as-is without modifications.
 
-```properties
-xroad-catalog.shared-params-file=/etc/xroad/globalconf/<INSTANCE_IDENTIFIER>/shared-params.xml
-```
+### 2.5.2.1 X-Road Catalog Lister - Finland-specific Features
 
-Change also the database password:
+To enable Finland specific features, set the `xroad-catalog.country.fi.enabled` parameter to `true`.
 
-```properties
-spring.datasource.password=password
-```
-And in the DB:
-```bash
-sudo -u postgres psql -U postgres -d postgres -c "alter user xroad_catalog with password 'password';"
-```
+### 2.5.3 services
 
 Make sure that the X-Road Catalog services are enabled on boot and restart services in order to make the changes to have effect:
 ```bash
@@ -263,9 +251,9 @@ xroad-catalog.ssl-keystore.password=changeit
 
 ## 2.7 Post-Installation Checks
 
-This instruction expects that `xroad-catalog-collector` and `xroad-catalog-lister` are installed on the same host. It
-is also possible to install them on different hosts, but then database settings need to be set for both services. For the 
-`xroad-catalog-lister` host, the file `/etc/xroad/xroad-catalog/catalogdb-production.properties` must be manually created.
+This instruction expects that `xroad-catalog-collector` and `xroad-catalog-lister` are installed on different hosts. It
+is also possible to install them on the same host, but then it's preferred to use different profiles for each of the
+services.
 
 **X-Road Catalog Collector**
 
