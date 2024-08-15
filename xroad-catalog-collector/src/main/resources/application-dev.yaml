@@ -1,0 +1,60 @@
+server:
+  port: 4915
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:4910/xroad_catalog
+    username: xroad_catalog_collector
+    password: xroad_catalog_collector
+  liquibase:
+    user: xroad_catalog
+    password: secret
+    contexts: users,fi
+    parameters:
+      users:
+        collector:
+          username: xroad_catalog_collector
+          password: xroad_catalog_collector
+        lister:
+          username: xroad_catalog_lister
+          password: xroad_catalog_lister
+
+# X-Road instance parameters
+xroad-catalog:
+  urls:
+    security-server-host: http://localhost:4310
+  pool-size:
+    fetch-openapi: 1
+    fetch-rest: 1
+    fetch-wsdl: 1
+    list-methods: 5
+  tasks:
+    collector-interval-min: 5
+  # Country specific settings
+  country:
+    fi:
+      enabled: true
+      fetch:
+        companies:
+          pool-size: 1
+          url: https://avoindata.prh.fi/bis/v1
+        organizations:
+          pool-size: 1
+          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+        external-interval-min: 1
+
+# Increasing logging levels in local development environment for better debugging
+logging:
+  level:
+    javax.ws.rs: TRACE
+    liquibase: TRACE
+    org.apache.http: DEBUG
+    org.hibernate: ERROR
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.web: TRACE
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
+    org.springframework.ws: TRACE

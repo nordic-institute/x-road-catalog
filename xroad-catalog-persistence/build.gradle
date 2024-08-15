@@ -1,5 +1,4 @@
 plugins {
-    alias (libs.plugins.spring.boot)
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -7,7 +6,7 @@ plugins {
     id 'catalogservice.java-checks'
 }
 
-group 'fi.vrk.xroad.catalog.persistence'
+group 'org.niis.xroad.catalog.persistence'
 sourceCompatibility = 21
 targetCompatibility = 21
 
@@ -37,21 +36,9 @@ test {
     finalizedBy jacocoTestReport
 }
 
-tasks.withType(org.springframework.boot.gradle.tasks.run.BootRun) {
-    systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'default')
-}
-
-bootJar {
-    enabled = false
-}
-
 jar {
     enabled = true
     archiveClassifier = ''
-}
-
-springBoot {
-    mainClass = 'fi.vrk.xroad.catalog.persistence.Application'
 }
 
 jacocoTestReport {

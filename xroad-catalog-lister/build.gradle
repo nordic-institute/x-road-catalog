@@ -8,7 +8,7 @@ plugins {
     id 'catalogservice.java-checks'
 }
 
-group 'fi.vrk.xroad.catalog.lister'
+group 'org.niis.xroad.catalog.lister'
 sourceCompatibility = 21
 targetCompatibility = 21
 
@@ -19,7 +19,7 @@ repositories {
 wsdl2java {
     cxfVersion.set(libs.versions.cxf) // Grab the version from our versions catalog
     markGenerated = true
-    packageName = 'fi.vrk.xroad.catalog.lister.generated'
+    packageName = 'org.niis.xroad.catalog.lister.generated'
 }
 
 bootJar {
@@ -45,12 +45,9 @@ dependencies {
     implementation (libs.commons.bean.utils)
     implementation (libs.guava)
     implementation (libs.lombok)
-    implementation (libs.liquibase)
-    compileOnly (libs.liquibase.hibernate6)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
     testImplementation (libs.lombok)
-    testImplementation (libs.spring.boot.jpa)
     testImplementation (libs.h2.database)
     testAnnotationProcessor (libs.lombok)
 }
@@ -62,16 +59,11 @@ test {
     testLogging {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
-    systemProperty 'spring.config.name', 'lister,catalogdb'
     finalizedBy jacocoTestReport
 }
 
-bootRun {
-    systemProperty 'spring.config.name', 'lister,catalogdb'
-}
-
 springBoot {
-    mainClass = 'fi.vrk.xroad.catalog.lister.ListerApplication'
+    mainClass = 'org.niis.xroad.catalog.lister.ListerApplication'
 }
 
 jacocoTestReport {

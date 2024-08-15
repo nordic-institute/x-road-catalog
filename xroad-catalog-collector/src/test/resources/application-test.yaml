@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:db;NON_KEYWORDS=TYPE,VALUE
+    username: sa
+    password: sa
+  h2.console.enabled: false
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    hibernate.ddl-auto: create-drop
+  liquibase:
+    enabled: false
+  main:
+    # some tests require web server to be enabled
+    web-application-type: servlet
+  sql:
+    init:
+      mode: always
+      platform: h2
+
+# X-Road instance parameters
+xroad-catalog:
+  # Country specific settings
+  country:
+    fi:
+      enabled: true
+      fetch:
+        companies:
+          pool-size: 1
+          url: https://avoindata.prh.fi/bis/v1
+        organizations:
+          pool-size: 1
+          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+
+# Increasing logging levels in tests for better debugging
+logging:
+  level:
+    javax.ws.rs: TRACE
+    org.apache.http: DEBUG
+    org.hibernate: ERROR
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.web: TRACE
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
+    org.springframework.ws: TRACE

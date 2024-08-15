@@ -1,0 +1,28 @@
+server:
+  port: '4920'
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:4910/xroad_catalog
+    username: xroad_catalog_lister
+    password: xroad_catalog_lister
+
+# X-Road instance parameters
+xroad-catalog:
+  country:
+    fi:
+      enabled: true
+
+# Increasing logging levels in local development environment for better debugging
+logging:
+  level:
+    javax.ws.rs: TRACE
+    org.apache.http: DEBUG
+    org.hibernate: ERROR
+    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.extract: TRACE
+    org.hibernate.type: TRACE
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.web: TRACE
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
+    org.springframework.ws: TRACE

@@ -3,6 +3,8 @@ name: xrd-catalog-service-dev
 services:
   xrd-catalog-db:
     image: postgres:16-alpine
+    ports:
+      - 4910:5432
     environment:
       POSTGRES_DB: xroad_catalog
       POSTGRES_USER: xroad_catalog
@@ -26,8 +28,11 @@ services:
     build:
       context: ../.
       dockerfile: docker/collector/Dockerfile
-    # environment:
-    #   CATALOG_PROFILE: FI
+#    environment:
+#      SPRING_PROFILES_ACTIVE: fi
+#      XROAD-CATALOG_COUNTRY_FI_ENABLED: false
+#      LOGGING_LEVEL_LIQUIBASE: TRACE
+#      SPRING_LIQUIBASE_CONTEXTS: users
     volumes:
       - ./collector/config:/etc/xroad/xroad-catalog:ro
       - /etc/localtime:/etc/localtime:ro
@@ -53,7 +58,7 @@ services:
       - xrd-confclient-data:/etc/xroad/globalconf:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - 8070:8070
+      - 8070:8080
     depends_on:
       - xrd-catalog-collector
       - xrd-confclient

@@ -14,7 +14,7 @@ licenseFormatMain.source = fileTree('src/main')
 licenseFormatTest.source = fileTree('src/test')
 
 checkstyle {
-    toolVersion = "10.12.6"
+    toolVersion = "10.17.0"
     configDirectory = file("${project.rootDir}/config/checkstyle")
     ignoreFailures = false
     showViolations = false
@@ -28,7 +28,7 @@ checkstyleMain {
 
 checkstyleTest {
     source = fileTree('src/test/java')
-    configFile = file("${project.rootDir}/config/checkstyle/checkstyle-test.xml")
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
 }
 
 configurations.checkstyle {
