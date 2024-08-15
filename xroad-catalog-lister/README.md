@@ -2,20 +2,20 @@
 
 ## Table of Contents
 
-- [X-Road Catalog Lister](#x-road-catalog-lister)
-    - [Table of Contents](#table-of-contents)
-    - [Introduction](#introduction)
-    - [Configuration](#configuration)
-        - [Mandatory to provide](#mandatory-to-provide)
-            - [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
-            - [Mandatory Configurations for common Features](#mandatory-configurations-for-common-features)
-        - [Optional configurations](#optional-configurations)
-            - [Optional Configurations for Finland-specific Features](#optional-configurations-for-finland-specific-features)
-        - [Fixed-Mandatory values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
-            - [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
-            - [Fixed-Mandatory values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
-    - [Build](#build)
-    - [Run](#run)
+* [X-Road Catalog Lister](#x-road-catalog-lister)
+    * [Table of Contents](#table-of-contents)
+    * [Introduction](#introduction)
+    * [Configuration](#configuration)
+        * [Mandatory to provide](#mandatory-to-provide)
+            * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
+            * [Mandatory Configurations for common Features](#mandatory-configurations-for-common-features)
+        * [Optional configurations](#optional-configurations)
+            * [Optional Configurations for Finland-specific Features](#optional-configurations-for-finland-specific-features)
+        * [Fixed-Mandatory values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+            * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
+            * [Fixed-Mandatory values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
+    * [Build](#build)
+    * [Run](#run)
 
 ## Introduction
 
