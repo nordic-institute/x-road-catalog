@@ -27,6 +27,7 @@ bootJar {
     layered {
         enabled = false
     }
+    includeTools = false
 }
 
 jar {
