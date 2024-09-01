@@ -9,10 +9,11 @@ jackson = "2.17.2"
 jakartaRsApi = "4.0.0"
 jakartaAnnotationApi = "3.0.0"
 jakartaBindApi = "4.0.2"
-jaxb = "4.0.2"
+jaxb = "4.0.3"
+jaxbWsApi = "4.0.2"
 json = "20240303"
 lombok = "1.18.34"
-mockito = "5.12.0"
+mockito = "5.13.0"
 postgresql = "42.7.4"
 springBoot = "3.3.3"
 springDoc = "2.6.0"
@@ -40,7 +41,7 @@ jakarta-jaxb = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref =
 jaxb-maven = { module = "com.sun.xml.ws:jaxws-maven-plugin", version.ref = "jaxb" }
 jaxb-rt = { module = "com.sun.xml.ws:jaxws-rt", version.ref = "jaxb" }
 jaxb-tools = { module = "com.sun.xml.ws:jaxws-tools", version.ref = "jaxb" }
-jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxb" }
+jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxbWsApi" }
 json = { module = "org.json:json", version.ref = "json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -52,7 +53,7 @@ spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", ver
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
-liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
+xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.0" }
 
 [bundles]
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation
