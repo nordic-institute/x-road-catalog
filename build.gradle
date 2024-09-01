@@ -2,8 +2,6 @@ plugins {
     alias (libs.plugins.hierynomus.license)
     alias (libs.plugins.sonarqube)
     id 'idea'
-    id 'jacoco'
-    id 'checkstyle'
 }
 
 repositories {
