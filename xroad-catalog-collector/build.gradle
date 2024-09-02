@@ -93,6 +93,7 @@ dependencies {
     implementation (libs.cxf.spring.starter)
     implementation (libs.lombok)
     implementation (libs.liquibase)
+    implementation (libs.xmlunit.core)
     annotationProcessor (libs.lombok)
     wsimport (libs.jaxb.maven)
     implementation (libs.bundles.jaxb)

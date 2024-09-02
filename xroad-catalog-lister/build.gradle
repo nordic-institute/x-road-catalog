@@ -46,6 +46,7 @@ dependencies {
     implementation (libs.commons.bean.utils)
     implementation (libs.guava)
     implementation (libs.lombok)
+    implementation (libs.xmlunit.core)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
     testImplementation (libs.lombok)
