@@ -52,9 +52,10 @@ Configurations are categorized according to their usage into different groups in
 
 #### Mandatory Configurations for common Features
 
-| Parameter                          | Defaults | Description                                                                         | Since |
-|------------------------------------|----------|-------------------------------------------------------------------------------------|-------| 
-| `xroad-catalog.shared-params-file` |          | A parameter for setting the path to shared params file exported from X-Road server. | 1.0.0 |
+| Parameter                          | Defaults | Description                                                                          | Since |
+|------------------------------------|----------|--------------------------------------------------------------------------------------|-------| 
+| `xroad.conf.path`                  |          | A parameter for setting the path where `configuration-anchor.xml` can be found.      | 1.0.0 |
+| `xroad-catalog.shared-params-file` |          | A parameter for setting the path to shared params file exported from X-Road server.  | 1.0.0 |
 
 ### Optional configurations
 

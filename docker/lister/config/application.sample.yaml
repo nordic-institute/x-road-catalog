@@ -21,9 +21,14 @@ springdoc:
     enabled: true
     path: /api-docs
 
+# X-Road configuration-client parameters
+xroad:
+  conf:
+    path: /etc/xroad/
+
 # X-Road instance parameters
 xroad-catalog:
-  shared-params-file: /etc/xroad/globalconf/DEV/shared-params.xml
+  shared-params-file: ${xroad.conf.path}globalconf/DEV/shared-params.xml
   country:
     fi:
       enabled: true

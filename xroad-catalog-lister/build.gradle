@@ -14,8 +14,13 @@ targetCompatibility = 21
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-snapshots/")
+    }
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-releases/")
+    }
 }
-
 wsdl2java {
     cxfVersion.set(libs.versions.cxf) // Grab the version from our versions catalog
     markGenerated = true
@@ -47,6 +52,7 @@ dependencies {
     implementation (libs.guava)
     implementation (libs.lombok)
     implementation (libs.xmlunit.core)
+    implementation (libs.xroad.configuration.client)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
     testImplementation (libs.lombok)

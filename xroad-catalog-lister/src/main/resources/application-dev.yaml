@@ -8,6 +8,7 @@ spring:
 
 # X-Road instance parameters
 xroad-catalog:
+  shared-params-file: ${xroad.conf.path}globalconf/DEV/shared-params.xml
   country:
     fi:
       enabled: true
@@ -26,3 +27,4 @@ logging:
     org.springframework.web: TRACE
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
     org.springframework.ws: TRACE
+    ee.ria.xroad.common: TRACE
