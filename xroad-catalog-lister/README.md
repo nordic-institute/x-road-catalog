@@ -8,12 +8,13 @@
     * [Configuration](#configuration)
         * [Mandatory to provide](#mandatory-to-provide)
             * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
-            * [Mandatory Configurations for common Features](#mandatory-configurations-for-common-features)
-        * [Optional configurations](#optional-configurations)
+            * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
+        * [Optional Configurations](#optional-configurations)
             * [Optional Configurations for Finland-specific Features](#optional-configurations-for-finland-specific-features)
-        * [Fixed-Mandatory values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+        * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
             * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
-            * [Fixed-Mandatory values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
+            * [Fixed-Mandatory Values for Common Features](#fixed-mandatory-values-for-common-features)
+            * [Fixed-Mandatory Values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
     * [Build](#build)
     * [Run](#run)
 
@@ -50,14 +51,14 @@ Configurations are categorized according to their usage into different groups in
 | [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)    |          | If database users will be created by collector's module liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.lister.username`. | 1.0.0 |
 | [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.elasticsearch.password) |          | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.lister.password`.                    | 1.0.0 |
 
-#### Mandatory Configurations for common Features
+#### Mandatory Configurations for Common Features
 
 | Parameter                          | Defaults | Description                                                                          | Since |
 |------------------------------------|----------|--------------------------------------------------------------------------------------|-------| 
 | `xroad.conf.path`                  |          | A parameter for setting the path where `configuration-anchor.xml` can be found.      | 1.0.0 |
 | `xroad-catalog.shared-params-file` |          | A parameter for setting the path to shared params file exported from X-Road server.  | 1.0.0 |
 
-### Optional configurations
+### Optional Configurations
 
 #### Optional Configurations for Finland-specific Features
 
@@ -65,7 +66,7 @@ Configurations are categorized according to their usage into different groups in
 |------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------|-------| 
 | `xroad-catalog.country.fi.enabled` | `false`  | A parameter to enable/disable Finland specific features. If `false`, then all Finland specific endpoints are disabled | 1.0.0 |
 
-### Fixed-Mandatory values to include in `application.yaml`
+### Fixed-Mandatory Values to include in `application.yaml`
 
 The following list of configurations must be included in the `application.yaml` file without modifications to their
 values.
@@ -86,7 +87,13 @@ values.
 | [spring.jpa.hibernate.ddl-auto](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.hibernate.ddl-auto)             | `none`                                    | Keep to `none` to prevent hiberante from trying to update the database.             | 1.0.0 |
 | spring.jpa.properties.hibernate.dialect                                                                                                                                              | `org.hibernate.dialect.PostgreSQLDialect` | PostgreSQL is the only supported RDMBS. Don't change                                | 1.0.0 |
 
-#### Fixed-Mandatory values for OpenAPI documentation
+#### Fixed-Mandatory Values for Common Features
+
+| Parameter                                    | Defaults | Description                                                                  | Since |
+|----------------------------------------------|----------|------------------------------------------------------------------------------|-------| 
+| `xroad-catalog.configuration-client.enabled` | `true`   | A parameter to enable/disable configuration-client scheduler. Do not modify. | 1.0.0 |
+
+#### Fixed-Mandatory Values for OpenAPI documentation
 
 | Spring Boot framework configurations | Defaults                      | Comment                                                          | Since |
 |--------------------------------------|-------------------------------|------------------------------------------------------------------|-------| 
