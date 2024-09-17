@@ -32,6 +32,8 @@ xroad-catalog:
   country:
     fi:
       enabled: false
+  configuration-client:
+    enabled: true
 
 logging:
   level:

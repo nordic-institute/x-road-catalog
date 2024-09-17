@@ -30,6 +30,8 @@ xroad-catalog:
   country:
     fi:
       enabled: true
+  configuration-client:
+    enabled: false
 
 # Increasing logging levels in tests for better debugging
 logging:

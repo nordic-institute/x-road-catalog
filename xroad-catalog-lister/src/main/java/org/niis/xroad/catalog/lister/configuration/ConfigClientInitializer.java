@@ -25,13 +25,15 @@
 package org.niis.xroad.catalog.lister.configuration;
 
 import org.niis.xroad.confclient.config.ConfClientRootConfig;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
-import org.springframework.stereotype.Component;
 
 @Import(ConfClientRootConfig.class)
-@Component
+@Configuration
 @DependsOn("configClientPropertiesLoader")
+@ConditionalOnProperty(name = "xroad-catalog.configuration-client.enabled", havingValue = "true")
 public class ConfigClientInitializer {
 
 }
