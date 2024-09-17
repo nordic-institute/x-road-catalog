@@ -11,10 +11,10 @@
             * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
             * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
             * [Mandatory Configurations for Finland-specific Features](#mandatory-configurations-for-finland-specific-features)
-        * [Optional configurations](#optional-configurations)
+        * [Optional Configurations](#optional-configurations)
             * [Optional Configurations for Common Features](#optional-configurations-for-common-features)
             * [Optional Configurations for Finland-specific Features](#optional-configurations-for-finland-specific-features)
-        * [Fixed-Mandatory values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+        * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
             * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
             * [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
     * [Run](#run)
@@ -97,7 +97,7 @@ Configurations are categorized according to their usage into different groups in
 | `xroad-catalog.country.fi.fetch.companies.url`     |          | A parameter for setting the URL to be used to fetch companies' data. Mandatory if `xroad-catalog.country.fi.enabled` is `true`     | 1.0.0 |
 | `xroad-catalog.country.fi.fetch.organizations.url` |          | A parameter for setting the URL to be used to fetch organizations' data. Mandatory if `xroad-catalog.country.fi.enabled` is `true` | 1.0.0 |
 
-### Optional configurations
+### Optional Configurations
 
 Values of following configurations are optional and customizable by service's user. If a value is not provided, default
 values will be used.
@@ -139,7 +139,7 @@ values will be used.
 | `xroad-catalog.country.fi.fetch.external-time-after-hour`   | `3`      | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from the companies API continuously.                                                                                                                                                                       | 1.0.0 |
 | `xroad-catalog.country.fi.fetch.external-time-before-hour`  | `4`      | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from the companies API continuously.                                                                                                                                                                         | 1.0.0 |
 
-### Fixed-Mandatory values to include in `application.yaml`
+### Fixed-Mandatory Values to include in `application.yaml`
 
 The following list of configurations must be included in the `application.yaml` file without modifications to their
 values.
