@@ -10,7 +10,10 @@ on:
       - 'xroad-catalog-lister/src/**'
       - 'xroad-catalog-persistence/src/**'
       - '.github/**'
-      - 'gradle/libs.versions.toml' # So that dependabot PRs are tested
+      - 'gradle/**' # So that gradle changes are tested
+      - 'settings.gradle' # So that gradle changes are tested
+      - 'build.gradle' # So that gradle changes are tested
+      - 'gradle.properties' # So that gradle changes are tested
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
@@ -18,7 +21,10 @@ on:
       - 'xroad-catalog-lister/src/**'
       - 'xroad-catalog-persistence/src/**'
       - '.github/**'
-      - 'gradle/libs.versions.toml' # So that dependabot PRs are tested
+      - 'gradle/**' # So that gradle changes are tested
+      - 'settings.gradle' # So that gradle changes are tested
+      - 'build.gradle' # So that gradle changes are tested
+      - 'gradle.properties' # So that gradle changes are tested
 
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
@@ -41,11 +47,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
-          gradle-home-cache-cleanup: true
+          cache-cleanup: always
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
+      - name: Gradle build environment
+        run: ./gradlew buildEnvironment xroad-catalog-persistence:buildEnvironment xroad-catalog-collector:buildEnvironment xroad-catalog-lister:buildEnvironment --stacktrace
       - name: Run tests
-        run: ./gradlew build test --stacktrace
+        run: ./gradlew build --stacktrace
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
