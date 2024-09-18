@@ -1,6 +1,7 @@
 [versions]
 awaitility = "4.2.2"
 commonsBeanutils = "1.9.4"
+commonsCompress = "1.27.1"
 commonsCsv = "1.11.0"
 cxf = "4.0.5"
 guava = "33.3.0-jre"
@@ -18,9 +19,11 @@ liquibase = "4.29.2"
 lombok = "1.18.34"
 mockito = "5.13.0"
 postgresql = "42.7.4"
+plexusUtils="4.0.1"
 sonarqube = "5.1.0.4882"
 springBoot = "3.3.3"
 springDoc = "2.6.0"
+springWebMvc = "6.1.13"
 wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
 xroadLibs = "7.6.0-SNAPSHOT"
@@ -28,6 +31,7 @@ xroadLibs = "7.6.0-SNAPSHOT"
 [libraries]
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commonsBeanutils" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 cxf-core = { module = "org.apache.cxf:cxf-core", version.ref = "cxf" }
 cxf-spring-starter = { module = "org.apache.cxf:cxf-spring-boot-starter-jaxws", version.ref = "cxf" }
@@ -45,15 +49,18 @@ jaxb-rt = { module = "com.sun.xml.ws:jaxws-rt", version.ref = "jaxb" }
 jaxb-tools = { module = "com.sun.xml.ws:jaxws-tools", version.ref = "jaxb" }
 jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxbWsApi" }
 json = { module = "org.json:json", version.ref = "json" }
+licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version.ref = "hierynomusLicense" }
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexusUtils" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "springBoot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDoc" }
+spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "springWebMvc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.0" }
 xroad-configuration-client = { module = "org.niis.xroad:configuration-client", version.ref = "xroadLibs" }
@@ -62,7 +69,6 @@ xroad-configuration-client = { module = "org.niis.xroad:configuration-client", v
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation
 
 [plugins]
-hierynomus-license = { id  = "com.github.hierynomus.license", version.ref = "hierynomusLicense" }
 sonarqube = { id  = "org.sonarqube", version.ref = "sonarqube" }
 spring-boot = { id  = "org.springframework.boot", version.ref = "springBoot" }
 wsdl2java = { id = "com.github.bjornvester.wsdl2java", version.ref = "wsdl2java" }
