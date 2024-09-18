@@ -2,6 +2,7 @@ name: X-Road-Catalog tests
 on: 
   # Capture this event so that gradle caches are updated when a PR is merged to develop
   # More information on why: https://github.com/gradle/gradle-build-action#using-the-caches-read-only
+  workflow_dispatch:
   push:
     branches:
       - develop
