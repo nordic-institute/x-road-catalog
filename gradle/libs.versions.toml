@@ -22,7 +22,6 @@ plexusUtils="4.0.1"
 sonarqube = "5.1.0.4882"
 springBoot = "3.3.4"
 springDoc = "2.6.0"
-springWebMvc = "6.1.13"
 wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
 xroadLibs = "7.6.0-SNAPSHOT"
@@ -58,7 +57,6 @@ spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "springBoot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDoc" }
-spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "springWebMvc" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.0" }
 xroad-configuration-client = { module = "org.niis.xroad:configuration-client", version.ref = "xroadLibs" }
