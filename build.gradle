@@ -1,7 +1,21 @@
+buildscript {
+    dependencies {
+        classpath (libs.licenseGradlePlugin) {
+            exclude group: 'org.springframework', module: 'spring-core'
+        }
+    }
+
+    configurations.configureEach {
+        resolutionStrategy {
+            force (libs.plexus.utils)
+            force (libs.commons.compress)
+        }
+    }
+}
 plugins {
-    alias (libs.plugins.hierynomus.license)
     alias (libs.plugins.sonarqube)
     id 'idea'
+    alias(libs.plugins.spring.boot) apply false
 }
 
 repositories {
@@ -30,7 +44,7 @@ ext {
 }
 
 
-allprojects {
+subprojects {
     group = 'org.niis.xroad'
     version = project_version
 
