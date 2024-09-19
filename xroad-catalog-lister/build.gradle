@@ -49,7 +49,6 @@ dependencies {
     implementation (libs.spring.webmvc)
     implementation (libs.jackson)
     implementation (libs.wsdl4j)
-    implementation (libs.commons.bean.utils)
     implementation (libs.guava)
     implementation (libs.lombok)
     implementation (libs.xmlunit.core)

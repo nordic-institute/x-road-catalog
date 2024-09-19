@@ -1,6 +1,5 @@
 [versions]
 awaitility = "4.2.2"
-commonsBeanutils = "1.9.4"
 commonsCompress = "1.27.1"
 commonsCsv = "1.11.0"
 cxf = "4.0.5"
@@ -30,7 +29,6 @@ xroadLibs = "7.6.0-SNAPSHOT"
 
 [libraries]
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
-commons-bean-utils = { module = "commons-beanutils:commons-beanutils", version.ref = "commonsBeanutils" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
 cxf-core = { module = "org.apache.cxf:cxf-core", version.ref = "cxf" }
