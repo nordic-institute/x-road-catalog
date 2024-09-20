@@ -23,15 +23,22 @@ springdoc:
 
 # X-Road configuration-client parameters
 xroad:
-  conf:
-    path: /etc/xroad/
+  common.configuration-path: /etc/xroad/globalconf
+  proxy.configuration-anchor-file: /etc/xroad/configuration-anchor.xml
+  configuration-client:
+    port: 5665
+    admin-port: 5675
+    update-interval: 60
+    allowed-federations: none
+    proxy-configuration-backup-cron: 0 15 3 * * ?
+    global_conf_tls_cert_verification: true
+    global_conf_hostname_verification: true
 
 # X-Road instance parameters
 xroad-catalog:
-  shared-params-file: ${xroad.conf.path}globalconf/DEV/shared-params.xml
-  country:
-    fi:
-      enabled: true
+  shared-params-file: ${common.configuration-path}/DEV/shared-params.xml
+  country.fi.enabled: true
+  configuration-client.enabled: true
 
 logging:
   level:
