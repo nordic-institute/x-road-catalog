@@ -1,0 +1,45 @@
+name: Publish images
+on:
+  workflow_run:
+    workflows: ["Build and test"]
+    types: [completed]
+    branches: [develop, XRDCAT-28-docker-images-from-development]
+env:
+  REGISTRY: ghcr.io
+  XROAD_HOME: ${{ github.workspace }}
+jobs:
+  PublishCollectorService:
+    name: Publish Catalog Collector Image
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Builds JAR Catalog Collector's JAR
+        working-directory: ${{ github.workspace }}
+        run: ./gradlew --no-daemon xroad-catalog-collector:build -x test
+#      - name: Log in to the Container registry
+#        uses: docker/login-action@v3
+#        with:
+#          registry: ${{ env.REGISTRY }}
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Collector's Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}/docker/collector
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-catalog-collector:latest
+      - name: Clean old CS images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-catalog-collector
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
