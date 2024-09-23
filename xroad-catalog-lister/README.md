@@ -54,9 +54,9 @@ Configurations are categorized according to their usage into different groups in
 
 #### Mandatory Configurations for Common Features
 
-| Parameter                          | Defaults                                                             | Description                                                                          | Since |
-|------------------------------------|----------------------------------------------------------------------|--------------------------------------------------------------------------------------|-------| 
-| `xroad-catalog.shared-params-file` | ${common.configuration-path}/<INSTANCE_IDENTIFIER>/shared-params.xml | A parameter for setting the path to shared params file exported from X-Road server.  | 1.0.0 |
+| Parameter                          | Defaults                                                                   | Description                                                                          | Since |
+|------------------------------------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------|-------| 
+| `xroad-catalog.shared-params-file` | ${xroad.common.configuration-path}/<INSTANCE_IDENTIFIER>/shared-params.xml | A parameter for setting the path to shared params file exported from X-Road server.  | 1.0.0 |
 
 ### Optional Configurations
 

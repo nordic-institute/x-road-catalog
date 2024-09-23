@@ -8,7 +8,7 @@ spring:
 
 # X-Road instance parameters
 xroad-catalog:
-  shared-params-file: ${xroad.conf.path}globalconf/DEV/shared-params.xml
+  shared-params-file: ${xroad.common.configuration-path}/DEV/shared-params.xml
   country:
     fi:
       enabled: true

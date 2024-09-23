@@ -48,8 +48,8 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.json.JSONArray;
@@ -610,18 +610,16 @@ public final class OrganizationUtil {
             SSLContext sslContext = SSLContexts.custom()
                     .loadTrustMaterial(null, acceptingTrustStrategy)
                     .build();
-            SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext,
-                    new NoopHostnameVerifier());
+            DefaultClientTlsStrategy defaultClientTlsStrategy = new DefaultClientTlsStrategy(sslContext, new NoopHostnameVerifier());
             PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder
                     .create()
-                    .setSSLSocketFactory(csf)
+                    .setTlsSocketStrategy(defaultClientTlsStrategy)
                     .build();
             CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
             HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
             requestFactory.setHttpClient(httpClient);
-            RestTemplate restTemplate = new RestTemplate(requestFactory);
 
-            return restTemplate;
+            return new RestTemplate(requestFactory);
         } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             log.error("Error creating REST client for Company and Organization services", e);
             return null;
