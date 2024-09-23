@@ -13,7 +13,6 @@
 package fi.dvv.xroad.catalog.lister.service;
 
 import com.google.common.collect.Iterables;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -26,6 +25,7 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -149,8 +149,7 @@ public class JaxbCatalogServiceTest {
         assertNotNull(s223.getRemoved());
     }
 
-    private <T> Collection<String> getPropertyValues(Iterable<T> items, String propertyName) throws IllegalAccessException,
-            NoSuchMethodException, InvocationTargetException {
+    private <T> Collection<String> getPropertyValues(Iterable<T> items, String propertyName) {
         List<String> values = new ArrayList<>();
         for (Object item : items) {
             values.add(getStringProperty(propertyName, item));
@@ -158,13 +157,11 @@ public class JaxbCatalogServiceTest {
         return values;
     }
 
-    private String getStringProperty(String propertyName, Object item) throws IllegalAccessException,
-            InvocationTargetException, NoSuchMethodException {
-        return (String) PropertyUtils.getProperty(item, propertyName);
+    private String getStringProperty(String propertyName, Object item) {
+        return (String) PropertyAccessorFactory.forBeanPropertyAccess(item).getPropertyValue(propertyName);
     }
 
-    private <T> T getItem(Iterable<T> items, String propertyName, String value) throws IllegalAccessException,
-            NoSuchMethodException, InvocationTargetException {
+    private <T> T getItem(Iterable<T> items, String propertyName, String value) {
         for (T item : items) {
             if (value.equals(getStringProperty(propertyName, item))) {
                 return item;
@@ -173,19 +170,16 @@ public class JaxbCatalogServiceTest {
         return null;
     }
 
-    private Collection<String> getMemberCodes(Iterable<org.niis.xroad.catalog.lister.generated.Member> members)
-            throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private Collection<String> getMemberCodes(Iterable<org.niis.xroad.catalog.lister.generated.Member> members) {
         return getPropertyValues(members, PROPERTY_MEMBER_CODE);
     }
 
     private Collection<String> getSubsystemCodes(
-            Iterable<org.niis.xroad.catalog.lister.generated.Subsystem> subsystems)
-            throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+            Iterable<org.niis.xroad.catalog.lister.generated.Subsystem> subsystems) {
         return getPropertyValues(subsystems, PROPERTY_SUBSYSTEM_CODE);
     }
 
-    private Collection<String> getServiceCodes(Iterable<org.niis.xroad.catalog.lister.generated.Service> services)
-            throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private Collection<String> getServiceCodes(Iterable<org.niis.xroad.catalog.lister.generated.Service> services) {
         return getPropertyValues(services, PROPERTY_SERVICE_CODE);
     }
 
