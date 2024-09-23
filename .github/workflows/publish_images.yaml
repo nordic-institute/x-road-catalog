@@ -1,7 +1,8 @@
 name: Publish images
 on:
+  workflow_dispatch:
   workflow_run:
-    workflows: ["Build and test"]
+    workflows: ["X-Road-Catalog tests"]
     types: [completed]
     branches: [develop, XRDCAT-28-docker-images-from-development]
 env:
