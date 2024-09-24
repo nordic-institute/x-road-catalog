@@ -4,8 +4,8 @@ FROM eclipse-temurin:21-jre-alpine AS base-xroad-catalog
 # Labels following the OCI Image Spec
 LABEL org.opencontainers.image.vendor="Nordic Institute for Interoperability Solutions (NIIS)" \
         org.opencontainers.image.authors="info@niis.org" \
-        org.opencontainers.image.title="X-Road Catalog Lister" \
-        org.opencontainers.image.description="X-Road Catalog Lister" \
+        org.opencontainers.image.title="X-Road Catalog Collector" \
+        org.opencontainers.image.description="X-Road Catalog Collector" \
         org.opencontainers.image.licenses="MIT" \
         org.opencontainers.image.source="https://github.com/nordic-institute/x-road-catalog"
 
