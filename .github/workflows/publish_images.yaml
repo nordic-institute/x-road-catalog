@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["X-Road-Catalog tests"]
     types: [completed]
-    branches: [develop, XRDCAT-28-docker-images-from-development]
+    branches: [develop]
     paths:
       - 'xroad-catalog-collector/src/**'
       - 'xroad-catalog-lister/src/**'
