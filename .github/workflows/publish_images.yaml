@@ -1,0 +1,90 @@
+name: Publish images
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["X-Road-Catalog tests"]
+    types: [completed]
+    branches: [develop]
+    paths:
+      - 'xroad-catalog-collector/src/**'
+      - 'xroad-catalog-lister/src/**'
+      - 'xroad-catalog-persistence/src/**'
+      - '.github/**'
+      - 'gradle/**' # So that gradle changes are tested
+      - 'settings.gradle' # So that gradle changes are tested
+      - 'build.gradle' # So that gradle changes are tested
+      - 'gradle.properties' # So that gradle changes are tested
+env:
+  REGISTRY: ghcr.io
+  XROAD_HOME: ${{ github.workspace }}
+jobs:
+  PublishCollectorService:
+    name: Publish Catalog Collector Image
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Builds JAR Catalog Collector's JAR
+        working-directory: ${{ github.workspace }}
+        run: ./gradlew --no-daemon xroad-catalog-collector:build -x test
+            - name: Log in to the Container registry
+              uses: docker/login-action@v3
+              with:
+                registry: ${{ env.REGISTRY }}
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Collector's Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}/docker/collector
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-catalog-collector:latest
+      - name: Clean old Collector images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-catalog-collector
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
+  PublishListerService:
+    name: Publish Catalog Lister Image
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Builds JAR Catalog Lister's JAR
+        working-directory: ${{ github.workspace }}
+        run: ./gradlew --no-daemon xroad-catalog-lister:build -x test
+            - name: Log in to the Container registry
+              uses: docker/login-action@v3
+              with:
+                registry: ${{ env.REGISTRY }}
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Lister's Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}/docker/lister
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-catalog-lister:latest
+      - name: Clean old Lister images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-catalog-lister
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
