@@ -1,6 +1,5 @@
 name: Publish images
 on:
-  workflow_dispatch:
   workflow_run:
     workflows: ["X-Road-Catalog tests"]
     types: [completed]
@@ -14,6 +13,7 @@ on:
       - 'settings.gradle' # So that gradle changes are tested
       - 'build.gradle' # So that gradle changes are tested
       - 'gradle.properties' # So that gradle changes are tested
+  workflow_dispatch: {}
 env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
@@ -30,12 +30,12 @@ jobs:
       - name: Builds JAR Catalog Collector's JAR
         working-directory: ${{ github.workspace }}
         run: ./gradlew --no-daemon xroad-catalog-collector:build -x test
-            - name: Log in to the Container registry
-              uses: docker/login-action@v3
-              with:
-                registry: ${{ env.REGISTRY }}
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Collector's Docker image
         uses: docker/build-push-action@v6
         with:
@@ -65,12 +65,12 @@ jobs:
       - name: Builds JAR Catalog Lister's JAR
         working-directory: ${{ github.workspace }}
         run: ./gradlew --no-daemon xroad-catalog-lister:build -x test
-            - name: Log in to the Container registry
-              uses: docker/login-action@v3
-              with:
-                registry: ${{ env.REGISTRY }}
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Lister's Docker image
         uses: docker/build-push-action@v6
         with:
