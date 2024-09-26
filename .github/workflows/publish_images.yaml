@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["X-Road-Catalog tests"]
     types: [completed]
-    branches: [develop]
+    branches: [develop, XRDCAT-28-docker-images-fix]
     paths:
       - 'xroad-catalog-collector/src/**'
       - 'xroad-catalog-lister/src/**'
@@ -30,12 +30,12 @@ jobs:
       - name: Builds JAR Catalog Collector's JAR
         working-directory: ${{ github.workspace }}
         run: ./gradlew --no-daemon xroad-catalog-collector:build -x test
-            - name: Log in to the Container registry
-              uses: docker/login-action@v3
-              with:
-                registry: ${{ env.REGISTRY }}
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Collector's Docker image
         uses: docker/build-push-action@v6
         with:
