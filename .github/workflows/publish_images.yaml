@@ -1,16 +1,16 @@
 name: Publish images
 on:
   workflow_dispatch:
-#  workflow_run:
-#    workflows: ["X-Road-Catalog tests"]
-#    types: [completed]
-#    branches: [develop, XRDCAT-28-**]
+  workflow_run:
+    workflows: ["X-Road-Catalog tests"]
+    types: [completed]
+    branches: [develop]
 env:
   REGISTRY: ghcr.io
 jobs:
   BuildAndPublish:
     name: Build and publish docker images
-    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
