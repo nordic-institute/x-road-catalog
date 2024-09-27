@@ -58,7 +58,7 @@ jobs:
           tags: ghcr.io/nordic-institute/xrddev-catalog-lister:latest
 
   CleanOldImages:
-    name: Build and publish docker images
+    name: Clean old docker images
     if: ${{ needs.BuildAndPublish.result == 'success' }}
     needs: BuildAndPublish
     runs-on: ubuntu-24.04
