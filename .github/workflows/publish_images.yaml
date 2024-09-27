@@ -1,17 +1,17 @@
 name: Publish images
 on:
-  workflow_run:
-    workflows: ["X-Road-Catalog tests"]
-    types: [completed]
-    branches: [develop, XRDCAT-28-**]
-  workflow_dispatch: {}
+  workflow_dispatch:
+#  workflow_run:
+#    workflows: ["X-Road-Catalog tests"]
+#    types: [completed]
+#    branches: [develop, XRDCAT-28-**]
 env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
 jobs:
   BuildAndPublish:
     name: Setup Environment
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
