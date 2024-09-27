@@ -11,6 +11,7 @@ env:
 jobs:
   Setup:
     name: Setup Environment
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout source code
@@ -41,7 +42,6 @@ jobs:
         run: ./gradlew --no-daemon build -x test
   PublishDockerImages:
     name: Publish Docker Images
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
     needs: BuildJARs
     strategy:
@@ -57,7 +57,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push ${{ matrix.service }}'s Docker Image
+      - name: Build and push xrddev-catalog-${{ matrix.service }}'s Docker Image
         uses: docker/build-push-action@v6
         with:
           context: ${{ github.workspace }}/docker/${{ matrix.service }}
