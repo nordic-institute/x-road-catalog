@@ -1,5 +1,5 @@
 # Base image for X-Road Catalog
-FROM eclipse-temurin:21-jre AS base-xroad-catalog
+FROM eclipse-temurin:21-jre-alpine AS base-xroad-catalog
 
 # Labels following the OCI Image Spec
 LABEL org.opencontainers.image.vendor="Nordic Institute for Interoperability Solutions (NIIS)" \
