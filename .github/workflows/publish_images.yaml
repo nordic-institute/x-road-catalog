@@ -65,7 +65,7 @@ jobs:
         with:
           account: nordic-institute
           image-names: xrddev-catalog-collector
-          cut-off: 1 week ago UTC
+          cut-off: 1w
           timestamp-to-use: created_at
           keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -74,7 +74,7 @@ jobs:
         with:
           account: nordic-institute
           image-names: xrddev-catalog-lister
-          cut-off: 1 week ago UTC
+          cut-off: 1w
           timestamp-to-use: created_at
           keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
