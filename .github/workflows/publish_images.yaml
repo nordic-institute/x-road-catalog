@@ -10,12 +10,9 @@ env:
   XROAD_HOME: ${{ github.workspace }}
 jobs:
   BuildAndPublish:
-    name: Setup Environment
+    name: Build and publish docker images
     #if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        service: [collector, listener]
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -38,24 +35,49 @@ jobs:
       - name: print working directory
         run: pwd
       - name: List JAR files
-        run: ls -lah xroad-catalog-${{ matrix.service }}/build/libs
+        run: ls -lah xroad-catalog-collector/build/libs xroad-catalog-lister/build/libs
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push xrddev-catalog-${{ matrix.service }}'s Docker Image
+      - name: Build and push xrddev-catalog-collector's Docker Image
         uses: docker/build-push-action@v6
         with:
           context: ${{ github.workspace }}
-          file: ${{ github.workspace }}/docker/${{ matrix.service }}/Dockerfile
+          file: ${{ github.workspace }}/docker/collector/Dockerfile
           push: true
-          tags: ghcr.io/nordic-institute/xrddev-catalog-${{ matrix.service }}:latest
-      - name: Clean old ${{ matrix.service }} images
+          tags: ghcr.io/nordic-institute/xrddev-catalog-collector:latest
+      - name: Build and push xrddev-catalog-lister's Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}
+          file: ${{ github.workspace }}/docker/lister/Dockerfile
+          push: true
+          tags: ghcr.io/nordic-institute/xrddev-catalog-lister:latest
+
+  CleanOldImages:
+    name: Build and publish docker images
+    if: ${{ needs.BuildAndPublish.result == 'success' }}
+    needs: BuildAndPublish
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Clean old xrddev-catalog-collector's Docker Images
         uses: snok/container-retention-policy@v2
         with:
-          image-names: xrddev-catalog-${{ matrix.service }}
+          image-names: xrddev-catalog-collector
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Clean old xrddev-catalog-lister's Docker Images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-catalog-lister
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
           account-type: org
