@@ -3,7 +3,7 @@ on:
   workflow_run:
     workflows: ["X-Road-Catalog tests"]
     types: [completed]
-    branches: [develop]
+    branches: [develop, XRDCAT-28-**]
   workflow_dispatch: {}
 env:
   REGISTRY: ghcr.io
