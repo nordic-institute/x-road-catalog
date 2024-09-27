@@ -31,8 +31,6 @@ jobs:
           add-job-summary-as-pr-comment: always
       - name: Build JARs (skipping tests)
         run: ./gradlew --no-daemon build -x test
-      - name: print working directory
-        run: pwd
       - name: List JAR files
         run: ls -lah xroad-catalog-collector/build/libs xroad-catalog-lister/build/libs
       - name: Log in to the Container registry
