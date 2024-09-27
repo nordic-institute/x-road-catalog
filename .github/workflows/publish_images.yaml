@@ -9,10 +9,13 @@ env:
   REGISTRY: ghcr.io
   XROAD_HOME: ${{ github.workspace }}
 jobs:
-  Setup:
+  BuildAndPublish:
     name: Setup Environment
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        service: [collector, lister]
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -30,27 +33,8 @@ jobs:
           cache-cleanup: always
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
-  BuildJARs:
-    name: Build JARs
-    runs-on: ubuntu-24.04
-    needs: Setup
-    permissions:
-      contents: read
-      packages: write
-    steps:
       - name: Build JARs (skipping tests)
         run: ./gradlew --no-daemon build -x test
-  PublishDockerImages:
-    name: Publish Docker Images
-    runs-on: ubuntu-24.04
-    needs: BuildJARs
-    strategy:
-      matrix:
-        service: [collector, lister]
-    permissions:
-      contents: read
-      packages: write
-    steps:
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
