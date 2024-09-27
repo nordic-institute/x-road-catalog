@@ -63,24 +63,20 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Clean old xrddev-catalog-collector's Docker Images
-        uses: snok/container-retention-policy@v2
+        uses: snok/container-retention-policy@v3.0.0
         with:
+          account: nordic-institute
           image-names: xrddev-catalog-collector
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
-          account-type: org
-          org-name: nordic-institute
-          keep-at-least: 1
-          token-type: github-token
+          keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Clean old xrddev-catalog-lister's Docker Images
-        uses: snok/container-retention-policy@v2
+        uses: snok/container-retention-policy@v3.0.0
         with:
+          account: nordic-institute
           image-names: xrddev-catalog-lister
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
-          account-type: org
-          org-name: nordic-institute
-          keep-at-least: 1
-          token-type: github-token
+          keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
