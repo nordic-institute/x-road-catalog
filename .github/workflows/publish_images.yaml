@@ -7,7 +7,6 @@ on:
 #    branches: [develop, XRDCAT-28-**]
 env:
   REGISTRY: ghcr.io
-  XROAD_HOME: ${{ github.workspace }}
 jobs:
   BuildAndPublish:
     name: Build and publish docker images
