@@ -6,26 +6,20 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - 'xroad-catalog-collector/src/**'
-      - 'xroad-catalog-lister/src/**'
-      - 'xroad-catalog-persistence/src/**'
-      - '.github/**'
-      - 'gradle/**' # So that gradle changes are tested
-      - 'settings.gradle' # So that gradle changes are tested
-      - 'build.gradle' # So that gradle changes are tested
-      - 'gradle.properties' # So that gradle changes are tested
+    paths-ignore:
+      - '**/3RD-PARTY-NOTICES.txt'
+      - '**/*.md'
+      - '**/.gitignore'
+      - '**/.ort.yml'
+      - 'img/**'
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'xroad-catalog-collector/src/**'
-      - 'xroad-catalog-lister/src/**'
-      - 'xroad-catalog-persistence/src/**'
-      - '.github/**'
-      - 'gradle/**' # So that gradle changes are tested
-      - 'settings.gradle' # So that gradle changes are tested
-      - 'build.gradle' # So that gradle changes are tested
-      - 'gradle.properties' # So that gradle changes are tested
+    paths-ignore:
+      - '**/3RD-PARTY-NOTICES.txt'
+      - '**/*.md'
+      - '**/.gitignore'
+      - '**/.ort.yml'
+      - 'img/**'
 
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
