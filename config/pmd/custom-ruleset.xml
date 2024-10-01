@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+
+<ruleset name="Custom Rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>Catalog Service Custom PMD Rules</description>
+    <exclude-pattern>.*/org/niis/xroad/catalog/.*Application.*</exclude-pattern>
+    <exclude-pattern>.*/generated/*.*</exclude-pattern>
+    <exclude-pattern>.*/generated-sources/*.*</exclude-pattern>
+
+    <!--
+    For reference of all XMLs and existing rules in each,
+    check: https://github.com/pmd/pmd/tree/master/pmd-java/src/main/resources/category/java
+
+    For complete list of all Java rules,
+    check: https://pmd.github.io/latest/pmd_rules_java.html
+    -->
+
+    <rule ref="category/java/codestyle.xml">
+        <exclude name="AtLeastOneConstructor"/>
+        <exclude name="CommentDefaultAccessModifier"/>
+        <exclude name="ConfusingTernary"/>
+        <exclude name="FieldDeclarationsShouldBeAtStartOfClass"/>
+        <exclude name="LambdaCanBeMethodReference"/>
+        <exclude name="LinguisticNaming"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="LongVariable"/>
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="PrematureDeclaration"/>
+        <exclude name="ShortClassName"/>
+        <exclude name="ShortVariable"/>
+        <exclude name="TooManyStaticImports"/>
+        <exclude name="UnnecessaryAnnotationValueElement"/>
+        <exclude name="UnnecessaryCast"/>
+        <exclude name="UnnecessaryFullyQualifiedName"/>
+        <exclude name="UseDiamondOperator"/>
+        <exclude name="UselessParentheses"/>
+        <exclude name="UseUnderscoresInNumericLiterals"/>
+    </rule>
+
+    <rule ref="category/java/design.xml">
+        <exclude name="AvoidCatchingGenericException"/>
+        <exclude name="AvoidDeeplyNestedIfStmts"/>
+        <exclude name="AvoidUncheckedExceptionsInSignatures"/>
+        <exclude name="CognitiveComplexity"/>
+        <exclude name="CouplingBetweenObjects"/>
+        <exclude name="CyclomaticComplexity"/>
+        <exclude name="ExceptionAsFlowControl"/>
+        <exclude name="ExcessiveImports"/>
+        <exclude name="GodClass"/>
+        <exclude name="ImmutableField"/>
+        <exclude name="LawOfDemeter"/>
+<!--        <exclude name="NcssCount"/>-->
+        <exclude name="NPathComplexity"/>
+        <exclude name="SingularField"/>
+        <exclude name="TooManyFields"/>
+        <exclude name="TooManyMethods"/>
+        <exclude name="SignatureDeclareThrowsException"/>
+        <exclude name="UseObjectForClearerAPI"/>
+    </rule>
+
+    <rule ref="category/java/documentation.xml">
+        <exclude name="CommentRequired"/>
+        <exclude name="CommentSize"/>
+    </rule>
+
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="AssignmentInOperand"/>
+        <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="AvoidFieldNameMatchingTypeName"/>
+        <exclude name="AvoidLiteralsInIfCondition"/>
+        <exclude name="CloseResource"/>
+        <exclude name="MissingSerialVersionUID"/>
+        <exclude name="NullAssignment"/>
+        <exclude name="TestClassWithoutTestCases"/>
+    </rule>
+
+    <rule ref="category/java/multithreading.xml">
+        <exclude name="AvoidSynchronizedAtMethodLevel"/>
+        <exclude name="DoNotUseThreads"/>
+        <exclude name="UseConcurrentHashMap"/>
+    </rule>
+
+    <rule ref="category/java/performance.xml">
+        <exclude name="AddEmptyString"/>
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+        <exclude name="AppendCharacterWithChar"/>
+        <exclude name="ConsecutiveAppendsShouldReuse"/>
+        <exclude name="StringToString"/>
+    </rule>
+
+    <rule ref="category/java/security.xml"/>
+
+</ruleset>
