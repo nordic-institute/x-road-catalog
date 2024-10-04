@@ -41,7 +41,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -95,75 +94,75 @@ public class MemberRepositoryTest {
         assertEquals(7, Iterables.size(members));
     }
 
-/*    @Test
-    public void testAddMember() {
-        String name = "memberx";
-        Member member = createTestMember(name);
-        memberRepository.save(member);
-
-        Member peek = memberRepository.findActiveByNaturalKey(
-                member.getXRoadInstance(),
-                member.getMemberClass(),
-                member.getMemberCode());
-        assertNotNull(peek);
-        assertNotNull(peek.getStatusInfo());
-
-        Iterable<Member> members = memberRepository.findAllActive();
-        assertEquals(8, Iterables.size(members));
-        log.info("created member with id=" + member.getId());
-
-        testUtil.entityManagerFlush();
-        testUtil.entityManagerClear();
-
-        Member savedRead = memberRepository.findActiveByNaturalKey(
-                member.getXRoadInstance(),
-                member.getMemberClass(),
-                member.getMemberCode());
-        assertNotNull(savedRead);
-        assertEquals(2, savedRead.getActiveSubsystems().size());
-    }*/
-
-    private Member createTestMember(String name) {
-        Member member = new Member();
-        member.setName(name);
-        member.setXRoadInstance("xroadinstance-" + name);
-        member.setMemberClass("mclass-" + name);
-        member.setMemberCode("mcode-" + name);
-        member.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
-
-        Subsystem ss1 = new Subsystem();
-        Subsystem ss2 = new Subsystem();
-        ss1.setSubsystemCode(name + "ss1");
-        ss2.setSubsystemCode(name + "ss2");
-        ss1.setMember(member);
-        ss2.setMember(member);
-        ss1.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
-        ss2.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
-        member.setSubsystems(new HashSet<>());
-        member.getAllSubsystems().add(ss1);
-        member.getAllSubsystems().add(ss2);
-
-        Service s1 = new Service();
-        Service s2 = new Service();
-        s1.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
-        s2.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
-        s1.setSubsystem(ss1);
-        s2.setSubsystem(ss1);
-        ss2.setServices(new HashSet<>());
-        ss2.getAllServices().add(s1);
-        ss2.getAllServices().add(s2);
-        s1.setServiceCode(name + "service1");
-        s2.setServiceCode(name + "service2");
-
-        Wsdl wsdl = new Wsdl();
-        wsdl.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
-        s1.setWsdl(wsdl);
-        wsdl.setService(s1);
-        wsdl.initializeExternalId();
-        wsdl.setData("<?xml version=\"1.0\" standalone=\"no\"?><wsdl/>");
-
-        return member;
-    }
+//    @Test
+//    public void testAddMember() {
+//        String name = "memberx";
+//        Member member = createTestMember(name);
+//        memberRepository.save(member);
+//
+//        Member peek = memberRepository.findActiveByNaturalKey(
+//                member.getXRoadInstance(),
+//                member.getMemberClass(),
+//                member.getMemberCode());
+//        assertNotNull(peek);
+//        assertNotNull(peek.getStatusInfo());
+//
+//        Iterable<Member> members = memberRepository.findAllActive();
+//        assertEquals(8, Iterables.size(members));
+//        log.info("created member with id=" + member.getId());
+//
+//        testUtil.entityManagerFlush();
+//        testUtil.entityManagerClear();
+//
+//        Member savedRead = memberRepository.findActiveByNaturalKey(
+//                member.getXRoadInstance(),
+//                member.getMemberClass(),
+//                member.getMemberCode());
+//        assertNotNull(savedRead);
+//        assertEquals(2, savedRead.getActiveSubsystems().size());
+//    }
+//
+//    private Member createTestMember(String name) {
+//        Member member = new Member();
+//        member.setName(name);
+//        member.setXRoadInstance("xroadinstance-" + name);
+//        member.setMemberClass("mclass-" + name);
+//        member.setMemberCode("mcode-" + name);
+//        member.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+//
+//        Subsystem ss1 = new Subsystem();
+//        Subsystem ss2 = new Subsystem();
+//        ss1.setSubsystemCode(name + "ss1");
+//        ss2.setSubsystemCode(name + "ss2");
+//        ss1.setMember(member);
+//        ss2.setMember(member);
+//        ss1.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+//        ss2.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+//        member.setSubsystems(new HashSet<>());
+//        member.getAllSubsystems().add(ss1);
+//        member.getAllSubsystems().add(ss2);
+//
+//        Service s1 = new Service();
+//        Service s2 = new Service();
+//        s1.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+//        s2.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+//        s1.setSubsystem(ss1);
+//        s2.setSubsystem(ss1);
+//        ss2.setServices(new HashSet<>());
+//        ss2.getAllServices().add(s1);
+//        ss2.getAllServices().add(s2);
+//        s1.setServiceCode(name + "service1");
+//        s2.setServiceCode(name + "service2");
+//
+//        Wsdl wsdl = new Wsdl();
+//        wsdl.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+//        s1.setWsdl(wsdl);
+//        wsdl.setService(s1);
+//        wsdl.initializeExternalId();
+//        wsdl.setData("<?xml version=\"1.0\" standalone=\"no\"?><wsdl/>");
+//
+//        return member;
+//    }
 
     @Test
     public void testGetChangedSince() {
