@@ -610,6 +610,7 @@ public final class OrganizationUtil {
         return response.getBody();
     }
 
+    @SuppressWarnings("PMD.CloseResource")
     private static RestTemplate createTemplate() {
         try {
             TrustStrategy acceptingTrustStrategy = new TrustStrategy() {

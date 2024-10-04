@@ -116,16 +116,17 @@ public interface MockHttpServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             ClassPathResource resource = new ClassPathResource(fileName);
-            InputStream is = resource.getInputStream();
             exchange.getResponseHeaders().add("Content-Type", "application/xml");
             exchange.sendResponseHeaders(200, 0);
-            OutputStream os = exchange.getResponseBody();
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = is.read(buffer)) != -1) {
-                os.write(buffer, 0, len);
+            try (InputStream is = resource.getInputStream();
+                 OutputStream os = exchange.getResponseBody()) {
+
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = is.read(buffer)) != -1) {
+                    os.write(buffer, 0, len);
+                }
             }
-            os.close();
         }
     }
 }
