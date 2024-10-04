@@ -98,6 +98,7 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ApplicationTests {
 
     private final Jaxb2Marshaller marshaller = new Jaxb2Marshaller();

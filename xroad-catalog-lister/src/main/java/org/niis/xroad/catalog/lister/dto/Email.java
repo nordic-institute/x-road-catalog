@@ -39,6 +39,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 @Getter
 @Setter
+@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
 public class Email implements Serializable {
 
     private static final long serialVersionUID = 4049961366368846285L;

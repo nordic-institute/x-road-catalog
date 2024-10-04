@@ -40,6 +40,7 @@ import org.springframework.web.client.RestOperations;
 
 @Configuration
 @Slf4j
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class TestingConfiguration {
 
     @Bean

@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Component
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class TestUtil {
 
     @Autowired

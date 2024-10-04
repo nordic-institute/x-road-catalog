@@ -53,6 +53,7 @@ import java.time.LocalDateTime;
 @ToString(exclude = { "company" })
 @EqualsAndHashCode(exclude = { "id", "company", "statusInfo" })
 @Builder
+@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
 public class Language {
 
     @Id
