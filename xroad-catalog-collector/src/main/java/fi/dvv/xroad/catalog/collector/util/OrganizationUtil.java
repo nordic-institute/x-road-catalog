@@ -85,8 +85,6 @@ import javax.net.ssl.SSLContext;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -613,13 +611,7 @@ public final class OrganizationUtil {
     @SuppressWarnings("PMD.CloseResource")
     private static RestTemplate createTemplate() {
         try {
-            TrustStrategy acceptingTrustStrategy = new TrustStrategy() {
-                @Override
-                public boolean isTrusted(X509Certificate[] x509Certificates, String s)
-                        throws CertificateException {
-                    return true;
-                }
-            };
+            TrustStrategy acceptingTrustStrategy = (x509Certificates, s) -> true;
             SSLContext sslContext = SSLContexts.custom()
                     .loadTrustMaterial(null, acceptingTrustStrategy)
                     .build();
