@@ -59,6 +59,7 @@ public class StatusInfo {
         // Empty contructor
     }
 
+    @SuppressWarnings("PMD.NullAssignment")
     public void setTimestampsForSaved(LocalDateTime timestamp, boolean isModified) {
         if (removed != null) {
             changed = timestamp;
@@ -74,6 +75,7 @@ public class StatusInfo {
         return removed != null;
     }
 
+    @SuppressWarnings("PMD.NullAssignment")
     public void setTimestampsForFetched(LocalDateTime timestamp) {
         if (isRemoved()) {
             // resurrect this item
@@ -86,6 +88,7 @@ public class StatusInfo {
         }
     }
 
+    @SuppressWarnings("PMD.NullAssignment")
     public void setTimestampsForNew(LocalDateTime timestamp) {
         created = timestamp;
         changed = timestamp;
