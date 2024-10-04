@@ -73,7 +73,6 @@
     </rule>
 
     <rule ref="category/java/errorprone.xml">
-        <exclude name="AssignmentInOperand"/>
         <exclude name="AvoidDuplicateLiterals"/>
         <exclude name="AvoidFieldNameMatchingTypeName"/>
         <exclude name="AvoidLiteralsInIfCondition"/>

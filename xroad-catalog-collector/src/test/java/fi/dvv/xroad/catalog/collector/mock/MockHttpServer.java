@@ -112,6 +112,7 @@ public interface MockHttpServer {
             this.fileName = fileName;
         }
 
+        @SuppressWarnings("PMD.AssignmentInOperand")
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             ClassPathResource resource = new ClassPathResource(fileName);
