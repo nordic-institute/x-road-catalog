@@ -43,18 +43,18 @@ public final class ClientTypeUtil {
     public static String toString(XRoadIdentifierType c) {
         StringBuilder sb = new StringBuilder(128);
         sb.append(c.getObjectType());
-        sb.append(":");
+        sb.append(':');
         sb.append(c.getXRoadInstance());
-        sb.append("/");
+        sb.append('/');
         sb.append(c.getMemberClass());
-        sb.append("/");
+        sb.append('/');
         sb.append(c.getMemberCode());
-        sb.append("/");
+        sb.append('/');
         sb.append(c.getSubsystemCode());
         if (c.getObjectType().equals(XRoadObjectType.SERVICE)) {
-            sb.append("/");
+            sb.append('/');
             sb.append(c.getServiceCode());
-            sb.append("/");
+            sb.append('/');
             sb.append(c.getServiceVersion());
         }
         return sb.toString();
