@@ -64,7 +64,12 @@
 
     <rule ref="category/java/documentation.xml">
         <exclude name="CommentRequired"/>
-        <exclude name="CommentSize"/>
+    </rule>
+    <rule ref="category/java/documentation.xml/CommentSize">
+        <properties>
+            <property name="maxLines" value="25"/>
+            <property name="maxLineLength" value="120"/>
+        </properties>
     </rule>
 
     <rule ref="category/java/errorprone.xml">
