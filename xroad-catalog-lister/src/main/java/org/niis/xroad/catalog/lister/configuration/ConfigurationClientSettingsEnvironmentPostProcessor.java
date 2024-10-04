@@ -63,7 +63,7 @@ public class ConfigurationClientSettingsEnvironmentPostProcessor implements Envi
     }
 
     private void setPropertyAsSystemProperty(ConfigurableEnvironment environment, String key) {
-        System.setProperty(key, environment.getProperty(key).toString());
+        System.setProperty(key, environment.getProperty(key));
     }
 
     private boolean isConfigurationClientEnabled(ConfigurableEnvironment environment) {
