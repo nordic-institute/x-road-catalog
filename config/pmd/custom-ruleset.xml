@@ -73,13 +73,18 @@
     </rule>
 
     <rule ref="category/java/errorprone.xml">
-        <exclude name="AvoidDuplicateLiterals"/>
         <exclude name="AvoidFieldNameMatchingTypeName"/>
         <exclude name="AvoidLiteralsInIfCondition"/>
         <exclude name="CloseResource"/>
         <exclude name="MissingSerialVersionUID"/>
         <exclude name="NullAssignment"/>
         <exclude name="TestClassWithoutTestCases"/>
+    </rule>
+    <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals">
+        <properties>
+            <property name="maxDuplicateLiterals" value="10" />
+            <property name="skipAnnotations" value="true" />
+        </properties>
     </rule>
 
     <rule ref="category/java/multithreading.xml">

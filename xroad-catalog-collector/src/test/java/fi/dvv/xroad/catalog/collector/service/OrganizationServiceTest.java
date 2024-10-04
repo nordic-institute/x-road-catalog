@@ -60,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(classes = CollectorApplication.class)
 @ActiveProfiles("test")
 @Transactional
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class OrganizationServiceTest {
 
     @Autowired

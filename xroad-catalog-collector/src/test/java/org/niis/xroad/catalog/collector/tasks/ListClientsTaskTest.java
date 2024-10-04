@@ -57,6 +57,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 @SpringBootTest(classes = CollectorApplication.class)
 @ActiveProfiles("test")
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ListClientsTaskTest {
 
     @Autowired

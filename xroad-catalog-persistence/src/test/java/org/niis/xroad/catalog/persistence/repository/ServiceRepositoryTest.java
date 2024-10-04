@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ServiceRepositoryTest {
 
     @Autowired
