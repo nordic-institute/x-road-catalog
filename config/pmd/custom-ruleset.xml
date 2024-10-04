@@ -76,7 +76,6 @@
         <exclude name="AvoidLiteralsInIfCondition"/>
         <exclude name="MissingSerialVersionUID"/>
         <exclude name="NullAssignment"/>
-        <exclude name="TestClassWithoutTestCases"/>
     </rule>
     <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals">
         <properties>
