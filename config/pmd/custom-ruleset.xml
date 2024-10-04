@@ -90,7 +90,6 @@
     </rule>
 
     <rule ref="category/java/performance.xml">
-        <exclude name="AddEmptyString"/>
         <exclude name="AvoidInstantiatingObjectsInLoops"/>
         <exclude name="AppendCharacterWithChar"/>
         <exclude name="ConsecutiveAppendsShouldReuse"/>
