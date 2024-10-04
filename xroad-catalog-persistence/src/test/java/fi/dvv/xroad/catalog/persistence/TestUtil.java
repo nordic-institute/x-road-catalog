@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.StreamSupport;
 
 @Component
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class TestUtil {
 
     @Autowired
