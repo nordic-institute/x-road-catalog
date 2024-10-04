@@ -41,6 +41,7 @@ import java.util.List;
 @EqualsAndHashCode
 @Getter
 @Setter
+@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
 public class MemberDataList implements Serializable {
 
     private static final long serialVersionUID = 4049561366368846285L;

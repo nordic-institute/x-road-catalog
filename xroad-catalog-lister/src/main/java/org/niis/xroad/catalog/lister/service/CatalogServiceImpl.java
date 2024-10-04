@@ -64,6 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Component
 @Transactional
+@SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
 public class CatalogServiceImpl implements CatalogService {
 
     private static final String MULTIPLE_MATCHES_FOUND_TO = "multiple matches found to ";
