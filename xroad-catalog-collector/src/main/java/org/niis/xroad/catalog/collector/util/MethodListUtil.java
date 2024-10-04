@@ -61,9 +61,9 @@ public final class MethodListUtil {
                                                                               String subsystemCode,
                                                                               CatalogService catalogService) {
         final String url = new StringBuilder().append(host).append("/r1/")
-                .append(clientType.getId().getXRoadInstance()).append("/")
-                .append(clientType.getId().getMemberClass()).append("/")
-                .append(clientType.getId().getMemberCode()).append("/")
+                .append(clientType.getId().getXRoadInstance()).append('/')
+                .append(clientType.getId().getMemberClass()).append('/')
+                .append(clientType.getId().getMemberCode()).append('/')
                 .append(clientType.getId().getSubsystemCode()).append("/listMethods").toString();
 
         String xRoadClientHeader = createHeader(xRoadInstance, memberClass, memberCode, subsystemCode);
@@ -112,9 +112,9 @@ public final class MethodListUtil {
                                              String subsystemCode,
                                              CatalogService catalogService) {
         final String url = new StringBuilder().append(host).append("/r1/")
-                .append(clientType.getId().getXRoadInstance()).append("/")
-                .append(clientType.getId().getMemberClass()).append("/")
-                .append(clientType.getId().getMemberCode()).append("/")
+                .append(clientType.getId().getXRoadInstance()).append('/')
+                .append(clientType.getId().getMemberClass()).append('/')
+                .append(clientType.getId().getMemberCode()).append('/')
                 .append(clientType.getId().getSubsystemCode()).append("/getOpenAPI?serviceCode=")
                 .append(clientType.getId().getServiceCode()).toString();
 
@@ -137,9 +137,9 @@ public final class MethodListUtil {
     private static String createHeader(String xRoadInstance, String memberClass, String memberCode,
                                        String subsystemCode) {
         return new StringBuilder()
-                .append(xRoadInstance).append("/")
-                .append(memberClass).append("/")
-                .append(memberCode).append("/")
+                .append(xRoadInstance).append('/')
+                .append(memberClass).append('/')
+                .append(memberCode).append('/')
                 .append(subsystemCode).toString();
     }
 

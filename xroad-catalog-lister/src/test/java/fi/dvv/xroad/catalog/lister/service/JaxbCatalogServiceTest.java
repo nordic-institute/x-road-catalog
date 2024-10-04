@@ -212,7 +212,7 @@ public class JaxbCatalogServiceTest {
         Member m = new Member();
         m.setMemberClass("GOV");
         m.setXRoadInstance("FI");
-        m.setMemberCode("" + id);
+        m.setMemberCode(Integer.toString(id));
         m.setId(id);
         m.setName("membername-" + id);
         m.getStatusInfo().setChanged(updated);
@@ -238,7 +238,7 @@ public class JaxbCatalogServiceTest {
         subsystem.getStatusInfo().setCreated(updated);
         subsystem.getStatusInfo().setFetched(updated);
         subsystem.getStatusInfo().setRemoved(removed ? updated : null);
-        subsystem.setSubsystemCode("" + subsystem.getId());
+        subsystem.setSubsystemCode(Long.toString(subsystem.getId()));
 
         Service s1 = createService(updated, false, subsystem, 1);
         Service s2 = createService(updated, false, subsystem, 2);
@@ -255,7 +255,7 @@ public class JaxbCatalogServiceTest {
         Service s1 = new Service();
         s1.setId((subsystem.getId() * 10) + id);
         s1.setServiceVersion("v1");
-        s1.setServiceCode("" + s1.getId());
+        s1.setServiceCode(Long.toString(s1.getId()));
         s1.getStatusInfo().setChanged(updated);
         s1.getStatusInfo().setCreated(updated);
         s1.getStatusInfo().setFetched(updated);
