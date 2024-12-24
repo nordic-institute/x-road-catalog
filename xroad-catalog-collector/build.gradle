@@ -98,9 +98,8 @@ dependencies {
     wsimport (libs.jaxb.maven)
     implementation (libs.bundles.jaxb)
     compileOnly (libs.liquibase.hibernate6)
-    testImplementation (libs.spring.boot.test) {
-        exclude group: 'org.mockito', module :'mockito-core'
-    }
+    testImplementation (libs.spring.boot.test)
+    testRuntimeOnly (libs.junit.launcer)
     testImplementation (libs.mockito)
     testAnnotationProcessor (libs.lombok)
     testImplementation (libs.awaitility)
@@ -110,9 +109,7 @@ dependencies {
 compileJava.dependsOn wsImport
 
 test {
-    useJUnitPlatform {
-        includeEngines 'junit-jupiter'
-    }
+    useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
 

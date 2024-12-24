@@ -57,15 +57,15 @@ dependencies {
     implementation (libs.xroad.configuration.client)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
+    testRuntimeOnly (libs.junit.launcer)
+    testImplementation (libs.mockito)
     testImplementation (libs.lombok)
     testImplementation (libs.h2.database)
     testAnnotationProcessor (libs.lombok)
 }
 
 test {
-    useJUnitPlatform {
-        includeEngines 'junit-jupiter'
-    }
+    useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }

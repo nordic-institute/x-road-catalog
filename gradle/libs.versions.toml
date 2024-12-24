@@ -14,6 +14,7 @@ jakartaBindApi = "4.0.2"
 jaxb = "4.0.3"
 jaxbWsApi = "4.0.2"
 json = "20240303"
+junitLauncher = "1.11.4"
 liquibase = "4.30.0"
 lombok = "1.18.36"
 mockito = "5.14.2"
@@ -46,6 +47,7 @@ jaxb-rt = { module = "com.sun.xml.ws:jaxws-rt", version.ref = "jaxb" }
 jaxb-tools = { module = "com.sun.xml.ws:jaxws-tools", version.ref = "jaxb" }
 jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxbWsApi" }
 json = { module = "org.json:json", version.ref = "json" }
+junit-launcer = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitLauncher" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version.ref = "hierynomusLicense" }
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
