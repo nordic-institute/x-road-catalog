@@ -8,9 +8,12 @@ plugins {
     id 'catalogservice.java-checks'
 }
 
-group 'org.niis.xroad.catalog.collector'
-sourceCompatibility = 21
-targetCompatibility = 21
+group = 'org.niis.xroad.catalog.collector'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
     mavenCentral()
@@ -46,7 +49,7 @@ springBoot {
     mainClass = 'org.niis.xroad.catalog.collector.CollectorApplication'
 }
 
-task wsImport {
+tasks.register('wsImport') {
     ext.sourcedestdir = layout.buildDirectory.dir("generated-sources/wsimport").get().asFile
     ext.destdir = layout.buildDirectory.dir("generated-classes/wsimport").get().asFile
     ext.wsdl = "${projectDir}/src/main/resources/schema/metaservices.wsdl"
@@ -55,21 +58,18 @@ task wsImport {
     outputs.dir sourcedestdir
 
     doLast() {
-        project.ant {
-            taskdef name: "wsimport", classname: "com.sun.tools.ws.ant.WsImport",
-                    classpath: configurations.wsimport.asPath
-            mkdir(dir: destdir)
-            mkdir(dir: sourcedestdir)
+        ant.taskdef name: "wsimport", classname: "com.sun.tools.ws.ant.WsImport",
+                classpath: configurations.wsimport.asPath
+        ant.mkdir(dir: destdir)
+        ant.mkdir(dir: sourcedestdir)
 
-            wsimport(sourcedestdir: sourcedestdir,
-                    destdir: destdir,
-                    wsdl: wsdl,
-                    wsdllocation: "/schema/metaservices.wsdl",
-                    package: "org.niis.xroad.catalog.collector.wsimport",
-                    keep: "true"
-            ) {
-                produces(dir: sourcedestdir, includes: "**/*.java")
-            }
+        ant.wsimport(sourcedestdir: sourcedestdir,
+                destdir: destdir,
+                wsdl: wsdl,
+                wsdllocation: "/schema/metaservices.wsdl",
+                package: "org.niis.xroad.catalog.collector.wsimport",
+                keep: "true") {
+            ant.produces(dir: sourcedestdir, includes: "**/*.java")
         }
     }
 }
