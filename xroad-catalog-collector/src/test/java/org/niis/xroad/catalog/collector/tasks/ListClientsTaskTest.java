@@ -39,8 +39,8 @@ import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Queue;
@@ -63,10 +63,10 @@ public class ListClientsTaskTest {
     @Autowired
     private TaskPoolConfiguration conf;
 
-    @MockBean
+    @MockitoBean
     CatalogService catalogService;
 
-    @MockBean
+    @MockitoBean
     NewMembersEventPublisher newMembersEventPublisher;
 
     @Test

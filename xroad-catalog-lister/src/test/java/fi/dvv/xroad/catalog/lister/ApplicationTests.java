@@ -68,10 +68,10 @@ import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.ClassUtils;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.soap.client.SoapFaultClientException;
@@ -106,16 +106,16 @@ public class ApplicationTests {
     @LocalServerPort
     private int port;
 
-    @MockBean
+    @MockitoBean
     CatalogService catalogService;
 
-    @MockBean
+    @MockitoBean
     JaxbCatalogService jaxbCatalogService;
 
-    @MockBean
+    @MockitoBean
     JaxbCompanyService jaxbCompanyService;
 
-    @MockBean
+    @MockitoBean
     JaxbOrganizationService jaxbOrganizationService;
 
     @BeforeAll

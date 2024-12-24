@@ -111,7 +111,7 @@ public final class OrganizationUtil {
     }
 
     public static Optional<JSONObject> getCompany(String url, String businessId, CatalogService catalogService) {
-        final String fetchCompaniesUrl = UriComponentsBuilder.fromHttpUrl(url).pathSegment(businessId).encode()
+        final String fetchCompaniesUrl = UriComponentsBuilder.fromUriString(url).pathSegment(businessId).encode()
                 .build().toString();
         JSONObject jsonObject = new JSONObject();
         try {
@@ -147,7 +147,7 @@ public final class OrganizationUtil {
     }
 
     public static Optional<JSONArray> getOrganization(String url, String businessId, CatalogService catalogService) {
-        final String fetchOrganizationUrl = UriComponentsBuilder.fromHttpUrl(url)
+        final String fetchOrganizationUrl = UriComponentsBuilder.fromUriString(url)
                 .pathSegment("businesscode", businessId).encode().build().toString();
         try {
             String ret = getResponseBody(fetchOrganizationUrl, String.class);
