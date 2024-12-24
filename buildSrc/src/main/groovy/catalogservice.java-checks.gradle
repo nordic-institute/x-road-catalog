@@ -15,7 +15,7 @@ licenseFormatMain.source = fileTree('src/main')
 licenseFormatTest.source = fileTree('src/test')
 
 checkstyle {
-    toolVersion = "10.18.2"
+    toolVersion = "10.21.0"
     configDirectory = file("${project.rootDir}/config/checkstyle")
     ignoreFailures = false
     showViolations = false
@@ -34,7 +34,7 @@ checkstyleTest {
 
 pmd {
     consoleOutput = true
-    toolVersion = "7.6.0"
+    toolVersion = "7.8.0"
     rulesMinimumPriority = 5
     ruleSets = ["${project.rootDir}/config/pmd/custom-ruleset.xml"]
     consoleOutput = true // to print errors in console to be visible in pipeline
