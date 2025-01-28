@@ -8,9 +8,12 @@ plugins {
     id 'catalogservice.java-checks'
 }
 
-group 'org.niis.xroad.catalog.lister'
-sourceCompatibility = 21
-targetCompatibility = 21
+group = 'org.niis.xroad.catalog.lister'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
     mavenCentral()

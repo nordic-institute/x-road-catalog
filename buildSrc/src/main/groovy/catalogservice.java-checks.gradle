@@ -5,7 +5,7 @@ plugins {
 }
 
 license {
-    header rootProject.file('LICENSE.txt')
+    header = rootProject.file('LICENSE.txt')
     include "**/*.java"
 }
 
