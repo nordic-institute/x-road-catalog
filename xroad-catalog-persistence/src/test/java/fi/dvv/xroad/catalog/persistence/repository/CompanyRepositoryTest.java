@@ -32,8 +32,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,7 +73,7 @@ public class CompanyRepositoryTest {
 
     @Test
     public void testFindLatestFetched() {
-        LocalDateTime latestFetched = companyRepository.findLatestFetched();
+        ZonedDateTime latestFetched = companyRepository.findLatestFetched().atZone(ZoneId.systemDefault());
         assertEquals(2020, latestFetched.getYear());
         assertEquals(Month.MAY, latestFetched.getMonth());
         assertEquals(4, latestFetched.getDayOfMonth());

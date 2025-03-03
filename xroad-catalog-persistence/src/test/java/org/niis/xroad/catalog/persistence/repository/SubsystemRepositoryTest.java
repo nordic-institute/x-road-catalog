@@ -31,8 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -82,7 +83,7 @@ public class SubsystemRepositoryTest {
 
     @Test
     public void testFindLatestFetched() {
-        LocalDateTime latestFetched = subsystemRepository.findLatestFetched();
+        ZonedDateTime latestFetched = subsystemRepository.findLatestFetched().atZone(ZoneId.systemDefault());
         assertEquals(2017, latestFetched.getYear());
         assertEquals(Month.JANUARY, latestFetched.getMonth());
         assertEquals(2, latestFetched.getDayOfMonth());

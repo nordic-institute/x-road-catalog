@@ -29,7 +29,7 @@ import org.niis.xroad.catalog.persistence.entity.Service;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public interface RestRepository extends CrudRepository<Rest, Long> {
@@ -41,5 +41,5 @@ public interface RestRepository extends CrudRepository<Rest, Long> {
     List<Rest> findAnyByService(Service service);
 
     @Query(value = "SELECT MAX(fetched) FROM rest", nativeQuery = true)
-    LocalDateTime findLatestFetched();
+    Instant findLatestFetched();
 }

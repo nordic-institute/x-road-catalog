@@ -35,9 +35,11 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -61,6 +63,10 @@ public final class ServiceUtil {
             throw new CatalogListerRuntimeException("Exception parsing date parameter: " + e.getMessage());
         }
         return dateTime;
+    }
+
+    public static LocalDateTime toLocalDateTime(Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
     public static void printCSVRecord(CSVPrinter csvPrinter, List<String> data) {

@@ -30,7 +30,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public interface EndpointRepository extends CrudRepository<Endpoint, Long> {
@@ -40,7 +40,7 @@ public interface EndpointRepository extends CrudRepository<Endpoint, Long> {
     List<Endpoint> findAnyByService(Service service);
 
     @Query(value = "SELECT MAX(fetched) FROM endpoint", nativeQuery = true)
-    LocalDateTime findLatestFetched();
+    Instant findLatestFetched();
 
     @Query("SELECT e FROM Endpoint e WHERE e.service = :service "
             + "AND e.method = :method AND e.path = :path ")

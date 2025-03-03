@@ -59,6 +59,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.niis.xroad.catalog.lister.util.ServiceUtil.toLocalDateTime;
+
 /**
  * Implementation for catalogservice CRUD
  */
@@ -355,11 +357,12 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public LastCollectionData getLastCollectionData() {
         return LastCollectionData.builder()
-                .membersLastFetched(memberRepository.findLatestFetched())
-                .openapisLastFetched(openApiRepository.findLatestFetched())
-                .servicesLastFetched(serviceRepository.findLatestFetched())
-                .subsystemsLastFetched(subsystemRepository.findLatestFetched())
-                .wsdlsLastFetched(wsdlRepository.findLatestFetched()).build();
+            .membersLastFetched(toLocalDateTime(memberRepository.findLatestFetched()))
+            .openapisLastFetched(toLocalDateTime(openApiRepository.findLatestFetched()))
+            .servicesLastFetched(toLocalDateTime(serviceRepository.findLatestFetched()))
+            .subsystemsLastFetched(toLocalDateTime(subsystemRepository.findLatestFetched()))
+            .wsdlsLastFetched(toLocalDateTime(wsdlRepository.findLatestFetched()))
+            .build();
     }
 
     private boolean isDateBetweenDates(LocalDateTime dateToBeChecked,

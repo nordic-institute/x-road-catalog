@@ -29,12 +29,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 
 
-public interface OrganizationRepository extends CrudRepository<Organization, LocalDateTime> {
+public interface OrganizationRepository extends CrudRepository<Organization, Long> {
 
     // uses named query Organization.findAllByBusinessCode
     Set<Organization> findAllByBusinessCode(@Param("businessCode") String businessCode);
@@ -43,5 +43,5 @@ public interface OrganizationRepository extends CrudRepository<Organization, Loc
     Optional<Organization> findAnyByOrganizationGuid(@Param("guid") String guid);
 
     @Query(value = "SELECT MAX(fetched) FROM organization", nativeQuery = true)
-    LocalDateTime findLatestFetched();
+    Instant findLatestFetched();
 }

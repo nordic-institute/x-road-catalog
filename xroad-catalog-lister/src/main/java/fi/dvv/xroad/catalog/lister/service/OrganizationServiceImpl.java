@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+import static org.niis.xroad.catalog.lister.util.ServiceUtil.toLocalDateTime;
+
 @Component
 @Transactional
 public class OrganizationServiceImpl implements OrganizationService {
@@ -47,8 +49,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public LastOrganizationCollectionData getLastOrganizationCollectionData() {
         return LastOrganizationCollectionData.builder()
-                .organizationsLastFetched(organizationRepository.findLatestFetched())
-                .companiesLastFetched(companyRepository.findLatestFetched()).build();
+                .organizationsLastFetched(toLocalDateTime(organizationRepository.findLatestFetched()))
+                .companiesLastFetched(toLocalDateTime(companyRepository.findLatestFetched())).build();
     }
 
     @Override
