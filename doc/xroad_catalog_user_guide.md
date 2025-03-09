@@ -1335,14 +1335,14 @@ Response in JSON:
 {"appWorking":true,
  "dbWorking":true,
  "appName":"X-Road Catalog Lister",
- "appVersion":"1.2.1",
- "systemTime":[2021,9,20,10,12,15,132000000],
+ "appVersion":"4.0.0",
+ "systemTime":"2025-03-10T00:38:30.553267895",
  "lastCollectionData":
- {"membersLastFetched":[2021,9,20,10,8,51,380000000],
-  "subsystemsLastFetched":[2021,9,20,10,8,51,380000000],
-  "servicesLastFetched":[2021,9,1,15,32,51,123000000],
-  "wsdlsLastFetched":[2021,9,1,15,32,53,87000000],
-  "openapisLastFetched":[2020,11,22,22,12,32,202000000]
+ {"membersLastFetched":"2025-03-09T23:33:55.355579",
+  "subsystemsLastFetched":"2025-03-09T23:33:55.355579",
+  "servicesLastFetched":"2025-03-10T00:37:19.67600927",
+  "wsdlsLastFetched":"2025-03-10T00:37:19.67600927",
+  "openapisLastFetched":"2025-03-10T00:37:19.67600927"
  }
 }
 ```
@@ -2465,10 +2465,10 @@ Response in JSON:
 {"appWorking":true,
  "dbWorking":true,
  "appName":"X-Road Catalog Lister",
- "appVersion":"1.2.1",
- "systemTime":[2021,9,20,10,12,15,132000000],
+ "appVersion":"4.0.0",
+ "systemTime":"2025-03-10T00:33:35.306137769",
  "lastCollectionData":
- {"organizationsLastFetched":[2021,9,20,10,10,55,153000000],
+ {"organizationsLastFetched":"2025-03-09T23:33:55.355",
   "companiesLastFetched":null
  }
 }
