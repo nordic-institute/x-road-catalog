@@ -19,5 +19,11 @@ The `compose.yml` file has been configured so that the services can access the `
 There are only two ports open to the host machine:
 
 * `5080` for the `adminer` service web UI for accessing the database.
+  * Use the configuration below to access the web UI:
+    * System: PostgreSQL
+    * Server: `xrd-catalog-db`
+    * Username: `xroad_catalog`
+    * Password: `secret`
+    * Database: `xroad_catalog`
 * `8070` for the `xroad-catalog-lister` service API. This port also allows you to access the `Swagger UI` under path `/api-docs`.
 * `4910` for the postgres database.

@@ -31,13 +31,13 @@ xroad:
     update-interval: 60
     allowed-federations: none
     proxy-configuration-backup-cron: 0 15 3 * * ?
-    global_conf_tls_cert_verification: true
-    global_conf_hostname_verification: true
+    global_conf_tls_cert_verification: false
+    global_conf_hostname_verification: false
 
 # X-Road instance parameters
 xroad-catalog:
   shared-params-file: ${xroad.common.configuration-path}/<INSTANCE_IDENTIFIER>/shared-params.xml
-  country.fi.enabled: true
+  country.fi.enabled: false
   configuration-client.enabled: true
 
 logging:

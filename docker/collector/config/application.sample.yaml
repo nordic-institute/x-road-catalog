@@ -17,7 +17,7 @@ spring:
     user: xroad_catalog
     password: secret
     show-summary: verbose
-    contexts: users,fi
+    contexts: users
     parameters:
       users:
         collector:
@@ -60,17 +60,4 @@ xroad-catalog:
     fi:
       # if enabled, URLs must be provided in order for Finland specific services and tasks to be executed properly
       # if disabled, all other fi-specific properties can be removed from profile
-      enabled: true
-      fetch:
-        companies:
-          pool-size: 10
-          url: https://avoindata.prh.fi/bis/v1
-        organizations:
-          pool-size: 10
-          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
-        external-limit: 1
-        external-update-after-days: 1
-        external-interval-min: 5
-        external-run-unlimited: true
-        external-time-after-hour: 3
-        external-time-before-hour: 4
+      enabled: false
