@@ -14,6 +14,13 @@ The `compose.yml` file has been configured so that the services can access the `
 3. Create the configurations under [collector/config](collector/config) and [lister/config](lister/config) directories to suite your needs by renaming the `sample` files.
 4. Start the environment with `docker compose up -d --build`.
 
+### Overwriting configuration files by environment variables
+
+You can overwrite the provides configuration files at `/docker/<module>/config` by providing environment variables that start with `setting_`. 
+For example, if you want to overwrite the `xroad-catalog.target.xroad-instance` setting in the `application.yaml` file, 
+you can set the environment variable `setting_xroad-catalog.target.xroad-instance=DEV` when running the container. The entires inside `application.yaml` 
+will be updated with the environment variable values before starting the application.
+
 ## Open ports
 
 There are only two ports open to the host machine:
