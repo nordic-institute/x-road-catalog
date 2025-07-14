@@ -33,8 +33,13 @@ services:
 #      XROAD-CATALOG_COUNTRY_FI_ENABLED: false
 #      LOGGING_LEVEL_LIQUIBASE: TRACE
 #      SPRING_LIQUIBASE_CONTEXTS: users
+    environment:
+      - setting_xroad-catalog.target.xroad-instance=DEV
+      - setting_xroad-catalog.target.subsystem-code=TestSubsystem
+      - setting_xroad-catalog.target.member-class=COM
+      - setting_xroad-catalog.target.member-code=TestMember
+
     volumes:
-      - ./collector/config:/etc/xroad/xroad-catalog:ro
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       - xrd-catalog-db
@@ -45,8 +50,13 @@ services:
     build:
       context: ../.
       dockerfile: docker/lister/Dockerfile
+    environment:
+      - setting_xroad.common.configuration-path=/etc/xroad/globalconf
+      - setting_xroad.proxy.configuration-anchor-file=/etc/xroad/configuration-anchor.xml
+      - setting_xroad-catalog.shared-params-file=/etc/xroad/DEV/shared-params.xml
+      - setting_xroad-catalog.country.fi.enabled=true
+      - setting_xroad-catalog.configuration-client.enabled=true
     volumes:
-      - ./lister/config:/etc/xroad/xroad-catalog:ro
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml
       - /etc/localtime:/etc/localtime:ro
     ports:
