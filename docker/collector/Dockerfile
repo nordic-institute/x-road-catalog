@@ -35,7 +35,7 @@ RUN apk add --no-cache curl && \
 # Copy application JAR file
 COPY xroad-catalog-collector/build/libs/xroad-catalog-collector-*.jar /app/xroad-catalog-collector.jar
 COPY docker/docker-entrypoint.sh /entrypoint.sh
-COPY docker/collector/config/ /app/
+COPY xroad-catalog-collector/src/main/resources/application.yaml /app/application.yaml
 
 # Switch to non-root user
 USER xroad

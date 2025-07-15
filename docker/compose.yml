@@ -34,10 +34,45 @@ services:
 #      LOGGING_LEVEL_LIQUIBASE: TRACE
 #      SPRING_LIQUIBASE_CONTEXTS: users
     environment:
+      # spring
+      - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
+      - setting_spring.datasource.password=xroad_catalog_collector
+      - setting_spring.liquibase.password=secret
+      - setting_spring.liquibase.contexts=users,fi
+      - setting_spring.liquibase.parameters.users.collector.password=xroad_catalog_collector
+      - setting_spring.liquibase.parameters.users.lister.password=xroad_catalog_lister
+      # catalog
       - setting_xroad-catalog.target.xroad-instance=DEV
       - setting_xroad-catalog.target.subsystem-code=TestSubsystem
       - setting_xroad-catalog.target.member-class=COM
       - setting_xroad-catalog.target.member-code=TestMember
+      - setting_xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
+      - setting_xroad-catalog.ssl-keystore.password=changeit
+      - setting_xroad-catalog.urls.security-server-host=http://ss0:8080/
+      - setting_xroad-catalog.urls.list-clients-host=http://ss0:8080/
+      - setting_xroad-catalog.urls.webservices-endpoint=http://ss0:8080/
+      - setting_xroad-catalog.pool-size.fetch-openapi=5
+      - setting_xroad-catalog.pool-size.fetch-rest=5
+      - setting_xroad-catalog.pool-size.fetch-wsdl=5
+      - setting_xroad-catalog.pool-size.list-methods=5
+      - setting_xroad-catalog.log-storage.error-log-length-in-days=90
+      - setting_xroad-catalog.log-storage.flush-log-time-after-hour=3
+      - setting_xroad-catalog.log-storage.flush-log-time-before-hour=4
+      - setting_xroad-catalog.tasks.collector-interval-min=5
+      - setting_xroad-catalog.tasks.fetch-run-unlimited=true
+      - setting_xroad-catalog.tasks.fetch-time-after-hour=3
+      - setting_xroad-catalog.tasks.fetch-time-before-hour=4
+      - setting_xroad-catalog.country.fi.enabled=true
+      - setting_xroad-catalog.country.fi.fetch.companies.pool-size=10
+      - setting_xroad-catalog.country.fi.fetch.companies.url=https://avoindata.prh.fi/bis/v1
+      - setting_xroad-catalog.country.fi.fetch.organizations.pool-size=10
+      - setting_xroad-catalog.country.fi.fetch.organizations.url=https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+      - setting_xroad-catalog.country.fi.fetch.external-limit=1
+      - setting_xroad-catalog.country.fi.fetch.external-update-after-days=1
+      - setting_xroad-catalog.country.fi.fetch.external-interval-min=5
+      - setting_xroad-catalog.country.fi.fetch.external-run-unlimited=true
+      - setting_xroad-catalog.country.fi.fetch.external-time-after-hour=3
+      - setting_xroad-catalog.country.fi.fetch.external-time-before-hour=4
 
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -51,9 +86,21 @@ services:
       context: ../.
       dockerfile: docker/lister/Dockerfile
     environment:
+      # spring
+      - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
+      - setting_spring.datasource.password=xroad_catalog_lister
+      # xroad
       - setting_xroad.common.configuration-path=/etc/xroad/globalconf
       - setting_xroad.proxy.configuration-anchor-file=/etc/xroad/configuration-anchor.xml
-      - setting_xroad-catalog.shared-params-file=/etc/xroad/DEV/shared-params.xml
+      - setting_xroad.configuration-client.port=5665
+      - setting_xroad.configuration-client.admin-port=5675
+      - setting_xroad.configuration-client.update-interval=60
+      - setting_xroad.configuration-client.allowed-federations=none
+      - setting_xroad.configuration-client.proxy-configuration-backup-cron=0 15 3 * * ?
+      - setting_xroad.configuration-client.global_conf_tls_cert_verification=true
+      - setting_xroad.configuration-client.global_conf_hostname_verification=true
+      # catalog
+      - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
       - setting_xroad-catalog.country.fi.enabled=true
       - setting_xroad-catalog.configuration-client.enabled=true
     volumes:
