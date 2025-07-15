@@ -11,12 +11,14 @@ The `compose.yml` file has been configured so that the services can access the `
 
 1. Build the JAR files for the services by running `./gradlew build` in the root of the project.
 2. Copy your environments configuration anchor file to the [lister/config](lister/config) directory with the name `configuration-anchor.xml`.
-3. Create the configurations under [collector/config](collector/config) and [lister/config](lister/config) directories to suite your needs by renaming the `sample` files.
+3. Configure the containers by editing the environment variables in the `docker-compose.yml` file, e.g. you can set the `XROAD_INSTANCE`
+   variable to your desired X-Road instance name, and the `XROAD_ENVIRONMENT` variable to your desired environment (e.g., `DEV`, `TEST`, etc.). 
+   These variables will overwrite the variables set in the configuration files copied in the [docker/MODULE/Dockerfile](lister/Dockerfile) files. For more information refer to the [this](#overwriting-configuration-files-by-environment-variables) section.
 4. Start the environment with `docker compose up -d --build`.
 
 ### Overwriting configuration files by environment variables
 
-You can overwrite the provides configuration files at `/docker/<module>/config` by providing environment variables that start with `setting_`. 
+You can overwrite the provides configuration files by providing environment variables that start with `setting_`. 
 For example, if you want to overwrite the `xroad-catalog.target.xroad-instance` setting in the `application.yaml` file, 
 you can set the environment variable `setting_xroad-catalog.target.xroad-instance=DEV` when running the container. The entires inside `application.yaml` 
 will be updated with the environment variable values before starting the application.
