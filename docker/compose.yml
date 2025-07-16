@@ -35,6 +35,7 @@ services:
 #      SPRING_LIQUIBASE_CONTEXTS: users
     environment:
       # spring
+      - setting_spring.profiles.active=dev
       - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
       - setting_spring.datasource.password=xroad_catalog_collector
       - setting_spring.liquibase.password=secret
@@ -43,14 +44,25 @@ services:
       - setting_spring.liquibase.parameters.users.lister.password=xroad_catalog_lister
       # catalog
       - setting_xroad-catalog.target.xroad-instance=DEV
-      - setting_xroad-catalog.target.subsystem-code=TestSubsystem
+      - setting_xroad-catalog.target.subsystem-code=catalog
       - setting_xroad-catalog.target.member-class=COM
-      - setting_xroad-catalog.target.member-code=TestMember
+      - setting_xroad-catalog.target.member-code=1234
       - setting_xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
       - setting_xroad-catalog.ssl-keystore.password=changeit
       - setting_xroad-catalog.urls.security-server-host=http://ss0:8080/
       - setting_xroad-catalog.urls.list-clients-host=http://ss0:8080/
       - setting_xroad-catalog.urls.webservices-endpoint=http://ss0:8080/
+      - setting_xroad-catalog.pool-size.fetch-openapi=5
+      - setting_xroad-catalog.pool-size.fetch-rest=5
+      - setting_xroad-catalog.pool-size.fetch-wsdl=5
+      - setting_xroad-catalog.pool-size.list-methods=5
+      - setting_xroad-catalog.log-storage.error-log-length-in-days=90
+      - setting_xroad-catalog.log-storage.flush-log-time-after-hour=3
+      - setting_xroad-catalog.log-storage.flush-log-time-before-hour=4
+      - setting_xroad-catalog.tasks.collector-interval-min=1
+      - setting_xroad-catalog.tasks.fetch-run-unlimited=true
+      - setting_xroad-catalog.tasks.fetch-time-after-hour=3
+      - setting_xroad-catalog.tasks.fetch-time-before-hour=4
       - setting_xroad-catalog.country.fi.enabled=true
       - setting_xroad-catalog.country.fi.fetch.companies.pool-size=10
       - setting_xroad-catalog.country.fi.fetch.companies.url=https://avoindata.prh.fi/bis/v1
@@ -76,6 +88,7 @@ services:
       dockerfile: docker/lister/Dockerfile
     environment:
       # spring
+      - setting_spring.profiles.active=dev
       - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
       - setting_spring.datasource.password=xroad_catalog_lister
       # xroad
