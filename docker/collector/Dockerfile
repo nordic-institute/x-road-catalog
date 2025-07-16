@@ -30,7 +30,9 @@ FROM base-xroad-catalog AS xroad-catalog-collector
 RUN apk add --no-cache curl && \
     curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
     -o /usr/bin/yq && \
-    chmod +x /usr/bin/yq
+    chmod +x /usr/bin/yq && \
+    apk add --no-cache bash
+
 
 # Copy application JAR file
 COPY xroad-catalog-collector/build/libs/xroad-catalog-collector-*.jar /app/xroad-catalog-collector.jar

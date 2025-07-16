@@ -35,7 +35,6 @@ services:
 #      SPRING_LIQUIBASE_CONTEXTS: users
     environment:
       # spring
-      - setting_spring.profiles.active=dev
       - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
       - setting_spring.datasource.password=xroad_catalog_collector
       - setting_spring.liquibase.password=secret
