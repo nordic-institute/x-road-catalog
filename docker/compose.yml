@@ -63,16 +63,6 @@ services:
       - setting_xroad-catalog.tasks.fetch-time-after-hour=3
       - setting_xroad-catalog.tasks.fetch-time-before-hour=4
       - setting_xroad-catalog.country.fi.enabled=false
-      - setting_xroad-catalog.country.fi.fetch.companies.pool-size=
-      - setting_xroad-catalog.country.fi.fetch.companies.url=
-      - setting_xroad-catalog.country.fi.fetch.organizations.pool-size=
-      - setting_xroad-catalog.country.fi.fetch.organizations.url=
-      - setting_xroad-catalog.country.fi.fetch.external-limit=
-      - setting_xroad-catalog.country.fi.fetch.external-update-after-days=
-      - setting_xroad-catalog.country.fi.fetch.external-interval-min=
-      - setting_xroad-catalog.country.fi.fetch.external-run-unlimited=
-      - setting_xroad-catalog.country.fi.fetch.external-time-after-hour=
-      - setting_xroad-catalog.country.fi.fetch.external-time-before-hour=
 
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -102,7 +92,7 @@ services:
       - setting_xroad.configuration-client.global_conf_hostname_verification=true
       # catalog
       - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
-      - setting_xroad-catalog.country.fi.enabled=true
+      - setting_xroad-catalog.country.fi.enabled=false
       - setting_xroad-catalog.configuration-client.enabled=true
     volumes:
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml
