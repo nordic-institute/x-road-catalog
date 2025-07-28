@@ -38,7 +38,7 @@ services:
       - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
       - setting_spring.datasource.password=xroad_catalog_collector
       - setting_spring.liquibase.password=secret
-      - setting_spring.liquibase.contexts=users,fi
+      - setting_spring.liquibase.contexts=users
       - setting_spring.liquibase.parameters.users.collector.password=xroad_catalog_collector
       - setting_spring.liquibase.parameters.users.lister.password=xroad_catalog_lister
       # catalog
@@ -88,8 +88,8 @@ services:
       - setting_xroad.configuration-client.update-interval=60
       - setting_xroad.configuration-client.allowed-federations=none
       - setting_xroad.configuration-client.proxy-configuration-backup-cron=0 15 3 * * ?
-      - setting_xroad.configuration-client.global_conf_tls_cert_verification=true
-      - setting_xroad.configuration-client.global_conf_hostname_verification=true
+      - setting_xroad.configuration-client.global_conf_tls_cert_verification=false
+      - setting_xroad.configuration-client.global_conf_hostname_verification=false
       # catalog
       - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
       - setting_xroad-catalog.country.fi.enabled=false
