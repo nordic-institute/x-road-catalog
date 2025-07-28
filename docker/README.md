@@ -11,8 +11,20 @@ The `compose.yml` file has been configured so that the services can access the `
 
 1. Build the JAR files for the services by running `./gradlew build` in the root of the project.
 2. Copy your environments configuration anchor file to the [lister/config](lister/config) directory with the name `configuration-anchor.xml`.
-3. Create the configurations under [collector/config](collector/config) and [lister/config](lister/config) directories to suite your needs by renaming the `sample` files.
-4. Start the environment with `docker compose up -d --build`.
+3. By default, the compose environment is configured using the `application.yaml` file inside `<module>/src/main/resources/` directory and overwrites the values using environment variables provided in `compose.yml`. 
+   For more information on how to overwrite the configuration files, see the section below.
+
+   Alternatively you can mount your own configuration file to the directory `/app` inside the containers. **NB!**: The entries inside the file may overwritten by the environment variables provided in `compose.yml` file.
+4. Keeping the provided X-Road-instance parameters in `compose.yml` like `setting_xroad-catalog.target.subsystem-code=catalog`, make sure to add the subsystem to your X-Road instance and make sure to give it the desired access method (`HTTPS`, `HTTPS NO AUTH`, `HTTP`)
+5. Start the environment with `docker compose up -d --build`.
+6. (Optional) In order to verify the setup, make sure that the catalog service can access the X-Road service, by running catalog's `/api/getListOfServices` request and check entry "`serviceList`" for a subsystem that contains services.
+
+### Overwriting configuration files by environment variables
+
+You can overwrite the provides configuration files by providing environment variables that start with `setting_`. 
+For example, if you want to overwrite the `xroad-catalog.target.xroad-instance` setting in the `application.yaml` file, 
+you can set the environment variable `setting_xroad-catalog.target.xroad-instance=DEV` when running the container. The entires inside `application.yaml` 
+will be updated with the environment variable values before starting the application.
 
 ## Open ports
 
