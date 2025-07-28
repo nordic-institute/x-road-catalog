@@ -33,6 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -82,7 +83,8 @@ public class SubsystemRepositoryTest {
 
     @Test
     public void testFindLatestFetched() {
-        LocalDateTime latestFetched = subsystemRepository.findLatestFetched();
+        LocalDateTime latestFetched = subsystemRepository.findLatestFetched() == null ? null
+                : LocalDateTime.ofInstant(subsystemRepository.findLatestFetched(), ZoneId.systemDefault());
         assertEquals(2017, latestFetched.getYear());
         assertEquals(Month.JANUARY, latestFetched.getMonth());
         assertEquals(2, latestFetched.getDayOfMonth());

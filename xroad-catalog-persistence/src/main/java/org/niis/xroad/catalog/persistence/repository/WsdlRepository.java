@@ -28,7 +28,7 @@ import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
@@ -38,5 +38,5 @@ public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
     List<Wsdl> findAnyByExternalId(String externalId);
 
     @Query(value = "SELECT MAX(fetched) FROM wsdl", nativeQuery = true)
-    LocalDateTime findLatestFetched();
+    Instant findLatestFetched();
 }

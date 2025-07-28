@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
@@ -220,7 +221,8 @@ public class MemberRepositoryTest {
 
     @Test
     public void testFindLatestFetched() {
-        LocalDateTime latestFetched = memberRepository.findLatestFetched();
+        LocalDateTime latestFetched = memberRepository.findLatestFetched() == null ? null
+                : LocalDateTime.ofInstant(memberRepository.findLatestFetched(), ZoneId.systemDefault());
         assertEquals(2017, latestFetched.getYear());
         assertEquals(Month.JANUARY, latestFetched.getMonth());
         assertEquals(2, latestFetched.getDayOfMonth());
