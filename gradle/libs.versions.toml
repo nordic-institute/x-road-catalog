@@ -25,7 +25,7 @@ springBoot = "3.4.1"
 springDoc = "2.7.0"
 wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
-xroadLibs = "7.6.0-SNAPSHOT"
+xroadLibs = "7.7.0-SNAPSHOT"
 
 [libraries]
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }

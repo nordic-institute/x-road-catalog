@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.catalog.lister.configuration;
 
-import org.niis.xroad.confclient.config.ConfClientRootConfig;
+import org.niis.xroad.confclient.core.config.ConfClientRootConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
