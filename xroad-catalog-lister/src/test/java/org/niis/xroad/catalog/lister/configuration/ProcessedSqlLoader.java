@@ -22,24 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.persistence;
 
-import fi.dvv.xroad.catalog.persistence.configuration.PersistenceFinlandConfiguration;
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
-import org.niis.xroad.catalog.persistence.configuration.ProcessedSqlLoader;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
+package org.niis.xroad.catalog.lister.configuration;
 
-@SpringBootApplication
-@ComponentScan(basePackageClasses = Jsr310JpaConverters.class)
-@Import({PersistenceDefaultConfiguration.class, PersistenceFinlandConfiguration.class, ProcessedSqlLoader.class})
-public class PersistenceTestApplication {
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 
-    public static void main(String[] args) {
-        SpringApplication.run(PersistenceTestApplication.class);
+import javax.sql.DataSource;
+import java.nio.file.Paths;
+import java.sql.Connection;
+
+@TestConfiguration
+public class ProcessedSqlLoader {
+
+    @Autowired
+    DataSource dataSource;
+
+    @PostConstruct
+    public void loadProcessedTestData() throws Exception {
+        String processedsql = SqlPreprocessor.preprocessSql(
+                Paths.get("src/test/resources/test-data-template.sql").toString()
+        );
+
+        try (Connection conn = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(conn, new ByteArrayResource(processedsql.getBytes()));
+        }
     }
 
 }

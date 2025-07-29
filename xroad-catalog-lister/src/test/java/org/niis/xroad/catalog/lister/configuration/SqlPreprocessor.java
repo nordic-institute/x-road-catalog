@@ -22,24 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.persistence;
 
-import fi.dvv.xroad.catalog.persistence.configuration.PersistenceFinlandConfiguration;
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
-import org.niis.xroad.catalog.persistence.configuration.ProcessedSqlLoader;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
+package org.niis.xroad.catalog.lister.configuration;
 
-@SpringBootApplication
-@ComponentScan(basePackageClasses = Jsr310JpaConverters.class)
-@Import({PersistenceDefaultConfiguration.class, PersistenceFinlandConfiguration.class, ProcessedSqlLoader.class})
-public class PersistenceTestApplication {
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    public static void main(String[] args) {
-        SpringApplication.run(PersistenceTestApplication.class);
+public final class SqlPreprocessor {
+
+    private SqlPreprocessor() {
+        throw new UnsupportedOperationException("Utility class");
     }
 
+    public static String preprocessSql(String pathToSqlTemplate) throws IOException {
+        String template = Files.readString(Paths.get(pathToSqlTemplate));
+
+        Pattern filePattern = Pattern.compile("@file\\('(.+?)'\\)");
+        Matcher matcher = filePattern.matcher(template);
+
+        StringBuffer sb = new StringBuffer();
+
+        while (matcher.find()) {
+            String filePath = matcher.group(1);
+            String fileContent = Files.readString(Paths.get(filePath));
+
+            String escapedContent = fileContent.replace("'", "''");
+            matcher.appendReplacement(sb, "'" + escapedContent + "'");
+        }
+
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
 }
