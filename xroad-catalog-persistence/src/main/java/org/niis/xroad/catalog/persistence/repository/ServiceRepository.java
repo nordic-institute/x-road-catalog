@@ -30,6 +30,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public interface ServiceRepository extends CrudRepository<Service, Long> {
@@ -137,5 +139,9 @@ public interface ServiceRepository extends CrudRepository<Service, Long> {
             @Param("serviceVersion") String serviceVersion);
 
     @Query(value = "SELECT MAX(fetched) FROM service", nativeQuery = true)
-    Instant findLatestFetched();
+    Instant findLatestFetchedInstant();
+
+    default LocalDateTime findLatestFetched() {
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+    }
 }

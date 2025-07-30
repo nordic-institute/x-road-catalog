@@ -29,6 +29,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
@@ -38,5 +40,9 @@ public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
     List<Wsdl> findAnyByExternalId(String externalId);
 
     @Query(value = "SELECT MAX(fetched) FROM wsdl", nativeQuery = true)
-    Instant findLatestFetched();
+    Instant findLatestFetchedInstant();
+
+    default LocalDateTime findLatestFetched() {
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+    }
 }

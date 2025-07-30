@@ -33,7 +33,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -125,8 +124,7 @@ public class ServiceRepositoryTest {
 
     @Test
     public void testFindLatestFetched() {
-        LocalDateTime latestFetched = serviceRepository.findLatestFetched() == null ? null
-                : LocalDateTime.ofInstant(serviceRepository.findLatestFetched(), ZoneId.systemDefault());
+        LocalDateTime latestFetched = serviceRepository.findLatestFetched();
         assertEquals(2017, latestFetched.getYear());
         assertEquals(Month.JANUARY, latestFetched.getMonth());
         assertEquals(2, latestFetched.getDayOfMonth());

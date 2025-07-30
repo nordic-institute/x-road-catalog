@@ -53,7 +53,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -356,16 +355,11 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public LastCollectionData getLastCollectionData() {
         return LastCollectionData.builder()
-                .membersLastFetched(memberRepository.findLatestFetched() == null ? null
-                        : LocalDateTime.ofInstant(serviceRepository.findLatestFetched(), ZoneId.systemDefault()))
-                .openapisLastFetched(openApiRepository.findLatestFetched() == null ? null
-                        : LocalDateTime.ofInstant(openApiRepository.findLatestFetched(), ZoneId.systemDefault()))
-                .servicesLastFetched(serviceRepository.findLatestFetched() == null ? null
-                        : LocalDateTime.ofInstant(serviceRepository.findLatestFetched(), ZoneId.systemDefault()))
-                .subsystemsLastFetched(subsystemRepository.findLatestFetched() == null ? null
-                        : LocalDateTime.ofInstant(serviceRepository.findLatestFetched(), ZoneId.systemDefault()))
-                .wsdlsLastFetched(wsdlRepository.findLatestFetched() == null ? null
-                        : LocalDateTime.ofInstant(wsdlRepository.findLatestFetched(), ZoneId.systemDefault())).build();
+                .membersLastFetched(memberRepository.findLatestFetched())
+                .openapisLastFetched(openApiRepository.findLatestFetched())
+                .servicesLastFetched(serviceRepository.findLatestFetched())
+                .subsystemsLastFetched(subsystemRepository.findLatestFetched())
+                .wsdlsLastFetched(wsdlRepository.findLatestFetched()).build();
     }
 
     private boolean isDateBetweenDates(LocalDateTime dateToBeChecked,

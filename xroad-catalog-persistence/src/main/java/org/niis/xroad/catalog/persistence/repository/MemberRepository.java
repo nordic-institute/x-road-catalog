@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Set;
 
 /**
@@ -84,7 +85,11 @@ public interface MemberRepository extends CrudRepository<Member, Long> {
     Integer checkConnection();
 
     @Query(value = "SELECT MAX(fetched) FROM member", nativeQuery = true)
-    Instant findLatestFetched();
+    Instant findLatestFetchedInstant();
+
+    default LocalDateTime findLatestFetched() {
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+    }
 
     @Query(value = "SELECT mem.member_code"
             + " FROM member mem"
