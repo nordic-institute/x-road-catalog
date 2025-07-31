@@ -29,7 +29,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public interface SubsystemRepository extends CrudRepository<Subsystem, Long> {
 
@@ -44,6 +46,10 @@ public interface SubsystemRepository extends CrudRepository<Subsystem, Long> {
                                      @Param("subsystemCode") String subsystemCode);
 
     @Query(value = "SELECT MAX(fetched) FROM subsystem", nativeQuery = true)
-    LocalDateTime findLatestFetched();
+    Instant findLatestFetchedInstant();
+
+    default LocalDateTime findLatestFetched() {
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+    }
 }
 

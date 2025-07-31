@@ -53,5 +53,4 @@ public class LastCollectionData implements Serializable {
     private LocalDateTime wsdlsLastFetched;
 
     private LocalDateTime openapisLastFetched;
-
 }

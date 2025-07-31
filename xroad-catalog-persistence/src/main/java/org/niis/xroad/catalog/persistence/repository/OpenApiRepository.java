@@ -28,7 +28,9 @@ import org.niis.xroad.catalog.persistence.entity.OpenApi;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 public interface OpenApiRepository extends CrudRepository<OpenApi, Long> {
@@ -38,5 +40,9 @@ public interface OpenApiRepository extends CrudRepository<OpenApi, Long> {
     List<OpenApi> findAnyByExternalId(String externalId);
 
     @Query(value = "SELECT MAX(fetched) FROM open_api", nativeQuery = true)
-    LocalDateTime findLatestFetched();
+    Instant findLatestFetchedInstant();
+
+    default LocalDateTime findLatestFetched() {
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+    }
 }

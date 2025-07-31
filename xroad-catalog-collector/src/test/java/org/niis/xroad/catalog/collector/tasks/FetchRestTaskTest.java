@@ -33,8 +33,8 @@ import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.net.MalformedURLException;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.verify;
 @ActiveProfiles("test")
 public class FetchRestTaskTest {
 
-    @MockBean
+    @MockitoBean
     CatalogService catalogService;
 
     @Autowired

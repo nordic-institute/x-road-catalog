@@ -35,9 +35,9 @@ import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ActiveProfiles("test")
 public class XRoadClientTest {
 
-    @MockBean
+    @MockitoBean
     CatalogService catalogService;
 
     @Value("${xroad-catalog.urls.security-server-host}")

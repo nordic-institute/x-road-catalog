@@ -38,9 +38,9 @@ import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
@@ -61,10 +61,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 @ActiveProfiles("test")
 public class FetchOrganizationTaskTest {
 
-    @MockBean
+    @MockitoBean
     CatalogService catalogService;
 
-    @MockBean
+    @MockitoBean
     OrganizationService organizationService;
 
     @Autowired

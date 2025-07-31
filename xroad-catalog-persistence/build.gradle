@@ -26,6 +26,7 @@ dependencies {
     implementation (libs.xmlunit.core)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
+    testRuntimeOnly (libs.junit.launcer)
     testImplementation (libs.lombok)
     testImplementation (libs.h2.database)
     testAnnotationProcessor (libs.lombok)
@@ -34,9 +35,7 @@ dependencies {
 
 test {
     systemProperty 'user.timezone', 'Europe/Helsinki'
-    useJUnitPlatform {
-        includeEngines 'junit-jupiter'
-    }
+    useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
 
