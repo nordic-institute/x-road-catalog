@@ -26,6 +26,7 @@ springDoc = "2.8.9"
 wsdl4j = "1.6.3"
 wsdl2java = "2.0.2"
 xroadLibs = "7.7.0-SNAPSHOT"
+xrd4j = "0.9.0-SNAPSHOT"
 
 [libraries]
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
@@ -62,6 +63,7 @@ spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", ver
 wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.3" }
 xroad-configuration-client = { module = "org.niis.xroad:configuration-client", version.ref = "xroadLibs" }
+xrd4j-client = { module = "org.niis.xrd4j:client", version.ref = "xrd4j"}
 
 [bundles]
 jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation

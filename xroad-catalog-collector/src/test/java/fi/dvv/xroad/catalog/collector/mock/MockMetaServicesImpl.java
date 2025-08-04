@@ -29,7 +29,6 @@ import jakarta.jws.WebService;
 import jakarta.xml.ws.Holder;
 import jakarta.xml.ws.WebServiceContext;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.wsimport.AllowedMethods;
 import org.niis.xroad.catalog.collector.wsimport.AllowedMethodsResponse;
 import org.niis.xroad.catalog.collector.wsimport.GetWsdl;
@@ -71,9 +70,6 @@ public class MockMetaServicesImpl implements MetaServicesPort {
             Holder<String> userId,
             Holder<String> id,
             Holder<String> protocolVersion) {
-        log.info("mock listMethods");
-        log.info("client= {}", ClientTypeUtil.toString(client.value));
-
         ListMethodsResponse response = new ListMethodsResponse();
         response.getService().add(generateService("testServiceFoo", "v1", service.value));
         response.getService().add(generateService("testServiceBar", "v1", service.value));
@@ -94,7 +90,6 @@ public class MockMetaServicesImpl implements MetaServicesPort {
         getWsdlResponse.value = response;
         final String tmp = getWSDLForService(getWsdl.getServiceCode(), getWsdl.getServiceVersion());
         wsdl.value = tmp.getBytes(StandardCharsets.UTF_8);
-        log.info("Returning WSDL");
     }
 
     private XRoadServiceIdentifierType generateService(String serviceCode,

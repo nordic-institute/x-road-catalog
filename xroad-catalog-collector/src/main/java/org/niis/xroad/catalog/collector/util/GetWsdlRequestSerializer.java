@@ -22,36 +22,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.util;
 
-import org.niis.xrd4j.common.member.ProducerMember;
-import org.niis.xroad.catalog.collector.util.MemberWithName;
-import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xrd4j.client.serializer.AbstractServiceRequestSerializer;
+import org.niis.xrd4j.common.message.ServiceRequest;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+@Slf4j
+public class GetWsdlRequestSerializer extends AbstractServiceRequestSerializer<GetWsdlRequest> {
 
-@Component
-public class DefaultBlockingQueuesBeanProvider {
-    @Bean("listMethodsQueue")
-    public BlockingQueue<MemberWithName> listMethodsQueue() {
-        return new LinkedBlockingQueue<>();
-    }
-
-    @Bean("wsdlServicesQueue")
-    public BlockingQueue<ProducerMember> wsdlServicesQueue() {
-        return new LinkedBlockingQueue<>();
-    }
-
-    @Bean("restServicesQueue")
-    public BlockingQueue<XRoadIdentifier> restServicesQueue() {
-        return new LinkedBlockingQueue<>();
-    }
-
-    @Bean("openApiServicesQueue")
-    public BlockingQueue<XRoadIdentifier> openApiServicesQueue() {
-        return new LinkedBlockingQueue<>();
+    @Override
+    protected void serializeRequest(ServiceRequest<GetWsdlRequest> request, SOAPElement soapRequest,
+                                     SOAPEnvelope envelope) throws SOAPException {
+        SOAPElement serviceCode = soapRequest.addChildElement(envelope.createName("serviceCode"));
+        serviceCode.setValue(request.getRequestData().getServiceCode());
+        SOAPElement serviceVersion = soapRequest.addChildElement(envelope.createName("serviceVersion"));
+        serviceVersion.setValue(request.getRequestData().getServiceVersion());
     }
 }

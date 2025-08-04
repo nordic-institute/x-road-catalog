@@ -24,7 +24,9 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import org.niis.xroad.catalog.collector.wsimport.ClientList;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.niis.xrd4j.common.member.ObjectType;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,6 +34,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class ClientListUtil {
@@ -42,13 +45,32 @@ public final class ClientListUtil {
         // Private empty constructor
     }
 
-    public static ClientList clientListFromResponse(String url) {
+    public static List<MemberWithName> clientListFromResponse(String url) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(List.of(MediaType.TEXT_XML));
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-        ResponseEntity<ClientList> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, requestEntity,
-                ClientList.class);
-        return response.getBody();
+        ResponseEntity<String> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, requestEntity,
+                String.class);
+        JSONObject bodyJson = new JSONObject(response.getBody());
+        JSONArray members = bodyJson.getJSONArray("member");
+        List<MemberWithName> ret = new ArrayList<>();
+        for (int i = 0; i < members.length(); i++) {
+            JSONObject member = members.getJSONObject(i);
+            ret.add(constructMemberWithName(member));
+        }
+        return ret;
+    }
+
+    private static MemberWithName constructMemberWithName(final JSONObject member) {
+        JSONObject jsonId = member.getJSONObject("id");
+        XRoadIdentifier id = XRoadIdentifier.builder()
+                .xRoadInstance(jsonId.getString("xroad_instance"))
+                .memberClass(jsonId.getString("member_class"))
+                .memberCode(jsonId.getString("member_code"))
+                .subsystemCode(jsonId.optString("subsystem_code", null))
+                .objectType(jsonId.getEnum(ObjectType.class, "object_type"))
+                .build();
+        return new MemberWithName(member.getString("name"), id);
     }
 
 }

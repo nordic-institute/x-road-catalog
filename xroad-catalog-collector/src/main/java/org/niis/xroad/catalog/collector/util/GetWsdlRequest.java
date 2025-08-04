@@ -22,36 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.collector.tasks;
+package org.niis.xroad.catalog.collector.util;
 
-import org.niis.xrd4j.common.member.ProducerMember;
-import org.niis.xroad.catalog.collector.util.MemberWithName;
-import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-@Component
-public class DefaultBlockingQueuesBeanProvider {
-    @Bean("listMethodsQueue")
-    public BlockingQueue<MemberWithName> listMethodsQueue() {
-        return new LinkedBlockingQueue<>();
-    }
-
-    @Bean("wsdlServicesQueue")
-    public BlockingQueue<ProducerMember> wsdlServicesQueue() {
-        return new LinkedBlockingQueue<>();
-    }
-
-    @Bean("restServicesQueue")
-    public BlockingQueue<XRoadIdentifier> restServicesQueue() {
-        return new LinkedBlockingQueue<>();
-    }
-
-    @Bean("openApiServicesQueue")
-    public BlockingQueue<XRoadIdentifier> openApiServicesQueue() {
-        return new LinkedBlockingQueue<>();
-    }
+@Getter
+@Setter
+@AllArgsConstructor
+public class GetWsdlRequest {
+    private String serviceCode;
+    private String serviceVersion;
 }

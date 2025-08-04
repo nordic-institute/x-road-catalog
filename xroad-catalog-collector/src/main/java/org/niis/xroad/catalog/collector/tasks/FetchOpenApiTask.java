@@ -24,64 +24,56 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
 @Component
-public class FetchOpenApiTask extends BaseFetchTask<XRoadRestServiceIdentifierType> {
+public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
 
     private final String xroadSecurityServerHost;
 
-    private final String xroadInstance;
+    private final ConsumerMember consumerMember;
 
-    private final String memberCode;
-
-    private final String memberClass;
-
-    private final String subsystemCode;
-
-    private final String webservicesEndpoint;
-
-    private CatalogService catalogService;
+    private final CatalogService catalogService;
 
     private final XRoadClient xroadClient;
 
     public FetchOpenApiTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-                            final BlockingQueue<XRoadRestServiceIdentifierType> openApiServicesQueue) throws URISyntaxException {
+                            final BlockingQueue<XRoadIdentifier> openApiServicesQueue) throws XRd4JException, SOAPException {
         super(openApiServicesQueue, taskPoolConfiguration.getFetchOpenapiPoolSize());
         this.catalogService = catalogService;
 
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
-        this.xroadInstance = taskPoolConfiguration.getXroadInstance();
-        this.memberCode = taskPoolConfiguration.getMemberCode();
-        this.memberClass = taskPoolConfiguration.getMemberClass();
-        this.subsystemCode = taskPoolConfiguration.getSubsystemCode();
-        this.webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
+        this.consumerMember = new ConsumerMember(
+                taskPoolConfiguration.getXroadInstance(),
+                taskPoolConfiguration.getMemberCode(),
+                taskPoolConfiguration.getMemberClass(),
+                taskPoolConfiguration.getSubsystemCode());
 
-        this.xroadClient = new XRoadClient(
-                ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),
-                new URI(webservicesEndpoint));
+        String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
+
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
     }
 
     @Override
-    protected void fetch(final XRoadRestServiceIdentifierType service) {
+    protected void fetch(final XRoadIdentifier service) {
         try {
             log.info("Fetching OpenApi for {}", ClientTypeUtil.toString(service));
-            String openApi = xroadClient.getOpenApi(service, xroadSecurityServerHost, xroadInstance, memberClass,
-                    memberCode, subsystemCode, catalogService);
+            String openApi = xroadClient.getOpenApi(service, xroadSecurityServerHost, consumerMember, catalogService);
             catalogService.saveOpenApi(createSubsystemId(service), createServiceId(service), openApi);
             List<Endpoint> endpointList = MethodListUtil.getEndpointList(service);
             catalogService.prepareEndpoints(createSubsystemId(service), createServiceId(service));

@@ -25,15 +25,14 @@
 package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.events.NewMembersEventPublisher;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.CollectorUtils;
-import org.niis.xroad.catalog.collector.wsimport.ClientList;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.MemberId;
@@ -53,11 +52,11 @@ public class ListClientsTask implements Runnable {
 
     private final TaskPoolConfiguration taskPoolConfiguration;
     private final CatalogService catalogService;
-    private final Queue<ClientType> listMethodsQueue;
+    private final Queue<MemberWithName> listMethodsQueue;
     private final NewMembersEventPublisher newMembersEventPublisher;
 
-    public ListClientsTask(CatalogService catalogService, TaskPoolConfiguration taskPoolConfiguration, Queue<ClientType> listMethodsQueue,
-                           NewMembersEventPublisher newMembersEventPublisher) {
+    public ListClientsTask(CatalogService catalogService, TaskPoolConfiguration taskPoolConfiguration,
+                           Queue<MemberWithName> listMethodsQueue, NewMembersEventPublisher newMembersEventPublisher) {
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.catalogService = catalogService;
         this.listMethodsQueue = listMethodsQueue;
@@ -82,13 +81,13 @@ public class ListClientsTask implements Runnable {
         String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
         try {
             log.info("Getting client list from {}", listClientsUrl);
-            ClientList clientList = ClientListUtil.clientListFromResponse(listClientsUrl);
+            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl);
             HashMap<MemberId, Member> m = populateMapWithMembers(clientList);
             Set<Member> newMembers = catalogService.saveAllMembersAndSubsystems(m.values());
 
             // We only fetch WSDL-s and REST services from subsystems
-            List<ClientType> subsystems = clientList.getMember().stream()
-                    .filter(client -> XRoadObjectType.SUBSYSTEM.equals(client.getId().getObjectType()))
+            List<MemberWithName> subsystems = clientList.stream()
+                    .filter(client -> ObjectType.SUBSYSTEM.equals(client.getId().getObjectType()))
                     .toList();
             listMethodsQueue.addAll(subsystems);
 
@@ -105,19 +104,20 @@ public class ListClientsTask implements Runnable {
 
     }
 
-    private HashMap<MemberId, Member> populateMapWithMembers(ClientList clientList) {
+    private HashMap<MemberId, Member> populateMapWithMembers(List<MemberWithName> clientList) {
         HashMap<MemberId, Member> m = new HashMap<>();
         int clientCounter = 0;
-        for (ClientType clientType : clientList.getMember()) {
+        for (MemberWithName clientType : clientList) {
             clientCounter++;
             log.debug("{} - {}", clientCounter, ClientTypeUtil.toString(clientType));
-            Member newMember = new Member(clientType.getId().getXRoadInstance(), clientType.getId()
-                    .getMemberClass(),
-                    clientType.getId().getMemberCode(), clientType.getName());
+            Member newMember = new Member(clientType.getId().getXRoadInstance(),
+                    clientType.getId().getMemberClass(),
+                    clientType.getId().getMemberCode(),
+                    clientType.getName());
             newMember.setSubsystems(new HashSet<>());
             m.putIfAbsent(newMember.createKey(), newMember);
 
-            if (XRoadObjectType.SUBSYSTEM.equals(clientType.getId().getObjectType())) {
+            if (ObjectType.SUBSYSTEM.equals(clientType.getId().getObjectType())) {
                 Subsystem newSubsystem = new Subsystem(newMember, clientType.getId().getSubsystemCode());
                 m.get(newMember.createKey()).getAllSubsystems().add(newSubsystem);
             }

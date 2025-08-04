@@ -24,120 +24,49 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import jakarta.activation.DataHandler;
-import jakarta.xml.ws.BindingProvider;
-import jakarta.xml.ws.Holder;
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.cxf.endpoint.Client;
-import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.message.Attachment;
-import org.apache.cxf.message.Message;
-import org.apache.cxf.transport.http.HTTPConduit;
+import org.niis.xrd4j.client.SOAPClient;
+import org.niis.xrd4j.client.SOAPClientImpl;
+import org.niis.xrd4j.common.member.ConsumerMember;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xrd4j.common.member.ProducerMember;
+import org.niis.xrd4j.common.message.ServiceRequest;
+import org.niis.xrd4j.common.message.ServiceResponse;
+import org.niis.xrd4j.common.util.Constants;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.GetWsdl;
-import org.niis.xroad.catalog.collector.wsimport.GetWsdlResponse;
-import org.niis.xroad.catalog.collector.wsimport.ListMethods;
-import org.niis.xroad.catalog.collector.wsimport.ListMethodsResponse;
-import org.niis.xroad.catalog.collector.wsimport.MetaServicesPort;
-import org.niis.xroad.catalog.collector.wsimport.ProducerPortService;
-import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
 public class XRoadClient {
+    static final GetWsdlRequestSerializer GET_WSDL_REQUEST_SERIALIZER = new GetWsdlRequestSerializer();
+    static final GetWsdlResponseDeserializer GET_WSDL_RESPONSE_DESERIALIZER = new GetWsdlResponseDeserializer();
 
-    static final int HTTP_CONNECTION_TIMEOUT = 30000;
-    static final int HTTP_RECEIVE_TIMEOUT = 60000;
+    final SOAPClient soapClient;
+    final ConsumerMember consumerMember;
+    final String securityServerURL;
 
-    static final Map<URI, MetaServicesPort> META_SERVICE_PORTS = new HashMap<>();
-    final MetaServicesPort metaServicesPort;
-
-    final XRoadClientIdentifierType clientId;
-
-    public XRoadClient(XRoadClientIdentifierType clientId, URI serverUrl) {
-        this.metaServicesPort = getMetaServicesPort(serverUrl);
-        final XRoadClientIdentifierType tmp = new XRoadClientIdentifierType();
-        copyIdentifierType(tmp, clientId);
-        this.clientId = tmp;
-    }
-
-    private static synchronized MetaServicesPort getMetaServicesPort(URI serverUrl) {
-        /**
-         * This is currently a workaround, since the current approach results in all the
-         * dispatchers creating a new port, which in turn causes a failure due to HTTP
-         * code 429 (Too Many Requests) from W3C's server.
-         *
-         * An issue is that CXF ports are not thread-safe, however that is
-         * mostly for the cases of configuring it, which we do in
-         * {@link}org.niis.xroad.catalog.collector.util.XRoadClient#getMetaServicesPort(URI)}.
-         * Actually using the port in multiple threads to do requests as a client should
-         * be safe.
-         *
-         * Nevertheless, this should be refactored when migrating away from Akka.
-         * Currently just a stop-gap solution to get the JAVA21 build version running
-         * correctish.
-         *
-         * A few alternatives I have come across for this are:
-         *
-         * - Try to use cataloging, which links the online resources to local files.
-         * Though this apparently is pretty hit or miss depending on the implementation.
-         * Some information suggests CXF does not support this.
-         *
-         * - Another alternative would be to use XRD4J once it is updated to JAVA21,
-         * since it doesn't try to parse the WSDL every time.
-         *
-         */
-        MetaServicesPort port = META_SERVICE_PORTS.get(serverUrl);
-        if (!META_SERVICE_PORTS.containsKey(serverUrl)) {
-            port = createMetaServicesPort(serverUrl);
-            META_SERVICE_PORTS.put(serverUrl, port);
-        } else {
-            port = META_SERVICE_PORTS.get(serverUrl);
-        }
-        return port;
+    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL) throws SOAPException {
+        this.soapClient = new SOAPClientImpl();
+        this.consumerMember = consumerMember;
+        this.securityServerURL = securityServerURL;
     }
 
     /**
-     * Calls the service using JAX-WS endpoints that have been generated from wsdl
+     * Calls the service using XRD4J
      */
-    public List<XRoadServiceIdentifierType> getMethods(XRoadClientIdentifierType member,
-                                                       CatalogService catalogService) {
-        XRoadServiceIdentifierType serviceIdentifierType = new XRoadServiceIdentifierType();
-        copyIdentifierType(serviceIdentifierType, member);
-
-        XRoadClientIdentifierType tmpClientId = new XRoadClientIdentifierType();
-        copyIdentifierType(tmpClientId, clientId);
-
-        serviceIdentifierType.setServiceCode("listMethods");
-        serviceIdentifierType.setServiceVersion("v1");
-        serviceIdentifierType.setObjectType(XRoadObjectType.SERVICE);
-
-        ListMethodsResponse response = null;
+    public List<ProducerMember> getMethods(final XRoadIdentifier member, final CatalogService catalogService) {
+        List<ProducerMember> response = null;
         try {
-            response = metaServicesPort.listMethods(new ListMethods(),
-                    holder(tmpClientId),
-                    holder(serviceIdentifierType),
-                    userId(),
-                    queryId(),
-                    protocolVersion());
+            ServiceRequest<String> request = new ServiceRequest<>(consumerMember, member.toProducerMember(), queryId());
+            response = soapClient.listMethods(request, securityServerURL).getResponseData();
         } catch (Exception e) {
-            log.error("Fetch of SOAP services failed: " + e.getMessage());
+            log.error("Fetch of SOAP services failed: {}", e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
                     .created(LocalDateTime.now())
                     .message("Fetch of SOAP services failed: " + e.getMessage())
@@ -145,45 +74,34 @@ public class XRoadClient {
                     .xRoadInstance(member.getXRoadInstance())
                     .memberClass(member.getMemberClass())
                     .memberCode(member.getMemberCode())
-                    .groupCode(member.getGroupCode())
-                    .securityCategoryCode(member.getSecurityCategoryCode())
-                    .serverCode(member.getServerCode())
                     .serviceCode(member.getServiceCode())
                     .serviceVersion(member.getServiceVersion())
                     .subsystemCode(member.getSubsystemCode())
                     .build();
             catalogService.saveErrorLog(errorLog);
         }
-        return response != null ? response.getService() : new ArrayList<>();
+        return response != null ? response : new ArrayList<>();
     }
 
-    public String getWsdl(XRoadServiceIdentifierType service, CatalogService catalogService) throws Exception {
-        XRoadServiceIdentifierType serviceIdentifierType = new XRoadServiceIdentifierType();
-        copyIdentifierType(serviceIdentifierType, service);
-        XRoadClientIdentifierType tmpClientId = new XRoadClientIdentifierType();
-        copyIdentifierType(tmpClientId, clientId);
-        serviceIdentifierType.setServiceCode("getWsdl");
-        serviceIdentifierType.setServiceVersion("v1");
-        serviceIdentifierType.setObjectType(XRoadObjectType.SERVICE);
+    public String getWsdl(final ProducerMember service, final CatalogService catalogService) throws Exception {
+        // Get the actual target service before we swap it for the getWsdl metaservice info
+        GetWsdlRequest requestData = new GetWsdlRequest(service.getServiceCode(), service.getServiceVersion());
 
-        final GetWsdl getWsdl = new GetWsdl();
-        getWsdl.setServiceCode(service.getServiceCode());
-        getWsdl.setServiceVersion(service.getServiceVersion());
+        service.setServiceCode("getWsdl");
+        service.setServiceVersion(null);
+        service.setObjectType(ObjectType.SERVICE);
+        service.setNamespacePrefix(Constants.NS_XRD_PREFIX);
+        service.setNamespaceUrl(Constants.NS_XRD_URL);
 
-        final Holder<GetWsdlResponse> response = new Holder<>();
-        final Holder<byte[]> wsdl = new Holder<>();
 
         try {
-            metaServicesPort.getWsdl(getWsdl,
-                    holder(tmpClientId),
-                    holder(serviceIdentifierType),
-                    userId(),
-                    queryId(),
-                    protocolVersion(),
-                    response,
-                    wsdl);
+            ServiceRequest<GetWsdlRequest> request = new ServiceRequest<>(consumerMember, service, queryId());
+            request.setRequestData(requestData);
+            ServiceResponse<GetWsdlRequest, String> response = soapClient.send(request, securityServerURL,
+                    GET_WSDL_REQUEST_SERIALIZER, GET_WSDL_RESPONSE_DESERIALIZER);
+            return response.getResponseData();
         } catch (Exception e) {
-            log.error("Fetch of WSDL failed: " + e.getMessage());
+            log.error("Fetch of WSDL failed: {}", e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
                     .created(LocalDateTime.now())
                     .message("Fetch of WSDL failed: " + e.getMessage())
@@ -191,9 +109,6 @@ public class XRoadClient {
                     .xRoadInstance(service.getXRoadInstance())
                     .memberClass(service.getMemberClass())
                     .memberCode(service.getMemberCode())
-                    .groupCode(service.getGroupCode())
-                    .securityCategoryCode(service.getSecurityCategoryCode())
-                    .serverCode(service.getServerCode())
                     .serviceCode(service.getServiceCode())
                     .serviceVersion(service.getServiceVersion())
                     .subsystemCode(service.getSubsystemCode())
@@ -201,128 +116,18 @@ public class XRoadClient {
             catalogService.saveErrorLog(errorLog);
             throw e;
         }
-
-        if (!(wsdl.value instanceof byte[])) {
-            DataHandler dh = null;
-            @SuppressWarnings("PMD.CloseResource")
-            final Client client = ClientProxy.getClient(metaServicesPort);
-            @SuppressWarnings("unchecked") final Collection<Attachment> attachments = (Collection<Attachment>) client.getResponseContext()
-                    .get(Message.ATTACHMENTS);
-            if (attachments != null && attachments.size() == 1) {
-                dh = attachments.iterator().next().getDataHandler();
-            } else {
-                log.error("Expected one WSDL attachment");
-                ErrorLog errorLog = ErrorLog.builder()
-                        .created(LocalDateTime.now())
-                        .message("Expected one WSDL attachment")
-                        .code("500")
-                        .xRoadInstance(service.getXRoadInstance())
-                        .memberClass(service.getMemberClass())
-                        .memberCode(service.getMemberCode())
-                        .groupCode(service.getGroupCode())
-                        .securityCategoryCode(service.getSecurityCategoryCode())
-                        .serverCode(service.getServerCode())
-                        .serviceCode(service.getServiceCode())
-                        .serviceVersion(service.getServiceVersion())
-                        .subsystemCode(service.getSubsystemCode())
-                        .build();
-                catalogService.saveErrorLog(errorLog);
-            }
-            try (ByteArrayOutputStream buf = new ByteArrayOutputStream()) {
-                if (dh == null) {
-                    throw new IOException("Unable to extract attachment from response context.");
-                }
-                dh.writeTo(buf);
-                return buf.toString(StandardCharsets.UTF_8.name());
-            } catch (IOException | NullPointerException e) {
-                log.error("Error downloading WSDL: ", e.getMessage());
-                ErrorLog errorLog = ErrorLog.builder()
-                        .created(LocalDateTime.now())
-                        .message("Error downloading WSDL: " + e.getMessage())
-                        .code("500")
-                        .xRoadInstance(service.getXRoadInstance())
-                        .memberClass(service.getMemberClass())
-                        .memberCode(service.getMemberCode())
-                        .groupCode(service.getGroupCode())
-                        .securityCategoryCode(service.getSecurityCategoryCode())
-                        .serverCode(service.getServerCode())
-                        .serviceCode(service.getServiceCode())
-                        .serviceVersion(service.getServiceVersion())
-                        .subsystemCode(service.getSubsystemCode())
-                        .build();
-                catalogService.saveErrorLog(errorLog);
-                throw e;
-            }
-        } else {
-            return new String(wsdl.value, StandardCharsets.UTF_8);
-        }
     }
 
-    public String getOpenApi(XRoadRestServiceIdentifierType service,
+    public String getOpenApi(XRoadIdentifier service,
                              String host,
-                             String xRoadInstance,
-                             String memberClass,
-                             String memberCode,
-                             String subsystemCode,
+                             ConsumerMember clientIdentifier,
                              CatalogService catalogService) {
-        ClientType clientType = new ClientType();
-        XRoadClientIdentifierType xRoadClientIdentifierType = new XRoadClientIdentifierType();
-        xRoadClientIdentifierType.setXRoadInstance(service.getXRoadInstance());
-        xRoadClientIdentifierType.setMemberClass(service.getMemberClass());
-        xRoadClientIdentifierType.setMemberCode(service.getMemberCode());
-        xRoadClientIdentifierType.setSubsystemCode(service.getSubsystemCode());
-        xRoadClientIdentifierType.setGroupCode(service.getGroupCode());
-        xRoadClientIdentifierType.setServiceCode(service.getServiceCode());
-        xRoadClientIdentifierType.setServiceVersion(service.getServiceVersion());
-        xRoadClientIdentifierType.setSecurityCategoryCode(service.getSecurityCategoryCode());
-        xRoadClientIdentifierType.setServerCode(service.getServerCode());
-        xRoadClientIdentifierType.setObjectType(service.getObjectType());
-        clientType.setId(xRoadClientIdentifierType);
 
-        return MethodListUtil.openApiFromResponse(clientType, host, xRoadInstance, memberClass, memberCode,
-                subsystemCode, catalogService);
+        return MethodListUtil.openApiFromResponse(service, host, clientIdentifier, catalogService);
     }
 
-    private static Holder<String> queryId() {
-        return holder("xroad-catalog-collector-" + UUID.randomUUID());
-    }
-
-    private static Holder<String> protocolVersion() {
-        return holder("4.0");
-    }
-
-    private static Holder<String> userId() {
-        return holder("xroad-catalog-collector");
-    }
-
-    private static <T> Holder<T> holder(T value) {
-        return new Holder<>(value);
-    }
-
-    private static MetaServicesPort createMetaServicesPort(URI url) {
-        ProducerPortService service = new ProducerPortService();
-        MetaServicesPort port = service.getMetaServicesPortSoap11();
-        BindingProvider bindingProvider = (BindingProvider) port;
-        bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, url.toString());
-
-        final HTTPConduit conduit = (HTTPConduit) ClientProxy.getClient(port).getConduit();
-        conduit.getClient().setConnectionTimeout(HTTP_CONNECTION_TIMEOUT);
-        conduit.getClient().setReceiveTimeout(HTTP_RECEIVE_TIMEOUT);
-
-        return port;
-    }
-
-    private static void copyIdentifierType(XRoadIdentifierType target, XRoadIdentifierType source) {
-        target.setGroupCode(source.getGroupCode());
-        target.setObjectType(source.getObjectType());
-        target.setMemberCode(source.getMemberCode());
-        target.setServiceVersion(source.getServiceVersion());
-        target.setMemberClass(source.getMemberClass());
-        target.setServiceCode(source.getServiceCode());
-        target.setSecurityCategoryCode(source.getSecurityCategoryCode());
-        target.setServerCode(source.getServerCode());
-        target.setXRoadInstance(source.getXRoadInstance());
-        target.setSubsystemCode(source.getSubsystemCode());
+    private String queryId() {
+        return "xroad-catalog-collector-" + UUID.randomUUID();
     }
 
 }

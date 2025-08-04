@@ -24,17 +24,18 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
+import jakarta.xml.soap.SOAPException;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xrd4j.common.member.ProducerMember;
 import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.configuration.TestingConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -42,7 +43,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -70,32 +70,31 @@ public class ListMethodsTaskTest {
 
     @Test
     public void testListMethodsTaskSavesServicesAndGetsDescriptors()
-            throws URISyntaxException, InterruptedException {
+            throws InterruptedException, XRd4JException, SOAPException {
         ReflectionTestUtils.setField(taskPoolConfiguration, "securityServerHost", "http://localhost:" + port);
         ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",
                 "http://localhost:" + port + "/metaservices");
-        BlockingQueue<ClientType> listedClients = new LinkedBlockingQueue<>();
-        Queue<XRoadServiceIdentifierType> wsdlServices = new LinkedBlockingQueue<>();
-        Queue<XRoadRestServiceIdentifierType> restServices = new LinkedBlockingQueue<>();
-        Queue<XRoadRestServiceIdentifierType> openApiServices = new LinkedBlockingQueue<>();
+        BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
+        Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
+        Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
+        Queue<XRoadIdentifier> openApiServices = new LinkedBlockingQueue<>();
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
                 restServices, openApiServices, taskPoolConfiguration);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
         Thread listMethodsRunner = Thread.ofVirtual().start(listMethodsTask::run);
-        ClientType clientType = new ClientType();
-        XRoadClientIdentifierType value = new XRoadClientIdentifierType();
-        value.setXRoadInstance("INSTANCE");
-        value.setMemberClass("CLASS");
-        value.setMemberCode("CODE");
-        value.setSubsystemCode("SUBSYSTEM");
-        value.setServiceCode("aService");
-        value.setServiceVersion("v1");
-        value.setObjectType(XRoadObjectType.SUBSYSTEM);
+        MemberWithName clientType = new MemberWithName();
+        XRoadIdentifier value = XRoadIdentifier.builder()
+                .xRoadInstance("INSTANCE")
+                .memberClass("CLASS")
+                .memberCode("CODE")
+                .subsystemCode("SUBSYSTEM")
+                .build();
+        value.setObjectType(ObjectType.SUBSYSTEM);
         clientType.setId(value);
         listedClients.add(clientType);
 
-        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> listedClients.isEmpty());
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(listedClients::isEmpty);
 
         semaphore.acquire();
         listMethodsRunner.interrupt();

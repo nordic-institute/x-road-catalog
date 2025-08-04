@@ -27,9 +27,10 @@ package org.niis.xroad.catalog.collector.util;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
+import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -53,42 +54,34 @@ public final class MethodListUtil {
         // Private empty constructor
     }
 
-    public static List<XRoadRestServiceIdentifierType> methodListFromResponse(ClientType clientType,
-                                                                              String host,
-                                                                              String xRoadInstance,
-                                                                              String memberClass,
-                                                                              String memberCode,
-                                                                              String subsystemCode,
-                                                                              CatalogService catalogService) {
-        final String url = new StringBuilder().append(host).append("/r1/")
-                .append(clientType.getId().getXRoadInstance()).append('/')
-                .append(clientType.getId().getMemberClass()).append('/')
-                .append(clientType.getId().getMemberCode()).append('/')
-                .append(clientType.getId().getSubsystemCode()).append("/listMethods").toString();
+    public static List<XRoadIdentifier> methodListFromResponse(XRoadIdentifier clientType,
+                                                               String host,
+                                                               ConsumerMember consumerMember,
+                                                               CatalogService catalogService) throws XRd4JException {
+        final String url = host + "/r1/"
+                + clientType.getXRoadInstance() + '/'
+                + clientType.getMemberClass() + '/'
+                + clientType.getMemberCode() + '/'
+                + clientType.getSubsystemCode() + "/listMethods";
 
-        String xRoadClientHeader = createHeader(xRoadInstance, memberClass, memberCode, subsystemCode);
-        List<XRoadRestServiceIdentifierType> restServices = new ArrayList<>();
+        String xRoadClientHeader = createHeader(consumerMember);
+        List<XRoadIdentifier> restServices = new ArrayList<>();
         JSONObject json = MethodListUtil.getJSON(url, clientType, xRoadClientHeader, catalogService);
         if (json != null) {
             JSONArray serviceList = json.getJSONArray("service");
             for (int i = 0; i < serviceList.length(); i++) {
                 JSONObject service = serviceList.getJSONObject(i);
-                XRoadRestServiceIdentifierType xRoadRestServiceIdentifierType = new XRoadRestServiceIdentifierType();
-                xRoadRestServiceIdentifierType.setMemberCode(service.optString("member_code"));
-                xRoadRestServiceIdentifierType.setSubsystemCode(service.optString("subsystem_code"));
-                xRoadRestServiceIdentifierType.setMemberClass(service.optString("member_class"));
-                xRoadRestServiceIdentifierType.setServiceCode(service.optString("service_code"));
-                xRoadRestServiceIdentifierType.setServiceVersion(
-                        service.has("service_version") ? service.optString("service_version")
-                                : null);
-                xRoadRestServiceIdentifierType.setXRoadInstance(service.optString("xroad_instance"));
-                xRoadRestServiceIdentifierType
-                        .setObjectType(XRoadObjectType
-                                .fromValue(service.optString("object_type")));
-                xRoadRestServiceIdentifierType
-                        .setServiceType(service.has("service_type")
-                                ? service.optString("service_type")
-                                : null);
+                XRoadIdentifier xRoadIdentifier = XRoadIdentifier.builder()
+                        .xRoadInstance(service.optString("xroad_instance"))
+                        .memberClass(service.optString("member_class"))
+                        .memberCode(service.optString("member_code"))
+                        .subsystemCode(service.optString("subsystem_code"))
+                        .serviceCode(service.optString("service_code"))
+                        .serviceVersion(service.optString("service_version", null))
+                        .objectType(service.getEnum(ObjectType.class, "object_type"))
+                        .serviceType(service.optString("service_type", null))
+                        .build();
+
                 JSONArray endpointList = service.optJSONArray("endpoint_list");
                 List<Endpoint> endpoints = new ArrayList<>();
                 for (int j = 0; j < endpointList.length(); j++) {
@@ -96,36 +89,33 @@ public final class MethodListUtil {
                     endpoints.add(Endpoint.builder().method(endpoint.optString("method"))
                             .path(endpoint.optString("path")).build());
                 }
-                xRoadRestServiceIdentifierType.setEndpoints(endpoints);
-                restServices.add(xRoadRestServiceIdentifierType);
+                xRoadIdentifier.setEndpoints(endpoints);
+                restServices.add(xRoadIdentifier);
             }
         }
 
         return restServices;
     }
 
-    public static String openApiFromResponse(ClientType clientType,
+    public static String openApiFromResponse(XRoadIdentifier clientType,
                                              String host,
-                                             String xRoadInstance,
-                                             String memberClass,
-                                             String memberCode,
-                                             String subsystemCode,
+                                             ConsumerMember consumerMember,
                                              CatalogService catalogService) {
-        final String url = new StringBuilder().append(host).append("/r1/")
-                .append(clientType.getId().getXRoadInstance()).append('/')
-                .append(clientType.getId().getMemberClass()).append('/')
-                .append(clientType.getId().getMemberCode()).append('/')
-                .append(clientType.getId().getSubsystemCode()).append("/getOpenAPI?serviceCode=")
-                .append(clientType.getId().getServiceCode()).toString();
+        final String url = host + "/r1/"
+                + clientType.getXRoadInstance() + '/'
+                + clientType.getMemberClass() + '/'
+                + clientType.getMemberCode() + '/'
+                + clientType.getSubsystemCode() + "/getOpenAPI?serviceCode="
+                + clientType.getServiceCode();
 
-        String xRoadClientHeader = createHeader(xRoadInstance, memberClass, memberCode, subsystemCode);
+        String xRoadClientHeader = createHeader(consumerMember);
         JSONObject json = MethodListUtil.getJSON(url, clientType, xRoadClientHeader, catalogService);
 
         return (json != null) ? json.toString() : "";
     }
 
     public static List<Endpoint> getEndpointList(
-            XRoadRestServiceIdentifierType service) {
+            XRoadIdentifier service) {
         List<Endpoint> endpointList = new ArrayList<>();
         for (Endpoint endpoint : service.getEndpoints()) {
             endpointList.add(Endpoint.builder().method(endpoint.getMethod()).path(endpoint.getPath())
@@ -134,16 +124,14 @@ public final class MethodListUtil {
         return endpointList;
     }
 
-    private static String createHeader(String xRoadInstance, String memberClass, String memberCode,
-                                       String subsystemCode) {
-        return new StringBuilder()
-                .append(xRoadInstance).append('/')
-                .append(memberClass).append('/')
-                .append(memberCode).append('/')
-                .append(subsystemCode).toString();
+    private static String createHeader(ConsumerMember consumerMember) {
+        return consumerMember.getXRoadInstance() + '/'
+                + consumerMember.getMemberClass() + '/'
+                + consumerMember.getMemberCode() + '/'
+                + consumerMember.getSubsystemCode();
     }
 
-    private static JSONObject getJSON(String url, ClientType clientType, String xRoadClientHeader,
+    private static JSONObject getJSON(String url, XRoadIdentifier clientType, String xRoadClientHeader,
                                       CatalogService catalogService) {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
@@ -157,9 +145,9 @@ public final class MethodListUtil {
             return new JSONObject(response.getBody());
         } catch (Exception e) {
             SecurityServerMetadata newSecurityServerMetadata = SecurityServerMetadata.builder()
-                    .xRoadInstance(clientType.getId().getXRoadInstance())
-                    .memberClass(clientType.getId().getMemberClass())
-                    .memberCode(clientType.getId().getMemberCode())
+                    .xRoadInstance(clientType.getXRoadInstance())
+                    .memberClass(clientType.getMemberClass())
+                    .memberCode(clientType.getMemberCode())
                     .build();
             if (!newSecurityServerMetadata.equals(securityServerMetadata)) {
                 log.error("Fetch of REST services failed: " + e.getMessage());
@@ -168,21 +156,18 @@ public final class MethodListUtil {
                         .message("Fetch of REST services failed(url: " + url + "): "
                                 + e.getMessage())
                         .code("500")
-                        .xRoadInstance(clientType.getId().getXRoadInstance())
-                        .memberClass(clientType.getId().getMemberClass())
-                        .memberCode(clientType.getId().getMemberCode())
-                        .groupCode(clientType.getId().getGroupCode())
-                        .securityCategoryCode(clientType.getId().getSecurityCategoryCode())
-                        .serverCode(clientType.getId().getServerCode())
-                        .serviceCode(clientType.getId().getServiceCode())
-                        .serviceVersion(clientType.getId().getServiceVersion())
-                        .subsystemCode(clientType.getId().getSubsystemCode())
+                        .xRoadInstance(clientType.getXRoadInstance())
+                        .memberClass(clientType.getMemberClass())
+                        .memberCode(clientType.getMemberCode())
+                        .serviceCode((clientType).getServiceCode())
+                        .serviceVersion((clientType).getServiceVersion())
+                        .subsystemCode(clientType.getSubsystemCode())
                         .build();
                 catalogService.saveErrorLog(errorLog);
                 securityServerMetadata = SecurityServerMetadata.builder()
-                        .xRoadInstance(clientType.getId().getXRoadInstance())
-                        .memberClass(clientType.getId().getMemberClass())
-                        .memberCode(clientType.getId().getMemberCode())
+                        .xRoadInstance(clientType.getXRoadInstance())
+                        .memberClass(clientType.getMemberClass())
+                        .memberCode(clientType.getMemberCode())
                         .build();
             }
             return null;

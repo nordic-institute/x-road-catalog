@@ -17,6 +17,12 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-snapshots/")
+    }
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-releases/")
+    }
 }
 
 configurations {
@@ -86,6 +92,7 @@ dependencies {
     implementation (libs.spring.boot.ws)
     implementation (libs.spring.boot.jpa)
     implementation (libs.jackson)
+    implementation (libs.xrd4j.client)
     // Note that bundle seems to break something with CXF and being able top find api bindings, so using separate dependencies here
     implementation (libs.cxf.jaxws)
     implementation (libs.cxf.transport)

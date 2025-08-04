@@ -24,44 +24,45 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
+import org.niis.xrd4j.common.member.ProducerMember;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
 @Component
-public class FetchWsdlsTask extends BaseFetchTask<XRoadServiceIdentifierType> {
+public class FetchWsdlsTask extends BaseFetchTask<ProducerMember> {
 
-    private CatalogService catalogService;
+    private final CatalogService catalogService;
 
     private final XRoadClient xroadClient;
 
     public FetchWsdlsTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-            final BlockingQueue<XRoadServiceIdentifierType> wsdlServicesQueue) throws URISyntaxException {
+            final BlockingQueue<ProducerMember> wsdlServicesQueue) throws XRd4JException, SOAPException {
         super(wsdlServicesQueue, taskPoolConfiguration.getFetchWsdlPoolSize());
         this.catalogService = catalogService;
 
-        String xroadInstance = taskPoolConfiguration.getXroadInstance();
-        String memberCode = taskPoolConfiguration.getMemberCode();
-        String memberClass = taskPoolConfiguration.getMemberClass();
-        String subsystemCode = taskPoolConfiguration.getSubsystemCode();
+        ConsumerMember consumerMember = new ConsumerMember(
+                taskPoolConfiguration.getXroadInstance(),
+                taskPoolConfiguration.getMemberCode(),
+                taskPoolConfiguration.getMemberClass(),
+                taskPoolConfiguration.getSubsystemCode());
+
         String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
 
-        this.xroadClient = new XRoadClient(
-                ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),
-                new URI(webservicesEndpoint));
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
     }
 
     @Override
-    protected void fetch(XRoadServiceIdentifierType service) {
+    protected void fetch(final ProducerMember service) {
         try {
             log.info("Fetching WSDL for {}", ClientTypeUtil.toString(service));
             String wsdl = xroadClient.getWsdl(service, catalogService);

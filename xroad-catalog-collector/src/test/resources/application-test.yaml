@@ -21,6 +21,11 @@ spring:
 
 # X-Road instance parameters
 xroad-catalog:
+  target:
+    xroad-instance: 'INSTANCE'
+    member-class: 'CLASS'
+    member-code: 'CODE'
+    subsystem-code: 'SUBSYSTEM'
   # Country specific settings
   country:
     fi:

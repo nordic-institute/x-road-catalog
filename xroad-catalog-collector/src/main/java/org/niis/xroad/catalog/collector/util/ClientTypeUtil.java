@@ -24,10 +24,9 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xrd4j.common.member.ProducerMember;
 
 public final class ClientTypeUtil {
 
@@ -35,12 +34,12 @@ public final class ClientTypeUtil {
         // Private empty constructor
     }
 
-    public static String toString(ClientType c) {
+    public static String toString(MemberWithName c) {
         return toString(c.getId()) + ":" + c.getName();
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    public static String toString(XRoadIdentifierType c) {
+    public static String toString(XRoadIdentifier c) {
         StringBuilder sb = new StringBuilder(128);
         sb.append(c.getObjectType());
         sb.append(':');
@@ -51,7 +50,7 @@ public final class ClientTypeUtil {
         sb.append(c.getMemberCode());
         sb.append('/');
         sb.append(c.getSubsystemCode());
-        if (c.getObjectType().equals(XRoadObjectType.SERVICE)) {
+        if (c.getObjectType() != null && c.getObjectType().equals(ObjectType.SERVICE)) {
             sb.append('/');
             sb.append(c.getServiceCode());
             sb.append('/');
@@ -60,14 +59,31 @@ public final class ClientTypeUtil {
         return sb.toString();
     }
 
-    public static XRoadClientIdentifierType toSubsystem(String xroadInstance, String memberClass, String memberCode,
-            String subsystemCode) {
-        XRoadClientIdentifierType xroadId = new XRoadClientIdentifierType();
-        xroadId.setXRoadInstance(xroadInstance);
-        xroadId.setMemberClass(memberClass);
-        xroadId.setMemberCode(memberCode);
-        xroadId.setSubsystemCode(subsystemCode);
-        xroadId.setObjectType(XRoadObjectType.SUBSYSTEM);
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static String toString(ProducerMember c) {
+        StringBuilder sb = new StringBuilder(128);
+        sb.append(c.getObjectType());
+        sb.append(':');
+        sb.append(c.getXRoadInstance());
+        sb.append('/');
+        sb.append(c.getMemberClass());
+        sb.append('/');
+        sb.append(c.getMemberCode());
+        sb.append('/');
+        sb.append(c.getSubsystemCode());
+        if (c.getObjectType().equals(ObjectType.SERVICE)) {
+            sb.append('/');
+            sb.append(c.getServiceCode());
+            sb.append('/');
+            sb.append(c.getServiceVersion());
+        }
+        return sb.toString();
+    }
+
+    public static ProducerMember toSubsystem(String xroadInstance, String memberClass, String memberCode,
+            String subsystemCode) throws XRd4JException {
+        ProducerMember xroadId = new ProducerMember(xroadInstance, memberClass, memberCode, subsystemCode, null);
+        xroadId.setObjectType(ObjectType.SUBSYSTEM);
         return xroadId;
     }
 }

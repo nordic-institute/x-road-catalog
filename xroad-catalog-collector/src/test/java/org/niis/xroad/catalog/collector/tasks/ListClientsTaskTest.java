@@ -27,15 +27,15 @@ package org.niis.xroad.catalog.collector.tasks;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.events.NewMembersEventPublisher;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientListUtil;
-import org.niis.xroad.catalog.collector.wsimport.ClientList;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +43,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -70,25 +73,26 @@ public class ListClientsTaskTest {
     NewMembersEventPublisher newMembersEventPublisher;
 
     @Test
-    public void testOnReceiveWhenFetchUnlimited() throws Exception {
+    public void testOnReceiveWhenFetchUnlimited() throws XRd4JException {
 
         try (MockedStatic<ClientListUtil> mocked = Mockito.mockStatic(ClientListUtil.class)) {
 
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", true);
 
-            ClientList clientList = new ClientList();
-            clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member1", null));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub1"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub2"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub3"));
-            clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member2", null));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub1"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub2"));
+            List<MemberWithName> clientList = Arrays.asList(
+                    createClientType(ObjectType.MEMBER, "member1", null),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub1"),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub2"),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub3"),
+                    createClientType(ObjectType.MEMBER, "member2", null),
+                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub1"),
+                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub2")
+            );
 
             mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class)))
                     .thenReturn(clientList);
 
-            final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
             final Member member1 = new Member();
             member1.setMemberCode("member1");
@@ -107,25 +111,26 @@ public class ListClientsTaskTest {
     }
 
     @Test
-    public void testWhenFetchNotUnlimitedAndTimeOutsideOfConfiguration() throws Exception {
+    public void testWhenFetchNotUnlimitedAndTimeOutsideOfConfiguration() throws XRd4JException {
         try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
 
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", false);
             ReflectionTestUtils.setField(conf, "fetchTimeAfterHour", 23);
             ReflectionTestUtils.setField(conf, "fetchTimeBeforeHour", 23);
 
-            ClientList clientList = new ClientList();
-            clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member1", null));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub1"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub2"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub3"));
-            clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member2", null));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub1"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub2"));
+            List<MemberWithName> clientList = Arrays.asList(
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub1"),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub2"),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub3"),
+                    createClientType(ObjectType.MEMBER, "member2", null),
+                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub1"),
+                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub2"),
+                    createClientType(ObjectType.MEMBER, "member1", null)
+            );
 
             mocked.when(() -> ClientListUtil.clientListFromResponse(any())).thenReturn(clientList);
 
-            final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
             final Member member1 = new Member();
             member1.setMemberCode("member1");
@@ -143,25 +148,26 @@ public class ListClientsTaskTest {
     }
 
     @Test
-    public void testOnReceiveWhenFetchNotUnlimitedButTimeIsInBetween() throws Exception {
+    public void testOnReceiveWhenFetchNotUnlimitedButTimeIsInBetween() throws XRd4JException {
         try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
 
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", false);
             ReflectionTestUtils.setField(conf, "fetchTimeAfterHour", 0);
             ReflectionTestUtils.setField(conf, "fetchTimeBeforeHour", 23);
 
-            ClientList clientList = new ClientList();
-            clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member1", null));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub1"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub2"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member1", "sub3"));
-            clientList.getMember().add(createClientType(XRoadObjectType.MEMBER, "member2", null));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub1"));
-            clientList.getMember().add(createClientType(XRoadObjectType.SUBSYSTEM, "member2", "sssub2"));
+            List<MemberWithName> clientList = Arrays.asList(
+                    createClientType(ObjectType.MEMBER, "member1", null),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub1"),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub2"),
+                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub3"),
+                    createClientType(ObjectType.MEMBER, "member2", null),
+                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub1"),
+                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub2")
+            );
 
             mocked.when(() -> ClientListUtil.clientListFromResponse(any())).thenReturn(clientList);
 
-            final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
             final Member member1 = new Member();
             member1.setMemberCode("member1");
@@ -179,15 +185,15 @@ public class ListClientsTaskTest {
     }
 
     @Test
-    public void testOnReceiveWithEmptyMemberList() throws Exception {
+    public void testOnReceiveWithEmptyMemberList() {
         try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
 
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", true);
 
-            ClientList clientList = new ClientList();
+            List<MemberWithName> clientList = new ArrayList<>();
             mocked.when(() -> ClientListUtil.clientListFromResponse(any())).thenReturn(clientList);
 
-            final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
             Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of());
 
@@ -204,7 +210,7 @@ public class ListClientsTaskTest {
     public void testSaveErrorLog() {
         ReflectionTestUtils.setField(conf, "fetchRunUnlimited", true);
 
-        final Queue<ClientType> listMethodsQueue = new ConcurrentLinkedQueue<>();
+        final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
         ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
         listClientsTask.run();
@@ -214,14 +220,15 @@ public class ListClientsTaskTest {
         assertEquals(0, listMethodsQueue.size());
     }
 
-    private ClientType createClientType(XRoadObjectType objectType, String memberCode, String subsystemCode) {
-        ClientType c = new ClientType();
-        XRoadClientIdentifierType xrcit = new XRoadClientIdentifierType();
+    private MemberWithName createClientType(ObjectType objectType, String memberCode, String subsystemCode) throws XRd4JException {
+        MemberWithName c = new MemberWithName();
+        XRoadIdentifier xrcit = XRoadIdentifier.builder()
+                .xRoadInstance("FI")
+                .memberClass("GOV")
+                .memberCode(memberCode)
+                .subsystemCode(subsystemCode)
+                .build();
 
-        xrcit.setXRoadInstance("FI");
-        xrcit.setMemberClass("GOV");
-        xrcit.setMemberCode(memberCode);
-        xrcit.setSubsystemCode(subsystemCode);
         xrcit.setObjectType(objectType);
         c.setId(xrcit);
         c.setName(memberCode);

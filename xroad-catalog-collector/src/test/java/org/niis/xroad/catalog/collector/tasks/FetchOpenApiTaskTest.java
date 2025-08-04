@@ -24,16 +24,18 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
+import jakarta.xml.soap.SOAPException;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,8 +45,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class FetchOpenApiTaskTest {
     private Resource openApiFile;
 
     @Test
-    public void testBasicNoDeadlock() throws InterruptedException, MalformedURLException, URISyntaxException {
+    public void testBasicNoDeadlock() throws InterruptedException, XRd4JException, SOAPException {
         /**
          * Note that this test will log an error that the operation did not succeed.
          * That is ok, because all we want to check here is that the task does not
@@ -80,15 +80,21 @@ public class FetchOpenApiTaskTest {
          * sure that the task can also be stopped when the program exits. The actual
          * fetch logic is mocked and tested below.
          */
-        BlockingQueue<XRoadRestServiceIdentifierType> queue = new LinkedBlockingQueue<>();
+        BlockingQueue<XRoadIdentifier> queue = new LinkedBlockingQueue<>();
         FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, queue);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchOpenApiTask, "semaphore", semaphore);
-        XRoadRestServiceIdentifierType restService = new XRoadRestServiceIdentifierType();
+        XRoadIdentifier restService = XRoadIdentifier.builder()
+                .xRoadInstance("INSTANCE")
+                .memberClass("CLASS")
+                .memberCode("CODE")
+                .subsystemCode("SUBSYSTEM")
+                .serviceCode("aService")
+                .build();
         Thread fetchOpenApiRunner = Thread.ofVirtual().start(fetchOpenApiTask::run);
         queue.add(restService);
 
-        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> queue.isEmpty());
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(queue::isEmpty);
 
         semaphore.acquire();
         fetchOpenApiRunner.interrupt();
@@ -96,23 +102,23 @@ public class FetchOpenApiTaskTest {
     }
 
     @Test
-    public void testFetch() throws URISyntaxException, InterruptedException, IOException {
+    public void testFetch() throws XRd4JException, SOAPException, IOException {
         try (MockedStatic<MethodListUtil> mock = Mockito.mockStatic(MethodListUtil.class)) {
             final String openApiResponse = openApiFile.getContentAsString(StandardCharsets.UTF_8);
-            mock.when(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any(), any(), any(), any()))
+            mock.when(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any()))
                     .thenReturn(openApiResponse);
             mock.when(() -> MethodListUtil.getEndpointList(any())).thenCallRealMethod();
 
             FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, new LinkedBlockingQueue<>());
 
-            XRoadRestServiceIdentifierType service = new XRoadRestServiceIdentifierType();
-            service.setObjectType(XRoadObjectType.SERVICE);
-            service.setXRoadInstance("INSTANCE");
-            service.setMemberClass("CLASS");
-            service.setMemberCode("CODE");
-            service.setSubsystemCode("SUBSYSTEM");
-            service.setServiceCode("aService");
-            service.setServiceVersion("v1");
+            XRoadIdentifier service = XRoadIdentifier.builder()
+                    .xRoadInstance("INSTANCE")
+                    .memberClass("CLASS")
+                    .memberCode("CODE")
+                    .subsystemCode("SUBSYSTEM")
+                    .serviceCode("aService")
+                    .build();
+            service.setObjectType(ObjectType.SERVICE);
             service.setServiceType("OPENAPI");
             List<Endpoint> endpointList = new ArrayList<>();
             Endpoint endpoint = new Endpoint();
@@ -123,7 +129,7 @@ public class FetchOpenApiTaskTest {
 
             fetchOpenApiTask.fetch(service);
 
-            mock.verify(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any(), any(), any(), any()),
+            mock.verify(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any()),
                     times(1));
             verify(catalogService, times(0)).saveErrorLog(any());
             verify(catalogService, times(1)).saveOpenApi(any(), any(), any());
