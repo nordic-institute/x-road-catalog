@@ -27,18 +27,22 @@ package org.niis.xroad.catalog.collector.tasks;
 import jakarta.xml.soap.SOAPException;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
+import org.niis.xrd4j.client.SOAPClient;
 import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
 import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xrd4j.common.member.ProducerMember;
+import org.niis.xrd4j.common.message.ServiceRequest;
+import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.configuration.TestingConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.MemberWithName;
+import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -51,8 +55,11 @@ import java.util.concurrent.Semaphore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = { TestingConfiguration.class, CollectorApplication.class,
         TaskPoolConfiguration.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -65,21 +72,38 @@ public class ListMethodsTaskTest {
     @Autowired
     private TaskPoolConfiguration taskPoolConfiguration;
 
-    @LocalServerPort
-    private int port;
-
     @Test
     public void testListMethodsTaskSavesServicesAndGetsDescriptors()
             throws InterruptedException, XRd4JException, SOAPException {
-        ReflectionTestUtils.setField(taskPoolConfiguration, "securityServerHost", "http://localhost:" + port);
-        ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",
-                "http://localhost:" + port + "/metaservices");
+        SOAPClient soapClient = mock(SOAPClient.class);
+        ServiceResponse<String, java.util.List<ProducerMember>> response = new ServiceResponse<>();
+        response.setResponseData(java.util.List.of(
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceFoo").serviceVersion("v1")
+                        .build().toProducerMember(),
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceBar").serviceVersion("v1")
+                        .build().toProducerMember(),
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceBaz").serviceVersion("v1")
+                        .build().toProducerMember()
+        ));
+        when(soapClient.listMethods(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost())))
+                .thenReturn(response);
+        XRoadClient xRoadClient = new XRoadClient(soapClient,
+                new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
+                        taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
+                taskPoolConfiguration.getSecurityServerHost());
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> openApiServices = new LinkedBlockingQueue<>();
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
                 restServices, openApiServices, taskPoolConfiguration);
+        ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
         Thread listMethodsRunner = Thread.ofVirtual().start(listMethodsTask::run);
@@ -100,6 +124,7 @@ public class ListMethodsTaskTest {
         listMethodsRunner.interrupt();
 
         verify(catalogService, times(1)).saveServices(any(), any());
+        verify(soapClient, times(1)).listMethods(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost()));
 
         assertEquals(3, wsdlServices.size());
 

@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 import java.time.LocalDate;
@@ -42,7 +41,7 @@ public final class CollectorUtils {
         return (today.isAfter(fetchTimeFrom) && today.isBefore(fetchTimeTo));
     }
 
-    public static ErrorLog createErrorLog(ClientType clientType, String message, String code) {
+    public static ErrorLog createErrorLog(MemberWithName clientType, String message, String code) {
         if (clientType != null) {
             return ErrorLog.builder()
                     .created(LocalDateTime.now())
@@ -51,9 +50,6 @@ public final class CollectorUtils {
                     .xRoadInstance(clientType.getId().getXRoadInstance())
                     .memberClass(clientType.getId().getMemberClass())
                     .memberCode(clientType.getId().getMemberCode())
-                    .groupCode(clientType.getId().getGroupCode())
-                    .securityCategoryCode(clientType.getId().getSecurityCategoryCode())
-                    .serverCode(clientType.getId().getServerCode())
                     .serviceCode(clientType.getId().getServiceCode())
                     .serviceVersion(clientType.getId().getServiceVersion())
                     .subsystemCode(clientType.getId().getSubsystemCode())

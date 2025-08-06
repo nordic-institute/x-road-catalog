@@ -51,10 +51,14 @@ public class XRoadClient {
     final ConsumerMember consumerMember;
     final String securityServerURL;
 
-    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL) throws SOAPException {
-        this.soapClient = new SOAPClientImpl();
+    public XRoadClient(final SOAPClient soapClient, final ConsumerMember consumerMember, final String securityServerURL) {
+        this.soapClient = soapClient;
         this.consumerMember = consumerMember;
         this.securityServerURL = securityServerURL;
+    }
+
+    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL) throws SOAPException {
+        this(new SOAPClientImpl(), consumerMember, securityServerURL);
     }
 
     /**
