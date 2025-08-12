@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:tns="http://xroad.vrk.fi/xroad-catalog-lister">
+    <soap:Header>
+        <xrd:client xrd:objectType="SUBSYSTEM">
+            <xrd:xRoadInstance>DEV</xrd:xRoadInstance>
+            <xrd:memberClass>COM</xrd:memberClass>
+            <xrd:memberCode>12345</xrd:memberCode>
+            <xrd:subsystemCode>TestClient</xrd:subsystemCode>
+        </xrd:client>
+        <xrd:service xrd:objectType="SERVICE">
+            <xrd:xRoadInstance>DEV</xrd:xRoadInstance>
+            <xrd:memberClass>ORG</xrd:memberClass>
+            <xrd:memberCode>70006317</xrd:memberCode>
+            <xrd:subsystemCode>xroad-catalog</xrd:subsystemCode>
+            <xrd:serviceCode>GetErrors</xrd:serviceCode>
+            <xrd:serviceVersion>v1</xrd:serviceVersion>
+        </xrd:service>
+        <xrd:userId>test-user</xrd:userId>
+        <xrd:id>test-request-111</xrd:id>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+    </soap:Header>
+    <soap:Body>
+        <tns:GetErrors>
+            <tns:startDateTime>2001-05-06T12:00:00</tns:startDateTime>
+            <tns:endDateTime>2022-07-29T19:30:40</tns:endDateTime>
+        </tns:GetErrors>
+    </soap:Body>
+</soap:Envelope>
