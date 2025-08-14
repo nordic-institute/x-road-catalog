@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
-        <xrd:client xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xrd:objectType="SUBSYSTEM">
-            <xrd:xRoadInstance>DEV</xrd:xRoadInstance>
-            <xrd:memberClass>COM</xrd:memberClass>
-            <xrd:memberCode>12345</xrd:memberCode>
-            <xrd:subsystemCode>TestClient</xrd:subsystemCode>
+        <xrd:client xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
         </xrd:client>
-        <xrd:service xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xrd:objectType="SERVICE">
-            <xrd:xRoadInstance>DEV</xrd:xRoadInstance>
-            <xrd:memberClass>ORG</xrd:memberClass>
-            <xrd:memberCode>70006317</xrd:memberCode>
-            <xrd:subsystemCode>xroad-catalog</xrd:subsystemCode>
-            <xrd:serviceCode>ListMembers</xrd:serviceCode>
-            <xrd:serviceVersion>v1</xrd:serviceVersion>
+        <xrd:service xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>ListMembers</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
         </xrd:service>
         <xrd:userId xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-user</xrd:userId>
         <xrd:id xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-request-123</xrd:id>
@@ -26,16 +26,31 @@
                     <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
                     <ns2:memberClass>ORG</ns2:memberClass>
                     <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:name>Government Organization</ns2:name>
+                    <ns2:subsystems/>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                    <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                    <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
                 </ns2:member>
                 <ns2:member>
                     <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
                     <ns2:memberClass>ORG</ns2:memberClass>
                     <ns2:memberCode>5678</ns2:memberCode>
+                    <ns2:name>Public Services Org</ns2:name>
+                    <ns2:subsystems/>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                    <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                    <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
                 </ns2:member>
                 <ns2:member>
                     <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
                     <ns2:memberClass>COM</ns2:memberClass>
                     <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:name>Test Company Ltd</ns2:name>
+                    <ns2:subsystems/>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                    <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                    <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
                 </ns2:member>
             </ns2:memberList>
         </ns2:ListMembersResponse>

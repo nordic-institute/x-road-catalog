@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:tns="http://xroad.vrk.fi/xroad-catalog-lister">
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://xroad.vrk.fi/xroad-catalog-lister">
     <soap:Header>
-        <xrd:client xrd:objectType="SUBSYSTEM">
-            <xrd:xRoadInstance>DEV</xrd:xRoadInstance>
-            <xrd:memberClass>COM</xrd:memberClass>
-            <xrd:memberCode>12345</xrd:memberCode>
-            <xrd:subsystemCode>TestClient</xrd:subsystemCode>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
         </xrd:client>
-        <xrd:service xrd:objectType="SERVICE">
-            <xrd:xRoadInstance>DEV</xrd:xRoadInstance>
-            <xrd:memberClass>ORG</xrd:memberClass>
-            <xrd:memberCode>70006317</xrd:memberCode>
-            <xrd:subsystemCode>xroad-catalog</xrd:subsystemCode>
-            <xrd:serviceCode>ListMembers</xrd:serviceCode>
-            <xrd:serviceVersion>v1</xrd:serviceVersion>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>ListMembers</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
         </xrd:service>
         <xrd:userId>test-user</xrd:userId>
         <xrd:id>test-request-123</xrd:id>

@@ -12,18 +12,16 @@
             <id:memberClass>ORG</id:memberClass>
             <id:memberCode>70006317</id:memberCode>
             <id:subsystemCode>xroad-catalog</id:subsystemCode>
-            <id:serviceCode>IsProvider</id:serviceCode>
+            <id:serviceCode>ListMembers</id:serviceCode>
             <id:serviceVersion>v1</id:serviceVersion>
         </xrd:service>
         <xrd:userId>test-user</xrd:userId>
-        <xrd:id>test-request-789</xrd:id>
+        <xrd:id>test-request-123</xrd:id>
         <xrd:protocolVersion>4.0</xrd:protocolVersion>
     </soap:Header>
     <soap:Body>
-        <tns:IsProvider>
-            <tns:xRoadInstance>DEV</tns:xRoadInstance>
-            <tns:memberClass>ORG</tns:memberClass>
-            <tns:memberCode>14151328</tns:memberCode>
-        </tns:IsProvider>
+        <tns:ListMembers>
+            <tns:startDateTime>2020-01-01T01:01:00</tns:startDateTime>
+        </tns:ListMembers>
     </soap:Body>
 </soap:Envelope>
