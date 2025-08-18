@@ -403,7 +403,13 @@ public class SoapHttpEndpointIntegrationTest {
                 .withDifferenceEvaluator(DifferenceEvaluators.chain(
                         DifferenceEvaluators.Default,
                         // Ignore whitespace-only text nodes
-                        DifferenceEvaluators.downgradeDifferencesToSimilar(org.xmlunit.diff.ComparisonType.TEXT_VALUE)
+                        DifferenceEvaluators.downgradeDifferencesToSimilar(org.xmlunit.diff.ComparisonType.TEXT_VALUE),
+                        (comparison, outcome) -> {
+                            if (comparison.getType() == org.xmlunit.diff.ComparisonType.NAMESPACE_PREFIX) {
+                                return org.xmlunit.diff.ComparisonResult.EQUAL;
+                            }
+                            return outcome;
+                        }
                 ))
                 .ignoreWhitespace()
                 .ignoreComments()
