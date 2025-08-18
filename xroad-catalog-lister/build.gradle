@@ -55,6 +55,7 @@ dependencies {
     implementation (libs.lombok)
     implementation (libs.xmlunit.core)
     implementation (libs.xroad.configuration.client)
+    implementation (libs.xrd4j.server)
     annotationProcessor (libs.lombok)
     testImplementation (libs.spring.boot.test)
     testRuntimeOnly (libs.junit.launcer)
