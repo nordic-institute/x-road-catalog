@@ -29,17 +29,37 @@ import org.niis.xrd4j.common.exception.XRd4JException;
 import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.AbstractAdapterServlet;
+import org.niis.xroad.catalog.lister.endpoint.services.geterrors.GetErrorsService;
+import org.niis.xroad.catalog.lister.endpoint.services.geterrors.GetErrorsRequest;
+import org.niis.xroad.catalog.lister.endpoint.services.getopenapi.GetOpenAPIService;
+import org.niis.xroad.catalog.lister.endpoint.services.getopenapi.GetOpenAPIRequest;
+import org.niis.xroad.catalog.lister.endpoint.services.getservicetype.GetServiceTypeService;
+import org.niis.xroad.catalog.lister.endpoint.services.getservicetype.GetServiceTypeRequest;
+import org.niis.xroad.catalog.lister.endpoint.services.getwsdl.GetWsdlService;
+import org.niis.xroad.catalog.lister.endpoint.services.getwsdl.GetWsdlRequest;
+import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderService;
+import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersService;
-import org.niis.xroad.catalog.lister.endpoint.services.listmembers.types.ListMembersRequest;
+import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersRequest;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 
 public class SOAPAdapter extends AbstractAdapterServlet {
     
     private final transient ListMembersService listMembersService;
+    private final transient GetErrorsService getErrorsService;
+    private final transient GetOpenAPIService getOpenAPIService;
+    private final transient GetServiceTypeService getServiceTypeService;
+    private final transient GetWsdlService getWsdlService;
+    private final transient IsProviderService isProviderService;
     
     public SOAPAdapter(CatalogService catalogService) {
         super();
         this.listMembersService = new ListMembersService(catalogService);
+        this.getErrorsService = new GetErrorsService(catalogService);
+        this.getOpenAPIService = new GetOpenAPIService(catalogService);
+        this.getServiceTypeService = new GetServiceTypeService(catalogService);
+        this.getWsdlService = new GetWsdlService(catalogService);
+        this.isProviderService = new IsProviderService(catalogService);
     }
 
     @Override
@@ -49,6 +69,26 @@ public class SOAPAdapter extends AbstractAdapterServlet {
                 @SuppressWarnings("unchecked")
                 ServiceRequest<ListMembersRequest> listMembersRequest = (ServiceRequest<ListMembersRequest>) request;
                 return listMembersService.execute(listMembersRequest);
+            case "GetErrors":
+                @SuppressWarnings("unchecked")
+                ServiceRequest<GetErrorsRequest> getErrorsRequest = (ServiceRequest<GetErrorsRequest>) request;
+                return getErrorsService.execute(getErrorsRequest);
+            case "GetOpenAPI":
+                @SuppressWarnings("unchecked")
+                ServiceRequest<GetOpenAPIRequest> getOpenAPIRequest = (ServiceRequest<GetOpenAPIRequest>) request;
+                return getOpenAPIService.execute(getOpenAPIRequest);
+            case "GetServiceType":
+                @SuppressWarnings("unchecked")
+                ServiceRequest<GetServiceTypeRequest> getServiceTypeRequest = (ServiceRequest<GetServiceTypeRequest>) request;
+                return getServiceTypeService.execute(getServiceTypeRequest);
+            case "GetWsdl":
+                @SuppressWarnings("unchecked")
+                ServiceRequest<GetWsdlRequest> getWsdlRequest = (ServiceRequest<GetWsdlRequest>) request;
+                return getWsdlService.execute(getWsdlRequest);
+            case "IsProvider":
+                @SuppressWarnings("unchecked")
+                ServiceRequest<IsProviderRequest> isProviderRequest = (ServiceRequest<IsProviderRequest>) request;
+                return isProviderService.execute(isProviderRequest);
             default:
                 throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
         }

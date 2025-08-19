@@ -22,36 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.listmembers;
+package org.niis.xroad.catalog.lister.endpoint.services.getservicetype;
 
 import jakarta.xml.soap.Node;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
-import org.niis.xroad.catalog.lister.endpoint.services.common.DateTimeUtil;
 
-public class ListMembersRequestDeserializer extends AbstractCustomRequestDeserializer<ListMembersRequest> {
+public class GetServiceTypeRequestDeserializer extends AbstractCustomRequestDeserializer<GetServiceTypeRequest> {
     @Override
-    protected ListMembersRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
+    protected GetServiceTypeRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
         if (requestNode == null) {
             return null;
         }
 
-        ListMembersRequest request = new ListMembersRequest();
+        GetServiceTypeRequest request = new GetServiceTypeRequest();
 
         for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
-            // Note that this will be the w3c Node type rather than the soap package type
             var node = requestNode.getChildNodes().item(i);
             if (node.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
 
-            if ("startDateTime".equals(node.getLocalName())) {
-                request.setStartDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
-            }
-
-            if ("endDateTime".equals(node.getLocalName())) {
-                request.setEndDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
+            switch (node.getLocalName()) {
+                case "xRoadInstance" -> request.setXRoadInstance(node.getTextContent());
+                case "memberClass" -> request.setMemberClass(node.getTextContent());
+                case "memberCode" -> request.setMemberCode(node.getTextContent());
+                case "serviceCode" -> request.setServiceCode(node.getTextContent());
+                case "subsystemCode" -> request.setSubsystemCode(node.getTextContent());
+                case "serviceVersion" -> request.setServiceVersion(node.getTextContent());
+                default -> {
+                    // Ignore unknown elements
+                }
             }
         }
 

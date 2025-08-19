@@ -55,14 +55,8 @@ import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.niis.xroad.catalog.persistence.entity.Wsdl;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 public final class CommonSerializer {
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     private CommonSerializer() {
 
@@ -268,7 +262,7 @@ public final class CommonSerializer {
 
     private static void addElementWithValue(final SOAPEnvelope envelope, final SOAPElement parent,
                                             final String name, final LocalDateTime value) throws SOAPException {
-        addElementWithValue(envelope, parent, name, formatLocalDateTime(value));
+        addElementWithValue(envelope, parent, name, DateTimeUtil.localDateTimeToXsdDateTime(value));
     }
 
     private static void addElementWithValue(final SOAPEnvelope envelope, final SOAPElement parent,
@@ -1036,12 +1030,4 @@ public final class CommonSerializer {
         serialize(envelope, registeredOfficeEl, registeredOffice.getStatusInfo());
     }
 
-    private static String formatLocalDateTime(final LocalDateTime localDateTime) {
-        if (localDateTime == null) {
-            return null;
-        }
-
-        ZonedDateTime zonedTime = localDateTime.atZone(ZoneId.systemDefault());
-        return zonedTime.format(DATE_TIME_FORMATTER);
-    }
 }

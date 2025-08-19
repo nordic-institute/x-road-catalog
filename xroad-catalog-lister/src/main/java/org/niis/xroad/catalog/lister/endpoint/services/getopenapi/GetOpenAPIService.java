@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.listmembers;
+package org.niis.xroad.catalog.lister.endpoint.services.getopenapi;
 
 import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.exception.XRd4JException;
@@ -31,32 +31,35 @@ import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xroad.catalog.lister.endpoint.ListerService;
 import org.niis.xroad.catalog.lister.service.CatalogService;
-import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.OpenApi;
 
-public class ListMembersService implements ListerService<ListMembersRequest, Iterable<Member>> {
-    private static final ListMembersRequestDeserializer REQUEST_DESERIALIZER = new ListMembersRequestDeserializer();
-    private static final ListMembersResponseSerializer RESPONSE_SERIALIZER = new ListMembersResponseSerializer();
+public class GetOpenAPIService implements ListerService<GetOpenAPIRequest, String> {
+    private static final GetOpenAPIRequestDeserializer REQUEST_DESERIALIZER = new GetOpenAPIRequestDeserializer();
+    private static final GetOpenAPIResponseSerializer RESPONSE_SERIALIZER = new GetOpenAPIResponseSerializer();
     private final CatalogService catalogService;
 
-    public ListMembersService(final CatalogService catalogService) {
+    public GetOpenAPIService(final CatalogService catalogService) {
         this.catalogService = catalogService;
     }
 
-    public ServiceResponse<ListMembersRequest, Iterable<Member>> execute(ServiceRequest<ListMembersRequest> request)
+    public ServiceResponse<GetOpenAPIRequest, String> execute(ServiceRequest<GetOpenAPIRequest> request)
             throws XRd4JException, SOAPException {
         REQUEST_DESERIALIZER.deserialize(request);
-        if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
+        
+        OpenApi openApiEntity = catalogService.getOpenApi(request.getRequestData().getExternalId());
+        if (openApiEntity == null) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTIme parameters are missing", null, null));
-            throw new XRd4JException("Missing required parameters");
+                    new ErrorMessage("SOAP-ENV:Server", "OpenApi with external id "
+                            + request.getRequestData().getExternalId() + " not found", null, null));
+            throw new XRd4JException("OpenApi not found");
         }
-        Iterable<Member> members = catalogService.getAllMembers(request.getRequestData().getStartDateTime(),
-                request.getRequestData().getEndDateTime());
-        ServiceResponse<ListMembersRequest, Iterable<Member>> response = new ServiceResponse<>(request.getConsumer(),
+        String openApi = openApiEntity.getData();
+        
+        ServiceResponse<GetOpenAPIRequest, String> response = new ServiceResponse<>(request.getConsumer(),
                 request.getProducer(), request.getId());
         response.getProducer().setNamespaceUrl(NAMESPACE_URL);
         response.getProducer().setNamespacePrefix(NAMESPACE_PREFIX);
-        response.setResponseData(members);
+        response.setResponseData(openApi);
         RESPONSE_SERIALIZER.serialize(response, request);
         return response;
     }

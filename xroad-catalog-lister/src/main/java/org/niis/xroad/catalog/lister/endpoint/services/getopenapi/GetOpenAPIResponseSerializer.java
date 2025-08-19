@@ -22,29 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.listmembers.types;
+package org.niis.xroad.catalog.lister.endpoint.services.getopenapi;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import org.niis.xrd4j.common.message.ServiceResponse;
+import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.time.LocalDateTime;
+public class GetOpenAPIResponseSerializer extends AbstractServiceResponseSerializer<GetOpenAPIRequest, String> {
 
-@Getter
-@Setter
-public class ListMembersRequest {
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
-
-    public void setStartDateTime(final XMLGregorianCalendar xmlGregorianCalendar) {
-        this.startDateTime = toLocalDateTime(xmlGregorianCalendar);
-    }
-
-    public void setEndDateTime(final XMLGregorianCalendar xmlGregorianCalendar) {
-        this.endDateTime = toLocalDateTime(xmlGregorianCalendar);
-    }
-
-    private LocalDateTime toLocalDateTime(XMLGregorianCalendar calendar) {
-        return calendar.toGregorianCalendar().toZonedDateTime().toLocalDateTime();
+    @Override
+    protected void serializeResponse(ServiceResponse<GetOpenAPIRequest, String> response,
+                                     SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {
+        if (response.getResponseData() != null) {
+            SOAPElement openApiElement = soapResponse.addChildElement(envelope.createName("openapi"));
+            openApiElement.setTextContent(response.getResponseData());
+        }
     }
 }

@@ -22,16 +22,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint;
+package org.niis.xroad.catalog.lister.endpoint.services.getservicetype;
 
-import jakarta.xml.soap.SOAPException;
-import org.niis.xrd4j.common.exception.XRd4JException;
-import org.niis.xrd4j.common.message.ServiceRequest;
-import org.niis.xrd4j.common.message.ServiceResponse;
+import lombok.Getter;
+import lombok.Setter;
 
-public interface ListerService<T, U> {
-    String NAMESPACE_URL = "http://xroad.vrk.fi/xroad-catalog-lister";
-    String NAMESPACE_PREFIX = "tns";
-    
-    ServiceResponse<T, U> execute(ServiceRequest<T> request) throws XRd4JException, SOAPException;
+@Getter
+@Setter
+public class GetServiceTypeRequest {
+    private String xRoadInstance;
+    private String memberClass;
+    private String memberCode;
+    private String serviceCode;
+    private String subsystemCode;
+    private String serviceVersion;
 }

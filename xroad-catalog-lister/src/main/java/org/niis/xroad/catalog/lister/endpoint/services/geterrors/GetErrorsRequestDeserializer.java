@@ -22,16 +22,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint;
+package org.niis.xroad.catalog.lister.endpoint.services.geterrors;
 
+import jakarta.xml.soap.Node;
 import jakarta.xml.soap.SOAPException;
-import org.niis.xrd4j.common.exception.XRd4JException;
-import org.niis.xrd4j.common.message.ServiceRequest;
-import org.niis.xrd4j.common.message.ServiceResponse;
+import jakarta.xml.soap.SOAPMessage;
+import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
+import org.niis.xroad.catalog.lister.endpoint.services.common.DateTimeUtil;
 
-public interface ListerService<T, U> {
-    String NAMESPACE_URL = "http://xroad.vrk.fi/xroad-catalog-lister";
-    String NAMESPACE_PREFIX = "tns";
-    
-    ServiceResponse<T, U> execute(ServiceRequest<T> request) throws XRd4JException, SOAPException;
+public class GetErrorsRequestDeserializer extends AbstractCustomRequestDeserializer<GetErrorsRequest> {
+    @Override
+    protected GetErrorsRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
+        if (requestNode == null) {
+            return null;
+        }
+
+        GetErrorsRequest request = new GetErrorsRequest();
+
+        for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
+            var node = requestNode.getChildNodes().item(i);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            if ("startDateTime".equals(node.getLocalName())) {
+                request.setStartDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
+            }
+
+            if ("endDateTime".equals(node.getLocalName())) {
+                request.setEndDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
+            }
+        }
+
+        return request;
+    }
 }

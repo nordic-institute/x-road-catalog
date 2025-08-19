@@ -22,37 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.listmembers;
+package org.niis.xroad.catalog.lister.endpoint.services.isprovider;
 
 import jakarta.xml.soap.SOAPElement;
 import jakarta.xml.soap.SOAPEnvelope;
 import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
-import org.niis.xroad.catalog.lister.endpoint.services.common.CommonSerializer;
-import org.niis.xroad.catalog.persistence.entity.Member;
 
-@SuppressWarnings("checkstyle:JavadocStyle")
-public class ListMembersResponseSerializer extends AbstractServiceResponseSerializer<ListMembersRequest, Iterable<Member>> {
+public class IsProviderResponseSerializer extends AbstractServiceResponseSerializer<IsProviderRequest, Boolean> {
 
-    /**
-     * Serialize response to the following format:
-     *
-     * <pre>{@code
-     * <xs:complexType name="MemberList">
-     *      <xs:sequence>
-     *          <xs:element maxOccurs="unbounded" minOccurs="0" name="member" type="tns:Member"/>
-     *      </xs:sequence>
-     * </xs:complexType>
-     * }</pre>
-     */
     @Override
-    protected void serializeResponse(ServiceResponse<ListMembersRequest, Iterable<Member>> response,
+    protected void serializeResponse(ServiceResponse<IsProviderRequest, Boolean> response,
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {
-        SOAPElement data = soapResponse.addChildElement(envelope.createName("memberList"));
-        for (var member : response.getResponseData()) {
-            CommonSerializer.serialize(envelope, data, member);
+        if (response.getResponseData() != null) {
+            SOAPElement providerElement = soapResponse.addChildElement(envelope.createName("provider"));
+            providerElement.setTextContent(response.getResponseData().toString());
         }
     }
-
 }
