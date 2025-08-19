@@ -404,6 +404,7 @@ public class SoapHttpEndpointIntegrationTest {
                         DifferenceEvaluators.Default,
                         // Ignore whitespace-only text nodes
                         DifferenceEvaluators.downgradeDifferencesToSimilar(org.xmlunit.diff.ComparisonType.TEXT_VALUE),
+                        // Ignore namespace prefix differences
                         (comparison, outcome) -> {
                             if (comparison.getType() == org.xmlunit.diff.ComparisonType.NAMESPACE_PREFIX) {
                                 return org.xmlunit.diff.ComparisonResult.EQUAL;
@@ -411,6 +412,9 @@ public class SoapHttpEndpointIntegrationTest {
                             return outcome;
                         }
                 ))
+                // Remove this once we have completely switched to xrd4j
+                // Ignore xml:lang attribute differences - XRD4J doesn't automatically add xml:lang="en" to faultstring elements
+                .withAttributeFilter(attr -> !"xml:lang".equals(attr.getName()))
                 .ignoreWhitespace()
                 .ignoreComments()
                 .build();

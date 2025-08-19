@@ -37,6 +37,7 @@
         <exclude name="UnnecessaryCast"/>
         <exclude name="UnnecessaryFullyQualifiedName"/>
         <exclude name="UseDiamondOperator"/>
+        <exclude name="UseExplicitTypes"/>
         <exclude name="UselessParentheses"/>
         <exclude name="UseUnderscoresInNumericLiterals"/>
     </rule>
