@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hascompanychanged;
+package fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged;
 
 import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.exception.XRd4JException;
@@ -69,7 +69,7 @@ public class HasCompanyChangedService implements ListerService<HasCompanyChanged
         }
 
         CompanyChangeResult result = new CompanyChangeResult(
-                companies,
+                companies.iterator().next(),
                 request.getRequestData().getStartDateTime(),
                 request.getRequestData().getEndDateTime());
         

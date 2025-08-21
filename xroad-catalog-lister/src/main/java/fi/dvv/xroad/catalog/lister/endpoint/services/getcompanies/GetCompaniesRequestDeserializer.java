@@ -22,34 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.getcompanies;
+package fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies;
 
-import jakarta.xml.soap.SOAPElement;
-import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.Node;
 import jakarta.xml.soap.SOAPException;
-import org.niis.xrd4j.common.message.ServiceResponse;
-import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
-import org.niis.xroad.catalog.lister.endpoint.services.common.CommonSerializer;
-import fi.dvv.xroad.catalog.persistence.entity.Company;
+import jakarta.xml.soap.SOAPMessage;
+import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
 
-public class GetCompaniesResponseSerializer extends AbstractServiceResponseSerializer<GetCompaniesRequest, Iterable<Company>> {
-
-    /**
-     * Serialize response to the following format:
-     *
-     * &lt;xs:complexType name="CompanyList"&gt;
-     *      &lt;xs:sequence&gt;
-     *          &lt;xs:element maxOccurs="unbounded" minOccurs="0" name="company" type="tns:Company"/&gt;
-     *      &lt;/xs:sequence&gt;
-     * &lt;/xs:complexType&gt;
-     */
+public class GetCompaniesRequestDeserializer extends AbstractCustomRequestDeserializer<GetCompaniesRequest> {
     @Override
-    protected void serializeResponse(ServiceResponse<GetCompaniesRequest, Iterable<Company>> response,
-                                     SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {
-        SOAPElement data = soapResponse.addChildElement(envelope.createName("companyList"));
-        for (var company : response.getResponseData()) {
-            CommonSerializer.serialize(envelope, data, company);
+    protected GetCompaniesRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
+        if (requestNode == null) {
+            return null;
         }
+
+        GetCompaniesRequest request = new GetCompaniesRequest();
+
+        for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
+            var node = requestNode.getChildNodes().item(i);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            if ("businessId".equals(node.getLocalName())) {
+                request.setBusinessId(node.getTextContent());
+            }
+        }
+
+        return request;
     }
 
 }

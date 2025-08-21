@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hascompanychanged;
+package fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged;
 
 import jakarta.xml.soap.Node;
 import jakarta.xml.soap.SOAPException;

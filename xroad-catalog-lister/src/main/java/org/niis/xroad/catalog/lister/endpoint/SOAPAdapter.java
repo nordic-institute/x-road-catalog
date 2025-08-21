@@ -41,14 +41,14 @@ import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderServ
 import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersService;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersRequest;
-import org.niis.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsService;
-import org.niis.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsRequest;
-import org.niis.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedService;
-import org.niis.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedRequest;
-import org.niis.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesService;
-import org.niis.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesRequest;
-import org.niis.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedService;
-import org.niis.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedRequest;
+import fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsService;
+import fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsRequest;
+import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedService;
+import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedRequest;
+import fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesService;
+import fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesRequest;
+import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedService;
+import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedRequest;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
@@ -81,7 +81,7 @@ public class SOAPAdapter extends AbstractAdapterServlet {
     }
 
     @Override
-    protected ServiceResponse<?, ?> handleRequest(ServiceRequest<?> request) throws SOAPException, XRd4JException {
+    protected ServiceResponse handleRequest(ServiceRequest request) throws SOAPException, XRd4JException {
         switch (request.getProducer().getServiceCode()) {
             case "ListMembers":
                 @SuppressWarnings("unchecked")

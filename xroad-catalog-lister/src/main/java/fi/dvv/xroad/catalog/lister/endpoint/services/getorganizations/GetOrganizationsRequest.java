@@ -22,17 +22,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hasorganizationchanged;
+package fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
-public class HasOrganizationChangedRequest {
-    private String guid;
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
+public class GetOrganizationsRequest {
+    private String businessCode;
 }

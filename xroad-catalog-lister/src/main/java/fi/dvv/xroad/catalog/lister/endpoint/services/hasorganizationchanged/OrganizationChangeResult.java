@@ -22,8 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hasorganizationchanged;
+package fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged;
 
+import fi.dvv.xroad.catalog.lister.dto.ChangeResult;
 import fi.dvv.xroad.catalog.persistence.entity.Address;
 import fi.dvv.xroad.catalog.persistence.entity.Email;
 import fi.dvv.xroad.catalog.persistence.entity.Organization;
@@ -33,8 +34,6 @@ import fi.dvv.xroad.catalog.persistence.entity.PhoneNumber;
 import fi.dvv.xroad.catalog.persistence.entity.WebPage;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -42,7 +41,7 @@ import java.util.Set;
  * for better performance and scalability. Currently, this loads full entity graphs into memory
  * to check for changes, which is inefficient for large datasets.
  */
-public class OrganizationChangeResult {
+public class OrganizationChangeResult extends ChangeResult {
     private static final String ORGANIZATION = "Organization";
     private static final String ORGANIZATION_NAME = "OrganizationName";
     private static final String ORGANIZATION_DESCRIPTION = "OrganizationDescription";
@@ -51,11 +50,8 @@ public class OrganizationChangeResult {
     private static final String WEB_PAGE = "WebPage";
     private static final String ADDRESS = "Address";
 
-    private final boolean changed;
-    private final List<String> changedValueNames;
-
     public OrganizationChangeResult(Organization organization, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        this.changedValueNames = new ArrayList<>();
+        super();
         
         Set<OrganizationName> organizationNames = organization.getAllOrganizationNames();
         Set<OrganizationDescription> organizationDescriptions = organization.getAllOrganizationDescriptions();
@@ -98,15 +94,5 @@ public class OrganizationChangeResult {
                 && obj.getStatusInfo().getChanged().isBefore(endDateTime))) {
             changedValueNames.add(ADDRESS);
         }
-
-        this.changed = !changedValueNames.isEmpty();
-    }
-
-    public boolean isChanged() {
-        return changed;
-    }
-
-    public List<String> getChangedValueNames() {
-        return changedValueNames;
     }
 }

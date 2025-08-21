@@ -22,17 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hascompanychanged;
+package fi.dvv.xroad.catalog.lister.dto;
 
 import lombok.Getter;
-import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
-@Setter
-public class HasCompanyChangedRequest {
-    private String businessId;
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
+public abstract class ChangeResult {
+    protected final List<String> changedValueNames;
+
+    protected ChangeResult() {
+        this.changedValueNames = new ArrayList<>();
+    }
+
+    public boolean isChanged() {
+        return !changedValueNames.isEmpty();
+    }
 }

@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hascompanychanged;
+package fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged;
 
 import jakarta.xml.soap.SOAPElement;
 import jakarta.xml.soap.SOAPEnvelope;
@@ -30,12 +30,13 @@ import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
-public class HasCompanyChangedResponseSerializer extends AbstractServiceResponseSerializer<HasCompanyChangedRequest, CompanyChangeResult> {
+public class HasOrganizationChangedResponseSerializer
+        extends AbstractServiceResponseSerializer<HasOrganizationChangedRequest, OrganizationChangeResult> {
 
     /**
      * Serialize response to the following format:
      *
-     * &lt;xs:element name="HasCompanyChangedResponse"&gt;
+     * &lt;xs:element name="HasOrganizationChangedResponse"&gt;
      *     &lt;xs:complexType&gt;
      *         &lt;xs:sequence&gt;
      *             &lt;xs:element name="changed" type="xs:boolean"/&gt;
@@ -57,9 +58,10 @@ public class HasCompanyChangedResponseSerializer extends AbstractServiceResponse
      * &lt;/xs:complexType&gt;
      */
     @Override
-    protected void serializeResponse(ServiceResponse<HasCompanyChangedRequest, CompanyChangeResult> response,
+    protected void serializeResponse(ServiceResponse<HasOrganizationChangedRequest, OrganizationChangeResult> response,
+                                    
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {
-        CompanyChangeResult result = response.getResponseData();
+        OrganizationChangeResult result = response.getResponseData();
         
         SOAPElement changedEl = soapResponse.addChildElement(envelope.createName("changed"));
         changedEl.setTextContent(Boolean.toString(result.isChanged()));

@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.getcompanies;
+package fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies;
 
 import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.exception.XRd4JException;

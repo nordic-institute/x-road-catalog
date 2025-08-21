@@ -22,34 +22,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.getorganizations;
+package fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies;
 
-import jakarta.xml.soap.Node;
-import jakarta.xml.soap.SOAPException;
-import jakarta.xml.soap.SOAPMessage;
-import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
+import lombok.Getter;
+import lombok.Setter;
 
-public class GetOrganizationsRequestDeserializer extends AbstractCustomRequestDeserializer<GetOrganizationsRequest> {
-    @Override
-    protected GetOrganizationsRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
-        if (requestNode == null) {
-            return null;
-        }
-
-        GetOrganizationsRequest request = new GetOrganizationsRequest();
-
-        for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
-            var node = requestNode.getChildNodes().item(i);
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
-                continue;
-            }
-
-            if ("businessCode".equals(node.getLocalName())) {
-                request.setBusinessCode(node.getTextContent());
-            }
-        }
-
-        return request;
-    }
-
+@Getter
+@Setter
+public class GetCompaniesRequest {
+    private String businessId;
 }

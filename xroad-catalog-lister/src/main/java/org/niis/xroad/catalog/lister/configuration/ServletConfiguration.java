@@ -39,16 +39,16 @@ public class ServletConfiguration {
     @Autowired
     private CatalogService catalogService;
 
-    @Autowired
+    @Autowired(required = false)
     private OrganizationService organizationService;
 
-    @Autowired
+    @Autowired(required = false)
     private CompanyService companyService;
 
     @Bean
     public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean() {
         ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService, organizationService, companyService), "/xrd4j");
+                new SOAPAdapter(catalogService, organizationService, companyService), "/ws");
         bean.setLoadOnStartup(1);
         return bean;
     }

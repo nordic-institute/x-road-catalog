@@ -24,10 +24,13 @@
  */
 package fi.dvv.xroad.catalog.lister.controller;
 
+import fi.dvv.xroad.catalog.lister.dto.ChangeResult;
 import fi.dvv.xroad.catalog.lister.dto.CompanyData;
 import fi.dvv.xroad.catalog.lister.dto.OrganizationChanged;
 import fi.dvv.xroad.catalog.lister.dto.OrganizationDTO;
 import fi.dvv.xroad.catalog.lister.dto.OrganizationData;
+import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.CompanyChangeResult;
+import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.OrganizationChangeResult;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
 import fi.dvv.xroad.catalog.lister.service.JaxbCompanyService;
 import fi.dvv.xroad.catalog.lister.service.JaxbOrganizationService;
@@ -36,8 +39,6 @@ import fi.dvv.xroad.catalog.lister.util.OrganizationUtil;
 import fi.dvv.xroad.catalog.persistence.entity.Company;
 import fi.dvv.xroad.catalog.persistence.entity.Organization;
 import org.niis.xroad.catalog.lister.exception.CatalogListerRuntimeException;
-import org.niis.xroad.catalog.lister.generated.ChangedValue;
-import org.niis.xroad.catalog.lister.util.JaxbServiceUtil;
 import org.niis.xroad.catalog.lister.util.ServiceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -133,30 +134,26 @@ public class OrganizationController implements OrganizationOperations {
         }
 
         OrganizationChanged organizationChanged = null;
-        Iterable<ChangedValue> changedValues = null;
+        ChangeResult changedValues = null;
         Iterable<Company> companies = companyService.getCompanies(businessCode);
         if (companies.iterator().hasNext()) {
-            changedValues = jaxbCompanyService.getChangedCompanyValues(companies.iterator().next().getBusinessId(),
-                    JaxbServiceUtil.toXmlGregorianCalendar(startDateTime),
-                    JaxbServiceUtil.toXmlGregorianCalendar(endDateTime));
+            changedValues = new CompanyChangeResult(companies.iterator().next(), startDateTime, endDateTime);
         } else {
             Iterable<Organization> organizations = organizationService.getOrganizations(businessCode);
             if (organizations.iterator().hasNext()) {
-                changedValues = jaxbOrganizationService.getChangedOrganizationValues(
-                        organizations.iterator().next().getGuid(),
-                        JaxbServiceUtil.toXmlGregorianCalendar(startDateTime),
-                        JaxbServiceUtil.toXmlGregorianCalendar(endDateTime));
+                changedValues = new OrganizationChangeResult(organizations.iterator().next(), startDateTime,
+                        endDateTime);
             }
         }
         if (changedValues == null) {
             return ResponseEntity
                     .ok(OrganizationChanged.builder().changed(false).changedValueList(new ArrayList<>()).build());
         }
-        if (changedValues.iterator().hasNext()) {
+        if (changedValues.getChangedValueNames().iterator().hasNext()) {
             List<fi.dvv.xroad.catalog.lister.dto.ChangedValue> changedValueList = new ArrayList<>();
-            changedValues.forEach(
+            changedValues.getChangedValueNames().forEach(
                     changedValue -> changedValueList.add(fi.dvv.xroad.catalog.lister.dto.ChangedValue.builder()
-                            .name(changedValue.getName())
+                            .name(changedValue)
                             .build()));
             organizationChanged = OrganizationChanged.builder().changed(true).changedValueList(changedValueList)
                     .build();

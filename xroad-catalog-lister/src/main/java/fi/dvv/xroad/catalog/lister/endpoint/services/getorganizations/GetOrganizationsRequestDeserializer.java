@@ -22,22 +22,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.endpoint.services.hasorganizationchanged;
+package fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations;
 
 import jakarta.xml.soap.Node;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
-import org.niis.xroad.catalog.lister.endpoint.services.common.DateTimeUtil;
 
-public class HasOrganizationChangedRequestDeserializer extends AbstractCustomRequestDeserializer<HasOrganizationChangedRequest> {
+public class GetOrganizationsRequestDeserializer extends AbstractCustomRequestDeserializer<GetOrganizationsRequest> {
     @Override
-    protected HasOrganizationChangedRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
+    protected GetOrganizationsRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
         if (requestNode == null) {
             return null;
         }
 
-        HasOrganizationChangedRequest request = new HasOrganizationChangedRequest();
+        GetOrganizationsRequest request = new GetOrganizationsRequest();
 
         for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
             var node = requestNode.getChildNodes().item(i);
@@ -45,16 +44,8 @@ public class HasOrganizationChangedRequestDeserializer extends AbstractCustomReq
                 continue;
             }
 
-            if ("guid".equals(node.getLocalName())) {
-                request.setGuid(node.getTextContent());
-            }
-
-            if ("startDateTime".equals(node.getLocalName())) {
-                request.setStartDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
-            }
-
-            if ("endDateTime".equals(node.getLocalName())) {
-                request.setEndDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
+            if ("businessCode".equals(node.getLocalName())) {
+                request.setBusinessCode(node.getTextContent());
             }
         }
 
