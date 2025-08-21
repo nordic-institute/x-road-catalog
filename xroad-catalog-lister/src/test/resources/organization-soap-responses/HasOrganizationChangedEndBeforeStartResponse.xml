@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header>
+        <xrd:client xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
+        </xrd:client>
+        <xrd:service xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>HasOrganizationChanged</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:userId xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-user</xrd:userId>
+        <xrd:id xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-request-123</xrd:id>
+        <xrd:protocolVersion xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns2:HasOrganizationChangedResponse xmlns:ns2="http://xroad.vrk.fi/xroad-catalog-lister">
+            <ns2:changed>false</ns2:changed>
+            <ns2:changedValueList/>
+        </ns2:HasOrganizationChangedResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

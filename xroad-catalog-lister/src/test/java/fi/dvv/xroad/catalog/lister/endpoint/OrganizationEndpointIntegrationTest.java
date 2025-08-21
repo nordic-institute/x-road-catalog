@@ -143,6 +143,79 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     @Test
+    public void testGetOrganizationsWithFullDataHttpSoap() throws Exception {
+        given(organizationService.getOrganizations(OrganizationMockDataFactory.GOVT_ORG_BUSINESS_CODE))
+                .willReturn(Arrays.asList(OrganizationMockDataFactory.createFullOrganizationWithAllDetails(
+                        OrganizationMockDataFactory.GOVT_ORG_BUSINESS_CODE, OrganizationMockDataFactory.GOVT_ORG_GUID)));
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetOrganizationsWithFullDataRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/GetOrganizationsWithFullDataResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "GetOrganizations with full data response should match expected XML");
+    }
+
+    @Test
+    public void testGetOrganizationsEmptyBusinessCodeHttpSoap() throws Exception {
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetOrganizationsEmptyBusinessCodeRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/GetOrganizationsEmptyBusinessCodeResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "GetOrganizations empty business code response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasOrganizationChangedMissingStartDateTimeHttpSoap() throws Exception {
+        mockOrganizationChangedValues(OrganizationMockDataFactory.GOVT_ORG_GUID);
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasOrganizationChangedMissingStartDateTimeRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath(
+                "organization-soap-responses/HasOrganizationChangedMissingStartDateTimeResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasOrganizationChanged missing startDateTime response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasOrganizationChangedMissingEndDateTimeHttpSoap() throws Exception {
+        mockOrganizationChangedValues(OrganizationMockDataFactory.GOVT_ORG_GUID);
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasOrganizationChangedMissingEndDateTimeRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath(
+                "organization-soap-responses/HasOrganizationChangedMissingEndDateTimeResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasOrganizationChanged missing endDateTime response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasOrganizationChangedEmptyGuidHttpSoap() throws Exception {
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasOrganizationChangedEmptyGuidRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasOrganizationChangedEmptyGuidResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasOrganizationChanged empty GUID response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasOrganizationChangedEndBeforeStartHttpSoap() throws Exception {
+        mockOrganizationChangedValues(OrganizationMockDataFactory.GOVT_ORG_GUID);
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasOrganizationChangedEndBeforeStartRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasOrganizationChangedEndBeforeStartResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasOrganizationChanged end before start response should match expected SOAP fault");
+    }
+
+    @Test
     public void testGetCompaniesHttpSoap() throws Exception {
         mockCompaniesForBusinessId(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID);
 
@@ -200,6 +273,76 @@ public class OrganizationEndpointIntegrationTest {
         String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasCompanyChangedNullBusinessIdResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(),
                 "HasCompanyChanged null business ID response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testGetCompaniesWithFullDataHttpSoap() throws Exception {
+        given(companyService.getCompanies(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID))
+                .willReturn(Arrays.asList(OrganizationMockDataFactory.createFullCompanyWithAllDetails(
+                        OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID, "Test Company Ltd")));
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetCompaniesWithFullDataRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/GetCompaniesWithFullDataResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "GetCompanies with full data response should match expected XML");
+    }
+
+    @Test
+    public void testGetCompaniesEmptyBusinessIdHttpSoap() throws Exception {
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetCompaniesEmptyBusinessIdRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/GetCompaniesEmptyBusinessIdResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "GetCompanies empty business ID response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasCompanyChangedMissingStartDateTimeHttpSoap() throws Exception {
+        mockCompanyChangedValues(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID);
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasCompanyChangedMissingStartDateTimeRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasCompanyChangedMissingStartDateTimeResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasCompanyChanged missing startDateTime response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasCompanyChangedMissingEndDateTimeHttpSoap() throws Exception {
+        mockCompanyChangedValues(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID);
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasCompanyChangedMissingEndDateTimeRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasCompanyChangedMissingEndDateTimeResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasCompanyChanged missing endDateTime response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasCompanyChangedEmptyBusinessIdHttpSoap() throws Exception {
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasCompanyChangedEmptyBusinessIdRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasCompanyChangedEmptyBusinessIdResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasCompanyChanged empty business ID response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHasCompanyChangedEndBeforeStartHttpSoap() throws Exception {
+        mockCompanyChangedValues(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID);
+
+        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasCompanyChangedEndBeforeStartRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        String expectedResponse = loadXmlFromClasspath("organization-soap-responses/HasCompanyChangedEndBeforeStartResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                "HasCompanyChanged end before start response should match expected SOAP fault");
     }
 
     // HTTP and XML utility methods

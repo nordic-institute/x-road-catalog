@@ -24,14 +24,22 @@
  */
 package fi.dvv.xroad.catalog.lister.endpoint;
 
+import fi.dvv.xroad.catalog.persistence.entity.Address;
 import fi.dvv.xroad.catalog.persistence.entity.Company;
+import fi.dvv.xroad.catalog.persistence.entity.Email;
 import fi.dvv.xroad.catalog.persistence.entity.Organization;
+import fi.dvv.xroad.catalog.persistence.entity.OrganizationDescription;
+import fi.dvv.xroad.catalog.persistence.entity.OrganizationName;
+import fi.dvv.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.dvv.xroad.catalog.persistence.entity.WebPage;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class OrganizationMockDataFactory {
 
@@ -163,6 +171,91 @@ public final class OrganizationMockDataFactory {
         Company company = createStandardCompany(businessId, name, DEFAULT_COMPANY_FORM);
         StatusInfo statusInfo = new StatusInfo(FIXED_TEST_TIME, changedTime, FIXED_TEST_TIME, null);
         company.setStatusInfo(statusInfo);
+        return company;
+    }
+
+    // Factory method to create organization with all related entities populated
+    public static Organization createFullOrganizationWithAllDetails(String businessCode, String guid) {
+        Organization organization = createStandardOrganization(businessCode, guid, DEFAULT_ORGANIZATION_TYPE, DEFAULT_PUBLISHING_STATUS);
+        
+        Set<OrganizationName> names = new HashSet<>();
+        OrganizationName primaryName = new OrganizationName();
+        primaryName.setLanguage("EN");
+        primaryName.setType("Name");
+        primaryName.setValue("Test Organization Ltd");
+        primaryName.setOrganization(organization);
+        primaryName.setStatusInfo(createStandardStatusInfo());
+        names.add(primaryName);
+
+        OrganizationName alternateName = new OrganizationName();
+        alternateName.setLanguage("EN");
+        alternateName.setType("AlternateName");
+        alternateName.setValue("Test Org");
+        alternateName.setOrganization(organization);
+        alternateName.setStatusInfo(createStandardStatusInfo());
+        names.add(alternateName);
+
+        Set<OrganizationDescription> descriptions = new HashSet<>();
+        OrganizationDescription description = new OrganizationDescription();
+        description.setLanguage("EN");
+        description.setType("Description");
+        description.setValue("Test organization description");
+        description.setOrganization(organization);
+        description.setStatusInfo(createStandardStatusInfo());
+        descriptions.add(description);
+
+        Set<Email> emails = new HashSet<>();
+        Email email = new Email();
+        email.setValue("contact@example.com");
+        email.setDescription("Main contact email");
+        email.setOrganization(organization);
+        email.setStatusInfo(createStandardStatusInfo());
+        emails.add(email);
+
+        Set<PhoneNumber> phoneNumbers = new HashSet<>();
+        PhoneNumber phoneNumber = new PhoneNumber();
+        phoneNumber.setNumber("+1234567890");
+        phoneNumber.setLanguage("EN");
+        phoneNumber.setPrefixNumber("+1");
+        phoneNumber.setIsFinnishServiceNumber(false);
+        phoneNumber.setOrganization(organization);
+        phoneNumber.setStatusInfo(createStandardStatusInfo());
+        phoneNumbers.add(phoneNumber);
+
+        Set<WebPage> webPages = new HashSet<>();
+        WebPage webPage = new WebPage();
+        webPage.setUrl("https://www.example.com");
+        webPage.setLanguage("EN");
+        webPage.setValue("Official website");
+        webPage.setOrganization(organization);
+        webPage.setStatusInfo(createStandardStatusInfo());
+        webPages.add(webPage);
+
+        Set<Address> addresses = new HashSet<>();
+        Address address = new Address();
+        address.setCountry("Test Country");
+        address.setType("Visiting address");
+        address.setOrganization(organization);
+        address.setStatusInfo(createStandardStatusInfo());
+        addresses.add(address);
+
+        organization.getAllOrganizationNames().addAll(names);
+        organization.getAllOrganizationDescriptions().addAll(descriptions);
+        organization.getAllEmails().addAll(emails);
+        organization.getAllPhoneNumbers().addAll(phoneNumbers);
+        organization.getAllWebPages().addAll(webPages);
+        organization.getAllAddresses().addAll(addresses);
+
+        return organization;
+    }
+
+    // Factory method to create company with all details populated
+    public static Company createFullCompanyWithAllDetails(String businessId, String name) {
+        Company company = createStandardCompany(businessId, name, DEFAULT_COMPANY_FORM);
+        
+        company.setName(name + " (Full Details)");
+        company.setDetailsUri("https://www.example.com/company/" + businessId);
+        
         return company;
     }
 }
