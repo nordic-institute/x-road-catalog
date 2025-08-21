@@ -22,34 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.configuration;
+package org.niis.xroad.catalog.lister.endpoint.services.getcompanies;
 
-import org.niis.xroad.catalog.lister.endpoint.SOAPAdapter;
-import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.dvv.xroad.catalog.lister.service.OrganizationService;
-import fi.dvv.xroad.catalog.lister.service.CompanyService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import jakarta.xml.soap.Node;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
+import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
 
-@Configuration
-public class ServletConfiguration {
+public class GetCompaniesRequestDeserializer extends AbstractCustomRequestDeserializer<GetCompaniesRequest> {
+    @Override
+    protected GetCompaniesRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
+        if (requestNode == null) {
+            return null;
+        }
 
-    @Autowired
-    private CatalogService catalogService;
+        GetCompaniesRequest request = new GetCompaniesRequest();
 
-    @Autowired
-    private OrganizationService organizationService;
+        for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
+            var node = requestNode.getChildNodes().item(i);
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
 
-    @Autowired
-    private CompanyService companyService;
+            if ("businessId".equals(node.getLocalName())) {
+                request.setBusinessId(node.getTextContent());
+            }
+        }
 
-    @Bean
-    public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean() {
-        ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService, organizationService, companyService), "/xrd4j");
-        bean.setLoadOnStartup(1);
-        return bean;
+        return request;
     }
+
 }

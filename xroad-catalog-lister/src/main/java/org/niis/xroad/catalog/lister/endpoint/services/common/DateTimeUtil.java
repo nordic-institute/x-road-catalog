@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.catalog.lister.endpoint.services.common;
 
+import org.springframework.util.StringUtils;
+
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.time.LocalDateTime;
@@ -47,7 +49,7 @@ public final class DateTimeUtil {
     }
 
     public static LocalDateTime parseXmlDateTime(String dateTimeString) {
-        if (dateTimeString == null || dateTimeString.trim().isEmpty()) {
+        if (!StringUtils.hasText(dateTimeString)) {
             return null;
         }
         XMLGregorianCalendar xmlCalendar = DATATYPE_FACTORY.newXMLGregorianCalendar(dateTimeString);

@@ -22,34 +22,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.configuration;
+package org.niis.xroad.catalog.lister.endpoint.services.getcompanies;
 
-import org.niis.xroad.catalog.lister.endpoint.SOAPAdapter;
-import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.dvv.xroad.catalog.lister.service.OrganizationService;
-import fi.dvv.xroad.catalog.lister.service.CompanyService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
+import lombok.Setter;
 
-@Configuration
-public class ServletConfiguration {
-
-    @Autowired
-    private CatalogService catalogService;
-
-    @Autowired
-    private OrganizationService organizationService;
-
-    @Autowired
-    private CompanyService companyService;
-
-    @Bean
-    public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean() {
-        ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService, organizationService, companyService), "/xrd4j");
-        bean.setLoadOnStartup(1);
-        return bean;
-    }
+@Getter
+@Setter
+public class GetCompaniesRequest {
+    private String businessId;
 }
