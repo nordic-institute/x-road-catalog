@@ -25,6 +25,7 @@
 
 package fi.dvv.xroad.catalog.lister.endpoint;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.ListerApplication;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;

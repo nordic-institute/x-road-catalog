@@ -43,8 +43,10 @@ import fi.dvv.xroad.catalog.persistence.entity.Organization;
 import fi.dvv.xroad.catalog.persistence.entity.OrganizationDescription;
 import fi.dvv.xroad.catalog.persistence.entity.OrganizationName;
 import fi.dvv.xroad.catalog.persistence.entity.PhoneNumber;
+import fi.dvv.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
 import fi.dvv.xroad.catalog.persistence.entity.RegisteredEntry;
 import fi.dvv.xroad.catalog.persistence.entity.RegisteredOffice;
+import fi.dvv.xroad.catalog.persistence.entity.StreetAddress;
 import fi.dvv.xroad.catalog.persistence.entity.WebPage;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.entity.Member;
@@ -525,7 +527,6 @@ public final class CommonSerializer {
 
     /**
      * Serialize Address into the following XML descriptor format.
-     * Note: This is a simplified version without nested collections like streetAddresses and postOfficeBoxAddresses.
      *
      * <pre>{@code
      * &lt;xs:complexType name="Address"&gt;
@@ -533,6 +534,8 @@ public final class CommonSerializer {
      *         &lt;xs:element name="country" type="xs:string"/&gt;
      *         &lt;xs:element name="type" type="xs:string"/&gt;
      *         &lt;xs:element name="subType" type="xs:string"/&gt;
+     *         &lt;xs:element name="streetAddresses" type="tns:StreetAddressList"/&gt;
+     *         &lt;xs:element name="postOfficeBoxAddresses" type="tns:PostOfficeBoxAddressList"/&gt;
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
@@ -547,6 +550,17 @@ public final class CommonSerializer {
         addElementWithValue(envelope, addressEl, "country", address.getCountry());
         addElementWithValue(envelope, addressEl, "type", address.getType());
         addElementWithValue(envelope, addressEl, "subType", address.getSubType());
+
+        SOAPElement streetAddressesEl = addressEl.addChildElement(envelope.createName("streetAddresses"));
+        for (var streetAddress : address.getAllStreetAddresses()) {
+            serialize(envelope, streetAddressesEl, streetAddress);
+        }
+
+        SOAPElement postOfficeBoxAddressesEl = addressEl.addChildElement(envelope.createName("postOfficeBoxAddresses"));
+        for (var postOfficeBoxAddress : address.getAllPostOfficeBoxAddresses()) {
+            serialize(envelope, postOfficeBoxAddressesEl, postOfficeBoxAddress);
+        }
+
         serialize(envelope, addressEl, address.getStatusInfo());
     }
 
@@ -1029,6 +1043,58 @@ public final class CommonSerializer {
         addElementWithValue(envelope, registeredOfficeEl, "registrationDate", registeredOffice.getRegistrationDate());
         addElementWithValue(envelope, registeredOfficeEl, "endDate", registeredOffice.getEndDate());
         serialize(envelope, registeredOfficeEl, registeredOffice.getStatusInfo());
+    }
+
+    /**
+     * Serialize StreetAddress into the following XML descriptor format.
+     *
+     * <pre>{@code
+     * &lt;xs:complexType name="StreetAddress"&gt;
+     *     &lt;xs:sequence&gt;
+     *         &lt;xs:element name="streetNumber" type="xs:string"/&gt;
+     *         &lt;xs:element name="postalCode" type="xs:string"/&gt;
+     *         &lt;xs:element name="latitude" type="xs:string"/&gt;
+     *         &lt;xs:element name="longitude" type="xs:string"/&gt;
+     *         &lt;xs:element name="coordinateState" type="xs:string"/&gt;
+     *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
+     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *     &lt;/xs:sequence&gt;
+     * &lt;/xs:complexType&gt;
+     * }</pre>
+     */
+    public static void serialize(final SOAPEnvelope envelope, final SOAPElement parent,
+                                   final StreetAddress streetAddress) throws SOAPException {
+        SOAPElement streetAddressEl = parent.addChildElement(envelope.createName("streetAddress"));
+        addElementWithValue(envelope, streetAddressEl, "streetNumber", streetAddress.getStreetNumber());
+        addElementWithValue(envelope, streetAddressEl, "postalCode", streetAddress.getPostalCode());
+        addElementWithValue(envelope, streetAddressEl, "latitude", streetAddress.getLatitude());
+        addElementWithValue(envelope, streetAddressEl, "longitude", streetAddress.getLongitude());
+        addElementWithValue(envelope, streetAddressEl, "coordinateState", streetAddress.getCoordinateState());
+        serialize(envelope, streetAddressEl, streetAddress.getStatusInfo());
+    }
+
+    /**
+     * Serialize PostOfficeBoxAddress into the following XML descriptor format.
+     *
+     * <pre>{@code
+     * &lt;xs:complexType name="PostOfficeBoxAddress"&gt;
+     *     &lt;xs:sequence&gt;
+     *         &lt;xs:element name="postalCode" type="xs:string"/&gt;
+     *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
+     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *     &lt;/xs:sequence&gt;
+     * &lt;/xs:complexType&gt;
+     * }</pre>
+     */
+    public static void serialize(final SOAPEnvelope envelope, final SOAPElement parent,
+                                   final PostOfficeBoxAddress postOfficeBoxAddress) throws SOAPException {
+        SOAPElement postOfficeBoxAddressEl = parent.addChildElement(envelope.createName("postOfficeBoxAddress"));
+        addElementWithValue(envelope, postOfficeBoxAddressEl, "postalCode", postOfficeBoxAddress.getPostalCode());
+        serialize(envelope, postOfficeBoxAddressEl, postOfficeBoxAddress.getStatusInfo());
     }
 
 }
