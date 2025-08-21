@@ -32,6 +32,7 @@ import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xroad.catalog.lister.endpoint.ListerService;
 import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import fi.dvv.xroad.catalog.persistence.entity.Organization;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -49,10 +50,16 @@ public class HasOrganizationChangedService implements ListerService<HasOrganizat
             throws XRd4JException, SOAPException {
         REQUEST_DESERIALIZER.deserialize(request);
 
-        if (request.getRequestData().getGuid() == null || request.getRequestData().getGuid().isEmpty()) {
+        if (!StringUtils.hasText(request.getRequestData().getGuid())) {
             request.setErrorMessage(
                     new ErrorMessage("SOAP-ENV:Server", "Guid is a required parameter", null, null));
             throw new XRd4JException("Guid is required");
+        }
+
+        if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
+            request.setErrorMessage(
+                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTIme parameters are missing", null, null));
+            throw new XRd4JException("Missing required parameters");
         }
         
         Optional<Organization> organization = organizationService.getOrganization(request.getRequestData().getGuid());

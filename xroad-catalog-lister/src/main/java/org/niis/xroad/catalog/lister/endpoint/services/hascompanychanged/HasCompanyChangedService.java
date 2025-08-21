@@ -32,6 +32,7 @@ import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xroad.catalog.lister.endpoint.ListerService;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
 import fi.dvv.xroad.catalog.persistence.entity.Company;
+import org.springframework.util.StringUtils;
 
 public class HasCompanyChangedService implements ListerService<HasCompanyChangedRequest, CompanyChangeResult> {
     private static final HasCompanyChangedRequestDeserializer REQUEST_DESERIALIZER = new HasCompanyChangedRequestDeserializer();
@@ -46,10 +47,16 @@ public class HasCompanyChangedService implements ListerService<HasCompanyChanged
             throws XRd4JException, SOAPException {
         REQUEST_DESERIALIZER.deserialize(request);
 
-        if (request.getRequestData().getBusinessId() == null || request.getRequestData().getBusinessId().isEmpty()) {
+        if (!StringUtils.hasText(request.getRequestData().getBusinessId())) {
             request.setErrorMessage(
                     new ErrorMessage("SOAP-ENV:Server", "BusinessId is a required parameter", null, null));
             throw new XRd4JException("BusinessId is required");
+        }
+
+        if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
+            request.setErrorMessage(
+                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTIme parameters are missing", null, null));
+            throw new XRd4JException("Missing required parameters");
         }
         
         Iterable<Company> companies = companyService.getCompanies(request.getRequestData().getBusinessId());
