@@ -15,7 +15,7 @@ buildscript {
 plugins {
     alias (libs.plugins.sonarqube)
     id 'idea'
-    alias(libs.plugins.spring.boot) apply false
+    alias (libs.plugins.spring.boot) apply false
 }
 
 repositories {
@@ -37,6 +37,12 @@ ext {
     project_version='4.0.0'
 }
 
+sonar {
+    properties {
+        property "sonar.projectKey", "nordic-institute_x-road-catalog"
+        property "sonar.organization", "nordic-institute"
+    }
+}
 
 subprojects {
     version = project_version

@@ -38,6 +38,12 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -48,7 +54,9 @@ jobs:
       - name: Gradle build environment
         run: ./gradlew buildEnvironment xroad-catalog-persistence:buildEnvironment xroad-catalog-collector:buildEnvironment xroad-catalog-lister:buildEnvironment --stacktrace
       - name: Run tests
-        run: ./gradlew build check jacocoTestReport --stacktrace
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --stacktrace
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
