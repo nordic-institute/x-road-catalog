@@ -50,7 +50,7 @@ public class GetOrganizationsService implements ListerService<GetOrganizationsRe
         
         if (!organizations.iterator().hasNext()) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server",
+                    new ErrorMessage(FAULT_CODE_SERVER,
                             "Organizations with businessCode " + request.getRequestData().getBusinessCode() + " not found",
                             null, null));
             throw new XRd4JException("Organizations not found");

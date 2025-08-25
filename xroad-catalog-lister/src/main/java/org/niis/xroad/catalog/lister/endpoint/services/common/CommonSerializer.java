@@ -58,7 +58,7 @@ import org.niis.xroad.catalog.persistence.entity.Wsdl;
 
 import java.time.LocalDateTime;
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.CommentSize"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.CommentSize", "java:S1192"})
 public final class CommonSerializer {
 
     private CommonSerializer() {

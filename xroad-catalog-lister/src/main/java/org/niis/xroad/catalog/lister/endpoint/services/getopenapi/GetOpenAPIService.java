@@ -49,7 +49,7 @@ public class GetOpenAPIService implements ListerService<GetOpenAPIRequest, Strin
         OpenApi openApiEntity = catalogService.getOpenApi(request.getRequestData().getExternalId());
         if (openApiEntity == null) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "OpenApi with external id "
+                    new ErrorMessage(FAULT_CODE_SERVER, "OpenApi with external id "
                             + request.getRequestData().getExternalId() + " not found", null, null));
             throw new XRd4JException("OpenApi not found");
         }

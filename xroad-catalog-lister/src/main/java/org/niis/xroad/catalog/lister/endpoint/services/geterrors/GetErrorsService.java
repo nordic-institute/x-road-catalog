@@ -57,7 +57,7 @@ public class GetErrorsService implements ListerService<GetErrorsRequest, Iterabl
         if (errors != null && !errors.iterator().hasNext()) {
             String startTime = request.getRequestData().getStartDateTime().format(ISO_LOCAL_DATE_TIME_WITH_SECONDS);
             String endTime = request.getRequestData().getEndDateTime().format(ISO_LOCAL_DATE_TIME_WITH_SECONDS);
-            request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server",
+            request.setErrorMessage(new ErrorMessage(FAULT_CODE_SERVER,
                     "ErrorLog entries since " + startTime + " until " + endTime + " not found", null, null));
             throw new XRd4JException("ErrorLog entries not found");
         }

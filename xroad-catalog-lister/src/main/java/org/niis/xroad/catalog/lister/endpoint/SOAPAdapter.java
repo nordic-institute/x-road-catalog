@@ -33,17 +33,11 @@ import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.AbstractAdapterServlet;
 import org.niis.xroad.catalog.lister.endpoint.services.geterrors.GetErrorsService;
-import org.niis.xroad.catalog.lister.endpoint.services.geterrors.GetErrorsRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.getopenapi.GetOpenAPIService;
-import org.niis.xroad.catalog.lister.endpoint.services.getopenapi.GetOpenAPIRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.getservicetype.GetServiceTypeService;
-import org.niis.xroad.catalog.lister.endpoint.services.getservicetype.GetServiceTypeRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.getwsdl.GetWsdlService;
-import org.niis.xroad.catalog.lister.endpoint.services.getwsdl.GetWsdlRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderService;
-import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersService;
-import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersRequest;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
@@ -77,33 +71,16 @@ public class SOAPAdapter extends AbstractAdapterServlet {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected ServiceResponse handleRequest(ServiceRequest request) throws SOAPException, XRd4JException {
-        switch (request.getProducer().getServiceCode()) {
-            case "ListMembers":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<ListMembersRequest> listMembersRequest = (ServiceRequest<ListMembersRequest>) request;
-                return listMembersService.execute(listMembersRequest);
-            case "GetErrors":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetErrorsRequest> getErrorsRequest = (ServiceRequest<GetErrorsRequest>) request;
-                return getErrorsService.execute(getErrorsRequest);
-            case "GetOpenAPI":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetOpenAPIRequest> getOpenAPIRequest = (ServiceRequest<GetOpenAPIRequest>) request;
-                return getOpenAPIService.execute(getOpenAPIRequest);
-            case "GetServiceType":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetServiceTypeRequest> getServiceTypeRequest = (ServiceRequest<GetServiceTypeRequest>) request;
-                return getServiceTypeService.execute(getServiceTypeRequest);
-            case "GetWsdl":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetWsdlRequest> getWsdlRequest = (ServiceRequest<GetWsdlRequest>) request;
-                return getWsdlService.execute(getWsdlRequest);
-            case "IsProvider":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<IsProviderRequest> isProviderRequest = (ServiceRequest<IsProviderRequest>) request;
-                return isProviderService.execute(isProviderRequest);
-            case "GetOrganizations", "HasOrganizationChanged", "GetCompanies", "HasCompanyChanged":
+        return switch (request.getProducer().getServiceCode()) {
+            case "ListMembers" -> listMembersService.execute(request);
+            case "GetErrors" -> getErrorsService.execute(request);
+            case "GetOpenAPI" -> getOpenAPIService.execute(request);
+            case "GetServiceType" -> getServiceTypeService.execute(request);
+            case "GetWsdl" -> getWsdlService.execute(request);
+            case "IsProvider" -> isProviderService.execute(request);
+            case "GetOrganizations", "HasOrganizationChanged", "GetCompanies", "HasCompanyChanged" -> {
                 // Organization and Company services are currently only available with the FI profile
                 if (organizationSOAPAdapter.isEmpty()) {
                     log.warn("Organization and Company components not initialised, request {} unavailable",
@@ -112,12 +89,14 @@ public class SOAPAdapter extends AbstractAdapterServlet {
                             "Unknown service: " + request.getProducer().getServiceCode(), null, null));
                     throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
                 }
-                return organizationSOAPAdapter.get().handleRequest(request);
-            default:
+                yield organizationSOAPAdapter.get().handleRequest(request);
+            }
+            default -> {
                 request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server",
                         "Unknown service: " + request.getProducer().getServiceCode(), null, null));
                 throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
-        }
+            }
+        };
     }
 
     @Override

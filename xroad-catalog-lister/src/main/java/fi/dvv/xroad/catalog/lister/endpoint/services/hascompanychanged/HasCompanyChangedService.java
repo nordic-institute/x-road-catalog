@@ -34,6 +34,7 @@ import fi.dvv.xroad.catalog.lister.service.CompanyService;
 import fi.dvv.xroad.catalog.persistence.entity.Company;
 import org.springframework.util.StringUtils;
 
+@SuppressWarnings("java:S3776")
 public class HasCompanyChangedService implements ListerService<HasCompanyChangedRequest, CompanyChangeResult> {
     private static final HasCompanyChangedRequestDeserializer REQUEST_DESERIALIZER = new HasCompanyChangedRequestDeserializer();
     private static final HasCompanyChangedResponseSerializer RESPONSE_SERIALIZER = new HasCompanyChangedResponseSerializer();
@@ -49,20 +50,20 @@ public class HasCompanyChangedService implements ListerService<HasCompanyChanged
 
         if (!StringUtils.hasText(request.getRequestData().getBusinessId())) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "BusinessId is a required parameter", null, null));
+                    new ErrorMessage(FAULT_CODE_SERVER, "BusinessId is a required parameter", null, null));
             throw new XRd4JException("BusinessId is required");
         }
 
         if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTime parameters are required", null, null));
+                    new ErrorMessage(FAULT_CODE_SERVER, "startDateTime and endDateTime parameters are required", null, null));
             throw new XRd4JException("Missing required parameters");
         }
         
         Iterable<Company> companies = companyService.getCompanies(request.getRequestData().getBusinessId());
         if (!companies.iterator().hasNext()) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server",
+                    new ErrorMessage(FAULT_CODE_SERVER,
                             "company with businessId " + request.getRequestData().getBusinessId() + " not found",
                             null, null));
             throw new XRd4JException("Companies not found");

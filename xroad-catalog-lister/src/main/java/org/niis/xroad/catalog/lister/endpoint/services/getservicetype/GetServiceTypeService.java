@@ -56,7 +56,7 @@ public class GetServiceTypeService implements ListerService<GetServiceTypeReques
         );
         
         if (service == null) {
-            request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server", "Service with xRoadInstance \""
+            request.setErrorMessage(new ErrorMessage(FAULT_CODE_SERVER, "Service with xRoadInstance \""
                     + request.getRequestData().getXRoadInstance()
                     + "\", memberClass \"" + request.getRequestData().getMemberClass()
                     + "\", memberCode \"" + request.getRequestData().getMemberCode()

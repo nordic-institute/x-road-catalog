@@ -24,13 +24,9 @@
  */
 package fi.dvv.xroad.catalog.lister.endpoint;
 
-import fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesRequest;
 import fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsRequest;
 import fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedRequest;
 import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedRequest;
 import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedService;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
 import fi.dvv.xroad.catalog.lister.service.OrganizationService;
@@ -53,27 +49,14 @@ public class OrganizationSOAPAdapter {
         this.hasCompanyChangedService = new HasCompanyChangedService(companyService);
     }
 
+    @SuppressWarnings({"unchecked", "java:S3740"})
     public ServiceResponse handleRequest(ServiceRequest request) throws SOAPException, XRd4JException {
-        switch (request.getProducer().getServiceCode()) {
-            case "GetOrganizations":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetOrganizationsRequest> getOrganizationsRequest = (ServiceRequest<GetOrganizationsRequest>) request;
-                return getOrganizationsService.execute(getOrganizationsRequest);
-            case "HasOrganizationChanged":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<HasOrganizationChangedRequest> hasOrganizationChangedRequest =
-                        (ServiceRequest<HasOrganizationChangedRequest>) request;
-                return hasOrganizationChangedService.execute(hasOrganizationChangedRequest);
-            case "GetCompanies":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetCompaniesRequest> getCompaniesRequest = (ServiceRequest<GetCompaniesRequest>) request;
-                return getCompaniesService.execute(getCompaniesRequest);
-            case "HasCompanyChanged":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<HasCompanyChangedRequest> hasCompanyChangedRequest = (ServiceRequest<HasCompanyChangedRequest>) request;
-                return hasCompanyChangedService.execute(hasCompanyChangedRequest);
-            default:
-                throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
-        }
+        return switch (request.getProducer().getServiceCode()) {
+            case "GetOrganizations" -> getOrganizationsService.execute(request);
+            case "HasOrganizationChanged" -> hasOrganizationChangedService.execute(request);
+            case "GetCompanies" -> getCompaniesService.execute(request);
+            case "HasCompanyChanged" -> hasCompanyChangedService.execute(request);
+            default -> throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
+        };
     }
 }

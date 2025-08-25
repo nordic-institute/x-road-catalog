@@ -53,7 +53,7 @@ public class IsProviderService implements ListerService<IsProviderRequest, Boole
         );
 
         if (member == null) {
-            request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server", "Member with xRoadInstance \""
+            request.setErrorMessage(new ErrorMessage(FAULT_CODE_SERVER, "Member with xRoadInstance \""
                     + request.getRequestData().getXRoadInstance()
                     + "\", memberClass \"" + request.getRequestData().getMemberClass()
                     + "\" and memberCode \"" + request.getRequestData().getMemberCode() + "\" not found", null, null));

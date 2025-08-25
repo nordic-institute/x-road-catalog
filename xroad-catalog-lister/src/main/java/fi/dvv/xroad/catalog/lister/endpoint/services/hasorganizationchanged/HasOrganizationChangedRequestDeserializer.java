@@ -30,6 +30,8 @@ import jakarta.xml.soap.SOAPMessage;
 import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
 import org.niis.xroad.catalog.lister.endpoint.services.common.DateTimeUtil;
 
+import static org.w3c.dom.Node.ELEMENT_NODE;
+
 public class HasOrganizationChangedRequestDeserializer extends AbstractCustomRequestDeserializer<HasOrganizationChangedRequest> {
     @Override
     protected HasOrganizationChangedRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
@@ -41,7 +43,7 @@ public class HasOrganizationChangedRequestDeserializer extends AbstractCustomReq
 
         for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
             var node = requestNode.getChildNodes().item(i);
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
+            if (node.getNodeType() != ELEMENT_NODE) {
                 continue;
             }
 

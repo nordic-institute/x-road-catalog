@@ -50,7 +50,7 @@ public class GetCompaniesService implements ListerService<GetCompaniesRequest, I
         
         if (!companies.iterator().hasNext()) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server",
+                    new ErrorMessage(FAULT_CODE_SERVER,
                             "Companies with businessId " + request.getRequestData().getBusinessId() + " not found",
                             null, null));
             throw new XRd4JException("Companies not found");

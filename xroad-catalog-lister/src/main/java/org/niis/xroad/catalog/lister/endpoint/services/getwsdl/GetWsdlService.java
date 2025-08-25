@@ -49,7 +49,7 @@ public class GetWsdlService implements ListerService<GetWsdlRequest, String> {
         Wsdl wsdlEntity = catalogService.getWsdl(request.getRequestData().getExternalId());
         if (wsdlEntity == null) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "wsdl with external id "
+                    new ErrorMessage(FAULT_CODE_SERVER, "wsdl with external id "
                             + request.getRequestData().getExternalId() + " not found", null, null));
             throw new XRd4JException("WSDL not found");
         }

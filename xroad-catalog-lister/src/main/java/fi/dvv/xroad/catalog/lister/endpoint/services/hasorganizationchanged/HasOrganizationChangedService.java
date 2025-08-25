@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
+@SuppressWarnings("java:S3776")
 public class HasOrganizationChangedService implements ListerService<HasOrganizationChangedRequest, OrganizationChangeResult> {
     private static final HasOrganizationChangedRequestDeserializer REQUEST_DESERIALIZER = new HasOrganizationChangedRequestDeserializer();
     private static final HasOrganizationChangedResponseSerializer RESPONSE_SERIALIZER = new HasOrganizationChangedResponseSerializer();
@@ -52,20 +53,20 @@ public class HasOrganizationChangedService implements ListerService<HasOrganizat
 
         if (!StringUtils.hasText(request.getRequestData().getGuid())) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "Guid is a required parameter", null, null));
+                    new ErrorMessage(FAULT_CODE_SERVER, "Guid is a required parameter", null, null));
             throw new XRd4JException("Guid is required");
         }
 
         if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTime parameters are required", null, null));
+                    new ErrorMessage(FAULT_CODE_SERVER, "startDateTime and endDateTime parameters are required", null, null));
             throw new XRd4JException("Missing required parameters");
         }
         
         Optional<Organization> organization = organizationService.getOrganization(request.getRequestData().getGuid());
         if (organization.isEmpty()) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server",
+                    new ErrorMessage(FAULT_CODE_SERVER,
                             "Organization with guid " + request.getRequestData().getGuid() + " not found",
                             null, null));
             throw new XRd4JException("Organization not found");

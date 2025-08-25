@@ -36,17 +36,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ServletConfiguration {
 
-    @Autowired
-    private CatalogService catalogService;
-
-    @Autowired(required = false)
-    private OrganizationService organizationService;
-
-    @Autowired(required = false)
-    private CompanyService companyService;
-
     @Bean
-    public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean() {
+    public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean(
+            @Autowired CatalogService catalogService,
+            @Autowired(required = false) OrganizationService organizationService,
+            @Autowired(required = false) CompanyService companyService
+    ) {
         ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
                 new SOAPAdapter(catalogService, organizationService, companyService), "/ws");
         bean.setLoadOnStartup(1);

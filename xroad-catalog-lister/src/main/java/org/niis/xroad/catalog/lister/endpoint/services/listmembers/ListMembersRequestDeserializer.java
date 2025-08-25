@@ -30,6 +30,8 @@ import jakarta.xml.soap.SOAPMessage;
 import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
 import org.niis.xroad.catalog.lister.endpoint.services.common.DateTimeUtil;
 
+import static org.w3c.dom.Node.ELEMENT_NODE;
+
 public class ListMembersRequestDeserializer extends AbstractCustomRequestDeserializer<ListMembersRequest> {
     @Override
     protected ListMembersRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
@@ -42,7 +44,7 @@ public class ListMembersRequestDeserializer extends AbstractCustomRequestDeseria
         for (int i = 0; i < requestNode.getChildNodes().getLength(); i++) {
             // Note that this will be the w3c Node type rather than the soap package type
             var node = requestNode.getChildNodes().item(i);
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
+            if (node.getNodeType() != ELEMENT_NODE) {
                 continue;
             }
 
