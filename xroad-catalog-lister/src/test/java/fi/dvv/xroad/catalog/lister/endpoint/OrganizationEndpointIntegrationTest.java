@@ -386,7 +386,32 @@ public class OrganizationEndpointIntegrationTest {
                 .build();
 
         if (diff.hasDifferences()) {
-            fail(message + "\n" + diff.toString() + "\n\nExpected:\n" + expectedXml + "\n\nActual:\n" + actualXml);
+            fail(message + "\n" + diff.toString() + "\n\nExpected:\n" + prettyPrintXml(expectedXml) + "\n\nActual:\n" + prettyPrintXml(actualXml));
+        }
+    }
+
+    private String prettyPrintXml(String xml) {
+        try {
+            javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            javax.xml.parsers.DocumentBuilder builder = factory.newDocumentBuilder();
+            org.w3c.dom.Document document = builder.parse(new java.io.ByteArrayInputStream(xml.getBytes()));
+
+            javax.xml.transform.TransformerFactory transformerFactory = javax.xml.transform.TransformerFactory.newInstance();
+            javax.xml.transform.Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "no");
+
+            java.io.StringWriter stringWriter = new java.io.StringWriter();
+            javax.xml.transform.stream.StreamResult streamResult = new javax.xml.transform.stream.StreamResult(stringWriter);
+            javax.xml.transform.dom.DOMSource domSource = new javax.xml.transform.dom.DOMSource(document);
+            transformer.transform(domSource, streamResult);
+
+            return stringWriter.toString();
+        } catch (Exception e) {
+            // If pretty printing fails, return original XML
+            return xml;
         }
     }
 
@@ -398,10 +423,10 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     private void mockOrganizationChangedValues(String guid) {
-        // Create an organization with a changed time within the test window
+        // Create an organization with ALL changed entities to test comprehensive change detection
         LocalDateTime changedTime = OrganizationMockDataFactory.FIXED_TEST_TIME.plusHours(1);
         fi.dvv.xroad.catalog.persistence.entity.Organization organization =
-                OrganizationMockDataFactory.createOrganizationWithChangedTime(
+                OrganizationMockDataFactory.createOrganizationWithAllChangedEntities(
                         OrganizationMockDataFactory.GOVT_ORG_BUSINESS_CODE, guid, changedTime);
         
         given(organizationService.getOrganization(guid))

@@ -26,6 +26,60 @@
                 <ns2:changedValue>
                     <ns2:name>Organization</ns2:name>
                 </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>OrganizationName</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>OrganizationDescription</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>Email</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PhoneNumber</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>WebPage</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>Address</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>StreetAddress</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>Street</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>StreetAddress PostOffice</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>StreetAddress Municipality</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>StreetAddress Municipality Name</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>StreetAddress AdditionalInformation</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PostOfficeBoxAddress</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PostOfficeBoxAddress PostOffice</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PostOfficeBoxAddress PostOfficeBox</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PostOfficeBoxAddress AdditionalInformation</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PostOfficeBoxAddress Municipality</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>PostOfficeBoxAddress Municipality Name</ns2:name>
+                </ns2:changedValue>
             </ns2:changedValueList>
         </ns2:HasOrganizationChangedResponse>
     </SOAP-ENV:Body>
