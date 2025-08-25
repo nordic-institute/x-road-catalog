@@ -24,8 +24,11 @@
  */
 package org.niis.xroad.catalog.lister.endpoint;
 
+import fi.dvv.xroad.catalog.lister.endpoint.OrganizationSOAPAdapter;
 import jakarta.xml.soap.SOAPException;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.message.ErrorMessage;
 import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.AbstractAdapterServlet;
@@ -41,18 +44,13 @@ import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderServ
 import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderRequest;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersService;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersRequest;
-import fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.getorganizations.GetOrganizationsRequest;
-import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.HasOrganizationChangedRequest;
-import fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.getcompanies.GetCompaniesRequest;
-import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedService;
-import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.HasCompanyChangedRequest;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
 
+import java.util.Optional;
+
+@Slf4j
 public class SOAPAdapter extends AbstractAdapterServlet {
     
     private final transient ListMembersService listMembersService;
@@ -61,10 +59,8 @@ public class SOAPAdapter extends AbstractAdapterServlet {
     private final transient GetServiceTypeService getServiceTypeService;
     private final transient GetWsdlService getWsdlService;
     private final transient IsProviderService isProviderService;
-    private final transient GetOrganizationsService getOrganizationsService;
-    private final transient HasOrganizationChangedService hasOrganizationChangedService;
-    private final transient GetCompaniesService getCompaniesService;
-    private final transient HasCompanyChangedService hasCompanyChangedService;
+    private final transient Optional<OrganizationSOAPAdapter> organizationSOAPAdapter;
+
     
     public SOAPAdapter(CatalogService catalogService, OrganizationService organizationService, CompanyService companyService) {
         super();
@@ -74,10 +70,10 @@ public class SOAPAdapter extends AbstractAdapterServlet {
         this.getServiceTypeService = new GetServiceTypeService(catalogService);
         this.getWsdlService = new GetWsdlService(catalogService);
         this.isProviderService = new IsProviderService(catalogService);
-        this.getOrganizationsService = new GetOrganizationsService(organizationService);
-        this.hasOrganizationChangedService = new HasOrganizationChangedService(organizationService);
-        this.getCompaniesService = new GetCompaniesService(companyService);
-        this.hasCompanyChangedService = new HasCompanyChangedService(companyService);
+        this.organizationSOAPAdapter =
+                organizationService != null && companyService != null
+                        ? Optional.of(new OrganizationSOAPAdapter(organizationService, companyService))
+                        : Optional.empty();
     }
 
     @Override
@@ -108,23 +104,21 @@ public class SOAPAdapter extends AbstractAdapterServlet {
                 ServiceRequest<IsProviderRequest> isProviderRequest = (ServiceRequest<IsProviderRequest>) request;
                 return isProviderService.execute(isProviderRequest);
             case "GetOrganizations":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetOrganizationsRequest> getOrganizationsRequest = (ServiceRequest<GetOrganizationsRequest>) request;
-                return getOrganizationsService.execute(getOrganizationsRequest);
             case "HasOrganizationChanged":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<HasOrganizationChangedRequest> hasOrganizationChangedRequest =
-                        (ServiceRequest<HasOrganizationChangedRequest>) request;
-                return hasOrganizationChangedService.execute(hasOrganizationChangedRequest);
             case "GetCompanies":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<GetCompaniesRequest> getCompaniesRequest = (ServiceRequest<GetCompaniesRequest>) request;
-                return getCompaniesService.execute(getCompaniesRequest);
             case "HasCompanyChanged":
-                @SuppressWarnings("unchecked")
-                ServiceRequest<HasCompanyChangedRequest> hasCompanyChangedRequest = (ServiceRequest<HasCompanyChangedRequest>) request;
-                return hasCompanyChangedService.execute(hasCompanyChangedRequest);
+                // Organization and Company services are currently only available with the FI profile
+                if (organizationSOAPAdapter.isEmpty()) {
+                    log.warn("Organization and Company components not initialised, request {} unavailable",
+                            request.getProducer().getServiceCode());
+                    request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server",
+                            "Unknown service: " + request.getProducer().getServiceCode(), null, null));
+                    throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
+                }
+                return organizationSOAPAdapter.get().handleRequest(request);
             default:
+                request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server",
+                        "Unknown service: " + request.getProducer().getServiceCode(), null, null));
                 throw new XRd4JException("Unknown service: " + request.getProducer().getServiceCode());
         }
     }
