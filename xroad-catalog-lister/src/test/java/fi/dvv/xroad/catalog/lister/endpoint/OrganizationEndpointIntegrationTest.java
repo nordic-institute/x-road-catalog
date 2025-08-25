@@ -81,7 +81,7 @@ public class OrganizationEndpointIntegrationTest {
     OrganizationService organizationService;
 
     private String getEndpointUrl() {
-        return "http://localhost:" + port + "/xrd4j";
+        return "http://localhost:" + port + "/ws";
     }
 
     @Test
