@@ -32,6 +32,19 @@ import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
 public class GetOpenAPIResponseSerializer extends AbstractServiceResponseSerializer<GetOpenAPIRequest, String> {
 
+    /**
+     * Serialize response to the following format:
+     *
+     * <pre>{@code
+     * &lt;xs:element name="GetOpenAPIResponse"&gt;
+     *     &lt;xs:complexType&gt;
+     *         &lt;xs:sequence&gt;
+     *             &lt;xs:element name="openapi" type="xs:string"/&gt;
+     *         &lt;/xs:sequence&gt;
+     *     &lt;/xs:complexType&gt;
+     * &lt;/xs:element&gt;
+     * }</pre>
+     */
     @Override
     protected void serializeResponse(ServiceResponse<GetOpenAPIRequest, String> response,
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {

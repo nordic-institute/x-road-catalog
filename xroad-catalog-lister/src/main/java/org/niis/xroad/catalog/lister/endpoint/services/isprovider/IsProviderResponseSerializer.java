@@ -32,6 +32,19 @@ import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
 public class IsProviderResponseSerializer extends AbstractServiceResponseSerializer<IsProviderRequest, Boolean> {
 
+    /**
+     * Serialize response to the following format:
+     *
+     * <pre>{@code
+     * &lt;xs:element name="IsProviderResponse"&gt;
+     *     &lt;xs:complexType&gt;
+     *         &lt;xs:sequence&gt;
+     *             &lt;xs:element name="provider" type="xs:boolean"/&gt;
+     *         &lt;/xs:sequence&gt;
+     *     &lt;/xs:complexType&gt;
+     * &lt;/xs:element&gt;
+     * }</pre>
+     */
     @Override
     protected void serializeResponse(ServiceResponse<IsProviderRequest, Boolean> response,
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {

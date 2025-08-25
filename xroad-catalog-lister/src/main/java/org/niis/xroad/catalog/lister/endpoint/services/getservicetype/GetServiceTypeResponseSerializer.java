@@ -32,6 +32,19 @@ import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
 public class GetServiceTypeResponseSerializer extends AbstractServiceResponseSerializer<GetServiceTypeRequest, String> {
 
+    /**
+     * Serialize response to the following format:
+     *
+     * <pre>{@code
+     * &lt;xs:element name="GetServiceTypeResponse"&gt;
+     *     &lt;xs:complexType&gt;
+     *         &lt;xs:sequence&gt;
+     *             &lt;xs:element name="type" type="xs:string"/&gt;
+     *         &lt;/xs:sequence&gt;
+     *     &lt;/xs:complexType&gt;
+     * &lt;/xs:element&gt;
+     * }</pre>
+     */
     @Override
     protected void serializeResponse(ServiceResponse<GetServiceTypeRequest, String> response,
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {

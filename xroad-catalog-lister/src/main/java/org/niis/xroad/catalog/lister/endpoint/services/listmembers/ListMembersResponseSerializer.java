@@ -32,18 +32,17 @@ import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 import org.niis.xroad.catalog.lister.endpoint.services.common.CommonSerializer;
 import org.niis.xroad.catalog.persistence.entity.Member;
 
-@SuppressWarnings("checkstyle:JavadocStyle")
 public class ListMembersResponseSerializer extends AbstractServiceResponseSerializer<ListMembersRequest, Iterable<Member>> {
 
     /**
      * Serialize response to the following format:
      *
      * <pre>{@code
-     * <xs:complexType name="MemberList">
-     *      <xs:sequence>
-     *          <xs:element maxOccurs="unbounded" minOccurs="0" name="member" type="tns:Member"/>
-     *      </xs:sequence>
-     * </xs:complexType>
+     * &lt;xs:complexType name="MemberList"&gt;
+     *      &lt;xs:sequence&gt;
+     *          &lt;xs:element maxOccurs="unbounded" minOccurs="0" name="member" type="tns:Member"/&gt;
+     *      &lt;/xs:sequence&gt;
+     * &lt;/xs:complexType&gt;
      * }</pre>
      */
     @Override

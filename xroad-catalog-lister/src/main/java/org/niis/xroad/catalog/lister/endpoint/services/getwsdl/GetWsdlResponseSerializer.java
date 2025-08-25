@@ -32,6 +32,19 @@ import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
 public class GetWsdlResponseSerializer extends AbstractServiceResponseSerializer<GetWsdlRequest, String> {
 
+    /**
+     * Serialize response to the following format:
+     *
+     * <pre>{@code
+     * &lt;xs:element name="GetWsdlResponse"&gt;
+     *     &lt;xs:complexType&gt;
+     *         &lt;xs:sequence&gt;
+     *             &lt;xs:element name="wsdl" type="xs:string"/&gt;
+     *         &lt;/xs:sequence&gt;
+     *     &lt;/xs:complexType&gt;
+     * &lt;/xs:element&gt;
+     * }</pre>
+     */
     @Override
     protected void serializeResponse(ServiceResponse<GetWsdlRequest, String> response,
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {

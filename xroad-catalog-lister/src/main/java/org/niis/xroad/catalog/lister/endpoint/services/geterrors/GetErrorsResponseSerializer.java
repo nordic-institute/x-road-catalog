@@ -34,6 +34,19 @@ import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 public class GetErrorsResponseSerializer extends AbstractServiceResponseSerializer<GetErrorsRequest, Iterable<ErrorLog>> {
 
+    /**
+     * Serialize response to the following format:
+     *
+     * <pre>{@code
+     * &lt;xs:element name="GetErrorsResponse"&gt;
+     *     &lt;xs:complexType&gt;
+     *         &lt;xs:sequence&gt;
+     *             &lt;xs:element name="errorLogList" type="tns:ErrorLogList"/&gt;
+     *         &lt;/xs:sequence&gt;
+     *     &lt;/xs:complexType&gt;
+     * &lt;/xs:element&gt;
+     * }</pre>
+     */
     @Override
     protected void serializeResponse(ServiceResponse<GetErrorsRequest, Iterable<ErrorLog>> response,
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {
