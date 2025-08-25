@@ -32,8 +32,6 @@ import fi.dvv.xroad.catalog.lister.dto.OrganizationData;
 import fi.dvv.xroad.catalog.lister.endpoint.services.hascompanychanged.CompanyChangeResult;
 import fi.dvv.xroad.catalog.lister.endpoint.services.hasorganizationchanged.OrganizationChangeResult;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
-import fi.dvv.xroad.catalog.lister.service.JaxbCompanyService;
-import fi.dvv.xroad.catalog.lister.service.JaxbOrganizationService;
 import fi.dvv.xroad.catalog.lister.service.OrganizationService;
 import fi.dvv.xroad.catalog.lister.util.OrganizationUtil;
 import fi.dvv.xroad.catalog.persistence.entity.Company;
@@ -60,12 +58,6 @@ public class OrganizationController implements OrganizationOperations {
 
     @Autowired
     private OrganizationService organizationService;
-
-    @Autowired
-    private JaxbCompanyService jaxbCompanyService;
-
-    @Autowired
-    private JaxbOrganizationService jaxbOrganizationService;
 
     @Override
     public ResponseEntity<OrganizationDTO> getOrganization(@PathVariable String businessCode) {

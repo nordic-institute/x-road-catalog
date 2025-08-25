@@ -39,7 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class SoapMockDataFactory {
+public final class MainMockDataFactory {
 
     // Consistent test constants
     public static final LocalDateTime FIXED_TEST_TIME = LocalDateTime.of(2025, 1, 1, 12, 0, 0);
@@ -102,7 +102,7 @@ public final class SoapMockDataFactory {
 
     public static final Member NON_PROVIDER_MEMBER = createNonProviderMember();
 
-    private SoapMockDataFactory() {
+    private MainMockDataFactory() {
         // Utility class - prevent instantiation
     }
 

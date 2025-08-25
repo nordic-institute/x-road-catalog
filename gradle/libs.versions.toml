@@ -2,7 +2,6 @@
 awaitility = "4.3.0"
 commonsCompress = "1.28.0"
 commonsCsv = "1.14.1"
-cxf = "4.1.2"
 guava = "33.4.8-jre"
 h2 = "2.3.232"
 hierynomusLicense = "0.16.1"
@@ -20,8 +19,6 @@ plexusUtils="4.0.2"
 sonarqube = "5.1.0.4882"
 springBoot = "3.5.4"
 springDoc = "2.8.9"
-wsdl4j = "1.6.3"
-wsdl2java = "2.0.2"
 xroadLibs = "7.7.0-SNAPSHOT"
 xrd4j = "0.9.0-SNAPSHOT"
 
@@ -46,9 +43,8 @@ plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "ple
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "springBoot" }
+spring-boot-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDoc" }
-wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.3" }
 xroad-configuration-client = { module = "org.niis.xroad:configuration-client", version.ref = "xroadLibs" }
 xrd4j-client = { module = "org.niis.xrd4j:client", version.ref = "xrd4j"}
@@ -57,4 +53,3 @@ xrd4j-server = { module = "org.niis.xrd4j:server", version.ref = "xrd4j"}
 [plugins]
 sonarqube = { id  = "org.sonarqube", version.ref = "sonarqube" }
 spring-boot = { id  = "org.springframework.boot", version.ref = "springBoot" }
-wsdl2java = { id = "com.github.bjornvester.wsdl2java", version.ref = "wsdl2java" }

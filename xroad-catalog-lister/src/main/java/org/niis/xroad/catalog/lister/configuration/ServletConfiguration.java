@@ -48,7 +48,7 @@ public class ServletConfiguration {
     @Bean
     public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean() {
         ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService, organizationService, companyService), "/xrd4j");
+                new SOAPAdapter(catalogService, organizationService, companyService), "/ws");
         bean.setLoadOnStartup(1);
         return bean;
     }

@@ -1,6 +1,5 @@
 plugins {
     alias (libs.plugins.spring.boot)
-    alias (libs.plugins.wsdl2java)
     id 'java'
     id 'eclipse'
     id 'idea'
@@ -24,11 +23,6 @@ repositories {
         url = uri("https://artifactory.niis.org/artifactory/xroad-maven-releases/")
     }
 }
-wsdl2java {
-    cxfVersion.set(libs.versions.cxf) // Grab the version from our versions catalog
-    markGenerated = true
-    packageName = 'org.niis.xroad.catalog.lister.generated'
-}
 
 bootJar {
     enabled = true
@@ -47,10 +41,9 @@ dependencies {
     implementation (libs.jakarta)
     implementation (libs.spring.doc)
     implementation (libs.commons.csv)
-    implementation (libs.spring.boot.ws)
     implementation (libs.spring.boot.jpa)
+    implementation (libs.spring.boot.web)
     implementation (libs.jackson)
-    implementation (libs.wsdl4j)
     implementation (libs.guava)
     implementation (libs.lombok)
     implementation (libs.xmlunit.core)

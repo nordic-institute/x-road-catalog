@@ -65,13 +65,13 @@ import static org.mockito.BDDMockito.given;
  * HTTP-level integration tests for SOAP endpoints.
  * These tests verify the exact SOAP message structure at the HTTP transport level.
  *
- * Test data is created using {@link SoapMockDataFactory} to ensure consistency across all tests.
+ * Test data is created using {@link MainMockDataFactory} to ensure consistency across all tests.
  * All mock objects use standardized patterns for member codes, external IDs, and timestamps.
  */
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public class SoapHttpEndpointIntegrationTest {
+public class MainEndpointIntegrationTest {
 
     private final TestRestTemplate restTemplate = new TestRestTemplate();
 
@@ -91,12 +91,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testListMembersHttpSoap() throws Exception {
         mockMembersForListServices();
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/ListMembersRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/ListMembersResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers response should match expected XML");
     }
 
@@ -104,12 +104,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetServiceTypeSoapHttpSoap() throws Exception {
         mockServicesForGetServiceType("testService", "SOAP");
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetServiceTypeSoapRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetServiceTypeSoapRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetServiceTypeSoapResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetServiceTypeSoapResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetServiceType SOAP response should match expected XML");
     }
 
@@ -117,12 +117,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderTrueHttpSoap() throws Exception {
         mockProvider();
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderTrueRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderTrueResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider true response should match expected XML");
     }
 
@@ -130,12 +130,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderFalseHttpSoap() throws Exception {
         mockNoProvider();
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderFalseRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderFalseRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderFalseResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderFalseResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider false response should match expected XML");
     }
 
@@ -143,16 +143,16 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetWsdlHttpSoap() throws Exception {
         String externalId = "1000";
         Wsdl testWsdl = new Wsdl(new Service(), "<wsdl>This is WSDL content</wsdl>", externalId);
-        testWsdl.setStatusInfo(SoapMockDataFactory.createStandardStatusInfo());
+        testWsdl.setStatusInfo(MainMockDataFactory.createStandardStatusInfo());
         given(catalogService.getWsdl(externalId))
                 .willReturn(testWsdl);
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetWsdlRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetWsdlRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetWsdlResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetWsdlResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetWsdl response should match expected XML");
     }
 
@@ -160,16 +160,16 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetOpenApiHttpSoap() throws Exception {
         String externalId = "3003";
         OpenApi testOpenApi = new OpenApi(new Service(), "This is OpenAPI content", externalId);
-        testOpenApi.setStatusInfo(SoapMockDataFactory.createStandardStatusInfo());
+        testOpenApi.setStatusInfo(MainMockDataFactory.createStandardStatusInfo());
         given(catalogService.getOpenApi(externalId))
                 .willReturn(testOpenApi);
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetOpenApiRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetOpenApiRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetOpenApiResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOpenApiResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetOpenApi response should match expected XML");
     }
 
@@ -177,12 +177,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetServiceTypeOpenApiHttpSoap() throws Exception {
         mockServicesForGetServiceType("getRandomOpenAPI", "OPENAPI");
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetServiceTypeOpenApiRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetServiceTypeOpenApiRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetServiceTypeOpenApiResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetServiceTypeOpenApiResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetServiceType OpenAPI response should match expected XML");
     }
 
@@ -190,12 +190,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetServiceTypeRestHttpSoap() throws Exception {
         mockServicesForGetServiceType("getRandomREST", "REST");
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetServiceTypeRestRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetServiceTypeRestRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetServiceTypeRestResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetServiceTypeRestResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetServiceType REST response should match expected XML");
     }
 
@@ -203,12 +203,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetErrorsHttpSoap() throws Exception {
         mockErrors();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetErrorsRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetErrorsRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetErrorsResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetErrorsResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors response should match expected XML");
     }
 
@@ -218,10 +218,10 @@ public class SoapHttpEndpointIntegrationTest {
     public void testListMembersWithNullStartDateTime() throws Exception {
         mockMembersForListServices();
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/ListMembersNullStartDateRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersNullStartDateRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/ListMembersNullStartDateResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersNullStartDateResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers null startDateTime response should match expected SOAP fault");
     }
 
@@ -229,40 +229,40 @@ public class SoapHttpEndpointIntegrationTest {
     public void testListMembersWithNullEndDateTime() throws Exception {
         mockMembersForListServices();
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/ListMembersNullEndDateRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersNullEndDateRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/ListMembersNullEndDateResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersNullEndDateResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers null endDateTime response should match expected SOAP fault");
     }
 
     @Test
     public void testGetServiceTypeNotFound() throws Exception {
         given(catalogService.getService(
-                SoapMockDataFactory.DEFAULT_XROAD_INSTANCE,
-                SoapMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.DEFAULT_XROAD_INSTANCE,
+                MainMockDataFactory.MEMBER_CLASS_ORG,
                 "99999999",
                 "NonExistentService",
                 "NonExistentSubsystem",
                 "v1"))
                 .willReturn(null);
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetServiceTypeNotFoundRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetServiceTypeNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetServiceTypeNotFoundResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetServiceTypeNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetServiceType not found response should match expected SOAP fault");
     }
 
     @Test
     public void testIsProviderMemberNotFound() throws Exception {
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG, "99999999"))
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG, "99999999"))
                 .willReturn(null);
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderMemberNotFoundRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderMemberNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderMemberNotFoundResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderMemberNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider member not found response should match expected SOAP fault");
     }
 
@@ -270,10 +270,10 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetWsdlNotFound() throws Exception {
         given(catalogService.getWsdl("nonexistent-id")).willReturn(null);
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetWsdlNotFoundRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetWsdlNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetWsdlNotFoundResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetWsdlNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetWsdl not found response should match expected SOAP fault");
     }
 
@@ -281,10 +281,10 @@ public class SoapHttpEndpointIntegrationTest {
     public void testGetOpenApiNotFound() throws Exception {
         given(catalogService.getOpenApi("nonexistent-id")).willReturn(null);
 
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetOpenApiNotFoundRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetOpenApiNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetOpenApiNotFoundResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOpenApiNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetOpenApi not found response should match expected SOAP fault");
     }
 
@@ -294,12 +294,12 @@ public class SoapHttpEndpointIntegrationTest {
     public void testListMembersWithFullHierarchy() throws Exception {
         mockMembersWithFullHierarchy();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/ListMembersRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/ListMembersWithFullHierarchyResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersWithFullHierarchyResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembersWithFullHierarchy response should match expected XML");
     }
     
@@ -307,11 +307,11 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderWithVariousServiceTypes() throws Exception {
         mockProviderWithMixedServices();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderTrueRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderTrueResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider with various service types should return true");
     }
     
@@ -319,11 +319,11 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderWithOnlyWsdlServices() throws Exception {
         mockProviderWithOnlyWsdl();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderTrueRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderTrueResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider with only WSDL services should return true");
     }
     
@@ -331,11 +331,11 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderWithOnlyRestServices() throws Exception {
         mockProviderWithOnlyRest();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderTrueRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderTrueResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider with only REST services should return true");
     }
     
@@ -343,11 +343,11 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderWithOnlyOpenApiServices() throws Exception {
         mockProviderWithOnlyOpenApi();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderTrueRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderTrueResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider with only OpenAPI services should return true");
     }
     
@@ -355,11 +355,11 @@ public class SoapHttpEndpointIntegrationTest {
     public void testIsProviderWithMultipleSubsystems() throws Exception {
         mockProviderWithMultipleSubsystems();
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/IsProviderTrueRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        String expectedResponse = loadXmlFromClasspath("soap-responses/IsProviderTrueResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider with multiple subsystems should return true");
     }
     
@@ -369,10 +369,10 @@ public class SoapHttpEndpointIntegrationTest {
         given(catalogService.getErrorLog(any(LocalDateTime.class), any(LocalDateTime.class)))
                 .willReturn(List.of());
         
-        String soapRequest = loadXmlFromClasspath("soap-requests/GetErrorsRequest.xml");
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetErrorsRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
         
-        String expectedResponse = loadXmlFromClasspath("soap-responses/GetErrorsEmptyResultResponse.xml");
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetErrorsEmptyResultResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors empty result response should match expected SOAP fault");
     }
 
@@ -455,46 +455,46 @@ public class SoapHttpEndpointIntegrationTest {
     
     private void mockMembersWithFullHierarchy() {
         // Member A: Financial institution with multiple subsystems and service types
-        Member memberA = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.GOVT_ORG_CODE, SoapMockDataFactory.GOVT_ORG_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("TaxSystem",
-                SoapMockDataFactory.createStandardSoapService("calculateTax", "v1", "<wsdl>Tax calculation WSDL</wsdl>"),
-                SoapMockDataFactory.createStandardSoapService("validateTaxpayer", "v2", "<wsdl>Taxpayer validation WSDL</wsdl>"),
-                SoapMockDataFactory.createStandardRestService("getTaxHistory", "v1")
+        Member memberA = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.GOVT_ORG_CODE, MainMockDataFactory.GOVT_ORG_NAME,
+                MainMockDataFactory.createSubsystemWithServices("TaxSystem",
+                MainMockDataFactory.createStandardSoapService("calculateTax", "v1", "<wsdl>Tax calculation WSDL</wsdl>"),
+                MainMockDataFactory.createStandardSoapService("validateTaxpayer", "v2", "<wsdl>Taxpayer validation WSDL</wsdl>"),
+                MainMockDataFactory.createStandardRestService("getTaxHistory", "v1")
             ),
-                SoapMockDataFactory.createSubsystemWithServices("UserManagement",
-                SoapMockDataFactory.createStandardOpenApiService("userAPI", "v1", "OpenAPI spec for user management"),
-                SoapMockDataFactory.createStandardRestService("getUserData", "v1"),
-                SoapMockDataFactory.createStandardRestService("updateUserProfile", "v2")
+                MainMockDataFactory.createSubsystemWithServices("UserManagement",
+                MainMockDataFactory.createStandardOpenApiService("userAPI", "v1", "OpenAPI spec for user management"),
+                MainMockDataFactory.createStandardRestService("getUserData", "v1"),
+                MainMockDataFactory.createStandardRestService("updateUserProfile", "v2")
             )
         );
         
         // Member B: Weather service provider with only OpenAPI
-        Member memberB = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_COM,
-                SoapMockDataFactory.WEATHER_SERVICES_CODE, SoapMockDataFactory.WEATHER_SERVICES_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("WeatherAPI",
-                SoapMockDataFactory.createStandardOpenApiService("weatherAPI", "v1", "Weather forecasting API"),
-                SoapMockDataFactory.createStandardOpenApiService("climateAPI", "v2", "Climate data API")
+        Member memberB = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_COM,
+                MainMockDataFactory.WEATHER_SERVICES_CODE, MainMockDataFactory.WEATHER_SERVICES_NAME,
+                MainMockDataFactory.createSubsystemWithServices("WeatherAPI",
+                MainMockDataFactory.createStandardOpenApiService("weatherAPI", "v1", "Weather forecasting API"),
+                MainMockDataFactory.createStandardOpenApiService("climateAPI", "v2", "Climate data API")
             )
         );
         
         // Member C: Legacy SOAP-only provider
-        Member memberC = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.LEGACY_SYSTEMS_CODE, SoapMockDataFactory.LEGACY_SYSTEMS_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("LegacyServices",
-                SoapMockDataFactory.createStandardSoapService("legacyOperation1", "v1", "<wsdl>Legacy WSDL 1</wsdl>"),
-                SoapMockDataFactory.createStandardSoapService("legacyOperation2", "v1", "<wsdl>Legacy WSDL 2</wsdl>"),
-                SoapMockDataFactory.createStandardSoapService("legacyBatchProcess", "v3", "<wsdl>Batch processing WSDL</wsdl>")
+        Member memberC = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.LEGACY_SYSTEMS_CODE, MainMockDataFactory.LEGACY_SYSTEMS_NAME,
+                MainMockDataFactory.createSubsystemWithServices("LegacyServices",
+                MainMockDataFactory.createStandardSoapService("legacyOperation1", "v1", "<wsdl>Legacy WSDL 1</wsdl>"),
+                MainMockDataFactory.createStandardSoapService("legacyOperation2", "v1", "<wsdl>Legacy WSDL 2</wsdl>"),
+                MainMockDataFactory.createStandardSoapService("legacyBatchProcess", "v3", "<wsdl>Batch processing WSDL</wsdl>")
             )
         );
         
         // Member D: Service with multiple versions
-        Member memberD = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_COM,
-                SoapMockDataFactory.DATA_SERVICES_CODE, SoapMockDataFactory.DATA_SERVICES_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("VersionedServices",
-                SoapMockDataFactory.createStandardSoapService("dataService", "v1", "<wsdl>Data service v1</wsdl>"),
-                SoapMockDataFactory.createStandardSoapService("dataService", "v2", "<wsdl>Data service v2</wsdl>"),
-                SoapMockDataFactory.createStandardOpenApiService("dataService", "v3", "Data service v3 OpenAPI")
+        Member memberD = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_COM,
+                MainMockDataFactory.DATA_SERVICES_CODE, MainMockDataFactory.DATA_SERVICES_NAME,
+                MainMockDataFactory.createSubsystemWithServices("VersionedServices",
+                MainMockDataFactory.createStandardSoapService("dataService", "v1", "<wsdl>Data service v1</wsdl>"),
+                MainMockDataFactory.createStandardSoapService("dataService", "v2", "<wsdl>Data service v2</wsdl>"),
+                MainMockDataFactory.createStandardOpenApiService("dataService", "v3", "Data service v3 OpenAPI")
             )
         );
         
@@ -503,81 +503,81 @@ public class SoapHttpEndpointIntegrationTest {
     }
     
     private void mockProviderWithMixedServices() {
-        Member member = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE, SoapMockDataFactory.PROVIDER_MEMBER_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("MixedSubsystem",
-                SoapMockDataFactory.createStandardSoapService("soapOp", "v1", "<wsdl>SOAP WSDL</wsdl>"),
-                SoapMockDataFactory.createStandardRestService("restOp", "v1"),
-                SoapMockDataFactory.createStandardOpenApiService("apiOp", "v1", "OpenAPI spec")
+        Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
+                MainMockDataFactory.createSubsystemWithServices("MixedSubsystem",
+                MainMockDataFactory.createStandardSoapService("soapOp", "v1", "<wsdl>SOAP WSDL</wsdl>"),
+                MainMockDataFactory.createStandardRestService("restOp", "v1"),
+                MainMockDataFactory.createStandardOpenApiService("apiOp", "v1", "OpenAPI spec")
             )
         );
         
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
     }
     
     private void mockProviderWithOnlyWsdl() {
-        Member member = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE, SoapMockDataFactory.PROVIDER_MEMBER_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("WsdlOnlySubsystem",
-                SoapMockDataFactory.createStandardSoapService("soapOp1", "v1", "<wsdl>SOAP WSDL 1</wsdl>"),
-                SoapMockDataFactory.createStandardSoapService("soapOp2", "v1", "<wsdl>SOAP WSDL 2</wsdl>")
+        Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
+                MainMockDataFactory.createSubsystemWithServices("WsdlOnlySubsystem",
+                MainMockDataFactory.createStandardSoapService("soapOp1", "v1", "<wsdl>SOAP WSDL 1</wsdl>"),
+                MainMockDataFactory.createStandardSoapService("soapOp2", "v1", "<wsdl>SOAP WSDL 2</wsdl>")
             )
         );
         
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
     }
     
     private void mockProviderWithOnlyRest() {
-        Member member = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE, SoapMockDataFactory.PROVIDER_MEMBER_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("RestOnlySubsystem",
-                SoapMockDataFactory.createStandardRestService("restOp1", "v1"),
-                SoapMockDataFactory.createStandardRestService("restOp2", "v2")
+        Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
+                MainMockDataFactory.createSubsystemWithServices("RestOnlySubsystem",
+                MainMockDataFactory.createStandardRestService("restOp1", "v1"),
+                MainMockDataFactory.createStandardRestService("restOp2", "v2")
             )
         );
         
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
     }
     
     private void mockProviderWithOnlyOpenApi() {
-        Member member = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE, SoapMockDataFactory.PROVIDER_MEMBER_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("ApiOnlySubsystem",
-                SoapMockDataFactory.createStandardOpenApiService("apiOp1", "v1", "API spec 1"),
-                SoapMockDataFactory.createStandardOpenApiService("apiOp2", "v1", "API spec 2")
+        Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
+                MainMockDataFactory.createSubsystemWithServices("ApiOnlySubsystem",
+                MainMockDataFactory.createStandardOpenApiService("apiOp1", "v1", "API spec 1"),
+                MainMockDataFactory.createStandardOpenApiService("apiOp2", "v1", "API spec 2")
             )
         );
         
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
     }
     
     private void mockProviderWithMultipleSubsystems() {
-        Member member = SoapMockDataFactory.createMemberWithServices(SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE, SoapMockDataFactory.PROVIDER_MEMBER_NAME,
-                SoapMockDataFactory.createSubsystemWithServices("Subsystem1",
-                SoapMockDataFactory.createStandardSoapService("service1", "v1", "<wsdl>Service 1</wsdl>")
+        Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
+                MainMockDataFactory.createSubsystemWithServices("Subsystem1",
+                MainMockDataFactory.createStandardSoapService("service1", "v1", "<wsdl>Service 1</wsdl>")
             ),
-                SoapMockDataFactory.createSubsystemWithServices("Subsystem2",
-                SoapMockDataFactory.createStandardOpenApiService("service2", "v1", "API Service 2")
+                MainMockDataFactory.createSubsystemWithServices("Subsystem2",
+                MainMockDataFactory.createStandardOpenApiService("service2", "v1", "API Service 2")
             ),
-                SoapMockDataFactory.createSubsystemWithServices("Subsystem3",
-                SoapMockDataFactory.createStandardRestService("service3", "v1")
+                MainMockDataFactory.createSubsystemWithServices("Subsystem3",
+                MainMockDataFactory.createStandardRestService("service3", "v1")
             )
         );
         
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(member);
     }
 
     // Mock helper methods (reused from ApplicationTests.java)
 
     private void mockMembersForListServices() {
         given(catalogService.getAllMembers(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .willReturn(SoapMockDataFactory.getStandardMemberList());
+                .willReturn(MainMockDataFactory.getStandardMemberList());
     }
 
     private void mockServicesForGetServiceType(String serviceCode,
@@ -585,32 +585,32 @@ public class SoapHttpEndpointIntegrationTest {
         Service service;
         
         if ("SOAP".equalsIgnoreCase(serviceType)) {
-            service = SoapMockDataFactory.createStandardSoapService(serviceCode, "v1", "<wsdl>Test WSDL for " + serviceCode + "</wsdl>");
+            service = MainMockDataFactory.createStandardSoapService(serviceCode, "v1", "<wsdl>Test WSDL for " + serviceCode + "</wsdl>");
         } else if ("OPENAPI".equalsIgnoreCase(serviceType)) {
-            service = SoapMockDataFactory.createStandardOpenApiService(serviceCode, "v1", "OpenAPI spec for " + serviceCode);
+            service = MainMockDataFactory.createStandardOpenApiService(serviceCode, "v1", "OpenAPI spec for " + serviceCode);
         } else {
             // REST service
-            service = SoapMockDataFactory.createStandardRestService(serviceCode, "v1");
+            service = MainMockDataFactory.createStandardRestService(serviceCode, "v1");
         }
         
-        given(catalogService.getService(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE, serviceCode, "TestSubSystem", "v1"))
+        given(catalogService.getService(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE, serviceCode, "TestSubSystem", "v1"))
                 .willReturn(service);
     }
 
     private void mockProvider() {
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(SoapMockDataFactory.PROVIDER_MEMBER);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.PROVIDER_MEMBER_CODE)).willReturn(MainMockDataFactory.PROVIDER_MEMBER);
     }
 
     private void mockNoProvider() {
-        given(catalogService.getMember(SoapMockDataFactory.DEFAULT_XROAD_INSTANCE, SoapMockDataFactory.MEMBER_CLASS_ORG,
-                SoapMockDataFactory.NON_PROVIDER_MEMBER_CODE)).willReturn(SoapMockDataFactory.NON_PROVIDER_MEMBER);
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
+                MainMockDataFactory.NON_PROVIDER_MEMBER_CODE)).willReturn(MainMockDataFactory.NON_PROVIDER_MEMBER);
     }
 
     private void mockErrors() {
         given(catalogService.getErrorLog(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .willReturn(SoapMockDataFactory.getStandardErrorList());
+                .willReturn(MainMockDataFactory.getStandardErrorList());
     }
 
 }
