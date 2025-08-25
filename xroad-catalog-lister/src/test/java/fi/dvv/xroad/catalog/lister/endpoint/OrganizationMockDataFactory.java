@@ -25,8 +25,17 @@
 package fi.dvv.xroad.catalog.lister.endpoint;
 
 import fi.dvv.xroad.catalog.persistence.entity.Address;
+import fi.dvv.xroad.catalog.persistence.entity.BusinessAddress;
+import fi.dvv.xroad.catalog.persistence.entity.BusinessAuxiliaryName;
+import fi.dvv.xroad.catalog.persistence.entity.BusinessIdChange;
+import fi.dvv.xroad.catalog.persistence.entity.BusinessLine;
+import fi.dvv.xroad.catalog.persistence.entity.BusinessName;
 import fi.dvv.xroad.catalog.persistence.entity.Company;
+import fi.dvv.xroad.catalog.persistence.entity.CompanyForm;
+import fi.dvv.xroad.catalog.persistence.entity.ContactDetail;
 import fi.dvv.xroad.catalog.persistence.entity.Email;
+import fi.dvv.xroad.catalog.persistence.entity.Language;
+import fi.dvv.xroad.catalog.persistence.entity.Liquidation;
 import fi.dvv.xroad.catalog.persistence.entity.Organization;
 import fi.dvv.xroad.catalog.persistence.entity.OrganizationDescription;
 import fi.dvv.xroad.catalog.persistence.entity.OrganizationName;
@@ -37,6 +46,8 @@ import fi.dvv.xroad.catalog.persistence.entity.PostOfficeBoxAddress;
 import fi.dvv.xroad.catalog.persistence.entity.PostOfficeBoxAddressAdditionalInformation;
 import fi.dvv.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipality;
 import fi.dvv.xroad.catalog.persistence.entity.PostOfficeBoxAddressMunicipalityName;
+import fi.dvv.xroad.catalog.persistence.entity.RegisteredEntry;
+import fi.dvv.xroad.catalog.persistence.entity.RegisteredOffice;
 import fi.dvv.xroad.catalog.persistence.entity.Street;
 import fi.dvv.xroad.catalog.persistence.entity.StreetAddress;
 import fi.dvv.xroad.catalog.persistence.entity.StreetAddressAdditionalInformation;
@@ -413,7 +424,7 @@ public final class OrganizationMockDataFactory {
         names.add(primaryName);
         organization.getAllOrganizationNames().addAll(names);
         
-        // Add one Address with one StreetAddress 
+        // Add one Address with one StreetAddress
         Set<Address> addresses = new HashSet<>();
         Address address = new Address();
         address.setCountry("Finland");
@@ -535,5 +546,184 @@ public final class OrganizationMockDataFactory {
         organization.setAddresses(addresses);
 
         return organization;
+    }
+
+    // Comprehensive method to create company with ALL possible changed entities for complete test coverage
+    public static Company createCompanyWithAllChangedEntities(String businessId, String name, LocalDateTime changedTime) {
+        Company company = createStandardCompany(businessId, name, DEFAULT_COMPANY_FORM);
+        company.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        
+        // Create BusinessAddress entities with changed times
+        Set<BusinessAddress> businessAddresses = new HashSet<>();
+        BusinessAddress businessAddress = createBusinessAddress(changedTime, company);
+        businessAddresses.add(businessAddress);
+        
+        // Create BusinessAuxiliaryName entities with changed times
+        Set<BusinessAuxiliaryName> businessAuxiliaryNames = new HashSet<>();
+        BusinessAuxiliaryName businessAuxiliaryName = new BusinessAuxiliaryName();
+        businessAuxiliaryName.setSource(1L);
+        businessAuxiliaryName.setOrdering(1L);
+        businessAuxiliaryName.setVersion(1L);
+        businessAuxiliaryName.setName("Test Auxiliary Name");
+        businessAuxiliaryName.setLanguage("EN");
+        businessAuxiliaryName.setRegistrationDate(FIXED_TEST_TIME);
+        businessAuxiliaryName.setCompany(company);
+        businessAuxiliaryName.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        businessAuxiliaryNames.add(businessAuxiliaryName);
+        
+        // Create BusinessIdChange entities with changed times
+        Set<BusinessIdChange> businessIdChanges = new HashSet<>();
+        BusinessIdChange businessIdChange = createBusinessIdChange(businessId, changedTime, company);
+        businessIdChanges.add(businessIdChange);
+        
+        // Create BusinessLine entities with changed times
+        Set<BusinessLine> businessLines = new HashSet<>();
+        BusinessLine businessLine = new BusinessLine();
+        businessLine.setSource(1L);
+        businessLine.setOrdering(1L);
+        businessLine.setVersion(1L);
+        businessLine.setName("Test Business Line");
+        businessLine.setLanguage("EN");
+        businessLine.setRegistrationDate(FIXED_TEST_TIME);
+        businessLine.setCompany(company);
+        businessLine.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        businessLines.add(businessLine);
+        
+        // Create BusinessName entities with changed times
+        Set<BusinessName> businessNames = new HashSet<>();
+        BusinessName businessName = new BusinessName();
+        businessName.setSource(1L);
+        businessName.setOrdering(1L);
+        businessName.setVersion(1L);
+        businessName.setName("Changed Business Name");
+        businessName.setLanguage("EN");
+        businessName.setRegistrationDate(FIXED_TEST_TIME);
+        businessName.setCompany(company);
+        businessName.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        businessNames.add(businessName);
+        
+        // Create CompanyForm entities with changed times
+        Set<CompanyForm> companyForms = new HashSet<>();
+        CompanyForm companyForm = new CompanyForm();
+        companyForm.setSource(1L);
+        companyForm.setVersion(1L);
+        companyForm.setName("Test Company Form");
+        companyForm.setLanguage("EN");
+        companyForm.setType(1L);
+        companyForm.setRegistrationDate(FIXED_TEST_TIME);
+        companyForm.setCompany(company);
+        companyForm.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        companyForms.add(companyForm);
+        
+        // Create ContactDetail entities with changed times
+        Set<ContactDetail> contactDetails = new HashSet<>();
+        ContactDetail contactDetail = new ContactDetail();
+        contactDetail.setSource(1L);
+        contactDetail.setVersion(1L);
+        contactDetail.setLanguage("EN");
+        contactDetail.setValue("Test Contact Detail");
+        contactDetail.setType("Email");
+        contactDetail.setRegistrationDate(FIXED_TEST_TIME);
+        contactDetail.setCompany(company);
+        contactDetail.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        contactDetails.add(contactDetail);
+        
+        // Create Language entities with changed times
+        Set<Language> languages = new HashSet<>();
+        Language language = new Language();
+        language.setSource(1L);
+        language.setVersion(1L);
+        language.setLanguage("EN");
+        language.setName("English");
+        language.setRegistrationDate(FIXED_TEST_TIME);
+        language.setCompany(company);
+        language.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        languages.add(language);
+        
+        // Create Liquidation entities with changed times
+        Set<Liquidation> liquidations = new HashSet<>();
+        Liquidation liquidation = new Liquidation();
+        liquidation.setSource(1L);
+        liquidation.setVersion(1L);
+        liquidation.setName("Test Liquidation");
+        liquidation.setLanguage("EN");
+        liquidation.setType(1L);
+        liquidation.setRegistrationDate(FIXED_TEST_TIME);
+        liquidation.setCompany(company);
+        liquidation.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        liquidations.add(liquidation);
+        
+        // Create RegisteredEntry entities with changed times
+        Set<RegisteredEntry> registeredEntries = new HashSet<>();
+        RegisteredEntry registeredEntry = new RegisteredEntry();
+        registeredEntry.setDescription("Test Registered Entry");
+        registeredEntry.setStatus(1L);
+        registeredEntry.setRegister(1L);
+        registeredEntry.setLanguage("EN");
+        registeredEntry.setAuthority(1L);
+        registeredEntry.setRegistrationDate(FIXED_TEST_TIME);
+        registeredEntry.setCompany(company);
+        registeredEntry.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        registeredEntries.add(registeredEntry);
+        
+        // Create RegisteredOffice entities with changed times
+        Set<RegisteredOffice> registeredOffices = new HashSet<>();
+        RegisteredOffice registeredOffice = new RegisteredOffice();
+        registeredOffice.setSource(1L);
+        registeredOffice.setOrdering(1L);
+        registeredOffice.setVersion(1L);
+        registeredOffice.setName("Test Registered Office");
+        registeredOffice.setLanguage("EN");
+        registeredOffice.setRegistrationDate(FIXED_TEST_TIME);
+        registeredOffice.setCompany(company);
+        registeredOffice.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        registeredOffices.add(registeredOffice);
+        
+        // Set all entity collections to company using direct setters
+        company.setBusinessAddresses(businessAddresses);
+        company.setBusinessAuxiliaryNames(businessAuxiliaryNames);
+        company.setBusinessIdChanges(businessIdChanges);
+        company.setBusinessLines(businessLines);
+        company.setBusinessNames(businessNames);
+        company.setCompanyForms(companyForms);
+        company.setContactDetails(contactDetails);
+        company.setLanguages(languages);
+        company.setLiquidations(liquidations);
+        company.setRegisteredEntries(registeredEntries);
+        company.setRegisteredOffices(registeredOffices);
+        
+        return company;
+    }
+
+    private static BusinessIdChange createBusinessIdChange(String businessId, LocalDateTime changedTime, Company company) {
+        BusinessIdChange businessIdChange = new BusinessIdChange();
+        businessIdChange.setSource(1L);
+        businessIdChange.setDescription("Business ID changed");
+        businessIdChange.setReason("Test reason");
+        businessIdChange.setChangeDate("2025-01-01");
+        businessIdChange.setChange("1");
+        businessIdChange.setOldBusinessId("1111111-1");
+        businessIdChange.setNewBusinessId(businessId);
+        businessIdChange.setLanguage("EN");
+        businessIdChange.setCompany(company);
+        businessIdChange.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        return businessIdChange;
+    }
+
+    private static BusinessAddress createBusinessAddress(LocalDateTime changedTime, Company company) {
+        BusinessAddress businessAddress = new BusinessAddress();
+        businessAddress.setSource(1L);
+        businessAddress.setVersion(1L);
+        businessAddress.setCareOf("Test Care Of");
+        businessAddress.setStreet("Business Street 123");
+        businessAddress.setPostCode("00100");
+        businessAddress.setCity("Business City");
+        businessAddress.setLanguage("EN");
+        businessAddress.setType(1L);
+        businessAddress.setCountry("Finland");
+        businessAddress.setRegistrationDate(FIXED_TEST_TIME);
+        businessAddress.setCompany(company);
+        businessAddress.setStatusInfo(createStatusInfoWithChangedTime(changedTime));
+        return businessAddress;
     }
 }

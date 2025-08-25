@@ -25,7 +25,6 @@
 
 package fi.dvv.xroad.catalog.lister.endpoint;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.ListerApplication;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
@@ -386,7 +385,9 @@ public class OrganizationEndpointIntegrationTest {
                 .build();
 
         if (diff.hasDifferences()) {
-            fail(message + "\n" + diff.toString() + "\n\nExpected:\n" + prettyPrintXml(expectedXml) + "\n\nActual:\n" + prettyPrintXml(actualXml));
+            fail(message + "\n" + diff.toString()
+                    + "\n\nExpected:\n" + prettyPrintXml(expectedXml)
+                    + "\n\nActual:\n" + prettyPrintXml(actualXml));
         }
     }
 
@@ -439,10 +440,10 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     private void mockCompanyChangedValues(String businessId) {
-        // Create a company with a changed time within the test window
+        // Create a company with ALL changed entities to test comprehensive change detection
         LocalDateTime changedTime = OrganizationMockDataFactory.FIXED_TEST_TIME.plusHours(1);
         fi.dvv.xroad.catalog.persistence.entity.Company company =
-                OrganizationMockDataFactory.createCompanyWithChangedTime(
+                OrganizationMockDataFactory.createCompanyWithAllChangedEntities(
                         businessId, "Test Company Ltd", changedTime);
 
         given(companyService.getCompanies(businessId))

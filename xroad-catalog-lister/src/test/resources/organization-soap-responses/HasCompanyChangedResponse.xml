@@ -26,6 +26,39 @@
                 <ns2:changedValue>
                     <ns2:name>Company</ns2:name>
                 </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>BusinessAddress</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>BusinessAuxiliaryName</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>BusinessIdChange</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>BusinessLine</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>BusinessName</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>CompanyForm</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>ContactDetail</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>Language</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>Liquidation</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>RegisteredEntry</ns2:name>
+                </ns2:changedValue>
+                <ns2:changedValue>
+                    <ns2:name>RegisteredOffice</ns2:name>
+                </ns2:changedValue>
             </ns2:changedValueList>
         </ns2:HasCompanyChangedResponse>
     </SOAP-ENV:Body>
