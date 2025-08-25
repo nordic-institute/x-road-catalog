@@ -25,7 +25,6 @@
 
 package fi.dvv.xroad.catalog.lister.endpoint;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.ListerApplication;
 import fi.dvv.xroad.catalog.lister.service.CompanyService;
@@ -169,7 +168,6 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     @Test
-    @Disabled("This currently exceptions out in the change generation logic due to NPE")
     public void testHasOrganizationChangedMissingStartDateTimeHttpSoap() throws Exception {
         mockOrganizationChangedValues(OrganizationMockDataFactory.GOVT_ORG_GUID);
 
@@ -183,7 +181,6 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     @Test
-    @Disabled("This currently exceptions out in the change generation logic due to NPE")
     public void testHasOrganizationChangedMissingEndDateTimeHttpSoap() throws Exception {
         mockOrganizationChangedValues(OrganizationMockDataFactory.GOVT_ORG_GUID);
 
@@ -303,7 +300,6 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     @Test
-    @Disabled("This currently exceptions out in the change generation logic due to NPE")
     public void testHasCompanyChangedMissingStartDateTimeHttpSoap() throws Exception {
         mockCompanyChangedValues(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID);
 
@@ -316,7 +312,6 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     @Test
-    @Disabled("This currently exceptions out in the change generation logic due to NPE")
     public void testHasCompanyChangedMissingEndDateTimeHttpSoap() throws Exception {
         mockCompanyChangedValues(OrganizationMockDataFactory.TEST_COMPANY_BUSINESS_ID);
 
@@ -372,9 +367,7 @@ public class OrganizationEndpointIntegrationTest {
                 .withTest(Input.fromString(actualXml))
                 .withDifferenceEvaluator(DifferenceEvaluators.chain(
                         DifferenceEvaluators.Default,
-                        // Ignore whitespace-only text nodes
-                        DifferenceEvaluators.downgradeDifferencesToSimilar(org.xmlunit.diff.ComparisonType.TEXT_VALUE),
-                        // Ignore namespace prefix differences
+                        // Ignore namespace prefix differences as clients should not rely on them
                         (comparison, outcome) -> {
                             if (comparison.getType() == org.xmlunit.diff.ComparisonType.NAMESPACE_PREFIX) {
                                 return org.xmlunit.diff.ComparisonResult.EQUAL;
@@ -382,9 +375,6 @@ public class OrganizationEndpointIntegrationTest {
                             return outcome;
                         }
                 ))
-                // Remove this once we have completely switched to xrd4j
-                // Ignore xml:lang attribute differences - XRD4J doesn't automatically add xml:lang="en" to faultstring elements
-                .withAttributeFilter(attr -> !"xml:lang".equals(attr.getName()))
                 .ignoreWhitespace()
                 .ignoreComments()
                 .build();

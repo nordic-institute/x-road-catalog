@@ -4,7 +4,7 @@
     <SOAP-ENV:Body>
         <SOAP-ENV:Fault>
             <faultcode>SOAP-ENV:Server</faultcode>
-            <faultstring xml:lang="en">ErrorLog entries since 2001-05-06T12:00:00 until 2022-07-29T19:30:40 not found</faultstring>
+            <faultstring>ErrorLog entries since 2001-05-06T12:00:00 until 2022-07-29T19:30:40 not found</faultstring>
         </SOAP-ENV:Fault>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

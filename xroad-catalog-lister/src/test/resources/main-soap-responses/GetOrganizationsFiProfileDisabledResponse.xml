@@ -4,7 +4,7 @@
     <SOAP-ENV:Body>
         <SOAP-ENV:Fault>
             <faultcode>SOAP-ENV:Server</faultcode>
-            <faultstring>startDateTime and endDateTime parameters are required</faultstring>
+            <faultstring>Unknown service: GetOrganizations</faultstring>
         </SOAP-ENV:Fault>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

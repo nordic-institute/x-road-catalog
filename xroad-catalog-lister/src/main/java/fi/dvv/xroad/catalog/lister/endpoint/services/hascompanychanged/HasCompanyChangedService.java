@@ -55,7 +55,7 @@ public class HasCompanyChangedService implements ListerService<HasCompanyChanged
 
         if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
             request.setErrorMessage(
-                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTIme parameters are missing", null, null));
+                    new ErrorMessage("SOAP-ENV:Server", "startDateTime and endDateTime parameters are required", null, null));
             throw new XRd4JException("Missing required parameters");
         }
         
