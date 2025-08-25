@@ -103,10 +103,7 @@ public class SOAPAdapter extends AbstractAdapterServlet {
                 @SuppressWarnings("unchecked")
                 ServiceRequest<IsProviderRequest> isProviderRequest = (ServiceRequest<IsProviderRequest>) request;
                 return isProviderService.execute(isProviderRequest);
-            case "GetOrganizations":
-            case "HasOrganizationChanged":
-            case "GetCompanies":
-            case "HasCompanyChanged":
+            case "GetOrganizations", "HasOrganizationChanged", "GetCompanies", "HasCompanyChanged":
                 // Organization and Company services are currently only available with the FI profile
                 if (organizationSOAPAdapter.isEmpty()) {
                     log.warn("Organization and Company components not initialised, request {} unavailable",

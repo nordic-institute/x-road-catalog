@@ -48,7 +48,7 @@ jobs:
       - name: Gradle build environment
         run: ./gradlew buildEnvironment xroad-catalog-persistence:buildEnvironment xroad-catalog-collector:buildEnvironment xroad-catalog-lister:buildEnvironment --stacktrace
       - name: Run tests
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build check jacocoTestReport --stacktrace
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

@@ -41,10 +41,10 @@ import org.niis.xrd4j.common.message.ServiceResponse;
 
 public class OrganizationSOAPAdapter {
 
-    private final transient GetOrganizationsService getOrganizationsService;
-    private final transient HasOrganizationChangedService hasOrganizationChangedService;
-    private final transient GetCompaniesService getCompaniesService;
-    private final transient HasCompanyChangedService hasCompanyChangedService;
+    private final GetOrganizationsService getOrganizationsService;
+    private final HasOrganizationChangedService hasOrganizationChangedService;
+    private final GetCompaniesService getCompaniesService;
+    private final HasCompanyChangedService hasCompanyChangedService;
 
     public OrganizationSOAPAdapter(OrganizationService organizationService, CompanyService companyService) {
         this.getOrganizationsService = new GetOrganizationsService(organizationService);
