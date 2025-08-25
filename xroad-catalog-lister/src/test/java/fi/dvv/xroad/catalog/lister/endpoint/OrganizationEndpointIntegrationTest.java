@@ -60,12 +60,10 @@ import static org.mockito.BDDMockito.given;
  * HTTP-level integration tests for Organization SOAP endpoints.
  * These tests verify the exact SOAP message structure at the HTTP transport level.
  *
- * Test data is created using {@link OrganizationMockDataFactory} to ensure consistency across all tests.
- * All mock objects use standardized patterns for business codes, GUIDs, and timestamps.
+ * Test data is created using {@link OrganizationMockDataFactory}
  */
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class OrganizationEndpointIntegrationTest {
 
     private final TestRestTemplate restTemplate = new TestRestTemplate();
@@ -345,8 +343,6 @@ public class OrganizationEndpointIntegrationTest {
                 "HasCompanyChanged end before start response should match expected SOAP fault");
     }
 
-    // HTTP and XML utility methods
-
     private ResponseEntity<String> sendSoapRequest(String soapRequest) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_XML);
@@ -406,12 +402,9 @@ public class OrganizationEndpointIntegrationTest {
 
             return stringWriter.toString().replaceAll("\n\\s*\n", "\n");
         } catch (Exception e) {
-            // If pretty printing fails, return original XML
             return xml;
         }
     }
-
-    // Mock helper methods
 
     private void mockOrganizationsForBusinessCode(String businessCode) {
         given(organizationService.getOrganizations(businessCode))
@@ -419,7 +412,6 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     private void mockOrganizationChangedValues(String guid) {
-        // Create an organization with ALL changed entities to test comprehensive change detection
         LocalDateTime changedTime = OrganizationMockDataFactory.FIXED_TEST_TIME.plusHours(1);
         fi.dvv.xroad.catalog.persistence.entity.Organization organization =
                 OrganizationMockDataFactory.createOrganizationWithAllChangedEntities(
@@ -435,7 +427,6 @@ public class OrganizationEndpointIntegrationTest {
     }
 
     private void mockCompanyChangedValues(String businessId) {
-        // Create a company with ALL changed entities to test comprehensive change detection
         LocalDateTime changedTime = OrganizationMockDataFactory.FIXED_TEST_TIME.plusHours(1);
         fi.dvv.xroad.catalog.persistence.entity.Company company =
                 OrganizationMockDataFactory.createCompanyWithAllChangedEntities(

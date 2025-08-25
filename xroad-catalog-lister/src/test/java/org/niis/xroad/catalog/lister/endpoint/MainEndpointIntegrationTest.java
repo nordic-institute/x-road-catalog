@@ -66,8 +66,7 @@ import static org.mockito.BDDMockito.given;
  * HTTP-level integration tests for SOAP endpoints.
  * These tests verify the exact SOAP message structure at the HTTP transport level.
  *
- * Test data is created using {@link MainMockDataFactory} to ensure consistency across all tests.
- * All mock objects use standardized patterns for member codes, external IDs, and timestamps.
+ * Test data is created using {@link MainMockDataFactory}
  */
 @SpringBootTest(
         classes = ListerApplication.class,
@@ -75,7 +74,6 @@ import static org.mockito.BDDMockito.given;
         properties = {"xroad-catalog.country.fi.enabled=false", "spring.sql.init.mode=never"})
 @ActiveProfiles("test")
 @DirtiesContext
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class MainEndpointIntegrationTest {
 
     private final TestRestTemplate restTemplate = new TestRestTemplate();
@@ -85,8 +83,6 @@ public class MainEndpointIntegrationTest {
 
     @MockitoBean
     CatalogService catalogService;
-
-
 
     private String getEndpointUrl() {
         return "http://localhost:" + port + "/ws";
@@ -217,8 +213,6 @@ public class MainEndpointIntegrationTest {
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors response should match expected XML");
     }
 
-    // Negative test cases - document current error handling behavior
-    
     @Test
     public void testListMembersWithNullStartDateTime() throws Exception {
         mockMembersForListServices();
@@ -293,8 +287,6 @@ public class MainEndpointIntegrationTest {
         assertXmlEquals(expectedResponse, response.getBody(), "GetOpenApi not found response should match expected SOAP fault");
     }
 
-    // Enhanced positive test cases with rich hierarchical data
-    
     @Test
     public void testListMembersWithFullHierarchy() throws Exception {
         mockMembersWithFullHierarchy();
@@ -381,8 +373,6 @@ public class MainEndpointIntegrationTest {
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors empty result response should match expected SOAP fault");
     }
 
-    // FI Profile disabled tests - verify error handling when FI profile services are unavailable
-    
     @Test
     public void testGetOrganizationsFiProfileDisabled() throws Exception {
         String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetOrganizationsRequest.xml");
@@ -426,8 +416,6 @@ public class MainEndpointIntegrationTest {
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/HasCompanyChangedFiProfileDisabledResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "HasCompanyChanged should return error when FI profile is disabled");
     }
-
-    // HTTP and XML utility methods
 
     private ResponseEntity<String> sendSoapRequest(String soapRequest) {
         HttpHeaders headers = new HttpHeaders();
@@ -488,13 +476,10 @@ public class MainEndpointIntegrationTest {
 
             return stringWriter.toString().replaceAll("\n\\s*\n", "\n");
         } catch (Exception e) {
-            // If pretty printing fails, return original XML
             return xml;
         }
     }
 
-    // Enhanced mock helper methods with rich hierarchical data
-    
     private void mockMembersWithFullHierarchy() {
         // Member A: Financial institution with multiple subsystems and service types
         Member memberA = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
@@ -502,12 +487,12 @@ public class MainEndpointIntegrationTest {
                 MainMockDataFactory.createSubsystemWithServices("TaxSystem",
                 MainMockDataFactory.createStandardSoapService("calculateTax", "v1", "<wsdl>Tax calculation WSDL</wsdl>"),
                 MainMockDataFactory.createStandardSoapService("validateTaxpayer", "v2", "<wsdl>Taxpayer validation WSDL</wsdl>"),
-                MainMockDataFactory.createStandardRestService("getTaxHistory", "v1")
+                MainMockDataFactory.createStandardRestService("getTaxHistory")
             ),
                 MainMockDataFactory.createSubsystemWithServices("UserManagement",
-                MainMockDataFactory.createStandardOpenApiService("userAPI", "v1", "OpenAPI spec for user management"),
-                MainMockDataFactory.createStandardRestService("getUserData", "v1"),
-                MainMockDataFactory.createStandardRestService("updateUserProfile", "v2")
+                MainMockDataFactory.createStandardOpenApiService("userAPI", "OpenAPI spec for user management"),
+                MainMockDataFactory.createStandardRestService("getUserData"),
+                MainMockDataFactory.createStandardRestService("updateUserProfile")
             )
         );
         
@@ -515,8 +500,8 @@ public class MainEndpointIntegrationTest {
         Member memberB = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_COM,
                 MainMockDataFactory.WEATHER_SERVICES_CODE, MainMockDataFactory.WEATHER_SERVICES_NAME,
                 MainMockDataFactory.createSubsystemWithServices("WeatherAPI",
-                MainMockDataFactory.createStandardOpenApiService("weatherAPI", "v1", "Weather forecasting API"),
-                MainMockDataFactory.createStandardOpenApiService("climateAPI", "v2", "Climate data API")
+                MainMockDataFactory.createStandardOpenApiService("weatherAPI", "Weather forecasting API"),
+                MainMockDataFactory.createStandardOpenApiService("climateAPI", "Climate data API")
             )
         );
         
@@ -536,7 +521,7 @@ public class MainEndpointIntegrationTest {
                 MainMockDataFactory.createSubsystemWithServices("VersionedServices",
                 MainMockDataFactory.createStandardSoapService("dataService", "v1", "<wsdl>Data service v1</wsdl>"),
                 MainMockDataFactory.createStandardSoapService("dataService", "v2", "<wsdl>Data service v2</wsdl>"),
-                MainMockDataFactory.createStandardOpenApiService("dataService", "v3", "Data service v3 OpenAPI")
+                MainMockDataFactory.createStandardOpenApiService("dataService", "Data service v3 OpenAPI")
             )
         );
         
@@ -549,8 +534,8 @@ public class MainEndpointIntegrationTest {
                 MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
                 MainMockDataFactory.createSubsystemWithServices("MixedSubsystem",
                 MainMockDataFactory.createStandardSoapService("soapOp", "v1", "<wsdl>SOAP WSDL</wsdl>"),
-                MainMockDataFactory.createStandardRestService("restOp", "v1"),
-                MainMockDataFactory.createStandardOpenApiService("apiOp", "v1", "OpenAPI spec")
+                MainMockDataFactory.createStandardRestService("restOp"),
+                MainMockDataFactory.createStandardOpenApiService("apiOp", "OpenAPI spec")
             )
         );
         
@@ -575,8 +560,8 @@ public class MainEndpointIntegrationTest {
         Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
                 MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
                 MainMockDataFactory.createSubsystemWithServices("RestOnlySubsystem",
-                MainMockDataFactory.createStandardRestService("restOp1", "v1"),
-                MainMockDataFactory.createStandardRestService("restOp2", "v2")
+                MainMockDataFactory.createStandardRestService("restOp1"),
+                MainMockDataFactory.createStandardRestService("restOp2")
             )
         );
         
@@ -588,8 +573,8 @@ public class MainEndpointIntegrationTest {
         Member member = MainMockDataFactory.createMemberWithServices(MainMockDataFactory.MEMBER_CLASS_ORG,
                 MainMockDataFactory.PROVIDER_MEMBER_CODE, MainMockDataFactory.PROVIDER_MEMBER_NAME,
                 MainMockDataFactory.createSubsystemWithServices("ApiOnlySubsystem",
-                MainMockDataFactory.createStandardOpenApiService("apiOp1", "v1", "API spec 1"),
-                MainMockDataFactory.createStandardOpenApiService("apiOp2", "v1", "API spec 2")
+                MainMockDataFactory.createStandardOpenApiService("apiOp1", "API spec 1"),
+                MainMockDataFactory.createStandardOpenApiService("apiOp2", "API spec 2")
             )
         );
         
@@ -604,10 +589,10 @@ public class MainEndpointIntegrationTest {
                 MainMockDataFactory.createStandardSoapService("service1", "v1", "<wsdl>Service 1</wsdl>")
             ),
                 MainMockDataFactory.createSubsystemWithServices("Subsystem2",
-                MainMockDataFactory.createStandardOpenApiService("service2", "v1", "API Service 2")
+                MainMockDataFactory.createStandardOpenApiService("service2", "API Service 2")
             ),
                 MainMockDataFactory.createSubsystemWithServices("Subsystem3",
-                MainMockDataFactory.createStandardRestService("service3", "v1")
+                MainMockDataFactory.createStandardRestService("service3")
             )
         );
         
@@ -629,10 +614,10 @@ public class MainEndpointIntegrationTest {
         if ("SOAP".equalsIgnoreCase(serviceType)) {
             service = MainMockDataFactory.createStandardSoapService(serviceCode, "v1", "<wsdl>Test WSDL for " + serviceCode + "</wsdl>");
         } else if ("OPENAPI".equalsIgnoreCase(serviceType)) {
-            service = MainMockDataFactory.createStandardOpenApiService(serviceCode, "v1", "OpenAPI spec for " + serviceCode);
+            service = MainMockDataFactory.createStandardOpenApiService(serviceCode, "OpenAPI spec for " + serviceCode);
         } else {
             // REST service
-            service = MainMockDataFactory.createStandardRestService(serviceCode, "v1");
+            service = MainMockDataFactory.createStandardRestService(serviceCode);
         }
         
         given(catalogService.getService(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_ORG,
