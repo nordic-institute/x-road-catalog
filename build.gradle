@@ -41,6 +41,9 @@ sonar {
     properties {
         property "sonar.projectKey", "nordic-institute_x-road-catalog"
         property "sonar.organization", "nordic-institute"
+        property "sonar.tests", "src/test/java"
+        property "sonar.test.inclusions", "**/*Test.java,**/*Tests.java"
+        property "sonar.coverage.exclusions", "**/src/test/**"
     }
 }
 
