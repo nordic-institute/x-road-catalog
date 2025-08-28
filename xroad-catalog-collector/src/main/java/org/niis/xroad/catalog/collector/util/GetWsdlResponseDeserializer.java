@@ -35,6 +35,12 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class GetWsdlResponseDeserializer extends AbstractResponseDeserializer<GetWsdlRequest, String> {
+
+    public GetWsdlResponseDeserializer() {
+        super();
+        this.isMetaServiceResponse = true;
+    }
+
     @Override
     protected GetWsdlRequest deserializeRequestData(Node requestNode) throws SOAPException {
         // Not important for us

@@ -52,8 +52,8 @@ public class FetchWsdlsTask extends BaseFetchTask<ProducerMember> {
 
         ConsumerMember consumerMember = new ConsumerMember(
                 taskPoolConfiguration.getXroadInstance(),
-                taskPoolConfiguration.getMemberCode(),
                 taskPoolConfiguration.getMemberClass(),
+                taskPoolConfiguration.getMemberCode(),
                 taskPoolConfiguration.getSubsystemCode());
 
         String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();

@@ -37,9 +37,14 @@ public class GetWsdlRequestSerializer extends AbstractServiceRequestSerializer<G
     @Override
     protected void serializeRequest(ServiceRequest<GetWsdlRequest> request, SOAPElement soapRequest,
                                      SOAPEnvelope envelope) throws SOAPException {
+        final GetWsdlRequest requestData = request.getRequestData();
+        log.trace("Constructing getWSDL body for service '{}' with version '{}'",
+                requestData.getServiceCode(), requestData.getServiceVersion());
         SOAPElement serviceCode = soapRequest.addChildElement(envelope.createName("serviceCode"));
-        serviceCode.setValue(request.getRequestData().getServiceCode());
-        SOAPElement serviceVersion = soapRequest.addChildElement(envelope.createName("serviceVersion"));
-        serviceVersion.setValue(request.getRequestData().getServiceVersion());
+        serviceCode.setValue(requestData.getServiceCode());
+        if (requestData.getServiceVersion() != null) {
+            SOAPElement serviceVersion = soapRequest.addChildElement(envelope.createName("serviceVersion"));
+            serviceVersion.setValue(requestData.getServiceVersion());
+        }
     }
 }

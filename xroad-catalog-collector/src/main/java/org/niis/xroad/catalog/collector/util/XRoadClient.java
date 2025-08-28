@@ -34,6 +34,7 @@ import org.niis.xrd4j.common.member.ProducerMember;
 import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.common.util.Constants;
+import org.niis.xroad.catalog.collector.exception.XRoadClientException;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
@@ -87,19 +88,17 @@ public class XRoadClient {
         return response != null ? response : new ArrayList<>();
     }
 
-    public String getWsdl(final ProducerMember service, final CatalogService catalogService) throws Exception {
-        // Get the actual target service before we swap it for the getWsdl metaservice info
-        GetWsdlRequest requestData = new GetWsdlRequest(service.getServiceCode(), service.getServiceVersion());
-
-        service.setServiceCode("getWsdl");
-        service.setServiceVersion(null);
-        service.setObjectType(ObjectType.SERVICE);
-        service.setNamespacePrefix(Constants.NS_XRD_PREFIX);
-        service.setNamespaceUrl(Constants.NS_XRD_URL);
-
-
+    public String getWsdl(final ProducerMember service, final CatalogService catalogService) throws XRoadClientException {
         try {
-            ServiceRequest<GetWsdlRequest> request = new ServiceRequest<>(consumerMember, service, queryId());
+            GetWsdlRequest requestData = new GetWsdlRequest(service.getServiceCode(), service.getServiceVersion());
+
+            ProducerMember metaserviceProducer = new ProducerMember(service.getXRoadInstance(), service.getMemberClass(),
+                    service.getMemberCode(), service.getSubsystemCode(), "getWsdl");
+            metaserviceProducer.setServiceVersion(null);
+            metaserviceProducer.setObjectType(ObjectType.SERVICE);
+            metaserviceProducer.setNamespacePrefix(Constants.NS_XRD_PREFIX);
+            metaserviceProducer.setNamespaceUrl(Constants.NS_XRD_URL);
+            ServiceRequest<GetWsdlRequest> request = new ServiceRequest<>(consumerMember, metaserviceProducer, queryId());
             request.setRequestData(requestData);
             ServiceResponse<GetWsdlRequest, String> response = soapClient.send(request, securityServerURL,
                     GET_WSDL_REQUEST_SERIALIZER, GET_WSDL_RESPONSE_DESERIALIZER);
@@ -118,7 +117,7 @@ public class XRoadClient {
                     .subsystemCode(service.getSubsystemCode())
                     .build();
             catalogService.saveErrorLog(errorLog);
-            throw e;
+            throw new XRoadClientException(e);
         }
     }
 
