@@ -60,8 +60,8 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
         this.consumerMember = new ConsumerMember(
                 taskPoolConfiguration.getXroadInstance(),
-                taskPoolConfiguration.getMemberCode(),
                 taskPoolConfiguration.getMemberClass(),
+                taskPoolConfiguration.getMemberCode(),
                 taskPoolConfiguration.getSubsystemCode());
 
         String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
