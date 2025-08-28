@@ -28,6 +28,7 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.niis.xrd4j.common.exception.XRd4JException;
 import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xroad.catalog.collector.configuration.IgnoredSubsystemIdsProperties;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.Endpoint;
@@ -49,7 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest(classes = TaskPoolConfiguration.class)
+@SpringBootTest(classes = {TaskPoolConfiguration.class, IgnoredSubsystemIdsProperties.class})
 @ActiveProfiles("test")
 public class FetchRestTaskTest {
 

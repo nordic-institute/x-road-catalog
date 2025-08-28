@@ -133,4 +133,65 @@ public class ListMethodsTaskTest {
         assertEquals(0, openApiServices.size());
     }
 
+    @Test
+    public void testListMethodsTaskIgnoresSubsystem()
+            throws InterruptedException, XRd4JException, SOAPException {
+        SOAPClient soapClient = mock(SOAPClient.class);
+        ServiceResponse<String, java.util.List<ProducerMember>> response = new ServiceResponse<>();
+        response.setResponseData(java.util.List.of(
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceFoo").serviceVersion("v1")
+                        .build().toProducerMember(),
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceBar").serviceVersion("v1")
+                        .build().toProducerMember(),
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceBaz").serviceVersion("v1")
+                        .build().toProducerMember()
+        ));
+        when(soapClient.listMethods(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost())))
+                .thenReturn(response);
+        XRoadClient xRoadClient = new XRoadClient(soapClient,
+                new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
+                        taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
+                taskPoolConfiguration.getSecurityServerHost());
+        BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
+        Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
+        Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
+        Queue<XRoadIdentifier> openApiServices = new LinkedBlockingQueue<>();
+        ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
+                restServices, openApiServices, taskPoolConfiguration);
+        ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
+        Semaphore semaphore = new Semaphore(1);
+        ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
+        Thread listMethodsRunner = Thread.ofVirtual().start(listMethodsTask::run);
+        MemberWithName clientType = new MemberWithName();
+        XRoadIdentifier value = XRoadIdentifier.builder()
+                .xRoadInstance("DEV")
+                .memberClass("COM")
+                .memberCode("1234")
+                .subsystemCode("Test")
+                .build();
+        value.setObjectType(ObjectType.SUBSYSTEM);
+        clientType.setId(value);
+        listedClients.add(clientType);
+
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(listedClients::isEmpty);
+
+        semaphore.acquire();
+        listMethodsRunner.interrupt();
+
+        verify(catalogService, times(0)).saveServices(any(), any());
+        verify(soapClient, times(0)).listMethods(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost()));
+
+        assertEquals(0, wsdlServices.size());
+
+        assertEquals(0, restServices.size());
+
+        assertEquals(0, openApiServices.size());
+    }
+
 }

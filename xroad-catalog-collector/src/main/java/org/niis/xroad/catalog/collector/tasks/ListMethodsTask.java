@@ -116,6 +116,11 @@ public class ListMethodsTask implements Runnable {
 
     private void saveSubsystemsAndServices(final MemberWithName clientType) {
         try {
+            if (shouldBeIgnored(clientType)) {
+                log.info("Subsystem {} marked as ignored in configuration, skipping services", ClientTypeUtil.toString(clientType));
+                return;
+            }
+
             Subsystem subsystem = new Subsystem(
                     new Member(clientType.getId().getXRoadInstance(), clientType.getId().getMemberClass(),
                             clientType.getId().getMemberCode(), clientType.getName()),
@@ -158,5 +163,14 @@ public class ListMethodsTask implements Runnable {
         } finally {
             semaphore.release();
         }
+    }
+
+    private boolean shouldBeIgnored(final MemberWithName subsystem) {
+        String identifier = String.format("%s:%s:%s:%s",
+                subsystem.getId().getXRoadInstance(),
+                subsystem.getId().getMemberClass(),
+                subsystem.getId().getMemberCode(),
+                subsystem.getId().getSubsystemCode());
+        return taskPoolConfiguration.getIgnoredSubsystemIds().contains(identifier);
     }
 }

@@ -25,8 +25,11 @@
 package org.niis.xroad.catalog.collector.configuration;
 
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Set;
 
 @Getter
 @Configuration
@@ -45,6 +48,9 @@ public class TaskPoolConfiguration {
 
     @Value("${xroad-catalog.target.subsystem-code}")
     private String subsystemCode;
+
+    @Autowired
+    private IgnoredSubsystemIdsProperties ignoredSubsystemIdsProperties;
 
     // Security server URLs
 
@@ -95,5 +101,9 @@ public class TaskPoolConfiguration {
 
     @Value("${xroad-catalog.pool-size.fetch-rest:10}")
     private int fetchRestPoolSize;
+
+    public Set<String> getIgnoredSubsystemIds() {
+        return ignoredSubsystemIdsProperties.getIgnoredSubsystemIds();
+    }
 
 }
