@@ -29,6 +29,7 @@ import jakarta.xml.soap.SOAPEnvelope;
 import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
+import org.w3c.dom.CDATASection;
 
 public class GetWsdlResponseSerializer extends AbstractServiceResponseSerializer<GetWsdlRequest, String> {
 
@@ -50,7 +51,8 @@ public class GetWsdlResponseSerializer extends AbstractServiceResponseSerializer
                                      SOAPElement soapResponse, SOAPEnvelope envelope) throws SOAPException {
         if (response.getResponseData() != null) {
             SOAPElement wsdlElement = soapResponse.addChildElement(envelope.createName("wsdl"));
-            wsdlElement.setTextContent(response.getResponseData());
+            CDATASection wsdlCdata = wsdlElement.getOwnerDocument().createCDATASection(response.getResponseData());
+            wsdlElement.appendChild(wsdlCdata);
         }
     }
 }

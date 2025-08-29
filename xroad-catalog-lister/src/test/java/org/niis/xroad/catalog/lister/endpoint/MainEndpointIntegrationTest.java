@@ -25,6 +25,7 @@
 
 package org.niis.xroad.catalog.lister.endpoint;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.ListerApplication;
 import org.niis.xroad.catalog.lister.service.CatalogService;
@@ -58,6 +59,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -155,6 +158,39 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetWsdlResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetWsdl response should match expected XML");
+        
+        // Verify that the WSDL content is properly wrapped in CDATA
+        String responseBody = response.getBody();
+        Assertions.assertNotNull(responseBody);
+        assertTrue(responseBody.contains("<![CDATA[<wsdl>This is WSDL content</wsdl>]]>"),
+                "GetWsdl response should contain WSDL content wrapped in CDATA");
+    }
+
+    @Test
+    public void testGetWsdlHttpSoapWithComplexContent() throws Exception {
+        String externalId = "1000";
+        String complexWsdlContent = "<?xml version=\"1.0\"?><definitions xmlns=\"http://schemas.xmlsoap.org/wsdl/\">"
+                + "<types><schema targetNamespace=\"test\" xmlns=\"http://www.w3.org/2001/XMLSchema\">"
+                + "<element name=\"TestElement\" type=\"string\"/></schema></types></definitions>";
+        Wsdl testWsdl = new Wsdl(new Service(), complexWsdlContent, externalId);
+        testWsdl.setStatusInfo(MainMockDataFactory.createStandardStatusInfo());
+        given(catalogService.getWsdl(externalId))
+                .willReturn(testWsdl);
+
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetWsdlRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String responseBody = response.getBody();
+        Assertions.assertNotNull(responseBody);
+        assertTrue(responseBody.contains("<![CDATA[" + complexWsdlContent + "]]>"),
+                "GetWsdl response should contain complex WSDL content wrapped in CDATA");
+
+        assertFalse(responseBody.contains("&lt;definitions"),
+                "GetWsdl response should not contain HTML entity encoded content when using CDATA");
+        assertFalse(responseBody.contains("&gt;"),
+                "GetWsdl response should not contain HTML entity encoded content when using CDATA");
     }
 
     @Test
