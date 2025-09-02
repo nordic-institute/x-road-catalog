@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SaveMissingSubsystemTest {

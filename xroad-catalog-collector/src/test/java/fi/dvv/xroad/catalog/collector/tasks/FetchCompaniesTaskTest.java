@@ -59,7 +59,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @SpringBootTest(classes = CollectorApplication.class)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "fi-testdata"})
 @TestPropertySource(properties = { "xroad-catalog.fetch-companies-url=" })
 public class FetchCompaniesTaskTest {
 

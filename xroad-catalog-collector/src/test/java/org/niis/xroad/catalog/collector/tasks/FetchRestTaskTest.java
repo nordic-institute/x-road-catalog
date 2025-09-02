@@ -51,7 +51,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = {TaskPoolConfiguration.class, IgnoredSubsystemIdsProperties.class})
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 public class FetchRestTaskTest {
 
     @MockitoBean

@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 public class SubsystemRepositoryTest {
 
     @Autowired

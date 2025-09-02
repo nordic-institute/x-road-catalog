@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ServiceRepositoryTest {
 

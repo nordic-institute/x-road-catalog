@@ -39,7 +39,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 public class ErrorLogRepositoryTest {
 
     @Autowired

@@ -23,12 +23,12 @@
  * THE SOFTWARE.
  */
 
-
 package org.niis.xroad.catalog.persistence.configuration;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 
@@ -36,6 +36,7 @@ import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.Connection;
 
+@Profile("general-testdata")
 @TestConfiguration
 public class ProcessedSqlLoader {
 
@@ -45,12 +46,11 @@ public class ProcessedSqlLoader {
     @PostConstruct
     public void loadProcessedTestData() throws Exception {
         String processedsql = SqlPreprocessor.preprocessSql(
-                Paths.get("src/test/resources/test-data-template.sql").toString()
+                Paths.get("src/test/resources/general/test-data-template.sql").toString()
         );
 
         try (Connection conn = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(conn, new ByteArrayResource(processedsql.getBytes()));
         }
     }
-
 }
