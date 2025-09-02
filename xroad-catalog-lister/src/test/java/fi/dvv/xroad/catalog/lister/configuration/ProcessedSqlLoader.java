@@ -26,6 +26,7 @@
 package fi.dvv.xroad.catalog.lister.configuration;
 
 import jakarta.annotation.PostConstruct;
+import org.niis.xroad.catalog.lister.configuration.SqlPreprocessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Profile;
@@ -46,8 +47,10 @@ public class ProcessedSqlLoader {
     @PostConstruct
     public void loadProcessedTestData() throws Exception {
         StringBuilder preprocessedSqlSB = new StringBuilder();
-        preprocessedSqlSB.append(SqlPreprocessor.preprocessSql(Paths.get("src/test/resources/fi/test-data-template.sql").toString())).append("\n");
-        preprocessedSqlSB.append(SqlPreprocessor.preprocessSql(Paths.get("src/test/resources/general/test-data-template.sql").toString())).append("\n");
+        preprocessedSqlSB.append(SqlPreprocessor.preprocessSql(
+                Paths.get("src/test/resources/fi/test-data-template.sql").toString())).append(System.lineSeparator());
+        preprocessedSqlSB.append(SqlPreprocessor.preprocessSql(
+                Paths.get("src/test/resources/general/test-data-template.sql").toString())).append(System.lineSeparator());
 
         String precessedSql = preprocessedSqlSB.toString();
 
