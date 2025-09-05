@@ -14,7 +14,4 @@ spring:
     show-sql: true
     hibernate.ddl-auto: create-drop
 
-xroad-catalog:
-  country:
-    fi:
-      enabled: true
+

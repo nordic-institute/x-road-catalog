@@ -27,7 +27,6 @@ springdoc:
 # X-Road instance parameters
 xroad-catalog:
   shared-params-file: src/test/resources/shared-params.xml
-  country.fi.enabled: true
   configuration-client.enabled: false
 
 # Increasing logging levels in tests for better debugging

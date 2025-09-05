@@ -38,7 +38,7 @@ import javax.sql.DataSource;
 import java.nio.file.Paths;
 import java.sql.Connection;
 
-@Profile("fi-testdata")
+@Profile("fi")
 @TestConfiguration
 public class ProcessedSqlLoader {
 

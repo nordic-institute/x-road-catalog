@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.catalog.persistence.repository;
 
-import fi.dvv.xroad.catalog.persistence.TestUtil;
+import org.niis.xroad.catalog.persistence.TestUtil;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.springframework.beans.factory.annotation.Autowired;

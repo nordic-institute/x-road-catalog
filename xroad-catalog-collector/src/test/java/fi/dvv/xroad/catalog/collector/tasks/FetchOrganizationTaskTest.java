@@ -58,7 +58,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @SpringBootTest(classes = CollectorApplication.class)
-@ActiveProfiles({"test", "fi-testdata"})
+@ActiveProfiles({"test", "fi"})
 public class FetchOrganizationTaskTest {
 
     @MockitoBean

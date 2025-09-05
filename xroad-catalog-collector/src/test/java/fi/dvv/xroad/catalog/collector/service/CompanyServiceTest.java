@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest(classes =  CollectorApplication.class)
-@ActiveProfiles({"test", "fi-testdata"})
+@ActiveProfiles({"test", "fi"})
 @Transactional
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class CompanyServiceTest {

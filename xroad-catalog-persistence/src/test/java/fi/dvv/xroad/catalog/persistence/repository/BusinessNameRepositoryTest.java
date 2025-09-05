@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest(classes = PersistenceTestApplication.class)
-@ActiveProfiles({"test", "fi-testdata"})
+@ActiveProfiles({"test", "fi"})
 public class BusinessNameRepositoryTest {
 
     @Autowired

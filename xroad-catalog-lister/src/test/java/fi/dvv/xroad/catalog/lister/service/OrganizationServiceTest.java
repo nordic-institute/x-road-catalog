@@ -39,7 +39,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(classes = ListerApplication.class)
-@ActiveProfiles({"test", "fi-testdata"})
+@ActiveProfiles({"test", "fi"})
 @Transactional
 public class OrganizationServiceTest {
 
