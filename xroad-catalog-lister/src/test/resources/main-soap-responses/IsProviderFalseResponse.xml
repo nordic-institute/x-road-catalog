@@ -20,7 +20,7 @@
         <xrd:protocolVersion xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">4.0</xrd:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns2:IsProviderResponse xmlns:ns2="http://xroad.vrk.fi/xroad-catalog-lister">
+        <ns2:IsProviderResponse xmlns:ns2="http://x-road.eu/ext/catalog/lister">
             <ns2:provider>false</ns2:provider>
         </ns2:IsProviderResponse>
     </SOAP-ENV:Body>

@@ -30,7 +30,7 @@ import org.niis.xrd4j.common.exception.XRd4JException;
 import org.niis.xrd4j.common.member.ConsumerMember;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
@@ -72,7 +72,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
     @Override
     protected void fetch(final XRoadIdentifier service) {
         try {
-            log.info("Fetching OpenApi for {}", ClientTypeUtil.toString(service));
+            log.info("Fetching OpenApi for {}", IdentifierUtil.toString(service));
             String openApi = xroadClient.getOpenApi(service, xroadSecurityServerHost, consumerMember, catalogService);
             catalogService.saveOpenApi(createSubsystemId(service), createServiceId(service), openApi);
             List<Endpoint> endpointList = MethodListUtil.getEndpointList(service);
@@ -81,9 +81,9 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
                 catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(),
                         endpoint.getPath());
             }
-            log.info("Saved OpenApi for {} successfully", ClientTypeUtil.toString(service));
+            log.info("Saved OpenApi for {} successfully", IdentifierUtil.toString(service));
         } catch (Exception e) {
-            log.error("Failed to fetch OpenAPI for {}", ClientTypeUtil.toString(service), e);
+            log.error("Failed to fetch OpenAPI for {}", IdentifierUtil.toString(service), e);
         }
     }
 }

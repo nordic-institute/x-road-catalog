@@ -46,6 +46,7 @@ services:
       - setting_xroad-catalog.target.subsystem-code=catalog
       - setting_xroad-catalog.target.member-class=COM
       - setting_xroad-catalog.target.member-code=1234
+      - setting_xroad-catalog.instance.ignored-subsystem-ids[0]=DEV:COM:1234:MANAGEMENT
       - setting_xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
       - setting_xroad-catalog.ssl-keystore.password=changeit
       - setting_xroad-catalog.urls.security-server-host=http://ss0:8080/
@@ -63,6 +64,10 @@ services:
       - setting_xroad-catalog.tasks.fetch-time-after-hour=3
       - setting_xroad-catalog.tasks.fetch-time-before-hour=4
       - setting_xroad-catalog.country.fi.enabled=false
+      - setting_xroad-catalog.country.fi.fetch.companies.url=https://avoindata.prh.fi/bis/v1
+      - setting_xroad-catalog.country.fi.fetch.companies.pool-size=1
+      - setting_xroad-catalog.country.fi.fetch.organizations.url=https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
+      - setting_xroad-catalog.country.fi.fetch.organizations.pool-size=1
 
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -95,7 +100,7 @@ services:
       - setting_xroad-catalog.country.fi.enabled=false
       - setting_xroad-catalog.configuration-client.enabled=true
     volumes:
-      - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml
+      - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
       - 8070:8080

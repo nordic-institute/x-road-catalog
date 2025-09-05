@@ -30,7 +30,7 @@ import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 
 public interface ListerService<T, U> {
-    String NAMESPACE_URL = "http://xroad.vrk.fi/xroad-catalog-lister";
+    String NAMESPACE_URL = "http://x-road.eu/ext/catalog/lister";
     String NAMESPACE_PREFIX = "tns";
     String FAULT_CODE_SERVER = "SOAP-ENV:Server";
     

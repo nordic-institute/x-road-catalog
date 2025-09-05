@@ -53,12 +53,12 @@ public final class ClientListUtil {
                 String.class);
         JSONObject bodyJson = new JSONObject(response.getBody());
         JSONArray members = bodyJson.getJSONArray("member");
-        List<MemberWithName> ret = new ArrayList<>();
+        List<MemberWithName> clientList = new ArrayList<>();
         for (int i = 0; i < members.length(); i++) {
             JSONObject member = members.getJSONObject(i);
-            ret.add(constructMemberWithName(member));
+            clientList.add(constructMemberWithName(member));
         }
-        return ret;
+        return clientList;
     }
 
     private static MemberWithName constructMemberWithName(final JSONObject member) {

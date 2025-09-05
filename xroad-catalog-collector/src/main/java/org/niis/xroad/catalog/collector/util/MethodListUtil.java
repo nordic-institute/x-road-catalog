@@ -131,7 +131,7 @@ public final class MethodListUtil {
                 + consumerMember.getSubsystemCode();
     }
 
-    private static JSONObject getJSON(String url, XRoadIdentifier clientType, String xRoadClientHeader,
+    private static JSONObject getJSON(String url, XRoadIdentifier client, String xRoadClientHeader,
                                       CatalogService catalogService) {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
@@ -145,29 +145,29 @@ public final class MethodListUtil {
             return new JSONObject(response.getBody());
         } catch (Exception e) {
             SecurityServerMetadata newSecurityServerMetadata = SecurityServerMetadata.builder()
-                    .xRoadInstance(clientType.getXRoadInstance())
-                    .memberClass(clientType.getMemberClass())
-                    .memberCode(clientType.getMemberCode())
+                    .xRoadInstance(client.getXRoadInstance())
+                    .memberClass(client.getMemberClass())
+                    .memberCode(client.getMemberCode())
                     .build();
             if (!newSecurityServerMetadata.equals(securityServerMetadata)) {
-                log.error("Fetch of REST services failed: " + e.getMessage());
+                log.error("Fetch of REST services failed: {}", e.getMessage());
                 ErrorLog errorLog = ErrorLog.builder()
                         .created(LocalDateTime.now())
                         .message("Fetch of REST services failed(url: " + url + "): "
                                 + e.getMessage())
                         .code("500")
-                        .xRoadInstance(clientType.getXRoadInstance())
-                        .memberClass(clientType.getMemberClass())
-                        .memberCode(clientType.getMemberCode())
-                        .serviceCode((clientType).getServiceCode())
-                        .serviceVersion((clientType).getServiceVersion())
-                        .subsystemCode(clientType.getSubsystemCode())
+                        .xRoadInstance(client.getXRoadInstance())
+                        .memberClass(client.getMemberClass())
+                        .memberCode(client.getMemberCode())
+                        .serviceCode((client).getServiceCode())
+                        .serviceVersion((client).getServiceVersion())
+                        .subsystemCode(client.getSubsystemCode())
                         .build();
                 catalogService.saveErrorLog(errorLog);
                 securityServerMetadata = SecurityServerMetadata.builder()
-                        .xRoadInstance(clientType.getXRoadInstance())
-                        .memberClass(clientType.getMemberClass())
-                        .memberCode(clientType.getMemberCode())
+                        .xRoadInstance(client.getXRoadInstance())
+                        .memberClass(client.getMemberClass())
+                        .memberCode(client.getMemberCode())
                         .build();
             }
             return null;

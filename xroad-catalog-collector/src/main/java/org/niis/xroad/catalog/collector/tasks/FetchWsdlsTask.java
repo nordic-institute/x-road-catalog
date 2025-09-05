@@ -31,7 +31,7 @@ import org.niis.xrd4j.common.member.ConsumerMember;
 import org.niis.xrd4j.common.member.ProducerMember;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.springframework.stereotype.Component;
 
@@ -64,12 +64,12 @@ public class FetchWsdlsTask extends BaseFetchTask<ProducerMember> {
     @Override
     protected void fetch(final ProducerMember service) {
         try {
-            log.info("Fetching WSDL for {}", ClientTypeUtil.toString(service));
+            log.info("Fetching WSDL for {}", IdentifierUtil.toString(service));
             String wsdl = xroadClient.getWsdl(service, catalogService);
             catalogService.saveWsdl(createSubsystemId(service), createServiceId(service), wsdl);
-            log.info("WSDL for {} saved successfully", ClientTypeUtil.toString(service));
+            log.info("WSDL for {} saved successfully", IdentifierUtil.toString(service));
         } catch (Exception e) {
-            log.error("Failed to fetch WSDL for {}", ClientTypeUtil.toString(service), e);
+            log.error("Failed to fetch WSDL for {}", IdentifierUtil.toString(service), e);
         }
     }
 }

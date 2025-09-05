@@ -28,9 +28,9 @@ import org.niis.xrd4j.common.exception.XRd4JException;
 import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xrd4j.common.member.ProducerMember;
 
-public final class ClientTypeUtil {
+public final class IdentifierUtil {
 
-    private ClientTypeUtil() {
+    private IdentifierUtil() {
         // Private empty constructor
     }
 
@@ -71,7 +71,7 @@ public final class ClientTypeUtil {
         sb.append(c.getMemberCode());
         sb.append('/');
         sb.append(c.getSubsystemCode());
-        if (c.getObjectType().equals(ObjectType.SERVICE)) {
+        if (c.getObjectType() != null && c.getObjectType().equals(ObjectType.SERVICE)) {
             sb.append('/');
             sb.append(c.getServiceCode());
             sb.append('/');

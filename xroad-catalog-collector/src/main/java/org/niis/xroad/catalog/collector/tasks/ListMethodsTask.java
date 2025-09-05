@@ -31,7 +31,7 @@ import org.niis.xrd4j.common.member.ConsumerMember;
 import org.niis.xrd4j.common.member.ProducerMember;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
 import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
@@ -114,28 +114,28 @@ public class ListMethodsTask implements Runnable {
         }
     }
 
-    private void saveSubsystemsAndServices(final MemberWithName clientType) {
+    private void saveSubsystemsAndServices(final MemberWithName client) {
         try {
-            if (shouldBeIgnored(clientType)) {
-                log.info("Subsystem {} marked as ignored in configuration, skipping services", ClientTypeUtil.toString(clientType));
+            if (shouldBeIgnored(client)) {
+                log.info("Subsystem {} marked as ignored in configuration, skipping services", IdentifierUtil.toString(client));
                 return;
             }
 
             Subsystem subsystem = new Subsystem(
-                    new Member(clientType.getId().getXRoadInstance(), clientType.getId().getMemberClass(),
-                            clientType.getId().getMemberCode(), clientType.getName()),
-                    clientType.getId().getSubsystemCode());
+                    new Member(client.getId().getXRoadInstance(), client.getId().getMemberClass(),
+                            client.getId().getMemberCode(), client.getName()),
+                    client.getId().getSubsystemCode());
 
             log.debug("Handling subsystem {} ", subsystem);
 
-            List<XRoadIdentifier> restServices = MethodListUtil.methodListFromResponse(clientType.getId(),
+            List<XRoadIdentifier> restServices = MethodListUtil.methodListFromResponse(client.getId(),
                     xroadSecurityServerHost, consumerMember, catalogService);
             log.info("Received {} REST methods for client {} ", restServices.size(),
-                    ClientTypeUtil.toString(clientType));
+                    IdentifierUtil.toString(client));
 
-            List<ProducerMember> soapServices = xroadClient.getMethods(clientType.getId(), catalogService);
+            List<ProducerMember> soapServices = xroadClient.getMethods(client.getId(), catalogService);
             log.info("Received {} SOAP methods for client {} ", soapServices.size(),
-                    ClientTypeUtil.toString(clientType));
+                    IdentifierUtil.toString(client));
 
             List<Service> services = new ArrayList<>();
             for (XRoadIdentifier service : restServices) {
@@ -159,7 +159,7 @@ public class ListMethodsTask implements Runnable {
 
             log.debug("Subsystem {} handled", subsystem);
         } catch (Exception e) {
-            log.error("Error while handling client {}", ClientTypeUtil.toString(clientType), e);
+            log.error("Error while handling client {}", IdentifierUtil.toString(client), e);
         } finally {
             semaphore.release();
         }

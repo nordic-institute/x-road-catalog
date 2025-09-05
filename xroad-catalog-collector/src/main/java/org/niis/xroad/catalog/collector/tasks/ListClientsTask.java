@@ -30,7 +30,7 @@ import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.events.NewMembersEventPublisher;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientListUtil;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
 import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
@@ -107,18 +107,18 @@ public class ListClientsTask implements Runnable {
     private HashMap<MemberId, Member> populateMapWithMembers(List<MemberWithName> clientList) {
         HashMap<MemberId, Member> m = new HashMap<>();
         int clientCounter = 0;
-        for (MemberWithName clientType : clientList) {
+        for (MemberWithName client : clientList) {
             clientCounter++;
-            log.debug("{} - {}", clientCounter, ClientTypeUtil.toString(clientType));
-            Member newMember = new Member(clientType.getId().getXRoadInstance(),
-                    clientType.getId().getMemberClass(),
-                    clientType.getId().getMemberCode(),
-                    clientType.getName());
+            log.debug("{} - {}", clientCounter, IdentifierUtil.toString(client));
+            Member newMember = new Member(client.getId().getXRoadInstance(),
+                    client.getId().getMemberClass(),
+                    client.getId().getMemberCode(),
+                    client.getName());
             newMember.setSubsystems(new HashSet<>());
             m.putIfAbsent(newMember.createKey(), newMember);
 
-            if (ObjectType.SUBSYSTEM.equals(clientType.getId().getObjectType())) {
-                Subsystem newSubsystem = new Subsystem(newMember, clientType.getId().getSubsystemCode());
+            if (ObjectType.SUBSYSTEM.equals(client.getId().getObjectType())) {
+                Subsystem newSubsystem = new Subsystem(newMember, client.getId().getSubsystemCode());
                 m.get(newMember.createKey()).getAllSubsystems().add(newSubsystem);
             }
         }
