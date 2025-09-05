@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header>
+        <xrd:client xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
+        </xrd:client>
+        <xrd:service xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>GetOrganizations</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:userId xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-user</xrd:userId>
+        <xrd:id xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-request-123</xrd:id>
+        <xrd:protocolVersion xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns2:GetOrganizationsResponse xmlns:ns2="http://x-road.eu/ext/catalog/lister">
+            <ns2:organizationList>
+                <ns2:organization>
+                    <ns2:organizationType>Municipality</ns2:organizationType>
+                    <ns2:publishingStatus>Published</ns2:publishingStatus>
+                    <ns2:businessCode>0123456-7</ns2:businessCode>
+                    <ns2:guid>11111111-1111-1111-1111-111111111111</ns2:guid>
+                    <ns2:organizationNames>
+                        <ns2:organizationName>
+                            <ns2:language>EN</ns2:language>
+                            <ns2:type>Name</ns2:type>
+                            <ns2:value>Test Organization Ltd</ns2:value>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:organizationName>
+                        <ns2:organizationName>
+                            <ns2:language>EN</ns2:language>
+                            <ns2:type>AlternateName</ns2:type>
+                            <ns2:value>Test Org</ns2:value>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:organizationName>
+                    </ns2:organizationNames>
+                    <ns2:organizationDescriptions>
+                        <ns2:organizationDescription>
+                            <ns2:language>EN</ns2:language>
+                            <ns2:type>Description</ns2:type>
+                            <ns2:value>Test organization description</ns2:value>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:organizationDescription>
+                    </ns2:organizationDescriptions>
+                    <ns2:emails>
+                        <ns2:email>
+                            <ns2:description>Main contact email</ns2:description>
+                            <ns2:value>contact@example.com</ns2:value>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:email>
+                    </ns2:emails>
+                    <ns2:phoneNumbers>
+                        <ns2:phoneNumber>
+                            <ns2:language>EN</ns2:language>
+                            <ns2:prefixNumber>+1</ns2:prefixNumber>
+                            <ns2:number>+1234567890</ns2:number>
+                            <ns2:isFinnishServiceNumber>false</ns2:isFinnishServiceNumber>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:phoneNumber>
+                    </ns2:phoneNumbers>
+                    <ns2:webPages>
+                        <ns2:webPage>
+                            <ns2:language>EN</ns2:language>
+                            <ns2:url>https://www.example.com</ns2:url>
+                            <ns2:value>Official website</ns2:value>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:webPage>
+                    </ns2:webPages>
+                    <ns2:addresses>
+                        <ns2:address>
+                            <ns2:country>Test Country</ns2:country>
+                            <ns2:type>Visiting address</ns2:type>
+                            <ns2:streetAddresses/>
+                            <ns2:postOfficeBoxAddresses/>
+                            <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                            <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                            <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                        </ns2:address>
+                    </ns2:addresses>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                    <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                    <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                </ns2:organization>
+            </ns2:organizationList>
+        </ns2:GetOrganizationsResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

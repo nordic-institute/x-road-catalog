@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xrd:client xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
+        </xrd:client>
+        <xrd:service xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>GetErrors</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:userId xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-user</xrd:userId>
+        <xrd:id xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-request-111</xrd:id>
+        <xrd:protocolVersion xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns2:GetErrorsResponse xmlns:ns2="http://x-road.eu/ext/catalog/lister">
+            <ns2:errorLogList>
+                <ns2:errorLog>
+                    <ns2:message>Service not found</ns2:message>
+                    <ns2:code>TEST_ERROR</ns2:code>
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:subsystemCode>TestSubsystem</ns2:subsystemCode>
+                    <ns2:serviceCode>TestService</ns2:serviceCode>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                </ns2:errorLog>
+                <ns2:errorLog>
+                    <ns2:message>Error with certificate</ns2:message>
+                    <ns2:code>TEST_ERROR</ns2:code>
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:subsystemCode>TestSubsystem</ns2:subsystemCode>
+                    <ns2:serviceCode>TestService</ns2:serviceCode>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                </ns2:errorLog>
+                <ns2:errorLog>
+                    <ns2:message>Unknown error</ns2:message>
+                    <ns2:code>TEST_ERROR</ns2:code>
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:subsystemCode>TestSubsystem</ns2:subsystemCode>
+                    <ns2:serviceCode>TestService</ns2:serviceCode>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                </ns2:errorLog>
+                <ns2:errorLog>
+                    <ns2:message>Access restricted</ns2:message>
+                    <ns2:code>TEST_ERROR</ns2:code>
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:subsystemCode>TestSubsystem</ns2:subsystemCode>
+                    <ns2:serviceCode>TestService</ns2:serviceCode>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                </ns2:errorLog>
+                <ns2:errorLog>
+                    <ns2:message>Connection refused</ns2:message>
+                    <ns2:code>TEST_ERROR</ns2:code>
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:subsystemCode>TestSubsystem</ns2:subsystemCode>
+                    <ns2:serviceCode>TestService</ns2:serviceCode>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                </ns2:errorLog>
+                <ns2:errorLog>
+                    <ns2:message>Multiple values returned</ns2:message>
+                    <ns2:code>TEST_ERROR</ns2:code>
+                    <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+                    <ns2:memberClass>ORG</ns2:memberClass>
+                    <ns2:memberCode>1234</ns2:memberCode>
+                    <ns2:subsystemCode>TestSubsystem</ns2:subsystemCode>
+                    <ns2:serviceCode>TestService</ns2:serviceCode>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                </ns2:errorLog>
+            </ns2:errorLogList>
+        </ns2:GetErrorsResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

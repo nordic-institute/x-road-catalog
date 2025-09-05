@@ -24,22 +24,23 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
+import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
+import org.niis.xrd4j.common.member.ProducerMember;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -52,17 +53,9 @@ public class ListMethodsTask implements Runnable {
 
     private static final String SERVICE_TYPE_REST = "REST";
 
-    private String xroadSecurityServerHost;
+    private final String xroadSecurityServerHost;
 
-    private String xroadInstance;
-
-    private String memberCode;
-
-    private String memberClass;
-
-    private String subsystemCode;
-
-    private String webservicesEndpoint;
+    private final ConsumerMember consumerMember;
 
     private final CatalogService catalogService;
 
@@ -72,18 +65,18 @@ public class ListMethodsTask implements Runnable {
 
     private final Semaphore semaphore;
 
-    private final BlockingQueue<ClientType> clientsQueue;
+    private final BlockingQueue<MemberWithName> clientsQueue;
 
-    private final Queue<XRoadServiceIdentifierType> wsdlQueue;
+    private final Queue<ProducerMember> wsdlQueue;
 
-    private final Queue<XRoadRestServiceIdentifierType> openApiQueue;
+    private final Queue<XRoadIdentifier> openApiQueue;
 
-    private final Queue<XRoadRestServiceIdentifierType> restQueue;
+    private final Queue<XRoadIdentifier> restQueue;
 
-    public ListMethodsTask(final CatalogService  catalogService, final BlockingQueue<ClientType> listMethodsQueue,
-            final Queue<XRoadServiceIdentifierType> wsdlServicesQueue, final Queue<XRoadRestServiceIdentifierType> restServicesQueue,
-            final Queue<XRoadRestServiceIdentifierType> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration)
-            throws URISyntaxException {
+    public ListMethodsTask(final CatalogService  catalogService, final BlockingQueue<MemberWithName> listMethodsQueue,
+                           final Queue<ProducerMember> wsdlServicesQueue, final Queue<XRoadIdentifier> restServicesQueue,
+                           final Queue<XRoadIdentifier> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration)
+            throws XRd4JException, SOAPException {
         this.catalogService = catalogService;
 
         this.clientsQueue = listMethodsQueue;
@@ -93,17 +86,15 @@ public class ListMethodsTask implements Runnable {
 
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
-        this.xroadInstance = taskPoolConfiguration.getXroadInstance();
-        this.memberCode = taskPoolConfiguration.getMemberCode();
-        this.memberClass = taskPoolConfiguration.getMemberClass();
-        this.subsystemCode = taskPoolConfiguration.getSubsystemCode();
-        this.webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
+        this.consumerMember = new ConsumerMember(taskPoolConfiguration.getXroadInstance(),
+                taskPoolConfiguration.getMemberClass(), taskPoolConfiguration.getMemberCode(),
+                taskPoolConfiguration.getSubsystemCode());
+
+        String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getListMethodsPoolSize());
 
-        this.xroadClient = new XRoadClient(
-                ClientTypeUtil.toSubsystem(xroadInstance, memberClass, memberCode, subsystemCode),
-                new URI(webservicesEndpoint));
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
     }
 
     public void run() {
@@ -113,7 +104,7 @@ public class ListMethodsTask implements Runnable {
                 log.debug("Polling for clients ... ");
 
                 // take() blocks until an element becomes available or it gets interrupted
-                ClientType client = clientsQueue.take();
+                MemberWithName client = clientsQueue.take();
                 semaphore.acquire();
                 Thread.ofVirtual().start(() -> saveSubsystemsAndServices(client));
             }
@@ -123,29 +114,34 @@ public class ListMethodsTask implements Runnable {
         }
     }
 
-    private void saveSubsystemsAndServices(final ClientType clientType) {
+    private void saveSubsystemsAndServices(final MemberWithName client) {
         try {
+            if (shouldBeIgnored(client)) {
+                log.info("Subsystem {} marked as ignored in configuration, skipping services", IdentifierUtil.toString(client));
+                return;
+            }
+
             Subsystem subsystem = new Subsystem(
-                    new Member(clientType.getId().getXRoadInstance(), clientType.getId().getMemberClass(),
-                            clientType.getId().getMemberCode(), clientType.getName()),
-                    clientType.getId().getSubsystemCode());
+                    new Member(client.getId().getXRoadInstance(), client.getId().getMemberClass(),
+                            client.getId().getMemberCode(), client.getName()),
+                    client.getId().getSubsystemCode());
 
             log.debug("Handling subsystem {} ", subsystem);
 
-            List<XRoadRestServiceIdentifierType> restServices = MethodListUtil.methodListFromResponse(clientType,
-                    xroadSecurityServerHost, xroadInstance, memberClass, memberCode, subsystemCode, catalogService);
+            List<XRoadIdentifier> restServices = MethodListUtil.methodListFromResponse(client.getId(),
+                    xroadSecurityServerHost, consumerMember, catalogService);
             log.info("Received {} REST methods for client {} ", restServices.size(),
-                    ClientTypeUtil.toString(clientType));
+                    IdentifierUtil.toString(client));
 
-            List<XRoadServiceIdentifierType> soapServices = xroadClient.getMethods(clientType.getId(), catalogService);
+            List<ProducerMember> soapServices = xroadClient.getMethods(client.getId(), catalogService);
             log.info("Received {} SOAP methods for client {} ", soapServices.size(),
-                    ClientTypeUtil.toString(clientType));
+                    IdentifierUtil.toString(client));
 
             List<Service> services = new ArrayList<>();
-            for (XRoadRestServiceIdentifierType service : restServices) {
+            for (XRoadIdentifier service : restServices) {
                 services.add(new Service(subsystem, service.getServiceCode(), service.getServiceVersion()));
             }
-            for (XRoadServiceIdentifierType service : soapServices) {
+            for (ProducerMember service : soapServices) {
                 services.add(new Service(subsystem, service.getServiceCode(), service.getServiceVersion()));
             }
 
@@ -153,7 +149,7 @@ public class ListMethodsTask implements Runnable {
 
             this.wsdlQueue.addAll(soapServices);
 
-            for (XRoadRestServiceIdentifierType service : restServices) {
+            for (XRoadIdentifier service : restServices) {
                 if (service.getServiceType().equalsIgnoreCase(SERVICE_TYPE_REST)) {
                     this.restQueue.add(service);
                 } else {
@@ -163,9 +159,18 @@ public class ListMethodsTask implements Runnable {
 
             log.debug("Subsystem {} handled", subsystem);
         } catch (Exception e) {
-            log.error("Error while handling client {}", ClientTypeUtil.toString(clientType), e);
+            log.error("Error while handling client {}", IdentifierUtil.toString(client), e);
         } finally {
             semaphore.release();
         }
+    }
+
+    private boolean shouldBeIgnored(final MemberWithName subsystem) {
+        String identifier = String.format("%s:%s:%s:%s",
+                subsystem.getId().getXRoadInstance(),
+                subsystem.getId().getMemberClass(),
+                subsystem.getId().getMemberCode(),
+                subsystem.getId().getSubsystemCode());
+        return taskPoolConfiguration.getIgnoredSubsystemIds().contains(identifier);
     }
 }

@@ -25,8 +25,10 @@
 package org.niis.xroad.catalog.collector;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.IgnoredSubsystemIdsProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
@@ -35,6 +37,7 @@ import java.nio.file.Path;
 
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties(IgnoredSubsystemIdsProperties.class)
 public class CollectorApplication {
 
     public static void main(String[] args) throws URISyntaxException {

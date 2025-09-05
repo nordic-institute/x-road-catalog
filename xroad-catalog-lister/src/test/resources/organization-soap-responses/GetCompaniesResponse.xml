@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header>
+        <xrd:client xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
+        </xrd:client>
+        <xrd:service xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>GetCompanies</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:userId xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-user</xrd:userId>
+        <xrd:id xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">test-request-123</xrd:id>
+        <xrd:protocolVersion xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">4.0</xrd:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns2:GetCompaniesResponse xmlns:ns2="http://x-road.eu/ext/catalog/lister">
+            <ns2:companyList>
+                <ns2:company>
+                    <ns2:companyForm>LLC</ns2:companyForm>
+                    <ns2:detailsUri>http://example.com/company/details</ns2:detailsUri>
+                    <ns2:businessId>2345678-9</ns2:businessId>
+                    <ns2:name>Test Company Ltd</ns2:name>
+                    <ns2:registrationDate>2025-01-01T12:00:00.000+02:00</ns2:registrationDate>
+                    <ns2:businessAddresses/>
+                    <ns2:businessAuxiliaryNames/>
+                    <ns2:businessIdChanges/>
+                    <ns2:businessLines/>
+                    <ns2:businessNames/>
+                    <ns2:companyForms/>
+                    <ns2:contactDetails/>
+                    <ns2:languages/>
+                    <ns2:liquidations/>
+                    <ns2:registeredEntries/>
+                    <ns2:registeredOffices/>
+                    <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
+                    <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
+                    <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
+                </ns2:company>
+            </ns2:companyList>
+        </ns2:GetCompaniesResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

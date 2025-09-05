@@ -24,18 +24,11 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
-import fi.dvv.xroad.catalog.collector.mock.MockMetaServicesImpl;
 import fi.dvv.xroad.catalog.collector.mock.MockRestTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.cxf.Bus;
-import org.apache.cxf.jaxws.EndpointImpl;
-import org.apache.cxf.transport.servlet.CXFServlet;
-import org.niis.xroad.catalog.collector.wsimport.MetaServicesPort;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.web.client.RestOperations;
 
 @Configuration
@@ -49,24 +42,4 @@ public class TestingConfiguration {
         log.info("--------------DEVELOPMENT Configuration");
         return new MockRestTemplate();
     }
-
-    @Bean
-    public ServletRegistrationBean<CXFServlet> servletRegistrationBean() {
-        return new ServletRegistrationBean<>(new CXFServlet(), "/*");
-    }
-
-    @Bean
-    @Lazy(value = false)
-    public EndpointImpl metaServicesService(Bus bus) {
-        EndpointImpl endpoint = new EndpointImpl(bus, metaServices());
-        log.info("publishing generator end point {}", endpoint);
-        endpoint.publish("/metaservices");
-        return endpoint;
-    }
-
-    @Bean
-    public MetaServicesPort metaServices() {
-        return new MockMetaServicesImpl();
-    }
-
 }

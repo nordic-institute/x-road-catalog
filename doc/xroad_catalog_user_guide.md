@@ -141,7 +141,7 @@ Contents of the example `servicerequest.xml` file:
 xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:xro="http://x-road.eu/xsd/xroad.xsd" 
 xmlns:iden="http://x-road.eu/xsd/identifiers" 
-xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -192,7 +192,7 @@ Contents of the XML response of the request
     </xro:service>
   </SOAP-ENV:Header>
   <SOAP-ENV:Body>
-    <ns2:ListMembersResponse xmlns:ns2="http://xroad.vrk.fi/xroad-catalog-lister">
+    <ns2:ListMembersResponse xmlns:ns2="http://x-road.eu/ext/catalog/lister">
       <ns2:memberList>
         <ns2:member>
           <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
@@ -326,7 +326,7 @@ Contents of the example `wsdlrequest.xml` file:
 xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:xro="http://x-road.eu/xsd/xroad.xsd" 
 xmlns:iden="http://x-road.eu/xsd/identifiers" 
-xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -373,7 +373,7 @@ Contents of the example `openapirequest.xml` file:
 xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:xro="http://x-road.eu/xsd/xroad.xsd" 
 xmlns:iden="http://x-road.eu/xsd/identifiers" 
-xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -420,7 +420,7 @@ Contents of the example `GetServiceTypeRequest.xml` file:
 xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:xro="http://x-road.eu/xsd/xroad.xsd" 
 xmlns:iden="http://x-road.eu/xsd/identifiers" 
-xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -482,7 +482,7 @@ Contents of the example `IsProviderRequest.xml` file:
 xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:xro="http://x-road.eu/xsd/xroad.xsd" 
 xmlns:iden="http://x-road.eu/xsd/identifiers" 
-xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -538,7 +538,7 @@ Contents of the example `GetErrorsRequest.xml` file:
         xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
         xmlns:iden="http://x-road.eu/xsd/identifiers"
-        xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+        xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
     <soapenv:Header>
         <xro:protocolVersion>4.x</xro:protocolVersion>
         <xro:id>ID11234</xro:id>
@@ -597,7 +597,7 @@ Contents of the example `GetOrganizationsRequest.xml` file:
         xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
         xmlns:iden="http://x-road.eu/xsd/identifiers"
-        xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+        xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -766,7 +766,7 @@ Contents of the example `HasOrganizationChangedRequest.xml` file:
         xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
         xmlns:iden="http://x-road.eu/xsd/identifiers"
-        xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+        xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
    <soapenv:Header>
       <xro:protocolVersion>4.x</xro:protocolVersion>
       <xro:id>ID11234</xro:id>
@@ -826,7 +826,7 @@ Contents of the example `GetCompaniesRequest.xml` file:
         xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
         xmlns:iden="http://x-road.eu/xsd/identifiers"
-        xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+        xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
     <soapenv:Header>
         <xro:protocolVersion>4.x</xro:protocolVersion>
         <xro:id>ID11234</xro:id>
@@ -1027,7 +1027,7 @@ Contents of the example `HasCompanyChangedRequest.xml` file:
         xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
         xmlns:iden="http://x-road.eu/xsd/identifiers"
-        xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+        xmlns:xrcl="http://x-road.eu/ext/catalog/lister">
     <soapenv:Header>
         <xro:protocolVersion>4.x</xro:protocolVersion>
         <xro:id>ID11234</xro:id>

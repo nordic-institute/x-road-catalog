@@ -21,6 +21,15 @@ spring:
 
 # X-Road instance parameters
 xroad-catalog:
+  instance:
+    ignored-subsystem-ids:
+      - 'DEV:COM:1234:Test'
+      - 'DEV:COM:4321:Test2'
+  target:
+    xroad-instance: 'INSTANCE'
+    member-class: 'CLASS'
+    member-code: 'CODE'
+    subsystem-code: 'SUBSYSTEM'
   # Country specific settings
   country:
     fi:

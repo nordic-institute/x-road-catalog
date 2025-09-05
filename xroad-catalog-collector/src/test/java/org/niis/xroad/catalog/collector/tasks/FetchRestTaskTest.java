@@ -26,19 +26,19 @@ package org.niis.xroad.catalog.collector.tasks;
 
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xroad.catalog.collector.configuration.IgnoredSubsystemIdsProperties;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.Endpoint;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest(classes = TaskPoolConfiguration.class)
+@SpringBootTest(classes = {TaskPoolConfiguration.class, IgnoredSubsystemIdsProperties.class})
 @ActiveProfiles("test")
 public class FetchRestTaskTest {
 
@@ -61,29 +61,30 @@ public class FetchRestTaskTest {
     private TaskPoolConfiguration taskPoolConfiguration;
 
     @Test
-    public void testFetchRestTask() throws MalformedURLException, URISyntaxException, InterruptedException {
-        BlockingQueue<XRoadRestServiceIdentifierType> restServices = new LinkedBlockingQueue<>();
+    public void testFetchRestTask() throws InterruptedException, XRd4JException {
+        BlockingQueue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
         FetchRestTask fetchRestTask = new FetchRestTask(catalogService, taskPoolConfiguration, restServices);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchRestTask, "semaphore", semaphore);
         Thread fetchRestRunner = Thread.ofVirtual().start(fetchRestTask::run);
 
-        XRoadRestServiceIdentifierType service = new XRoadRestServiceIdentifierType();
-        service.setObjectType(XRoadObjectType.SERVICE);
-        service.setXRoadInstance("INSTANCE");
-        service.setMemberClass("CLASS");
-        service.setMemberCode("CODE");
-        service.setSubsystemCode("SUBSYSTEM");
-        service.setServiceCode("aService");
-        service.setServiceVersion("v1");
-        service.setServiceType("REST");
+        XRoadIdentifier service = XRoadIdentifier.builder()
+                .xRoadInstance("INSTANCE")
+                .memberClass("CLASS")
+                .memberCode("CODE")
+                .subsystemCode("SUBSYSTEM")
+                .serviceCode("aService")
+                .serviceVersion("v1")
+                .objectType(ObjectType.SERVICE)
+                .serviceType("REST")
+                .build();
         List<Endpoint> endpointList = new ArrayList<>();
         endpointList.add(Endpoint.builder().method("GET").path("/getServices").build());
         service.setEndpoints(endpointList);
 
         restServices.add(service);
 
-        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> restServices.isEmpty());
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(restServices::isEmpty);
 
         semaphore.acquire();
         fetchRestRunner.interrupt();

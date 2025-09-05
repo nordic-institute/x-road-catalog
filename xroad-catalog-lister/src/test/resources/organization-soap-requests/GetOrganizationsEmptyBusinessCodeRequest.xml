@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/ext/catalog/lister">
+    <soap:Header>
+        <xrd:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>12345</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
+        </xrd:client>
+        <xrd:service id:objectType="SERVICE">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>ORG</id:memberClass>
+            <id:memberCode>70006317</id:memberCode>
+            <id:subsystemCode>xroad-catalog</id:subsystemCode>
+            <id:serviceCode>GetOrganizations</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </xrd:service>
+        <xrd:userId>test-user</xrd:userId>
+        <xrd:id>test-request-123</xrd:id>
+        <xrd:protocolVersion>4.0</xrd:protocolVersion>
+    </soap:Header>
+    <soap:Body>
+        <tns:GetOrganizations>
+            <tns:businessCode></tns:businessCode>
+        </tns:GetOrganizations>
+    </soap:Body>
+</soap:Envelope>

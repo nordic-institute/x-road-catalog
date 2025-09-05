@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0] - 2025-08-29
+
+# Changed
+- Made 'removed' field optional (minOccurs="0") across all WSDL complex types to properly reflect nullable behavior
+- Updated Service elements in WSDL to explicitly show xs:choice between wsdl and openapi elements (reflects existing business logic)
+- Migrated to XRD4J library for improved X-Road message handling
+- Enhanced input validation for date parameters in HasOrganizationChanged and HasCompanyChanged services
+- Target name space for the SOAP service changed to http://x-road.eu/ext/catalog/lister
+
 ## [3.0.7] - 2023-11-17
 
 # Changed

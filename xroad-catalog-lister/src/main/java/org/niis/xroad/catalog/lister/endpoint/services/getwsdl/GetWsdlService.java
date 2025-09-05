@@ -1,0 +1,66 @@
+/**
+ * The MIT License
+ *
+ * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2016-2023 Finnish Digital Agency
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.catalog.lister.endpoint.services.getwsdl;
+
+import jakarta.xml.soap.SOAPException;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.message.ErrorMessage;
+import org.niis.xrd4j.common.message.ServiceRequest;
+import org.niis.xrd4j.common.message.ServiceResponse;
+import org.niis.xroad.catalog.lister.endpoint.ListerService;
+import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.niis.xroad.catalog.persistence.entity.Wsdl;
+
+public class GetWsdlService implements ListerService<GetWsdlRequest, String> {
+    private static final GetWsdlRequestDeserializer REQUEST_DESERIALIZER = new GetWsdlRequestDeserializer();
+    private static final GetWsdlResponseSerializer RESPONSE_SERIALIZER = new GetWsdlResponseSerializer();
+    private final CatalogService catalogService;
+
+    public GetWsdlService(final CatalogService catalogService) {
+        this.catalogService = catalogService;
+    }
+
+    public ServiceResponse<GetWsdlRequest, String> execute(ServiceRequest<GetWsdlRequest> request)
+            throws XRd4JException, SOAPException {
+        REQUEST_DESERIALIZER.deserialize(request);
+        
+        Wsdl wsdlEntity = catalogService.getWsdl(request.getRequestData().getExternalId());
+        if (wsdlEntity == null) {
+            request.setErrorMessage(
+                    new ErrorMessage(FAULT_CODE_SERVER, "wsdl with external id "
+                            + request.getRequestData().getExternalId() + " not found", null, null));
+            throw new XRd4JException("WSDL not found");
+        }
+        String wsdl = wsdlEntity.getData();
+        
+        ServiceResponse<GetWsdlRequest, String> response = new ServiceResponse<>(request.getConsumer(),
+                request.getProducer(), request.getId());
+        response.getProducer().setNamespaceUrl(NAMESPACE_URL);
+        response.getProducer().setNamespacePrefix(NAMESPACE_PREFIX);
+        response.setResponseData(wsdl);
+        RESPONSE_SERIALIZER.serialize(response, request);
+        return response;
+    }
+}

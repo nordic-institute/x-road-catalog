@@ -24,27 +24,34 @@
  */
 package org.niis.xroad.catalog.collector.util;
 
-import fi.dvv.xroad.catalog.collector.mock.MockMetaServicesImpl;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.xml.soap.SOAPException;
 import org.junit.jupiter.api.Test;
+import org.niis.xrd4j.client.SOAPClient;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xrd4j.common.member.ProducerMember;
+import org.niis.xrd4j.common.message.ServiceRequest;
+import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.configuration.TestingConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.wsimport.XRoadClientIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {TestingConfiguration.class, CollectorApplication.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -69,57 +76,69 @@ public class XRoadClientTest {
     @Value("${xroad-catalog.target.subsystem-code}")
     private String subsystemCode;
 
-    @LocalServerPort
-    private int port;
+    private static final String REQUEST_URL = "http://requestUrl";
 
-    private String webservicesEndpoint;
-
-    @BeforeEach
-    public void setUp() {
-        webservicesEndpoint = "http://localhost:%s/metaservices".formatted(port);
-    }
-
-    private XRoadClientIdentifierType getDefaultClient() {
-        XRoadClientIdentifierType client = new XRoadClientIdentifierType();
-        client.setXRoadInstance(xroadInstance);
-        client.setMemberClass(memberClass);
-        client.setMemberCode(memberCode);
-        client.setObjectType(XRoadObjectType.MEMBER);
+    private ConsumerMember getDefaultClient() throws XRd4JException {
+        ConsumerMember client = new ConsumerMember(xroadInstance, memberClass, memberCode);
+        client.setObjectType(ObjectType.MEMBER);
         return client;
     }
 
-    private XRoadServiceIdentifierType getDefaultService() {
-        XRoadServiceIdentifierType service = new XRoadServiceIdentifierType();
-        service.setXRoadInstance(xroadInstance);
-        service.setMemberClass(memberClass);
-        service.setMemberCode(memberCode);
-        service.setSubsystemCode(subsystemCode);
-        service.setServiceCode("code123");
-        service.setServiceVersion("v3");
-        service.setObjectType(XRoadObjectType.SERVICE);
-        return service;
+    private XRoadIdentifier getDefaultProducer() {
+        return XRoadIdentifier.builder()
+                .xRoadInstance(xroadInstance)
+                .memberClass(memberClass)
+                .memberCode(memberCode)
+                .subsystemCode(subsystemCode)
+                .objectType(ObjectType.SUBSYSTEM)
+                .build();
     }
 
     @Test
-    public void testCallListMethods() throws URISyntaxException {
-        XRoadClientIdentifierType client = getDefaultClient();
-        XRoadClient xRoadClient = new XRoadClient(client, new URI(webservicesEndpoint));
-        assertFalse(xRoadClient == null);
-        XRoadClientIdentifierType client2 = getDefaultClient();
-        client2.setSubsystemCode(subsystemCode);
-        List<XRoadServiceIdentifierType> openApiResponse = xRoadClient.getMethods(client2, catalogService);
+    public void testCallListMethods() throws SOAPException, XRd4JException {
+        ConsumerMember client = getDefaultClient();
+        SOAPClient soapClient = mock(SOAPClient.class);
+        ServiceResponse<String, List<ProducerMember>> response = new ServiceResponse<>();
+        response.setResponseData(Arrays.asList(
+                XRoadIdentifier.builder()
+                        .xRoadInstance("DEV").memberClass("ORG").memberCode("m1")
+                        .subsystemCode("s1").serviceCode("sc1").serviceVersion("v1")
+                        .build().toProducerMember(),
+                XRoadIdentifier.builder()
+                        .xRoadInstance("DEV").memberClass("ORG").memberCode("m1")
+                        .subsystemCode("s1").serviceCode("sc2").serviceVersion("v1")
+                        .build().toProducerMember(),
+                XRoadIdentifier.builder()
+                        .xRoadInstance("DEV").memberClass("ORG").memberCode("m1")
+                        .subsystemCode("s1").serviceCode("sc3").serviceVersion("v1")
+                        .build().toProducerMember()
+        ));
+        when(soapClient.listMethods(any(ServiceRequest.class), eq(REQUEST_URL)))
+                .thenReturn(response);
+        XRoadClient xRoadClient = new XRoadClient(soapClient, client, REQUEST_URL);
+        assertNotNull(xRoadClient);
+        XRoadIdentifier client2 = getDefaultProducer();
+        List<ProducerMember> openApiResponse = xRoadClient.getMethods(client2, catalogService);
+        verify(soapClient, times(1)).listMethods(any(ServiceRequest.class), eq(REQUEST_URL));
         assertEquals(3, openApiResponse.size());
     }
 
     @Test
     public void testCallGetWsdl() throws Exception {
-        XRoadClientIdentifierType client = getDefaultClient();
-        XRoadClient xRoadClient = new XRoadClient(client, new URI(webservicesEndpoint));
-        assertFalse(xRoadClient == null);
-        XRoadServiceIdentifierType service = getDefaultService();
+        ConsumerMember client = getDefaultClient();
+        final String wsdlContent = "wsdlData";
+        SOAPClient soapClient = mock(SOAPClient.class);
+        ServiceResponse<GetWsdlRequest, String> response = new ServiceResponse<>();
+        response.setResponseData(wsdlContent);
+        when(soapClient.send(any(ServiceRequest.class), eq(REQUEST_URL),
+                any(GetWsdlRequestSerializer.class), any(GetWsdlResponseDeserializer.class)))
+                .thenReturn(response);
+        XRoadClient xRoadClient = new XRoadClient(soapClient, client, REQUEST_URL);
+        assertNotNull(xRoadClient);
+        ProducerMember service = new ProducerMember(xroadInstance, memberClass, memberCode, subsystemCode, "getWsdl", "null");
+        service.setObjectType(ObjectType.SERVICE);
         String wsdl = xRoadClient.getWsdl(service, catalogService);
-        assertEquals(MockMetaServicesImpl.getWSDLForService(service.getServiceCode(), service.getServiceVersion()),
-                wsdl);
+        assertEquals(wsdlContent, wsdl);
     }
 
 }

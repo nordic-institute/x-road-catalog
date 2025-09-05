@@ -17,15 +17,11 @@ java {
 
 repositories {
     mavenCentral()
-}
-
-configurations {
-    wsimport
-}
-
-sourceSets {
-    main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources/wsimport']
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-snapshots/")
+    }
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-releases/")
     }
 }
 
@@ -49,54 +45,20 @@ springBoot {
     mainClass = 'org.niis.xroad.catalog.collector.CollectorApplication'
 }
 
-tasks.register('wsImport') {
-    ext.sourcedestdir = layout.buildDirectory.dir("generated-sources/wsimport").get().asFile
-    ext.destdir = layout.buildDirectory.dir("generated-classes/wsimport").get().asFile
-    ext.wsdl = "${projectDir}/src/main/resources/schema/metaservices.wsdl"
-
-    inputs.files wsdl
-    outputs.dir sourcedestdir
-
-    doLast() {
-        ant.taskdef name: "wsimport", classname: "com.sun.tools.ws.ant.WsImport",
-                classpath: configurations.wsimport.asPath
-        ant.mkdir(dir: destdir)
-        ant.mkdir(dir: sourcedestdir)
-
-        ant.wsimport(sourcedestdir: sourcedestdir,
-                destdir: destdir,
-                wsdl: wsdl,
-                wsdllocation: "/schema/metaservices.wsdl",
-                package: "org.niis.xroad.catalog.collector.wsimport",
-                keep: "true") {
-            ant.produces(dir: sourcedestdir, includes: "**/*.java")
-        }
-    }
-}
-
-licenseMain.dependsOn wsImport
-
 dependencies {
     implementation project(':xroad-catalog-persistence')
     implementation (libs.jakarta.annotation)
-    implementation (libs.jakarta.jaxb)
     implementation (libs.guava)
     implementation (libs.http.client)
     implementation (libs.json)
-    implementation (libs.spring.boot.ws)
     implementation (libs.spring.boot.jpa)
+    implementation (libs.spring.boot.web)
     implementation (libs.jackson)
-    // Note that bundle seems to break something with CXF and being able top find api bindings, so using separate dependencies here
-    implementation (libs.cxf.jaxws)
-    implementation (libs.cxf.transport)
-    implementation (libs.cxf.core)
-    implementation (libs.cxf.spring.starter)
+    implementation (libs.xrd4j.client)
     implementation (libs.lombok)
     implementation (libs.liquibase)
     implementation (libs.xmlunit.core)
     annotationProcessor (libs.lombok)
-    wsimport (libs.jaxb.maven)
-    implementation (libs.bundles.jaxb)
     compileOnly (libs.liquibase.hibernate6)
     testImplementation (libs.spring.boot.test)
     testRuntimeOnly (libs.junit.launcer)
@@ -106,8 +68,6 @@ dependencies {
     testImplementation (libs.h2.database)
 }
 
-compileJava.dependsOn wsImport
-
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
@@ -115,13 +75,6 @@ test {
 
 jacocoTestReport {
     dependsOn test
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                    "**/wsimport/*"
-            ])
-        }))
-    }
     reports {
         xml.required = true
     }

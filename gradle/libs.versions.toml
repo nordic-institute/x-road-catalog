@@ -2,7 +2,6 @@
 awaitility = "4.3.0"
 commonsCompress = "1.28.0"
 commonsCsv = "1.14.1"
-cxf = "4.1.2"
 guava = "33.4.8-jre"
 h2 = "2.3.232"
 hierynomusLicense = "0.16.1"
@@ -10,9 +9,6 @@ httpclient = "5.5"
 jackson = "2.19.2"
 jakartaRsApi = "4.0.0"
 jakartaAnnotationApi = "3.0.0"
-jakartaBindApi = "4.0.2"
-jaxb = "4.0.3"
-jaxbWsApi = "4.0.2"
 json = "20240303"
 junitLauncher = "1.13.4"
 liquibase = "4.33.0"
@@ -20,32 +16,22 @@ lombok = "1.18.38"
 mockito = "5.18.0"
 postgresql = "42.7.7"
 plexusUtils="4.0.2"
-sonarqube = "5.1.0.4882"
+sonarqube = "6.2.0.5505"
 springBoot = "3.5.4"
 springDoc = "2.8.9"
-wsdl4j = "1.6.3"
-wsdl2java = "2.0.2"
 xroadLibs = "7.7.0-SNAPSHOT"
+xrd4j = "0.9.0-SNAPSHOT"
 
 [libraries]
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "commonsCsv" }
-cxf-core = { module = "org.apache.cxf:cxf-core", version.ref = "cxf" }
-cxf-spring-starter = { module = "org.apache.cxf:cxf-spring-boot-starter-jaxws", version.ref = "cxf" }
-cxf-transport = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "cxf" }
-cxf-jaxws = { module = "org.apache.cxf:cxf-rt-frontend-jaxws", version.ref = "cxf" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 h2-database = { module = "com.h2database:h2", version.ref = "h2" }
 http-client = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jakarta = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakartaRsApi" }
 jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakartaAnnotationApi" }
-jakarta-jaxb = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakartaBindApi" }
-jaxb-maven = { module = "com.sun.xml.ws:jaxws-maven-plugin", version.ref = "jaxb" }
-jaxb-rt = { module = "com.sun.xml.ws:jaxws-rt", version.ref = "jaxb" }
-jaxb-tools = { module = "com.sun.xml.ws:jaxws-tools", version.ref = "jaxb" }
-jaxb-ws-api = { module = "jakarta.xml.ws:jakarta.xml.ws-api", version.ref = "jaxbWsApi" }
 json = { module = "org.json:json", version.ref = "json" }
 junit-launcer = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitLauncher" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version.ref = "hierynomusLicense" }
@@ -57,16 +43,13 @@ plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "ple
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
-spring-boot-ws = { module = "org.springframework.boot:spring-boot-starter-web-services", version.ref = "springBoot" }
+spring-boot-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDoc" }
-wsdl4j = { module = "wsdl4j:wsdl4j", version.ref = "wsdl4j" }
 xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.3" }
 xroad-configuration-client = { module = "org.niis.xroad:configuration-client", version.ref = "xroadLibs" }
-
-[bundles]
-jaxb = [ "jaxb-rt", "jaxb-tools", "jaxb-ws-api" ] # Don't include jaxb-maven in this since it is not used in implementation
+xrd4j-client = { module = "org.niis.xrd4j:client", version.ref = "xrd4j"}
+xrd4j-server = { module = "org.niis.xrd4j:server", version.ref = "xrd4j"}
 
 [plugins]
 sonarqube = { id  = "org.sonarqube", version.ref = "sonarqube" }
 spring-boot = { id  = "org.springframework.boot", version.ref = "springBoot" }
-wsdl2java = { id = "com.github.bjornvester.wsdl2java", version.ref = "wsdl2java" }

@@ -29,10 +29,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.util.ClientTypeUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
 import org.niis.xroad.catalog.collector.util.Endpoint;
 import org.niis.xroad.catalog.collector.util.MethodListUtil;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -40,7 +40,7 @@ import java.util.concurrent.BlockingQueue;
 
 @Slf4j
 @Component
-public class FetchRestTask extends BaseFetchTask<XRoadRestServiceIdentifierType> {
+public class FetchRestTask extends BaseFetchTask<XRoadIdentifier> {
 
     private static final String METHOD = "method";
 
@@ -49,15 +49,15 @@ public class FetchRestTask extends BaseFetchTask<XRoadRestServiceIdentifierType>
     private final CatalogService catalogService;
 
     public FetchRestTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-            final BlockingQueue<XRoadRestServiceIdentifierType> restServicesQueue) {
+            final BlockingQueue<XRoadIdentifier> restServicesQueue) {
         super(restServicesQueue, taskPoolConfiguration.getFetchRestPoolSize());
         this.catalogService = catalogService;
     }
 
     @Override
-    protected void fetch(final XRoadRestServiceIdentifierType service) {
+    protected void fetch(final XRoadIdentifier service) {
         try {
-            log.info("Fetching REST for {}", ClientTypeUtil.toString(service));
+            log.info("Fetching REST for {}", IdentifierUtil.toString(service));
             List<Endpoint> endpointList = MethodListUtil.getEndpointList(service);
             String endpointData = "{\"endpoint_data\":";
             JSONArray endPointsJSONArray = new JSONArray();
@@ -73,9 +73,9 @@ public class FetchRestTask extends BaseFetchTask<XRoadRestServiceIdentifierType>
             }
             endpointData += endPointsJSONArray + "}";
             catalogService.saveRest(createSubsystemId(service), createServiceId(service), endpointData);
-            log.info("Saved REST for {} successfully", ClientTypeUtil.toString(service));
+            log.info("Saved REST for {} successfully", IdentifierUtil.toString(service));
         } catch (Exception e) {
-            log.error("Failed to fetch REST for {}", ClientTypeUtil.toString(service), e);
+            log.error("Failed to fetch REST for {}", IdentifierUtil.toString(service), e);
         }
     }
 }

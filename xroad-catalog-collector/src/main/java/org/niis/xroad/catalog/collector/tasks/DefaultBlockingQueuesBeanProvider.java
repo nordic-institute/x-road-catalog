@@ -24,9 +24,9 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.ClientType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xrd4j.common.member.ProducerMember;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -35,23 +35,23 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 public class DefaultBlockingQueuesBeanProvider {
-    @Bean
-    public BlockingQueue<ClientType> listMethodsQueue() {
+    @Bean("listMethodsQueue")
+    public BlockingQueue<MemberWithName> listMethodsQueue() {
         return new LinkedBlockingQueue<>();
     }
 
-    @Bean
-    public BlockingQueue<XRoadServiceIdentifierType> wsdlServicesQueue() {
+    @Bean("wsdlServicesQueue")
+    public BlockingQueue<ProducerMember> wsdlServicesQueue() {
         return new LinkedBlockingQueue<>();
     }
 
-    @Bean
-    public BlockingQueue<XRoadRestServiceIdentifierType> restServicesQueue() {
+    @Bean("restServicesQueue")
+    public BlockingQueue<XRoadIdentifier> restServicesQueue() {
         return new LinkedBlockingQueue<>();
     }
 
-    @Bean
-    public BlockingQueue<XRoadRestServiceIdentifierType> openApiServicesQueue() {
+    @Bean("openApiServicesQueue")
+    public BlockingQueue<XRoadIdentifier> openApiServicesQueue() {
         return new LinkedBlockingQueue<>();
     }
 }

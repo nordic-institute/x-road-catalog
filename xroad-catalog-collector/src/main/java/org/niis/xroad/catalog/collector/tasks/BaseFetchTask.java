@@ -25,8 +25,8 @@
 package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.collector.util.XRoadRestServiceIdentifierType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xrd4j.common.member.ProducerMember;
+import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.niis.xroad.catalog.persistence.entity.ServiceId;
 import org.niis.xroad.catalog.persistence.entity.SubsystemId;
 
@@ -76,24 +76,24 @@ public abstract class BaseFetchTask<T> implements Runnable {
 
     protected abstract void fetch(T input);
 
-    protected ServiceId createServiceId(XRoadServiceIdentifierType service) {
+    protected ServiceId createServiceId(final ProducerMember service) {
         return new ServiceId(service.getServiceCode(),
                 service.getServiceVersion());
     }
 
-    protected ServiceId createServiceId(XRoadRestServiceIdentifierType service) {
+    protected ServiceId createServiceId(final XRoadIdentifier service) {
         return new ServiceId(service.getServiceCode(),
                 service.getServiceVersion());
     }
 
-    protected SubsystemId createSubsystemId(XRoadServiceIdentifierType service) {
+    protected SubsystemId createSubsystemId(final ProducerMember service) {
         return new SubsystemId(service.getXRoadInstance(),
                 service.getMemberClass(),
                 service.getMemberCode(),
                 service.getSubsystemCode());
     }
 
-    protected SubsystemId createSubsystemId(XRoadRestServiceIdentifierType service) {
+    protected SubsystemId createSubsystemId(final XRoadIdentifier service) {
         return new SubsystemId(service.getXRoadInstance(),
                 service.getMemberClass(),
                 service.getMemberCode(),

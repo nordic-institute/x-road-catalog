@@ -24,30 +24,41 @@
  */
 package org.niis.xroad.catalog.collector.tasks;
 
+import jakarta.xml.soap.SOAPException;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
+import org.niis.xrd4j.client.SOAPClient;
+import org.niis.xrd4j.common.exception.XRd4JException;
+import org.niis.xrd4j.common.member.ConsumerMember;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xrd4j.common.member.ProducerMember;
+import org.niis.xrd4j.common.message.ServiceRequest;
+import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.configuration.TestingConfiguration;
 import org.niis.xroad.catalog.collector.service.CatalogService;
-import org.niis.xroad.catalog.collector.wsimport.XRoadObjectType;
-import org.niis.xroad.catalog.collector.wsimport.XRoadServiceIdentifierType;
+import org.niis.xroad.catalog.collector.util.GetWsdlRequest;
+import org.niis.xroad.catalog.collector.util.GetWsdlRequestSerializer;
+import org.niis.xroad.catalog.collector.util.GetWsdlResponseDeserializer;
+import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {TestingConfiguration.class, CollectorApplication.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,29 +71,33 @@ public class FetchWsdlsTaskTest {
     @Autowired
     private TaskPoolConfiguration taskPoolConfiguration;
 
-    @LocalServerPort
-    private int port;
-
     @Test
-    public void testFetchWsdl() throws URISyntaxException, InterruptedException {
-        ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint",
-                "http://localhost:" + port + "/metaservices");
-        BlockingQueue<XRoadServiceIdentifierType> wsdlServices = new LinkedBlockingQueue<>();
+    public void testFetchWsdl() throws InterruptedException, XRd4JException, SOAPException {
+        final String wsdlContent = "wsdlData";
+        SOAPClient soapClient = mock(SOAPClient.class);
+        ServiceResponse<GetWsdlRequest, String> response = new ServiceResponse<>();
+        response.setResponseData(wsdlContent);
+        when(soapClient.send(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost()),
+                any(GetWsdlRequestSerializer.class), any(GetWsdlResponseDeserializer.class)))
+                .thenReturn(response);
+        XRoadClient xRoadClient = new XRoadClient(soapClient,
+                new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
+                        taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
+                taskPoolConfiguration.getSecurityServerHost());
+        BlockingQueue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices);
+        ReflectionTestUtils.setField(fetchWsdlsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchWsdlsTask, "semaphore", semaphore);
         Thread fetchWsdlsRunner = Thread.ofVirtual().start(fetchWsdlsTask::run);
-        XRoadServiceIdentifierType service = new XRoadServiceIdentifierType();
-        service.setObjectType(XRoadObjectType.SERVICE);
-        service.setXRoadInstance("INSTANCE");
-        service.setMemberClass("CLASS");
-        service.setMemberCode("CODE");
-        service.setSubsystemCode("SUBSYSTEM");
-        service.setServiceCode("aService");
-        service.setServiceVersion("v1");
+        ProducerMember service = new ProducerMember(
+                "INSTANCE", "CLASS",
+                "CODE", "SUBSYSTEM",
+                "aService", "v1");
+        service.setObjectType(ObjectType.SERVICE);
         wsdlServices.add(service);
 
-        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> wsdlServices.isEmpty());
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(wsdlServices::isEmpty);
 
         semaphore.acquire();
         fetchWsdlsRunner.interrupt();
