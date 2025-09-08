@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 
 @SpringBootTest(classes = ListerApplication.class)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "fi"})
 public class StreetAddressDataDTOTest {
 
     @Test

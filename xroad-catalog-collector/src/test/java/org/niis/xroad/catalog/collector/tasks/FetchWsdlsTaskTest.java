@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = {TestingConfiguration.class, CollectorApplication.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 public class FetchWsdlsTaskTest {
 
     @MockitoBean

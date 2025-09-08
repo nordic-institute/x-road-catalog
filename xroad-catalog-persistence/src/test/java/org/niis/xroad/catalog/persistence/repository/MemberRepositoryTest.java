@@ -25,7 +25,7 @@
 package org.niis.xroad.catalog.persistence.repository;
 
 import com.google.common.collect.Iterables;
-import fi.dvv.xroad.catalog.persistence.TestUtil;
+import org.niis.xroad.catalog.persistence.TestUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.persistence.entity.Member;
@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 @Transactional
 public class MemberRepositoryTest {
 

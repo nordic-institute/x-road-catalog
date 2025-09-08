@@ -68,7 +68,7 @@ import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml" })
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ServiceControllerTests {
 

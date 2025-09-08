@@ -59,7 +59,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 @SpringBootTest(classes = CollectorApplication.class)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "general-testdata"})
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ListClientsTaskTest {
 

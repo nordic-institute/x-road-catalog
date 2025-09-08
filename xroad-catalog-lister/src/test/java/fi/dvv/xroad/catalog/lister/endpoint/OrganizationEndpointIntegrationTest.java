@@ -63,7 +63,7 @@ import static org.mockito.BDDMockito.given;
  * Test data is created using {@link OrganizationMockDataFactory}
  */
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "fi"})
 public class OrganizationEndpointIntegrationTest {
 
     private final TestRestTemplate restTemplate = new TestRestTemplate();

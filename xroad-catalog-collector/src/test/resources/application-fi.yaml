@@ -1,0 +1,11 @@
+xroad-catalog:
+  country:
+    fi:
+      enabled: true
+      fetch:
+        companies:
+          pool-size: 1
+          url: https://avoindata.prh.fi/bis/v1
+        organizations:
+          pool-size: 1
+          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization

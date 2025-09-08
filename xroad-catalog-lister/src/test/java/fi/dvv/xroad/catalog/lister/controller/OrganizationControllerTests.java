@@ -71,7 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "fi"})
 public class OrganizationControllerTests {
 
     private static final String ORG_BUSINESS_CODE = "0123456-9";

@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(classes = ListerApplication.class)
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "fi"})
 @Transactional
 public class CompanyServiceTest {
 
