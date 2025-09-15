@@ -45,7 +45,7 @@ spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 spring-boot-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 spring-doc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springDoc" }
-xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.3" }
+xmlunit-core = { module = "org.xmlunit:xmlunit-core", version = "2.10.4" }
 xroad-configuration-client = { module = "org.niis.xroad:configuration-client", version.ref = "xroadLibs" }
 xrd4j-client = { module = "org.niis.xrd4j:client", version.ref = "xrd4j"}
 xrd4j-server = { module = "org.niis.xrd4j:server", version.ref = "xrd4j"}
