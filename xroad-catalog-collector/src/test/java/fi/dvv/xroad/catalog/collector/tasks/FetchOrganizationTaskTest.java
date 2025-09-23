@@ -75,7 +75,7 @@ public class FetchOrganizationTaskTest {
 
     @Test
     public void testBasicNoDeadlock() throws InterruptedException {
-        /**
+        /*
          * Note that this test will log an error that the operation did not succeed.
          * That is ok, because all we want to check here is that the task does not
          * deadlock and takes the data from our queue. We interrupt at the end to make

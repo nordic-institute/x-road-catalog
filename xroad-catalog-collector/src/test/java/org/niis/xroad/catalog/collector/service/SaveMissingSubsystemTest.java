@@ -77,6 +77,7 @@ public class SaveMissingSubsystemTest {
     Subsystem ss12saved;
 
     @BeforeAll
+    @SuppressWarnings("PMD.UselessPureMethodCall")
     public void init() {
         // member 1: subsystems 1,2 (active) and 12 (removed)
         original = memberRepository.findById(1L).get();
