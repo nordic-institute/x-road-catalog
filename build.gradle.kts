@@ -22,10 +22,6 @@ repositories {
     mavenCentral()
 }
 
-tasks.named<Wrapper>("wrapper") {
-    gradleVersion = "8.10"
-}
-
 val project_version by extra("4.0.0")
 
 sonar {
