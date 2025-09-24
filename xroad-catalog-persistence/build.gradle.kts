@@ -22,11 +22,15 @@ dependencies {
     implementation(libs.lombok)
     implementation(libs.lombok)
     implementation(libs.xmlunit.core)
+
     annotationProcessor(libs.lombok)
+
     testImplementation(libs.spring.boot.test)
-    testRuntimeOnly(libs.junit.launcer)
     testImplementation(libs.lombok)
     testImplementation(libs.h2.database)
+
+    testRuntimeOnly(libs.junit.launcer)
+
     testAnnotationProcessor(libs.lombok)
 }
 

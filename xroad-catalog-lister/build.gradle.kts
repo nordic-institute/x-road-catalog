@@ -49,12 +49,16 @@ dependencies {
     implementation(libs.xmlunit.core)
     implementation(libs.xroad.configuration.client)
     implementation(libs.xrd4j.server)
+
     annotationProcessor(libs.lombok)
+
     testImplementation(libs.spring.boot.test)
-    testRuntimeOnly(libs.junit.launcer)
     testImplementation(libs.mockito)
     testImplementation(libs.lombok)
     testImplementation(libs.h2.database)
+
+    testRuntimeOnly(libs.junit.launcer)
+
     testAnnotationProcessor(libs.lombok)
 }
 

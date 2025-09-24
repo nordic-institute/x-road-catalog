@@ -53,14 +53,19 @@ dependencies {
     implementation(libs.lombok)
     implementation(libs.liquibase)
     implementation(libs.xmlunit.core)
+
     annotationProcessor(libs.lombok)
+
     compileOnly(libs.liquibase.hibernate6)
+
     testImplementation(libs.spring.boot.test)
-    testRuntimeOnly(libs.junit.launcer)
     testImplementation(libs.mockito)
-    testAnnotationProcessor(libs.lombok)
     testImplementation(libs.awaitility)
     testImplementation(libs.h2.database)
+
+    testRuntimeOnly(libs.junit.launcer)
+
+    testAnnotationProcessor(libs.lombok)
 }
 
 tasks.test {
