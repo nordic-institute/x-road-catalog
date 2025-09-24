@@ -183,6 +183,7 @@ public class CatalogServiceImpl implements CatalogService {
         return serviceStatisticsList;
     }
 
+    @SuppressWarnings("PMD.UselessPureMethodCall")
     private ServiceStatistics createServiceStatistics(List<Service> services,
             LocalDateTime dateInPast,
             LocalDateTime endDateTime) {

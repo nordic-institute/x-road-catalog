@@ -4,7 +4,6 @@ commonsCompress = "1.28.0"
 commonsCsv = "1.14.1"
 guava = "33.4.8-jre"
 h2 = "2.3.232"
-hierynomusLicense = "0.16.1"
 httpclient = "5.5"
 jackson = "2.20.0"
 jakartaRsApi = "4.0.0"
@@ -21,6 +20,9 @@ springBoot = "3.5.5"
 springDoc = "2.8.13"
 xroadLibs = "7.7.0-SNAPSHOT"
 xrd4j = "0.9.0-SNAPSHOT"
+hierynomus = "0.16.1"
+checkstyle = "11.0.1"
+pmd = "7.17.0"
 
 [libraries]
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
@@ -34,7 +36,7 @@ jakarta = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakartaRs
 jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakartaAnnotationApi" }
 json = { module = "org.json:json", version.ref = "json" }
 junit-launcer = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitLauncher" }
-licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version.ref = "hierynomusLicense" }
+license-gradle-plugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version.ref = "hierynomus" }
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
