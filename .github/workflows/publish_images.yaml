@@ -23,7 +23,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           cache-cleanup: always
@@ -34,7 +34,7 @@ jobs:
       - name: List JAR files
         run: ls -lah xroad-catalog-collector/build/libs xroad-catalog-lister/build/libs
       - name: Log in to the Container registry
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
