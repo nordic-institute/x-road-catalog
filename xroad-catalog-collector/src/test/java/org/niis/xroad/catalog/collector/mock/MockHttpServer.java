@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package fi.dvv.xroad.catalog.collector.mock;
+package org.niis.xroad.catalog.collector.mock;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -49,7 +49,7 @@ public interface MockHttpServer {
 
     /**
      * Start http server that offers the given file through http
-     * 
+     *
      * @param fileName file that can be found in classpath
      */
     default void startServer(String fileName) {
@@ -75,7 +75,7 @@ public interface MockHttpServer {
 
     /**
      * Start http server using file based on the url in the parameter
-     * 
+     *
      * @param url Actual url for the real request
      * @return Local url (url for localhost and resource filename)
      */
@@ -119,7 +119,7 @@ public interface MockHttpServer {
             exchange.getResponseHeaders().add("Content-Type", "application/xml");
             exchange.sendResponseHeaders(200, 0);
             try (InputStream is = resource.getInputStream();
-                    OutputStream os = exchange.getResponseBody()) {
+                 OutputStream os = exchange.getResponseBody()) {
 
                 byte[] buffer = new byte[1024];
                 int len;
