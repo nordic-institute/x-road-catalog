@@ -71,14 +71,6 @@ public class SOAPAdapter extends AbstractAdapterServlet {
             case "GetServiceType" -> getServiceTypeService.execute(request);
             case "GetWsdl" -> getWsdlService.execute(request);
             case "IsProvider" -> isProviderService.execute(request);
-            //TODO: Shall we throw an exception explaining that this has been removed?
-//            case "GetOrganizations", "HasOrganizationChanged", "GetCompanies", "HasCompanyChanged" -> {
-//                // Organization and Company services are currently only available with the FI profile
-//                log.warn("Organization and Company components not initialised, request {} unavailable");
-//                ServiceResponse serviceResponse = new ServiceResponse();
-//                ;
-//
-//            }
             default -> {
                 request.setErrorMessage(new ErrorMessage("SOAP-ENV:Server",
                         "Unknown service: " + request.getProducer().getServiceCode(), null, null));

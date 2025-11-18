@@ -58,22 +58,3 @@ xroad-catalog:
     fetch-run-unlimited: false
     fetch-time-after-hour: 3
     fetch-time-before-hour: 4
-  # Country specific settings
-  country:
-    fi:
-      # if enabled, URLs must be provided in order for Finland specific services and tasks to be executed properly
-      # if disabled, all other fi-specific properties can be removed from profile
-      enabled: false
-      fetch:
-        companies:
-          pool-size: 10
-          url: ''
-        organizations:
-          pool-size: 10
-          url: ''
-        external-limit: 500
-        external-update-after-days: 7
-        external-interval-min: 20
-        external-run-unlimited: false
-        external-time-after-hour: 3
-        external-time-before-hour: 4
