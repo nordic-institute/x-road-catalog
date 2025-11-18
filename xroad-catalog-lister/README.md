@@ -24,7 +24,7 @@
 The purpose of this module is to provide a web service which lists all the X-Road members and the services they provide
 together with services descriptions.
 
-A class diagram illustrating X-Road Catalog Lister implementation with the `default` and `FI` profiles:
+A class diagram illustrating X-Road Catalog Lister implementation:
 
 ![Catalog Service class diagram](img/class_diagram.png)
 
@@ -74,11 +74,6 @@ Configurations are categorized according to their usage into different groups in
 | `xroad.configuration-client.global_conf_tls_cert_verification` | true                                 | It is possible to disable the verification of the global configuration download TLS certificate. Should be `true` in production environment                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | 1.0.0 |
 | `xroad.configuration-client.global_conf_hostname_verification` | true                                 | It is possible to disable the hostname verification. Does the hostname specified in the URL match the hostname specified in the Common Name (CN) of the Central Server’s TLS certificate. Should be `true` in production environment                                                                                                                                                                                                                                                                                                                                                                                                                                           | 1.0.0 |
 
-#### Optional Configurations for Finland-specific Features
-
-| Configurations                     | Defaults | Description                                                                                                           | Since |
-|------------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------|-------| 
-| `xroad-catalog.country.fi.enabled` | `false`  | A parameter to enable/disable Finland specific features. If `false`, then all Finland specific endpoints are disabled | 1.0.0 |
 
 ### Fixed-Mandatory Values to include in `application.yaml`
 

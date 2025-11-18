@@ -175,18 +175,6 @@ in [X-Road Catalog Collector Configuration - Fixed-Mandatory values to include i
 > s sub-sections.  
 > Values must be provided as-is without modifications.
 
-### 2.5.1.1 X-Road Catalog Collector - Finland-specific Features
-
-To enable Finland specific features, you must set the following configurations:
-
-1. Set the `xroad-catalog.country.fi.enabled` parameter to `true`.
-2. Make sure that `spring.liquibase.contexts` includes `fi` context. Otherwise, corresponding tables will not be created
-   in database.
-3. Provide all mandatory configurations parameters mentioned
-   in [X-Road Catalog Collector Configuration - Mandatory Configurations for Finland-specific Features](../xroad-catalog-collector/README.md#mandatory-configurations-for-finland-specific-features)).
-4. If needed, configure any optional configuration mentioned
-   in [X-Road Catalog Collector Configuration - Optional Configurations for Finland-specific Features](../xroad-catalog-collector/README.md#optional-configurations).
-
 ### 2.5.2 X-Road Catalog Lister
 
 To configure the lister service, you must configure all mandatory configuration parameters mentioned in
@@ -201,10 +189,6 @@ custom profile.
 in [X-Road Catalog Lister Configuration - Fixed-Mandatory values to include in application.yaml](../xroad-catalog-lister/README.md#fixed-mandatory-values-to-include-in-applicationyaml)'
 > s sub-sections.  
 > Values must be provided as-is without modifications.
-
-### 2.5.2.1 X-Road Catalog Lister - Finland-specific Features
-
-To enable Finland specific features, set the `xroad-catalog.country.fi.enabled` parameter to `true`.
 
 ### 2.5.3 services
 
