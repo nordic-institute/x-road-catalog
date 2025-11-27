@@ -197,24 +197,6 @@ http://x-road.eu/xsd/identifiers ">
                 </xs:complexType>
             </xs:element>
 
-            <xs:complexType name="EmailList">
-                <xs:sequence>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="email" type="tns:Email"/>
-                </xs:sequence>
-            </xs:complexType>
-
-            <xs:complexType name="Email">
-                <xs:sequence>
-                    <xs:element name="language" type="xs:string"/>
-                    <xs:element name="description" type="xs:string"/>
-                    <xs:element name="value" type="xs:string"/>
-                    <xs:element name="created" type="xs:dateTime"/>
-                    <xs:element name="changed" type="xs:dateTime"/>
-                    <xs:element name="fetched" type="xs:dateTime"/>
-                    <xs:element minOccurs="0" name="removed" type="xs:dateTime"/>
-                </xs:sequence>
-            </xs:complexType>
-
             <xs:element name="GetErrors">
                 <xs:complexType>
                     <xs:sequence>
