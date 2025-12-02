@@ -11,7 +11,4 @@
     <include file="/db/changelog/collector/010-common-tables.xml" />
     <include file="/db/changelog/collector/011-common-sequences.xml" />
     <include file="/db/changelog/collector/012-common-indexes.xml" />
-    <include file="/db/changelog/collector/020-fi-tables.xml" context="@fi" />
-    <include file="/db/changelog/collector/021-fi-sequences.xml" context="@fi" />
-    <include file="/db/changelog/collector/022-fi-indexes.xml" context="@fi" />
 </databaseChangeLog>
