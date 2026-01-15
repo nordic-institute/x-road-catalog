@@ -409,50 +409,6 @@ public class MainEndpointIntegrationTest {
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors empty result response should match expected SOAP fault");
     }
 
-    @Test
-    public void testGetOrganizationsFiProfileDisabled() throws Exception {
-        String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetOrganizationsRequest.xml");
-        ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        
-        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOrganizationsFiProfileDisabledResponse.xml");
-        assertXmlEquals(expectedResponse, response.getBody(), "GetOrganizations should return error when FI profile is disabled");
-    }
-    
-    @Test
-    public void testHasOrganizationChangedFiProfileDisabled() throws Exception {
-        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasOrganizationChangedRequest.xml");
-        ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        
-        String expectedResponse = loadXmlFromClasspath("main-soap-responses/HasOrganizationChangedFiProfileDisabledResponse.xml");
-        assertXmlEquals(expectedResponse, response.getBody(), "HasOrganizationChanged should return error when FI profile is disabled");
-    }
-    
-    @Test
-    public void testGetCompaniesFiProfileDisabled() throws Exception {
-        String soapRequest = loadXmlFromClasspath("organization-soap-requests/GetCompaniesRequest.xml");
-        ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        
-        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetCompaniesFiProfileDisabledResponse.xml");
-        assertXmlEquals(expectedResponse, response.getBody(), "GetCompanies should return error when FI profile is disabled");
-    }
-    
-    @Test
-    public void testHasCompanyChangedFiProfileDisabled() throws Exception {
-        String soapRequest = loadXmlFromClasspath("organization-soap-requests/HasCompanyChangedRequest.xml");
-        ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        
-        String expectedResponse = loadXmlFromClasspath("main-soap-responses/HasCompanyChangedFiProfileDisabledResponse.xml");
-        assertXmlEquals(expectedResponse, response.getBody(), "HasCompanyChanged should return error when FI profile is disabled");
-    }
-
     private ResponseEntity<String> sendSoapRequest(String soapRequest) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_XML);

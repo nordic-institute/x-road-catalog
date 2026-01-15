@@ -24,8 +24,8 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
-import fi.dvv.xroad.catalog.collector.mock.MockRestTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.mock.MockRestTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

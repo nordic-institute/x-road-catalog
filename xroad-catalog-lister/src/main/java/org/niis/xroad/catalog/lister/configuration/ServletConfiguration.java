@@ -26,8 +26,6 @@ package org.niis.xroad.catalog.lister.configuration;
 
 import org.niis.xroad.catalog.lister.endpoint.SOAPAdapter;
 import org.niis.xroad.catalog.lister.service.CatalogService;
-import fi.dvv.xroad.catalog.lister.service.OrganizationService;
-import fi.dvv.xroad.catalog.lister.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -38,12 +36,10 @@ public class ServletConfiguration {
 
     @Bean
     public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean(
-            @Autowired CatalogService catalogService,
-            @Autowired(required = false) OrganizationService organizationService,
-            @Autowired(required = false) CompanyService companyService
+            @Autowired CatalogService catalogService
     ) {
         ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService, organizationService, companyService), "/ws");
+                new SOAPAdapter(catalogService), "/ws");
         bean.setLoadOnStartup(1);
         return bean;
     }

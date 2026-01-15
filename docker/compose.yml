@@ -63,11 +63,6 @@ services:
       - setting_xroad-catalog.tasks.fetch-run-unlimited=true
       - setting_xroad-catalog.tasks.fetch-time-after-hour=3
       - setting_xroad-catalog.tasks.fetch-time-before-hour=4
-      - setting_xroad-catalog.country.fi.enabled=false
-      - setting_xroad-catalog.country.fi.fetch.companies.url=https://avoindata.prh.fi/bis/v1
-      - setting_xroad-catalog.country.fi.fetch.companies.pool-size=1
-      - setting_xroad-catalog.country.fi.fetch.organizations.url=https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
-      - setting_xroad-catalog.country.fi.fetch.organizations.pool-size=1
 
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -97,7 +92,6 @@ services:
       - setting_xroad.configuration-client.global_conf_hostname_verification=false
       # catalog
       - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
-      - setting_xroad-catalog.country.fi.enabled=false
       - setting_xroad-catalog.configuration-client.enabled=true
     volumes:
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro

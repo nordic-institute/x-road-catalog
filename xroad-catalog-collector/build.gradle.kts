@@ -31,9 +31,8 @@ tasks.bootJar {
     includeTools = false
 }
 
-tasks.withType<Jar>().configureEach {
+tasks.jar {
     enabled = false
-    duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
 springBoot {
