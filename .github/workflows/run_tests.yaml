@@ -34,7 +34,7 @@ jobs:
         with:
           submodules: 'true'
       - name: Set up JDK 21 
-        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -60,7 +60,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        uses: dorny/test-reporter@b082adf0eced0765477756c2a610396589b8c637
         if: success() || failure()
         with:
           name: Test results
