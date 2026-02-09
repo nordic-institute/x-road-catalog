@@ -1,22 +1,20 @@
-# X-Road Catalog Collector
+# X-Road Catalog Collector <!-- omit in toc -->
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
-* [X-Road Catalog Collector](#x-road-catalog-collector)
-    * [Table of Contents](#table-of-contents)
-    * [Introduction to X-Road Catalog Collector](#introduction-to-x-road-catalog-collector)
-    * [Build](#build)
-    * [Configuration](#configuration)
-        * [Mandatory to Provide](#mandatory-to-provide)
-            * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
-            * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
-        * [Optional Configurations](#optional-configurations)
-            * [Optional Configurations for Common Features](#optional-configurations-for-common-features)
-        * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
-            * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
-            * [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
-    * [Run](#run)
-    * [Run against a remote Security Server over an SSH tunnel](#run-against-a-remote-security-server-over-an-ssh-tunnel)
+- [Introduction to X-Road Catalog Collector](#introduction-to-x-road-catalog-collector)
+- [Build](#build)
+- [Configuration](#configuration)
+  - [Mandatory to Provide](#mandatory-to-provide)
+    - [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
+    - [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
+  - [Optional Configurations](#optional-configurations)
+    - [Optional Configurations for Common Features](#optional-configurations-for-common-features)
+  - [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+    - [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
+    - [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
+- [Run](#run)
+- [Run against a remote Security Server over an SSH tunnel](#run-against-a-remote-security-server-over-an-ssh-tunnel)
 
 ## Introduction to X-Road Catalog Collector
 

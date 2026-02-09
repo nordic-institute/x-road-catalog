@@ -1,22 +1,21 @@
-# X-Road Catalog Lister
+# X-Road Catalog Lister <!-- omit in toc -->
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
-* [X-Road Catalog Lister](#x-road-catalog-lister)
-    * [Table of Contents](#table-of-contents)
-    * [Introduction](#introduction)
-    * [Configuration](#configuration)
-        * [Mandatory to provide](#mandatory-to-provide)
-            * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
-            * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
-        * [Optional Configurations](#optional-configurations)
-            * [Optional Configurations for Configuration-Client Features](#optional-configurations-for-configuration-client-features)
-        * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
-            * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
-            * [Fixed-Mandatory Values for Configuration-Client Features](#fixed-mandatory-values-for-configuration-client-features)
-            * [Fixed-Mandatory Values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
-    * [Build](#build)
-    * [Run](#run)
+
+* [Introduction](#introduction)
+* [Configuration](#configuration)
+    * [Mandatory to provide](#mandatory-to-provide)
+        * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
+        * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
+    * [Optional Configurations](#optional-configurations)
+        * [Optional Configurations for Configuration-Client Features](#optional-configurations-for-configuration-client-features)
+    * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+        * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
+        * [Fixed-Mandatory Values for Configuration-Client Features](#fixed-mandatory-values-for-configuration-client-features)
+        * [Fixed-Mandatory Values for OpenAPI documentation](#fixed-mandatory-values-for-openapi-documentation)
+* [Build](#build)
+* [Run](#run)
 
 ## Introduction
 
