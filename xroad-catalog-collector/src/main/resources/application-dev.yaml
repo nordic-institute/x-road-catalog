@@ -9,7 +9,7 @@ spring:
   liquibase:
     user: xroad_catalog
     password: secret
-    contexts: users,fi
+    contexts: users
     parameters:
       users:
         collector:
@@ -30,18 +30,6 @@ xroad-catalog:
     list-methods: 5
   tasks:
     collector-interval-min: 5
-  # Country specific settings
-  country:
-    fi:
-      enabled: true
-      fetch:
-        companies:
-          pool-size: 1
-          url: https://avoindata.prh.fi/bis/v1
-        organizations:
-          pool-size: 1
-          url: https://api.palvelutietovaranto.suomi.fi/api/v11/Organization
-        external-interval-min: 1
 
 # Increasing logging levels in local development environment for better debugging
 logging:

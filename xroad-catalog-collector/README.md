@@ -30,8 +30,6 @@ The module is implemented using JAVA virtual threads:
 * `FetchOpenApiTask` - fetches OpenAPI descriptions of Rest services from the X-Road instance and stores them to the db.
 * `ListClientsTask` - fetches a list of clients from the X-Road instance and stores them to the db.
 * `ListMethodsTask` - fetches a list of services from the X-Road instance and stores them to the db.
-* `FetchOrganizationsTask` - fetches a list of public organizations from an external API and stores them to the db.
-* `FetchCompaniesTask` - fetches a list of private companies from an external API and stores them to the db.
 
 The following diagram gives a high-level overview of how the tasks are executed:
 ![Process diagram](collector_process.svg "Process diagram")

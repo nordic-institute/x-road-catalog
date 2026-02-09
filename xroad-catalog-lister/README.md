@@ -11,7 +11,6 @@
             * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
         * [Optional Configurations](#optional-configurations)
             * [Optional Configurations for Configuration-Client Features](#optional-configurations-for-configuration-client-features)
-            * [Optional Configurations for Finland-specific Features](#optional-configurations-for-finland-specific-features)
         * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
             * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
             * [Fixed-Mandatory Values for Configuration-Client Features](#fixed-mandatory-values-for-configuration-client-features)
@@ -104,12 +103,11 @@ values.
 
 #### Fixed-Mandatory Values for OpenAPI documentation
 
-| Spring Boot framework configurations | Defaults                      | Comment                                                          | Since |
-|--------------------------------------|-------------------------------|------------------------------------------------------------------|-------| 
-| springdoc.packagesToScan             | `org.niis.xroad,fi.dvv.xroad` | List of packages to include in the documentation. Do not modify. | 1.0.0 |
-| springdoc.api-docs.enabled           | `true`                        | Enables OpenApi endpoint                                         | 1.0.0 |
-| springdoc.swagger-ui.enabled         | `true`                        | Enables Swagger-UI                                               | 1.0.0 |
-| springdoc.swagger-ui.path            | `/api-docs`                   | Swagger-UI path to be used                                       | 1.0.0 |
+| Spring Boot framework configurations | Defaults    | Comment                    | Since |
+|--------------------------------------|-------------|----------------------------|-------|
+| springdoc.api-docs.enabled           | `true`      | Enables OpenApi endpoint   | 1.0.0 |
+| springdoc.swagger-ui.enabled         | `true`      | Enables Swagger-UI         | 1.0.0 |
+| springdoc.swagger-ui.path            | `/api-docs` | Swagger-UI path to be used | 1.0.0 |
 
 ## Build
 

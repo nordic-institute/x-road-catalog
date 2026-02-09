@@ -28,11 +28,6 @@ services:
     build:
       context: ../.
       dockerfile: docker/collector/Dockerfile
-#    environment:
-#      SPRING_PROFILES_ACTIVE: fi
-#      XROAD-CATALOG_COUNTRY_FI_ENABLED: false
-#      LOGGING_LEVEL_LIQUIBASE: TRACE
-#      SPRING_LIQUIBASE_CONTEXTS: users
     environment:
       # spring
       - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog

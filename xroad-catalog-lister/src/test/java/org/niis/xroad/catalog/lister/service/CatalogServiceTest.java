@@ -43,7 +43,6 @@ import org.niis.xroad.catalog.persistence.entity.Wsdl;
 import org.niis.xroad.catalog.persistence.repository.MemberRepository;
 import org.niis.xroad.catalog.persistence.repository.ServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +59,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(properties = {"xroad-catalog.country.fi.enabled=true"})
 @ActiveProfiles({"test", "general-testdata"})
 @Transactional
 public class CatalogServiceTest {
