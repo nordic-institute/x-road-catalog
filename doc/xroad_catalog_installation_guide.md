@@ -1,5 +1,5 @@
 # X-Road Catalog Installation Guide
-Version: 1.3.3
+Version: 1.3.4
 Doc. ID: IG-XRDCAT
 
 ---
