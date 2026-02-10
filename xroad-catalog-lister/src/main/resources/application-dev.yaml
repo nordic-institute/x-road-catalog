@@ -9,9 +9,6 @@ spring:
 # X-Road instance parameters
 xroad-catalog:
   shared-params-file: ${xroad.common.configuration-path}/DEV/shared-params.xml
-  country:
-    fi:
-      enabled: true
 
 # Increasing logging levels in local development environment for better debugging
 logging:

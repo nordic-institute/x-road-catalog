@@ -1,22 +1,20 @@
-# X-Road Catalog Collector
+# X-Road Catalog Collector <!-- omit in toc -->
 
-## Table of Contents
+## Table of Contents <!-- omit in toc -->
 
-* [X-Road Catalog Collector](#x-road-catalog-collector)
-    * [Table of Contents](#table-of-contents)
-    * [Introduction to X-Road Catalog Collector](#introduction-to-x-road-catalog-collector)
-    * [Build](#build)
-    * [Configuration](#configuration)
-        * [Mandatory to Provide](#mandatory-to-provide)
-            * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
-            * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
-        * [Optional Configurations](#optional-configurations)
-            * [Optional Configurations for Common Features](#optional-configurations-for-common-features)
-        * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
-            * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
-            * [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
-    * [Run](#run)
-    * [Run against a remote Security Server over an SSH tunnel](#run-against-a-remote-security-server-over-an-ssh-tunnel)
+* [Introduction to X-Road Catalog Collector](#introduction-to-x-road-catalog-collector)
+* [Build](#build)
+* [Configuration](#configuration)
+  * [Mandatory to Provide](#mandatory-to-provide)
+    * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
+    * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
+  * [Optional Configurations](#optional-configurations)
+    * [Optional Configurations for Common Features](#optional-configurations-for-common-features)
+  * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+    * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
+    * [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
+* [Run](#run)
+* [Run against a remote Security Server over an SSH tunnel](#run-against-a-remote-security-server-over-an-ssh-tunnel)
 
 ## Introduction to X-Road Catalog Collector
 
@@ -30,8 +28,6 @@ The module is implemented using JAVA virtual threads:
 * `FetchOpenApiTask` - fetches OpenAPI descriptions of Rest services from the X-Road instance and stores them to the db.
 * `ListClientsTask` - fetches a list of clients from the X-Road instance and stores them to the db.
 * `ListMethodsTask` - fetches a list of services from the X-Road instance and stores them to the db.
-* `FetchOrganizationsTask` - fetches a list of public organizations from an external API and stores them to the db.
-* `FetchCompaniesTask` - fetches a list of private companies from an external API and stores them to the db.
 
 The following diagram gives a high-level overview of how the tasks are executed:
 ![Process diagram](collector_process.svg "Process diagram")
@@ -62,29 +58,28 @@ Configurations are categorized according to their usage into different groups in
 
 #### Mandatory Configurations for Data Source and Liquibase
 
-| Data Source and Liquibase Configurations                                                                                                                                   | Defaults                  | Comment                                                                                                                                                                          | Since |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------| 
-| [spring.datasource.url](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.url)                   |                           |                                                                                                                                                                                  | 1.0.0 |
-| [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)         |                           | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.collector.username`.            | 1.0.0 |
-| [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.elasticsearch.password)      |                           | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.collector.password`.            | 1.0.0 |
-| [spring.liquibase.user](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.user)         | `xroad_catalog`           | An admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                                               | 1.0.0 |
-| [spring.liquibase.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.password) |                           | Password of the admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                                  | 1.0.0 |
-| [spring.liquibase.contexts](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.contexts) | `users`                   | Available value is `users`. It is used to create new users (a user for collector module and a user for lister module). | 1.0.0 |
-| spring.liquibase.parameters.users.collector.username                                                                                                                       | `xroad_catalog_collector` | Mandatory if liquibase context include `users`. The username will be used to create a new user with full read/write privilege to everything in the database.                     | 1.0.0 |
-| spring.liquibase.parameters.users.collector.password                                                                                                                       |                           | Mandatory if liquibase context include `users`. The password will be used to create a new user with full read/write privilege to everything in the database.                     | 1.0.0 |
-| spring.liquibase.parameters.users.lister.username                                                                                                                          | `xroad_catalog_lister`    | Mandatory if liquibase context include `users`. The username will be used to create a new user with read-only privilege to all tables, views, and functions in the database.     | 1.0.0 |
-| spring.liquibase.parameters.users.lister.password                                                                                                                          |                           | Mandatory if liquibase context include `users`. The password will be used to create a new user with read-only privilege to all tables, views, and functions in the database.     | 1.0.0 |
+| Data Source and Liquibase Configurations                                                                                                                                   | Defaults                  | Comment                                                                                                                                                                      | Since |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| [spring.datasource.url](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.url)                   |                           |                                                                                                                                                                              | 1.0.0 |
+| [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)         |                           | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.collector.username`.        | 1.0.0 |
+| [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.elasticsearch.password)      |                           | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.collector.password`.        | 1.0.0 |
+| [spring.liquibase.user](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.user)         | `xroad_catalog`           | An admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                                           | 1.0.0 |
+| [spring.liquibase.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.password) |                           | Password of the admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                              | 1.0.0 |
+| [spring.liquibase.contexts](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.contexts) | `users`                   | Available value is `users`. It is used to create new users (a user for collector module and a user for lister module).                                                       | 1.0.0 |
+| spring.liquibase.parameters.users.collector.username                                                                                                                       | `xroad_catalog_collector` | Mandatory if liquibase context include `users`. The username will be used to create a new user with full read/write privilege to everything in the database.                 | 1.0.0 |
+| spring.liquibase.parameters.users.collector.password                                                                                                                       |                           | Mandatory if liquibase context include `users`. The password will be used to create a new user with full read/write privilege to everything in the database.                 | 1.0.0 |
+| spring.liquibase.parameters.users.lister.username                                                                                                                          | `xroad_catalog_lister`    | Mandatory if liquibase context include `users`. The username will be used to create a new user with read-only privilege to all tables, views, and functions in the database. | 1.0.0 |
+| spring.liquibase.parameters.users.lister.password                                                                                                                          |                           | Mandatory if liquibase context include `users`. The password will be used to create a new user with read-only privilege to all tables, views, and functions in the database. | 1.0.0 |
 
 #### Mandatory Configurations for Common Features
 
-| Configurations                            | Defaults | Description                                                                                            | Since |
-|-------------------------------------------|----------|--------------------------------------------------------------------------------------------------------|-------| 
-| `xroad-catalog.target.xroad-instance`     |          | A parameter for setting the X-Road instance.                                                           | 1.0.0 |
-| `xroad-catalog.target.subsystem-code`     |          | A parameter for setting the X-Road sub-system code.                                                    | 1.0.0 |
-| `xroad-catalog.target.member-class`       |          | A parameter for setting the X-Road member class.                                                       | 1.0.0 |
-| `xroad-catalog.target.member-code`        |          | A parameter for setting the X-Road member code.                                                        | 1.0.0 |
-| `xroad-catalog.urls.security-server-host` |          | A parameter for setting the security server host to connect to. e.g., http://security.server.host:8080 | 1.0.0 |
-
+| Configurations                            | Defaults | Description                                                                                              | Since |
+|-------------------------------------------|----------|----------------------------------------------------------------------------------------------------------|-------|
+| `xroad-catalog.target.xroad-instance`     |          | A parameter for setting the X-Road instance.                                                             | 1.0.0 |
+| `xroad-catalog.target.subsystem-code`     |          | A parameter for setting the X-Road sub-system code.                                                      | 1.0.0 |
+| `xroad-catalog.target.member-class`       |          | A parameter for setting the X-Road member class.                                                         | 1.0.0 |
+| `xroad-catalog.target.member-code`        |          | A parameter for setting the X-Road member code.                                                          | 1.0.0 |
+| `xroad-catalog.urls.security-server-host` |          | A parameter for setting the security server host to connect to. e.g., <http://security.server.host:8080> | 1.0.0 |
 
 ### Optional Configurations
 
@@ -111,7 +106,6 @@ values will be used.
 | `xroad-catalog.tasks.fetch-run-unlimited`              | `false`                                      | A parameter for setting whether the X-Road Catalog Collector should try to fetch data from Security Server continuously during a day or only between certain hours, e.g. value `true` means `continously`.                                                                                                   | 1.0.0 |
 | `xroad-catalog.tasks.fetch-time-after-hour`            | `3`                                          | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `18` means starting from `18:00`. | 1.0.0 |
 | `xroad-catalog.tasks.fetch-time-before-hour`           | `4`                                          | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `23` means ending at `23:00`.       | 1.0.0 |
-
 
 ### Fixed-Mandatory Values to include in `application.yaml`
 
@@ -180,6 +174,7 @@ java -jar target/xroad-catalog-collector-1.0-SNAPSHOT.jar
     ```bash
     java -jar build/libs/xroad-catalog-collector.jar --xroad-catalog.security-server-host=http://localhost:<LOCAL_PORT>
     ```
+
    For our example and since the port is `9000`, the command would be:
 
     ```bash

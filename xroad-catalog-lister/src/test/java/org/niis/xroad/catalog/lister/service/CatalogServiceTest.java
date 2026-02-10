@@ -60,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-@SpringBootTest(properties = {"xroad-catalog.country.fi.enabled=true"})
+@SpringBootTest
 @ActiveProfiles({"test", "general-testdata"})
 @Transactional
 public class CatalogServiceTest {

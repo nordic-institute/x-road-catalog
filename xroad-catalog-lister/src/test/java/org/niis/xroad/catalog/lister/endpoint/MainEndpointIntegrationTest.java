@@ -74,7 +74,7 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest(
         classes = ListerApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"xroad-catalog.country.fi.enabled=false", "spring.sql.init.mode=never"})
+        properties = {"spring.sql.init.mode=never"})
 @ActiveProfiles("test")
 @DirtiesContext
 public class MainEndpointIntegrationTest {

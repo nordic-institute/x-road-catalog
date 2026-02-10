@@ -178,6 +178,7 @@ public class ListClientsTaskTest {
             ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
             listClientsTask.run();
 
+            // Note: This line is time-sensitive and will fail if run between 23:00-00:00.
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
             verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
             assertEquals(5, listMethodsQueue.size());

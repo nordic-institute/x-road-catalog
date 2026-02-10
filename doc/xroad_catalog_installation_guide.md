@@ -1,19 +1,20 @@
 # X-Road Catalog Installation Guide
-Version: 1.3.3
+Version: 1.3.4
 Doc. ID: IG-XRDCAT
 
 ---
 
 ## Version history <!-- omit in toc -->
-| Date       | Version | Description                                                                              | Author            |
-|------------|---------|------------------------------------------------------------------------------------------|-------------------|
-| 22.03.2023 | 1.0.0   | Export installation-related parts from the X-Road Catalog User Guide                     | Petteri Kivimäki  |
-| 16.08.2023 | 1.1.0   | Add instructions to install and configure the `xroad-conflient` module                   | Petteri Kivimäki  |
-| 09.09.2023 | 1.2.0   | Remove instructions to install the `xroad-conflient` module manually                     | Petteri Kivimäki  |
-| 24.09.2023 | 1.3.0   | Add instructions to disable the automatic backup job run by the `xroad-conflient` module | Petteri Kivimäki  |
-| 10.06.2024 | 1.3.1   | Add information about default values for configurable properties                         | Raido Kaju        |
-| 14.06.2024 | 1.3.2   | Update information about company and organization task properties                        | Raido Kaju        |
-| 14.08.2024 | 1.3.3   | Update information about Initial Configuration                                           | Mohamed Elbeltagy |
+| Date       | Version | Description                                                                              | Author                            |
+|------------|---------|------------------------------------------------------------------------------------------|-----------------------------------|
+| 22.03.2023 | 1.0.0   | Export installation-related parts from the X-Road Catalog User Guide                     | Petteri Kivimäki                  |
+| 16.08.2023 | 1.1.0   | Add instructions to install and configure the `xroad-conflient` module                   | Petteri Kivimäki                  |
+| 09.09.2023 | 1.2.0   | Remove instructions to install the `xroad-conflient` module manually                     | Petteri Kivimäki                  |
+| 24.09.2023 | 1.3.0   | Add instructions to disable the automatic backup job run by the `xroad-conflient` module | Petteri Kivimäki                  |
+| 10.06.2024 | 1.3.1   | Add information about default values for configurable properties                         | Raido Kaju                        |
+| 14.06.2024 | 1.3.2   | Update information about company and organization task properties                        | Raido Kaju                        |
+| 14.08.2024 | 1.3.3   | Update information about Initial Configuration                                           | Mohamed Elbeltagy                 |
+| 10.02.2026 | 1.3.4   | Remove FI-profile related documentation                                                  | Pauline Dimmek, Mohamed Elbeltagy |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -31,9 +32,7 @@ Doc. ID: IG-XRDCAT
     * [2.4.1 Complete the Installation of X-Road Configuration Client](#241-complete-the-installation-of-x-road-configuration-client)
   * [2.5 Initial Configuration](#25-initial-configuration)
     * [2.5.1 X-Road Catalog Collector](#251-x-road-catalog-collector)
-      * [2.5.1.1 X-Road Catalog Collector - Finland-specific Features](#2511-x-road-catalog-collector---finland-specific-features)
     * [2.5.2 X-Road Catalog Lister](#252-x-road-catalog-lister)
-      * [2.5.2.1 X-Road Catalog Lister - Finland-specific Features](#2521-x-road-catalog-lister---finland-specific-features)
     * [2.5.3 services](#253-services)
   * [2.6 SSL (optional)](#26-ssl-optional)
   * [2.7 Post-Installation Checks](#27-post-installation-checks)
