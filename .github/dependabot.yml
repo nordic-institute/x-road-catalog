@@ -15,6 +15,10 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      actions-major:
+        applies-to: version-updates
+        update-types:
+          - "major"
       actions-minor-patch:
         applies-to: version-updates
         update-types:
