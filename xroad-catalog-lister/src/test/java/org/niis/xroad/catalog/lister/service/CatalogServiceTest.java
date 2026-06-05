@@ -164,7 +164,7 @@ public class CatalogServiceTest {
         Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
                 LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
         assertNotNull(errorLogEntries);
-        assertEquals(1, errorLogEntries.getNumberOfElements());
+        assertEquals(4, errorLogEntries.getNumberOfElements());
         assertEquals(1, errorLogEntries.getTotalPages());
     }
 
@@ -175,7 +175,7 @@ public class CatalogServiceTest {
         Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
                 LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
         assertNotNull(errorLogEntries);
-        assertEquals(2, errorLogEntries.getNumberOfElements());
+        assertEquals(5, errorLogEntries.getNumberOfElements());
         assertEquals(1, errorLogEntries.getTotalPages());
     }
 
@@ -186,7 +186,7 @@ public class CatalogServiceTest {
         Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
                 LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
         assertNotNull(errorLogEntries);
-        assertEquals(3, errorLogEntries.getNumberOfElements());
+        assertEquals(6, errorLogEntries.getNumberOfElements());
         assertEquals(1, errorLogEntries.getTotalPages());
     }
 
@@ -197,7 +197,7 @@ public class CatalogServiceTest {
         Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
                 LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
         assertNotNull(errorLogEntries);
-        assertEquals(4, errorLogEntries.getNumberOfElements());
+        assertEquals(7, errorLogEntries.getNumberOfElements());
         assertEquals(1, errorLogEntries.getTotalPages());
     }
 
@@ -208,7 +208,7 @@ public class CatalogServiceTest {
         Page<ErrorLog> errorLogEntries = catalogService.getErrors(xRoadData, 0, 100,
                 LocalDateTime.parse("2020-01-01T00:00:00"), LocalDateTime.now());
         assertNotNull(errorLogEntries);
-        assertEquals(7, errorLogEntries.getNumberOfElements());
+        assertEquals(10, errorLogEntries.getNumberOfElements());
         assertEquals(1, errorLogEntries.getTotalPages());
     }
 
@@ -263,8 +263,10 @@ public class CatalogServiceTest {
 
     @Test
     public void testGetAllMembers() {
+        // Task 1.5 added invariant fixture members 20, 21, 22. Their IDs interleave with the
+        // original 1-8 because the Member natural-ordering uses ComparisonChain on the natural key.
         Iterable<Member> members = catalogService.getAllMembers();
-        assertEquals(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L),
+        assertEquals(Arrays.asList(1L, 2L, 3L, 4L, 20L, 5L, 21L, 6L, 22L, 7L, 8L),
                 new ArrayList<Long>(testUtil.getIds(members)));
     }
 

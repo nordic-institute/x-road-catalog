@@ -50,7 +50,7 @@ public class ErrorLogRepositoryTest {
         LocalDateTime changedAfter = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0);
         LocalDateTime changedBefore = LocalDateTime.of(2023, Month.JANUARY, 1, 0, 0, 0);
         Set<ErrorLog> errorLogEntries = errorLogRepository.findAny(changedAfter, changedBefore);
-        assertEquals(7, errorLogEntries.size());
+        assertEquals(10, errorLogEntries.size());
     }
 
     @Test
@@ -65,7 +65,7 @@ public class ErrorLogRepositoryTest {
                 "TestSubsystem",
                 PageRequest.of(0, 100));
         assertEquals(1, errorLogEntries.getTotalPages());
-        assertEquals(1, errorLogEntries.getTotalElements());
+        assertEquals(4, errorLogEntries.getTotalElements());
     }
 
     @Test
@@ -79,7 +79,7 @@ public class ErrorLogRepositoryTest {
                 "1234",
                 PageRequest.of(0, 100));
         assertEquals(1, errorLogEntries.getTotalPages());
-        assertEquals(2, errorLogEntries.getTotalElements());
+        assertEquals(5, errorLogEntries.getTotalElements());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ErrorLogRepositoryTest {
                 endDate,
                 "DEV", "GOV", PageRequest.of(0, 100));
         assertEquals(1, errorLogEntries.getTotalPages());
-        assertEquals(3, errorLogEntries.getTotalElements());
+        assertEquals(6, errorLogEntries.getTotalElements());
     }
 
     @Test
@@ -100,7 +100,7 @@ public class ErrorLogRepositoryTest {
         Page<ErrorLog> errorLogEntries = errorLogRepository.findAnyByInstance(startDate,
                 endDate, "DEV", PageRequest.of(0, 100));
         assertEquals(1, errorLogEntries.getTotalPages());
-        assertEquals(4, errorLogEntries.getTotalElements());
+        assertEquals(7, errorLogEntries.getTotalElements());
     }
 
     @Test
@@ -110,8 +110,7 @@ public class ErrorLogRepositoryTest {
         Page<ErrorLog> errorLogEntries = errorLogRepository.findAnyByCreated(startDate,
                 endDate, PageRequest.of(0, 100));
         assertEquals(1, errorLogEntries.getTotalPages());
-        assertEquals(7, errorLogEntries.getTotalElements());
+        assertEquals(10, errorLogEntries.getTotalElements());
     }
 
 }
-

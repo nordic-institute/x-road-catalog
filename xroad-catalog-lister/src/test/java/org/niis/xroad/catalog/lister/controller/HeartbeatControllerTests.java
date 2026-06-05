@@ -98,4 +98,20 @@ public class HeartbeatControllerTests {
         assertEquals("1.0.3", json.getString("appVersion"));
     }
 
+    /**
+     * Regression test: the V2 {@code RequestIdFilter} is registered with URL pattern
+     * {@code /api/v2/*} only (see {@code V2InfrastructureConfiguration}). V1 endpoints must not
+     * carry the {@code X-Request-Id} response header. If a future change widens the filter's URL
+     * pattern, this test fails.
+     */
+    @Test
+    public void v1HeartbeatResponseHasNoRequestIdHeader() {
+        given(catalogService.checkDatabaseConnection()).willReturn(Boolean.TRUE);
+
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/heartbeat", String.class);
+        assertEquals(200, response.getStatusCode().value());
+        assertFalse(response.getHeaders().containsKey("X-Request-Id"),
+                "V1 endpoints must not carry the V2 X-Request-Id header");
+    }
+
 }

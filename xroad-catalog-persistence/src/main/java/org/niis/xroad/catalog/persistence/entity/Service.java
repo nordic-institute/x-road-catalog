@@ -42,6 +42,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -166,6 +167,63 @@ public class Service {
 
     public ServiceId createKey() {
         return new ServiceId(serviceCode, serviceVersion);
+    }
+
+    /**
+     * Returns the non-removed {@link Wsdl} row with the lowest id, or {@code null} if none exist.
+     * Uses a stable id-based tiebreak (not {@code findFirst()}) so the returned row is deterministic
+     * across JVMs even if multiple active rows exist. This is the V2 active-only contract:
+     * unlike {@link #getWsdl()}, removed rows are filtered out.
+     */
+    public Wsdl getActiveWsdl() {
+        return wsdls.stream()
+                .filter(w -> !w.getStatusInfo().isRemoved())
+                .min(Comparator.comparing(Wsdl::getId))
+                .orElse(null);
+    }
+
+    /**
+     * True iff at least one non-removed {@link Wsdl} row exists. V2 active-only contract;
+     * {@link #hasWsdl()} still returns true for services with only removed rows.
+     */
+    public boolean hasActiveWsdl() {
+        return wsdls.stream().anyMatch(w -> !w.getStatusInfo().isRemoved());
+    }
+
+    /**
+     * Returns the non-removed {@link OpenApi} row with the lowest id, or {@code null} if none exist.
+     * Stable id-based tiebreak; V2 active-only contract.
+     */
+    public OpenApi getActiveOpenApi() {
+        return openApis.stream()
+                .filter(o -> !o.getStatusInfo().isRemoved())
+                .min(Comparator.comparing(OpenApi::getId))
+                .orElse(null);
+    }
+
+    /**
+     * True iff at least one non-removed {@link OpenApi} row exists. V2 active-only contract.
+     */
+    public boolean hasActiveOpenApi() {
+        return openApis.stream().anyMatch(o -> !o.getStatusInfo().isRemoved());
+    }
+
+    /**
+     * Returns the non-removed {@link Rest} row with the lowest id, or {@code null} if none exist.
+     * Stable id-based tiebreak; V2 active-only contract.
+     */
+    public Rest getActiveRest() {
+        return rests.stream()
+                .filter(r -> !r.getStatusInfo().isRemoved())
+                .min(Comparator.comparing(Rest::getId))
+                .orElse(null);
+    }
+
+    /**
+     * True iff at least one non-removed {@link Rest} row exists. V2 active-only contract.
+     */
+    public boolean hasActiveRest() {
+        return rests.stream().anyMatch(r -> !r.getStatusInfo().isRemoved());
     }
 
 }

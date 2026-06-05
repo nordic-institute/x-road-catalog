@@ -45,3 +45,5 @@ logging:
       springframework:
         web: DEBUG
         ws: DEBUG
+  pattern:
+    level: "%5p [%X{requestId:-}]"

@@ -25,6 +25,7 @@
         <name>NIIS</name>
         <subsystem id="id1">
             <subsystemCode>TestTopic</subsystemCode>
+            <subsystemName>Test Topic</subsystemName>
         </subsystem>
         <subsystem id="id2">
             <subsystemCode>MonitoringClient</subsystemCode>

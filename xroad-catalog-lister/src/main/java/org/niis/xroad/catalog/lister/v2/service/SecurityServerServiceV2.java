@@ -1,0 +1,153 @@
+/**
+ * The MIT License
+ *
+ * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2016-2023 Finnish Digital Agency
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.catalog.lister.v2.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.dto.MemberInfo;
+import org.niis.xroad.catalog.lister.dto.SecurityServerData;
+import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
+import org.niis.xroad.catalog.lister.parser.SharedParamsParser;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerBrowseItemDto;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerClientDto;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerOwnerDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+@Slf4j
+@Component
+public class SecurityServerServiceV2 {
+
+    @Autowired
+    private SharedParamsParser parser;
+
+    @Value("${xroad-catalog.shared-params-file}")
+    private String sharedParamsFile;
+
+    public Page<SecurityServerListItemDto> list(Pageable pageable) {
+        List<SecurityServerData> all = loadAll();
+        List<SecurityServerListItemDto> items = new ArrayList<>(all.stream().map(this::toListItem).toList());
+        items.sort(buildComparator(pageable));
+        int from = (int) Math.min(pageable.getOffset(), items.size());
+        int to = Math.min(from + pageable.getPageSize(), items.size());
+        return new PageImpl<>(items.subList(from, to), pageable, items.size());
+    }
+
+    public List<SecurityServerBrowseItemDto> getForMember(String memberClass, String memberCode) {
+        List<SecurityServerData> all = loadAll();
+        List<SecurityServerBrowseItemDto> result = new ArrayList<>();
+        for (SecurityServerData s : all) {
+            MemberInfo owner = s.getOwner();
+            if (owner != null
+                    && memberClass.equals(owner.getMemberClass())
+                    && memberCode.equals(owner.getMemberCode())) {
+                result.add(toBrowseItem(s));
+            }
+        }
+        result.sort(Comparator.comparing(SecurityServerBrowseItemDto::getServerCode,
+                Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
+        return result;
+    }
+
+    private Comparator<SecurityServerListItemDto> buildComparator(Pageable pageable) {
+        Sort.Order order = pageable.getSort().stream().findFirst()
+                .orElse(new Sort.Order(Sort.Direction.ASC, "serverCode"));
+        Comparator<SecurityServerListItemDto> primary;
+        if ("address".equals(order.getProperty())) {
+            primary = Comparator.comparing(SecurityServerListItemDto::getAddress,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+        } else {
+            primary = Comparator.comparing(SecurityServerListItemDto::getServerCode,
+                    Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+        }
+        if (order.isDescending()) {
+            primary = primary.reversed();
+        }
+        Comparator<SecurityServerListItemDto> tieBreak = Comparator.comparing(
+                SecurityServerListItemDto::getServerCode,
+                Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+        return primary.thenComparing(tieBreak);
+    }
+
+    private List<SecurityServerData> loadAll() {
+        try {
+            SecurityServerDataList data = parser.parseDetails(sharedParamsFile);
+            return data != null && data.getSecurityServerDataList() != null
+                    ? data.getSecurityServerDataList()
+                    : List.of();
+        } catch (Exception e) {
+            log.warn("Failed to parse security server details from {}", sharedParamsFile, e);
+            return List.of();
+        }
+    }
+
+    private SecurityServerListItemDto toListItem(SecurityServerData data) {
+        return SecurityServerListItemDto.builder()
+                .serverCode(data.getServerCode())
+                .address(data.getAddress())
+                .owner(toOwner(data.getOwner()))
+                .clientCount(data.getClients() != null ? data.getClients().size() : 0)
+                .build();
+    }
+
+    private SecurityServerBrowseItemDto toBrowseItem(SecurityServerData data) {
+        List<SecurityServerClientDto> clients = new ArrayList<>();
+        if (data.getClients() != null) {
+            for (MemberInfo c : data.getClients()) {
+                clients.add(SecurityServerClientDto.builder()
+                        .memberClass(c.getMemberClass())
+                        .memberCode(c.getMemberCode())
+                        .subsystemCode(c.getSubsystemCode())
+                        .build());
+            }
+        }
+        return SecurityServerBrowseItemDto.builder()
+                .serverCode(data.getServerCode())
+                .address(data.getAddress())
+                .owner(toOwner(data.getOwner()))
+                .clients(clients)
+                .build();
+    }
+
+    private SecurityServerOwnerDto toOwner(MemberInfo info) {
+        if (info == null) {
+            return null;
+        }
+        return SecurityServerOwnerDto.builder()
+                .memberClass(info.getMemberClass())
+                .memberCode(info.getMemberCode())
+                .name(info.getName())
+                .build();
+    }
+}

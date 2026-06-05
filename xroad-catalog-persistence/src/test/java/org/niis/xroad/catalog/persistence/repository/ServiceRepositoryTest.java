@@ -51,11 +51,6 @@ public class ServiceRepositoryTest {
 
     @Test
     public void testFindByNaturalKey() {
-        // member(7) -> ss (8) -> service(6) = ok [dummy-service_7-1-2/v1]
-        // member(7) -> ss (8) -> service(8) = removed [removed-service_7-1-3/v1]
-        // member(7) -> ss (8) -> service(10) = ok, null service code
-        // [service-with-null-version/null]
-        // member(7) -> ss (8) -> service(???) = non-existent
         Service service = serviceRepository.findActiveByNaturalKey("dev-cs", "PUB", "15",
                 "subsystem_7-1", "dummy-service_7-1-2", "v1");
         assertNotNull(service);

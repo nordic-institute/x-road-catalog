@@ -45,7 +45,8 @@ public interface EndpointRepository extends CrudRepository<Endpoint, Long> {
     Instant findLatestFetchedInstant();
 
     default LocalDateTime findLatestFetched() {
-        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+        Instant instant = findLatestFetchedInstant();
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
     @Query("SELECT e FROM Endpoint e WHERE e.service = :service "

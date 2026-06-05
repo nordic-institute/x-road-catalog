@@ -46,6 +46,7 @@ public interface RestRepository extends CrudRepository<Rest, Long> {
     Instant findLatestFetchedInstant();
 
     default LocalDateTime findLatestFetched() {
-        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
+        Instant instant = findLatestFetchedInstant();
+        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 }
