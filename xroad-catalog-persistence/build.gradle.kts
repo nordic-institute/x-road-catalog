@@ -1,5 +1,6 @@
 plugins {
     java
+    `java-test-fixtures`
     jacoco
     id("catalogservice.java-checks")
 }
@@ -30,8 +31,12 @@ dependencies {
     testImplementation(libs.h2.database)
 
     testRuntimeOnly(libs.junit.launcer)
+    testRuntimeOnly(libs.liquibase)
 
     testAnnotationProcessor(libs.lombok)
+
+    testFixturesApi(libs.testcontainers.postgresql)
+    testFixturesImplementation(libs.spring.boot.test)
 }
 
 
