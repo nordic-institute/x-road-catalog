@@ -60,4 +60,22 @@ class PostgresSchemaTest extends PostgresTestBase {
                 + "VALUES ('TC', 'GOV', 'schema-probe', 'Schema probe', now(), now(), now())");
         assertNotNull(memberRepository.findActiveByNaturalKey("TC", "GOV", "schema-probe"));
     }
+
+    @Test
+    void denormalizedColumnsExistWithLoadBearingDefaults() {
+        jdbcTemplate.update("INSERT INTO member (x_road_instance, member_class, member_code, name, created, changed, fetched) "
+                + "VALUES ('TC', 'GOV', 'default-probe', 'Default probe', now(), now(), now())");
+        Boolean isProvider = jdbcTemplate.queryForObject(
+                "SELECT is_provider FROM member WHERE member_code = 'default-probe'", Boolean.class);
+        assertEquals(Boolean.FALSE, isProvider);
+
+        jdbcTemplate.update("INSERT INTO subsystem (member_id, subsystem_code, created, changed, fetched) "
+                + "SELECT id, 'default-ss', now(), now(), now() FROM member WHERE member_code = 'default-probe'");
+        jdbcTemplate.update("INSERT INTO service (subsystem_id, service_code, created, changed, fetched) "
+                + "SELECT id, 'default-svc', now(), now(), now() FROM subsystem WHERE subsystem_code = 'default-ss'");
+        String serviceType = jdbcTemplate.queryForObject(
+                "SELECT service_type FROM service WHERE service_code = 'default-svc'", String.class);
+        assertEquals("UNKNOWN", serviceType, "a service inserted before its descriptor is fetched must "
+                + "read as unclassified, not as a REST guess");
+    }
 }

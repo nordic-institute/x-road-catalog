@@ -49,7 +49,7 @@ public interface SubsystemRepository extends CrudRepository<Subsystem, Long> {
     Instant findLatestFetchedInstant();
 
     default LocalDateTime findLatestFetched() {
-        Instant instant = findLatestFetchedInstant();
-        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
     }
 }
+

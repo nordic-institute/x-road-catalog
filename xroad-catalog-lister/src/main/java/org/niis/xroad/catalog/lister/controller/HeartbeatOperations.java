@@ -29,6 +29,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
+ */
+@Deprecated
 @RequestMapping("/default")
 public interface HeartbeatOperations {
 

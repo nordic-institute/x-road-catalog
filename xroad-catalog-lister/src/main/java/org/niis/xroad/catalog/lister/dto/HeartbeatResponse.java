@@ -32,6 +32,11 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
+ */
+@Deprecated
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

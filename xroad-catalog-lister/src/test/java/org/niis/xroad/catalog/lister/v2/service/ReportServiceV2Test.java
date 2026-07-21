@@ -24,67 +24,129 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogDayDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
+import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.niis.xroad.catalog.persistence.repository.ReportsRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberChangeRow;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceChangeRow;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemChangeRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
+import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@TestPropertySource(properties = {"xroad-catalog.shared-params-file=src/test/resources/shared-params-dev-cs.xml"})
-@ActiveProfiles({"test", "general-testdata"})
-public class ReportServiceV2Test {
+@ExtendWith(MockitoExtension.class)
+class ReportServiceV2Test {
 
-    @Autowired
+    @Mock
+    private ReportsRepositoryV2 reportsRepository;
+
     private ReportServiceV2 reportService;
 
-    @Test
-    public void testServiceStatisticsDailySnapshots() {
-        // All general-testdata services are created on 2016-01-01 00:00:00+02.
-        // A 3-day window starting at 2016-01-01 must produce exactly 3 rows in order.
-        LocalDate since = LocalDate.of(2016, 1, 1);
-        LocalDate until = LocalDate.of(2016, 1, 4);
-        List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(since, until);
-        assertEquals(3, rows.size());
-        assertEquals(LocalDate.of(2016, 1, 1), rows.get(0).getDate());
-        assertEquals(LocalDate.of(2016, 1, 2), rows.get(1).getDate());
-        assertEquals(LocalDate.of(2016, 1, 3), rows.get(2).getDate());
-
-        ServiceStatisticsRowDto first = rows.get(0);
-        assertFalse(first.getSoapServices() == 0 && first.getRestServices() == 0 && first.getOpenApiServices() == 0,
-                "fixture has services at end of 2016-01-01");
+    @BeforeEach
+    void setUp() {
+        reportService = new ReportServiceV2(reportsRepository);
     }
 
     @Test
-    public void testServiceStatisticsRejectsSinceEqualUntil() {
+    void testServiceStatisticsFoldsRowsByDayAndType() {
+        // Rows deliberately out of chronological order to prove the TreeMap fold sorts by day.
+        when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(statsRows(
+                row(LocalDate.of(2016, 1, 2), "SOAP", 4L),
+                row(LocalDate.of(2016, 1, 1), "SOAP", 2L),
+                row(LocalDate.of(2016, 1, 1), "OPENAPI", 1L),
+                row(LocalDate.of(2016, 1, 1), "REST", 3L)));
+
+        List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(
+                LocalDate.of(2016, 1, 1), LocalDate.of(2016, 1, 3));
+
+        assertEquals(2, rows.size());
+        assertEquals(LocalDate.of(2016, 1, 1), rows.get(0).getDate());
+        assertEquals(2, rows.get(0).getSoapServices());
+        assertEquals(1, rows.get(0).getOpenApiServices());
+        assertEquals(3, rows.get(0).getRestServices());
+        assertEquals(LocalDate.of(2016, 1, 2), rows.get(1).getDate());
+        assertEquals(4, rows.get(1).getSoapServices());
+        assertEquals(0, rows.get(1).getRestServices());
+    }
+
+    @Test
+    void testServiceStatisticsZeroDayWithEmptyResultYieldsAllZeroCounts() {
+        // An empty service table yields no rows at all from the delta SQL; the pre-fill must
+        // still emit the day, with every column at zero.
+        when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(List.of());
+
+        List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(
+                LocalDate.of(2024, 12, 1), LocalDate.of(2024, 12, 2));
+
+        assertEquals(1, rows.size());
+        ServiceStatisticsRowDto day = rows.get(0);
+        assertEquals(LocalDate.of(2024, 12, 1), day.getDate());
+        assertEquals(0, day.getSoapServices());
+        assertEquals(0, day.getOpenApiServices());
+        assertEquals(0, day.getRestServices());
+    }
+
+    @Test
+    void testServiceStatisticsExcludesUnclassifiedFromEveryBucket() {
+        when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(statsRows(
+                row(LocalDate.of(2016, 1, 1), "UNKNOWN", 5L)));
+
+        List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(
+                LocalDate.of(2016, 1, 1), LocalDate.of(2016, 1, 2));
+
+        ServiceStatisticsRowDto day = rows.get(0);
+        assertEquals(0, day.getRestServices(), "not-yet-classified services must not inflate the REST count");
+        assertEquals(0, day.getSoapServices());
+        assertEquals(0, day.getOpenApiServices());
+    }
+
+    @Test
+    void testServiceStatisticsExcludesUnrecognisedServiceTypes() {
+        when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(statsRows(
+                row(LocalDate.of(2016, 1, 1), "SOMETHING_ELSE", 5L)));
+
+        List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(
+                LocalDate.of(2016, 1, 1), LocalDate.of(2016, 1, 2));
+
+        assertEquals(0, rows.get(0).getRestServices(), "an unrecognised type is not silently counted as REST");
+    }
+
+    @Test
+    void testServiceStatisticsRejectsSinceEqualUntil() {
         LocalDate day = LocalDate.of(2016, 1, 1);
         assertThrows(IllegalArgumentException.class, () -> reportService.serviceStatistics(day, day));
     }
 
     @Test
-    public void testServiceStatisticsRejectsSinceAfterUntil() {
+    void testServiceStatisticsRejectsSinceAfterUntil() {
         LocalDate since = LocalDate.of(2016, 1, 5);
         LocalDate until = LocalDate.of(2016, 1, 1);
         assertThrows(IllegalArgumentException.class, () -> reportService.serviceStatistics(since, until));
     }
 
     @Test
-    public void testServiceStatisticsEnforcesMaxRange() {
+    void testServiceStatisticsEnforcesMaxRange() {
         // 91 days — exceeds the 90-day cap.
         LocalDate since = LocalDate.of(2025, 1, 1);
         LocalDate until = LocalDate.of(2025, 4, 2);
@@ -92,86 +154,291 @@ public class ReportServiceV2Test {
     }
 
     @Test
-    public void testServiceStatisticsAcceptsExactlyMaxRange() {
-        // 90 days — right at the cap.
+    void testServiceStatisticsAcceptsExactlyMaxRange() {
+        // 90 days — right at the cap. The service layer pre-fills every requested day regardless
+        // of what the SQL query returns, so a mocked empty result still yields one zeroed DTO per
+        // day; the point of this test is that validateReportRange does not reject the boundary.
+        when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(List.of());
         LocalDate since = LocalDate.of(2025, 1, 1);
         LocalDate until = LocalDate.of(2025, 4, 1);
         List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(since, until);
         assertEquals(90, rows.size());
+        assertTrue(rows.stream().allMatch(r -> r.getSoapServices() == 0
+                && r.getOpenApiServices() == 0 && r.getRestServices() == 0));
     }
 
     @Test
-    public void testChangeLogCapturesCreationWindow() {
-        // Fixture has many entities created on 2016-01-01. A 7-day window around that date
-        // must surface members on the first day.
-        LocalDate since = LocalDate.of(2016, 1, 1);
-        LocalDate until = LocalDate.of(2016, 1, 8);
-        Page<ChangeLogDayDto> page = reportService.changeLog(since, until, PageRequest.of(0, 100));
-        Set<LocalDate> dates = page.getContent().stream()
-                .map(ChangeLogDayDto::getDate)
-                .collect(Collectors.toSet());
-        assertTrue(dates.contains(LocalDate.of(2016, 1, 1)), "2016-01-01 must be present");
+    void testChangeLogCapturesCreationWindow() {
+        stubEmptyChangeWindows();
+        LocalDate createdDay = LocalDate.of(2016, 1, 1);
+        LocalDateTime day1EventTime = createdDay.atTime(10, 0);
+        stubDayPage(dayRow(createdDay, 1));
+        when(reportsRepository.findMembersCreatedBetween(any(), any())).thenReturn(List.of(
+                memberRow("PUB", "1", "Member One", day1EventTime)));
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2016, 1, 1), LocalDate.of(2016, 1, 8), PageRequest.of(0, 100));
+
         ChangeLogDayDto day1 = page.getContent().stream()
                 .filter(d -> d.getDate().equals(LocalDate.of(2016, 1, 1)))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() -> new AssertionError("2016-01-01 must be present"));
         assertTrue(day1.getCreated().getMembers().getCount() > 0, "members created on 2016-01-01");
     }
 
     @Test
-    public void testChangeLogCapturesModificationWindow() {
-        // Fixture: subsystems id 5/9, services id 3/5, members id 7/8 have changed = 2017-01-02.
-        // Member id 8 was also removed on 2017-01-02.
-        LocalDate since = LocalDate.of(2017, 1, 1);
-        LocalDate until = LocalDate.of(2017, 1, 8);
-        Page<ChangeLogDayDto> page = reportService.changeLog(since, until, PageRequest.of(0, 100));
-        Set<LocalDate> dates = page.getContent().stream()
-                .map(ChangeLogDayDto::getDate)
-                .collect(Collectors.toSet());
-        assertTrue(dates.contains(LocalDate.of(2017, 1, 2)), "2017-01-02 must be present");
+    void testChangeLogCapturesRemovalWindow() {
+        stubEmptyChangeWindows();
+        LocalDate day2 = LocalDate.of(2017, 1, 2);
+        LocalDateTime day2EventTime = day2.atTime(9, 30);
+        stubDayPage(dayRow(day2, 1));
+        when(reportsRepository.findMembersRemovedBetween(any(), any())).thenReturn(List.of(
+                memberRow("COM", "8", "Removed Member", day2EventTime)));
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2017, 1, 1), LocalDate.of(2017, 1, 8), PageRequest.of(0, 100));
+
         ChangeLogDayDto day = page.getContent().stream()
                 .filter(d -> d.getDate().equals(LocalDate.of(2017, 1, 2)))
                 .findFirst()
-                .orElseThrow();
+                .orElseThrow(() -> new AssertionError("2017-01-02 must be present"));
         assertTrue(day.getRemoved().getMembers().getCount() > 0, "member removed on 2017-01-02");
     }
 
     @Test
-    public void testChangeLogOmitsDaysWithZeroChanges() {
-        // 2018 has no change events in the fixture.
-        LocalDate since = LocalDate.of(2018, 1, 1);
-        LocalDate until = LocalDate.of(2018, 1, 8);
-        Page<ChangeLogDayDto> page = reportService.changeLog(since, until, PageRequest.of(0, 100));
+    void testChangeLogOmitsDaysWithZeroChanges() {
+        stubDayPage();
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2018, 1, 1), LocalDate.of(2018, 1, 8), PageRequest.of(0, 100));
+
         assertTrue(page.isEmpty(), "no-change days must be omitted");
     }
 
     @Test
-    public void testChangeLogEnforcesMaxRange() {
-        // > 90 days — must be rejected by validateReportRange.
+    void testChangeLogEnforcesMaxRange() {
         LocalDate since = LocalDate.of(2025, 1, 1);
         LocalDate until = LocalDate.of(2025, 6, 1);
         assertThrows(IllegalArgumentException.class,
                 () -> reportService.changeLog(since, until, PageRequest.of(0, 10)));
     }
 
-    /**
-     * Task 1.5 regression: a service whose only WSDL row is removed must classify as REST — not
-     * SOAP — in changeLog output. The Task 1.5 fixture service 33 (svc_removed_wsdl_only) is
-     * created 2016-01-01 with a removed WSDL row.
-     */
     @Test
-    public void testChangeLogClassifiesRemovedOnlyWsdlAsRest() {
-        LocalDate since = LocalDate.of(2016, 1, 1);
-        LocalDate until = LocalDate.of(2016, 1, 8);
-        Page<ChangeLogDayDto> page = reportService.changeLog(since, until, PageRequest.of(0, 100));
+    void testChangeLogPassesThroughServiceTypeAndMemberNameFromRow() {
+        stubEmptyChangeWindows();
+        LocalDate day = LocalDate.of(2016, 1, 1);
+        LocalDateTime eventTime = day.atTime(12, 0);
+        stubDayPage(dayRow(day, 1));
+        when(reportsRepository.findServicesCreatedBetween(any(), any())).thenReturn(List.of(
+                serviceRow("PUB", "14151328", "Nahka-Albert", "subsystem_a1",
+                        "svc_removed_wsdl_only", null, "REST", eventTime)));
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2016, 1, 1), LocalDate.of(2016, 1, 8), PageRequest.of(0, 100));
 
         ChangeLogServiceItemDto match = page.getContent().stream()
                 .flatMap(d -> d.getCreated().getServices().getItems().stream())
                 .filter(item -> "svc_removed_wsdl_only".equals(item.getServiceCode()))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError(
-                        "Fixture service svc_removed_wsdl_only must appear in the created bucket"));
-        assertEquals("REST", match.getServiceType(),
-                "service whose only WSDL is removed must classify as REST, not SOAP");
+                .orElseThrow(() -> new AssertionError("service must appear in the created bucket"));
+        assertEquals("REST", match.getServiceType());
+        assertEquals("Nahka-Albert", match.getMemberName());
+    }
+
+    @Test
+    void testChangeLogPassesThroughSubsystemFieldsFromRow() {
+        stubEmptyChangeWindows();
+        LocalDate day = LocalDate.of(2016, 1, 1);
+        LocalDateTime eventTime = day.atTime(8, 0);
+        stubDayPage(dayRow(day, 1));
+        when(reportsRepository.findSubsystemsCreatedBetween(any(), any())).thenReturn(List.of(
+                subsystemRow("PUB", "14151328", "Nahka-Albert", "subsystem_a1", eventTime)));
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2016, 1, 1), LocalDate.of(2016, 1, 8), PageRequest.of(0, 100));
+
+        ChangeLogSubsystemItemDto match = page.getContent().stream()
+                .flatMap(d -> d.getCreated().getSubsystems().getItems().stream())
+                .filter(item -> "subsystem_a1".equals(item.getSubsystemCode()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("subsystem must appear in the created bucket"));
+        assertEquals("Nahka-Albert", match.getMemberName());
+        assertEquals("PUB", match.getMemberClass());
+    }
+
+    @Test
+    void testChangeLogContentDaysMatchDayPageAndTotalElementsComesFromTotalDays() {
+        stubEmptyChangeWindows();
+        LocalDate day1 = LocalDate.of(2019, 1, 1);
+        LocalDate day2 = LocalDate.of(2019, 1, 2);
+        // total_days (7) deliberately differs from the 2-day page content, proving totalElements is
+        // read straight off the stubbed total_days column rather than derived from content size.
+        stubDayPage(dayRow(day1, 7), dayRow(day2, 7));
+        when(reportsRepository.findMembersCreatedBetween(any(), any())).thenReturn(List.of(
+                memberRow("PUB", "m1", "Member 1", day1.atTime(1, 0)),
+                memberRow("PUB", "m2", "Member 2", day2.atTime(1, 0))));
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2019, 1, 1), LocalDate.of(2019, 1, 10), PageRequest.of(0, 2));
+
+        assertEquals(List.of(day1, day2), page.getContent().stream().map(ChangeLogDayDto::getDate).toList());
+        assertEquals(7, page.getTotalElements());
+    }
+
+    @Test
+    void testChangeLogEmptyDayPageAtOffsetZeroYieldsEmptyPageAndSkipsItemQueries() {
+        stubDayPage();
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 8), PageRequest.of(0, 10));
+
+        assertTrue(page.isEmpty());
+        assertEquals(0, page.getTotalElements());
+        verify(reportsRepository).findChangeLogDayPage(any(), any(), anyInt(), anyLong());
+        verifyNoMoreInteractions(reportsRepository);
+    }
+
+    @Test
+    void testChangeLogEmptyDayPageAtNonZeroOffsetUsesCountChangeLogDaysFallback() {
+        stubDayPage();
+        when(reportsRepository.countChangeLogDays(any(), any())).thenReturn(7L);
+
+        Page<ChangeLogDayDto> page = reportService.changeLog(
+                LocalDate.of(2020, 1, 1), LocalDate.of(2020, 1, 8), PageRequest.of(1, 10));
+
+        assertTrue(page.isEmpty());
+        assertEquals(7, page.getTotalElements());
+        verify(reportsRepository).findChangeLogDayPage(any(), any(), anyInt(), anyLong());
+        verify(reportsRepository).countChangeLogDays(any(), any());
+        verifyNoMoreInteractions(reportsRepository);
+    }
+
+    private void stubDayPage(Object[]... dayRows) {
+        when(reportsRepository.findChangeLogDayPage(any(), any(), anyInt(), anyLong())).thenReturn(List.of(dayRows));
+    }
+
+    private static Object[] dayRow(LocalDate day, long totalDays) {
+        return new Object[] {Date.valueOf(day), totalDays};
+    }
+
+    private void stubEmptyChangeWindows() {
+        when(reportsRepository.findMembersCreatedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findMembersModifiedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findMembersRemovedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findSubsystemsCreatedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findSubsystemsModifiedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findSubsystemsRemovedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findServicesCreatedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findServicesModifiedBetween(any(), any())).thenReturn(List.of());
+        when(reportsRepository.findServicesRemovedBetween(any(), any())).thenReturn(List.of());
+    }
+
+    private static Object[] row(LocalDate day, String serviceType, long count) {
+        return new Object[] {Date.valueOf(day), serviceType, count};
+    }
+
+    private static List<Object[]> statsRows(Object[]... rows) {
+        return List.of(rows);
+    }
+
+    private static MemberChangeRow memberRow(String memberClass, String memberCode, String name,
+            LocalDateTime eventTime) {
+        return new MemberChangeRow() {
+            @Override
+            public String getMemberClass() {
+                return memberClass;
+            }
+
+            @Override
+            public String getMemberCode() {
+                return memberCode;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public LocalDateTime getEventTime() {
+                return eventTime;
+            }
+        };
+    }
+
+    private static ServiceChangeRow serviceRow(String memberClass, String memberCode, String memberName,
+            String subsystemCode, String serviceCode, String serviceVersion, String serviceType,
+            LocalDateTime eventTime) {
+        return new ServiceChangeRow() {
+            @Override
+            public String getMemberClass() {
+                return memberClass;
+            }
+
+            @Override
+            public String getMemberCode() {
+                return memberCode;
+            }
+
+            @Override
+            public String getMemberName() {
+                return memberName;
+            }
+
+            @Override
+            public String getSubsystemCode() {
+                return subsystemCode;
+            }
+
+            @Override
+            public String getServiceCode() {
+                return serviceCode;
+            }
+
+            @Override
+            public String getServiceVersion() {
+                return serviceVersion;
+            }
+
+            @Override
+            public String getServiceType() {
+                return serviceType;
+            }
+
+            @Override
+            public LocalDateTime getEventTime() {
+                return eventTime;
+            }
+        };
+    }
+
+    private static SubsystemChangeRow subsystemRow(String memberClass, String memberCode, String memberName,
+            String subsystemCode, LocalDateTime eventTime) {
+        return new SubsystemChangeRow() {
+            @Override
+            public String getMemberClass() {
+                return memberClass;
+            }
+
+            @Override
+            public String getMemberCode() {
+                return memberCode;
+            }
+
+            @Override
+            public String getMemberName() {
+                return memberName;
+            }
+
+            @Override
+            public String getSubsystemCode() {
+                return subsystemCode;
+            }
+
+            @Override
+            public LocalDateTime getEventTime() {
+                return eventTime;
+            }
+        };
     }
 }

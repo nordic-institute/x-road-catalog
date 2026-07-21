@@ -24,127 +24,66 @@
  */
 package org.niis.xroad.catalog.persistence.repository;
 
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * V2 repository for Subsystem. Separate from V1 SubsystemRepository so V2 query changes
- * cannot accidentally alter V1 behavior.
- *
- * Active-only queries must exclude subsystems whose parent member has been removed
- * (parent-cascade check) — spec's active-only contract applies to the whole hierarchy.
+ * V2 read-model repository for {@link SubsystemV2}. Every query is instance-scoped
+ * ({@code s.member.xRoadInstance = :xRoadInstance}), unlike the V1-era {@code findForList} it
+ * replaces. Active-only queries apply the parent-cascade check: a subsystem is active only when
+ * neither it nor its parent member has been soft-deleted.
  */
-public interface SubsystemRepositoryV2 extends CrudRepository<Subsystem, Long>,
-        PagingAndSortingRepository<Subsystem, Long> {
+public interface SubsystemRepositoryV2 extends Repository<SubsystemV2, Long>, V2ReadModelRepository {
 
-    /**
-     * Natural-key lookup regardless of removed status.
-     */
-    @EntityGraph(attributePaths = {"services"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Subsystem s WHERE s.subsystemCode = :subsystemCode "
-            + "AND s.member.xRoadInstance = :xRoadInstance "
-            + "AND s.member.memberClass = :memberClass "
-            + "AND s.member.memberCode = :memberCode")
-    Subsystem findAnyByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-                                  @Param("memberClass") String memberClass,
-                                  @Param("memberCode") String memberCode,
-                                  @Param("subsystemCode") String subsystemCode);
+    String LIST_SELECT = "SELECT s.member.memberClass AS memberClass, s.member.memberCode AS memberCode, "
+            + "s.member.name AS memberName, s.subsystemCode AS subsystemCode, "
+            + "(SELECT COUNT(sv) FROM ServiceV2 sv WHERE sv.subsystem = s AND sv.statusInfo.removed IS NULL) AS serviceCount, "
+            + "s.statusInfo.created AS created, s.statusInfo.changed AS changed, "
+            + "s.statusInfo.fetched AS fetched, s.statusInfo.removed AS removed "
+            + "FROM SubsystemV2 s ";
 
-    /**
-     * Active natural-key lookup with parent cascade: subsystem is returned only when
-     * neither the subsystem itself nor its parent member has been soft-deleted.
-     */
-    @EntityGraph(attributePaths = {"services"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Subsystem s WHERE s.subsystemCode = :subsystemCode "
-            + "AND s.member.xRoadInstance = :xRoadInstance "
-            + "AND s.member.memberClass = :memberClass "
-            + "AND s.member.memberCode = :memberCode "
-            + "AND s.statusInfo.removed IS NULL "
-            + "AND s.member.statusInfo.removed IS NULL")
-    Subsystem findActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+    String ACTIVE_CASCADE = "s.statusInfo.removed IS NULL AND s.member.statusInfo.removed IS NULL";
+
+    String LIST_WHERE = "WHERE s.member.xRoadInstance = :xRoadInstance "
+            + "AND (:memberClass IS NULL OR s.member.memberClass = :memberClass) "
+            + "AND " + ACTIVE_CASCADE;
+
+    @Query(value = LIST_SELECT + LIST_WHERE,
+            countQuery = "SELECT COUNT(s) FROM SubsystemV2 s " + LIST_WHERE)
+    Page<SubsystemListRow> findActiveForList(@Param("xRoadInstance") String xRoadInstance,
+                                             @Param("memberClass") String memberClass,
+                                             Pageable pageable);
+
+    @Query(LIST_SELECT + "WHERE s.member.xRoadInstance = :xRoadInstance AND s.member.memberClass = :memberClass "
+            + "AND s.member.memberCode = :memberCode AND s.subsystemCode = :subsystemCode AND " + ACTIVE_CASCADE)
+    Optional<SubsystemListRow> findActiveSummaryByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+                                                              @Param("memberClass") String memberClass,
+                                                              @Param("memberCode") String memberCode,
+                                                              @Param("subsystemCode") String subsystemCode);
+
+    @Query(LIST_SELECT + "WHERE s.member.xRoadInstance = :xRoadInstance AND s.member.memberClass = :memberClass "
+            + "AND s.member.memberCode = :memberCode AND " + ACTIVE_CASCADE + " ORDER BY s.subsystemCode")
+    List<SubsystemListRow> findActiveForMember(@Param("xRoadInstance") String xRoadInstance,
+                                               @Param("memberClass") String memberClass,
+                                               @Param("memberCode") String memberCode);
+
+    @Query("SELECT COUNT(s) > 0 FROM SubsystemV2 s WHERE s.member.xRoadInstance = :xRoadInstance "
+            + "AND s.member.memberClass = :memberClass AND s.member.memberCode = :memberCode "
+            + "AND s.subsystemCode = :subsystemCode AND " + ACTIVE_CASCADE)
+    boolean existsActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
                                      @Param("memberClass") String memberClass,
                                      @Param("memberCode") String memberCode,
                                      @Param("subsystemCode") String subsystemCode);
 
-    /**
-     * Active natural-key lookup pre-fetching the service aggregate descriptor collections.
-     * Used by the V2 service-list browse endpoint to avoid N+1 queries when iterating
-     * {@code subsystem.getActiveServices()} and walking each service's wsdls/openApis/rests.
-     * Endpoints are deliberately omitted from the graph: the aggregate response carries
-     * version summaries only (no endpoints) per spec §6.3; endpoints load on the
-     * {@code /versions/{v}} route via {@code ServiceRepositoryV2}.
-     */
-    @EntityGraph(attributePaths = {"services", "services.wsdls", "services.openApis", "services.rests"},
-            type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Subsystem s WHERE s.subsystemCode = :subsystemCode "
-            + "AND s.member.xRoadInstance = :xRoadInstance "
-            + "AND s.member.memberClass = :memberClass "
-            + "AND s.member.memberCode = :memberCode "
-            + "AND s.statusInfo.removed IS NULL "
-            + "AND s.member.statusInfo.removed IS NULL")
-    Subsystem findActiveByNaturalKeyWithServices(@Param("xRoadInstance") String xRoadInstance,
-                                                 @Param("memberClass") String memberClass,
-                                                 @Param("memberCode") String memberCode,
-                                                 @Param("subsystemCode") String subsystemCode);
-
-    /**
-     * Natural-key lookup including removed rows, pre-fetching the service aggregate descriptor
-     * collections. Counterpart to {@link #findActiveByNaturalKeyWithServices} for the
-     * {@code includeRemoved=true} branch of the V2 service-list browse endpoint.
-     */
-    @EntityGraph(attributePaths = {"services", "services.wsdls", "services.openApis", "services.rests"},
-            type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Subsystem s WHERE s.subsystemCode = :subsystemCode "
-            + "AND s.member.xRoadInstance = :xRoadInstance "
-            + "AND s.member.memberClass = :memberClass "
-            + "AND s.member.memberCode = :memberCode")
-    Subsystem findAnyByNaturalKeyWithServices(@Param("xRoadInstance") String xRoadInstance,
-                                              @Param("memberClass") String memberClass,
-                                              @Param("memberCode") String memberCode,
-                                              @Param("subsystemCode") String subsystemCode);
-
-    @Query("SELECT s FROM Subsystem s WHERE "
-            + "LOWER(s.subsystemCode) LIKE LOWER(CONCAT('%', :q, '%')) "
-            + "AND (:activeOnly = false OR (s.statusInfo.removed IS NULL "
-            + "                              AND s.member.statusInfo.removed IS NULL))")
-    Page<Subsystem> searchByText(@Param("q") String query,
-                                 @Param("activeOnly") boolean activeOnly,
-                                 Pageable pageable);
-
-    @EntityGraph(attributePaths = {"services"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Subsystem s WHERE "
-            + "(:memberClass IS NULL OR s.member.memberClass = :memberClass) "
-            + "AND (:activeOnly = false OR (s.statusInfo.removed IS NULL "
-            + "                              AND s.member.statusInfo.removed IS NULL))")
-    Page<Subsystem> findForList(@Param("memberClass") String memberClass,
-                                @Param("activeOnly") boolean activeOnly,
-                                Pageable pageable);
-
-    @Query("SELECT s FROM Subsystem s WHERE "
-            + "s.statusInfo.created >= :startDate AND s.statusInfo.created < :endDate")
-    List<Subsystem> findCreatedBetween(@Param("startDate") LocalDateTime startDate,
-                                       @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT s FROM Subsystem s WHERE "
-            + "s.statusInfo.changed >= :startDate AND s.statusInfo.changed < :endDate "
-            + "AND (s.statusInfo.created < :startDate OR s.statusInfo.created >= :endDate) "
-            + "AND (s.statusInfo.removed IS NULL "
-            + "     OR s.statusInfo.removed < :startDate "
-            + "     OR s.statusInfo.removed >= :endDate)")
-    List<Subsystem> findChangedBetween(@Param("startDate") LocalDateTime startDate,
-                                       @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT s FROM Subsystem s WHERE "
-            + "s.statusInfo.removed >= :startDate AND s.statusInfo.removed < :endDate")
-    List<Subsystem> findRemovedBetween(@Param("startDate") LocalDateTime startDate,
-                                       @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT MAX(s.statusInfo.fetched) FROM SubsystemV2 s")
+    LocalDateTime findLatestFetched();
 }

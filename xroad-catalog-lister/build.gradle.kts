@@ -56,8 +56,10 @@ dependencies {
     testImplementation(libs.mockito)
     testImplementation(libs.lombok)
     testImplementation(libs.h2.database)
+    testImplementation(testFixtures(project(":xroad-catalog-persistence")))
 
     testRuntimeOnly(libs.junit.launcer)
+    testRuntimeOnly(libs.liquibase)
 
     testAnnotationProcessor(libs.lombok)
 }

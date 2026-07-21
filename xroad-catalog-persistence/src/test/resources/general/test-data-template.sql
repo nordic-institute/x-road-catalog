@@ -21,14 +21,10 @@ VALUES (7, 'dev-cs', 'PUB', '15', 'Updated Everything', '2016-01-01 00:00:00+02'
 INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched,  removed)
 VALUES (8, 'dev-cs', 'PUB', '14151329', 'Removed item', '2016-01-01 00:00:00+02', '2017-01-02 00:00:00+02', '2017-01-02 00:00:00+02', '2017-01-02 00:00:00+02');
 
--- V2 Task 1.5 isProvider invariant fixtures. These members exercise the three edge cases that
--- the new active-service-existence rule (spec §6.1) must handle correctly. Each member has a
--- distinct marker memberCode that tests can match against by string.
---   member 20 = only-removed-service  : active subsystem whose only service is removed -> isProvider=false
---   member 21 = svc-under-removed-sub : only service lives under a removed subsystem    -> isProvider=false
---   member 22 = removed-with-stale    : removed member with stale active subsystem+service -> isProvider=false
--- (Invariant "descriptor-less active service -> isProvider=true" is already covered by member 5 /
---  subsystem 6 / service 3 in the pre-existing fixture.)
+-- Members 20-22 exist only to give MemberRepositoryTest#testFindAll a fixed total/active count
+-- (11 total, 9 active) distinct from the original 8/7. They originally also carried subsystem and
+-- service children exercising the isProvider invariant (spec §6.1); that scenario now lives in the
+-- Postgres fixture (see pg/v2-fixture.sql) so those child rows were removed here as orphaned.
 INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched, removed)
 VALUES (20, 'dev-cs', 'PUB', 'only-removed-service', 'Only removed service member',
         '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
@@ -65,17 +61,6 @@ VALUES (11, 8, 'removed_subsystem', '2016-01-01 00:00:00+02', '2017-01-02 00:00:
 INSERT INTO subsystem (id, member_id, subsystem_code, created, changed, fetched,  removed)
 VALUES (12, 1, 'subsystem_a3_removed', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
 
--- V2 Task 1.5 isProvider invariant subsystems (paired with members 20-22 above).
-INSERT INTO subsystem (id, member_id, subsystem_code, created, changed, fetched, removed)
-VALUES (20, 20, 'sub_only_removed_svc', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-INSERT INTO subsystem (id, member_id, subsystem_code, created, changed, fetched, removed)
-VALUES (21, 21, 'sub_removed_parent', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
-INSERT INTO subsystem (id, member_id, subsystem_code, created, changed, fetched, removed)
-VALUES (22, 22, 'sub_stale_under_removed_member', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
-
 INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched,  removed)
 VALUES (1, 2, 'testService', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
 INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched,  removed)
@@ -104,50 +89,6 @@ INSERT INTO service (id, subsystem_id, service_code, service_version, created, c
 VALUES (13, 8, 'dummy-service_7-1-6', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
 INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched,  removed)
 VALUES (14, 8, 'dummy-service_7-1-7', null, '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
-
--- Mixed-type service fixture for V2 Task 8 testing: two versions of 'mixedSvc' under member 1 (Nahka-Albert) / subsystem_a1.
--- v1 has a WSDL (SOAP) and v2 has a REST descriptor. Filtering by serviceType=SOAP must still report versionCount=2.
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (20, 1, 'mixedSvc', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (21, 1, 'mixedSvc', 'v2', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
-
--- V2 Task 1.5 isProvider invariant services (paired with members/subsystems 20-22 above).
--- service 30: under subsystem 20, removed  -> member 20 is NOT provider (only-removed-service case)
--- service 31: under removed subsystem 21, itself active -> member 21 is NOT provider (parent cascade)
--- service 32: under active subsystem 22, itself active, but member 22 is removed -> NOT provider
--- service 33: active service with only a removed WSDL -> must classify as REST in aggregates (Task 1.5 Step 5 case)
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (30, 20, 'only_removed_svc', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (31, 21, 'svc_under_removed_sub', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (32, 22, 'svc_under_removed_member', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (33, 1, 'svc_removed_wsdl_only', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-
--- V2 Task 6 descriptor-endpoint fixtures (single-version services under member 1 / subsystem_a1).
--- Each row pairs with an OpenAPI / WSDL row below to exercise one branch of the descriptor route:
---   service 40 = descJsonSvc          : OpenAPI JSON  -> 200 + application/json
---   service 41 = descYamlSvc          : OpenAPI YAML  -> 200 + application/yaml
---   service 42 = descRestOnlySvc      : no descriptor -> 404 (REST classifier still applies)
---   service 43 = descRemovedWsdlSvc   : only-removed WSDL -> 404 (active-row contract from Task 1.5)
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (40, 1, 'descJsonSvc', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (41, 1, 'descYamlSvc', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (42, 1, 'descRestOnlySvc', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
-INSERT INTO service (id, subsystem_id, service_code, service_version, created, changed, fetched, removed)
-VALUES (43, 1, 'descRemovedWsdlSvc', 'v1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02',
-        '2016-01-01 00:00:00+02', NULL);
 
 INSERT INTO wsdl (id, service_id, data, external_id, created, changed, fetched,  removed)
 VALUES (3, 4, '<?xml version="1.0" standalone="no"?><wsdl-6-1-1-1-changed/>', '1000', '2016-01-01 00:00:00+02', '2017-01-02 00:00:00+02', '2017-01-02 00:00:00+02', NULL);
@@ -180,39 +121,6 @@ INSERT INTO rest (id, service_id, data, external_id, created, changed, fetched, 
 VALUES (3, 1, '{"endpoint_list": []}}', '3005', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
 INSERT INTO rest (id, service_id, data, external_id, created, changed, fetched, removed)
 VALUES (4, 1, '{"endpoint_list": []}}', '3006', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
-
--- Descriptors for V2 Task 8 mixedSvc fixture (service id 20 has WSDL, service id 21 has REST).
-INSERT INTO wsdl (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (20, 20, '<?xml version="1.0" standalone="no"?><wsdl-mixedSvc-v1/>', 'mixedSvc-v1',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
-INSERT INTO rest (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (20, 21, '{"endpoint_list": []}', 'mixedSvc-v2',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
-
--- V2 Task 1.5 aggregate-classification fixture: service 33 (svc_removed_wsdl_only under member 1 /
--- subsystem_a1) has a WSDL row flagged removed. Under the new active-filtered predicate it must
--- classify as REST in findAggregatesForList, not SOAP.
-INSERT INTO wsdl (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (33, 33, '<?xml version="1.0" standalone="no"?><removed-wsdl-only/>', 'svc_removed_wsdl_only-w1',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
-
--- V2 Task 6 descriptor fixtures: see service rows 40-43 above for intent.
--- service 40 -> active OpenAPI JSON (must be parseable by ObjectMapper.readTree -> application/json)
-INSERT INTO open_api (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (200, 40, '{"openapi":"3.0.0","info":{"title":"Test"},"paths":{}}', 'descJsonSvc-v1-openapi',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
--- service 41 -> active OpenAPI YAML (ObjectMapper.readTree throws -> application/yaml fallback)
-INSERT INTO open_api (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (201, 41, 'openapi: 3.0.0
-info:
-  title: Test
-paths: {}
-', 'descYamlSvc-v1-openapi',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
--- service 43 -> only a removed WSDL row, used to assert 404 on the descriptor endpoint (active-row contract)
-INSERT INTO wsdl (id, service_id, data, external_id, created, changed, fetched, removed)
-VALUES (43, 43, '<?xml version="1.0" standalone="no"?><removed-only-wsdl-desc/>', 'descRemovedWsdlSvc-v1',
-        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
 
 INSERT INTO endpoint (id, service_id, method, path, created, changed, fetched, removed)
 VALUES (1, 13, 'GET', '/getData', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);

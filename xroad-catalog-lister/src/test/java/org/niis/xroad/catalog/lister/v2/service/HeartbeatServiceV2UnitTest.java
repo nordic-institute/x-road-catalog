@@ -28,27 +28,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.MemberRepository;
-import org.niis.xroad.catalog.persistence.repository.OpenApiRepository;
-import org.niis.xroad.catalog.persistence.repository.RestRepository;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepository;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
-import org.niis.xroad.catalog.persistence.repository.WsdlRepository;
+import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,22 +62,20 @@ class HeartbeatServiceV2UnitTest {
     private static final LocalDateTime EARLIEST = LocalDateTime.of(2026, 4, 10, 8, 0);
     private static final LocalDateTime MID = LocalDateTime.of(2026, 4, 10, 10, 0);
     private static final LocalDateTime LATEST = LocalDateTime.of(2026, 4, 10, 12, 0);
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-10T13:30:00Z"), ZoneOffset.UTC);
 
-    @Mock private CatalogService catalogService;
-    @Mock private MemberRepository memberRepository;
-    @Mock private SubsystemRepository subsystemRepository;
-    @Mock private ServiceRepository serviceRepository;
-    @Mock private WsdlRepository wsdlRepository;
-    @Mock private OpenApiRepository openApiRepository;
-    @Mock private RestRepository restRepository;
+    @Mock private MemberRepositoryV2 memberRepository;
+    @Mock private SubsystemRepositoryV2 subsystemRepository;
+    @Mock private ServiceRepositoryV2 serviceRepository;
+    @Mock private DescriptorRepositoryV2 descriptorRepository;
     @Mock private ErrorLogRepositoryV2 errorLogRepository;
 
-    @InjectMocks private HeartbeatServiceV2 service;
+    private HeartbeatServiceV2 service;
 
     @BeforeEach
-    void wireValueFields() {
-        ReflectionTestUtils.setField(service, "appName", "Test Lister");
-        ReflectionTestUtils.setField(service, "appVersion", "9.9.9");
+    void setUp() {
+        service = new HeartbeatServiceV2("Test Lister", "9.9.9", memberRepository, subsystemRepository,
+                serviceRepository, descriptorRepository, errorLogRepository, FIXED_CLOCK);
     }
 
     private void allFetchesReturn(LocalDateTime... values) {
@@ -87,16 +83,16 @@ class HeartbeatServiceV2UnitTest {
         when(memberRepository.findLatestFetched()).thenReturn(values[0]);
         when(subsystemRepository.findLatestFetched()).thenReturn(values[1]);
         when(serviceRepository.findLatestFetched()).thenReturn(values[2]);
-        when(wsdlRepository.findLatestFetched()).thenReturn(values[3]);
-        when(openApiRepository.findLatestFetched()).thenReturn(values[4]);
-        when(restRepository.findLatestFetched()).thenReturn(values[5]);
+        when(descriptorRepository.findLatestWsdlFetched()).thenReturn(values[3]);
+        when(descriptorRepository.findLatestOpenApiFetched()).thenReturn(values[4]);
+        when(descriptorRepository.findLatestRestFetched()).thenReturn(values[5]);
     }
 
     @Test
     void lastRunErrorsCountsErrorsSinceEarliestLastFetched() {
         // Spec §5.1: anchor is the earliest of the six lastFetched timestamps.
         allFetchesReturn(LATEST, MID, EARLIEST, LATEST, MID, LATEST);
-        when(catalogService.checkDatabaseConnection()).thenReturn(Boolean.TRUE);
+        when(memberRepository.checkConnection()).thenReturn(1);
         Page<ErrorLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 1), 7L);
         when(errorLogRepository.findAnyInRange(eq(EARLIEST), any(LocalDateTime.class), any(Pageable.class)))
                 .thenReturn(page);
@@ -108,13 +104,14 @@ class HeartbeatServiceV2UnitTest {
                 any(Pageable.class));
         assertThat(sinceCaptor.getValue()).isEqualTo(EARLIEST);
         assertThat(hb.getLastRunErrors()).isEqualTo(7L);
+        assertThat(hb.getDbWorking()).isTrue();
     }
 
     @Test
     void lastRunErrorsIsZeroWhenAnyLastFetchedIsNull() {
         // Spec §5.1: if any *LastFetched is null, the count is 0 and the error log is not queried.
         allFetchesReturn(LATEST, MID, EARLIEST, LATEST, null, LATEST);
-        when(catalogService.checkDatabaseConnection()).thenReturn(Boolean.TRUE);
+        when(memberRepository.checkConnection()).thenReturn(1);
 
         HeartbeatV2Dto hb = service.heartbeat();
 
@@ -124,9 +121,9 @@ class HeartbeatServiceV2UnitTest {
 
     @Test
     void lastRunErrorsIsZeroWhenErrorLogQueryThrows() {
-        // Issue 2: a transient DB failure on the error-log query must not surface as 500.
+        // A transient DB failure on the error-log query must not surface as 500.
         allFetchesReturn(LATEST, MID, EARLIEST, LATEST, MID, LATEST);
-        when(catalogService.checkDatabaseConnection()).thenReturn(Boolean.TRUE);
+        when(memberRepository.checkConnection()).thenReturn(1);
         when(errorLogRepository.findAnyInRange(any(), any(), any()))
                 .thenThrow(new DataAccessResourceFailureException("connection refused"));
 
@@ -137,10 +134,10 @@ class HeartbeatServiceV2UnitTest {
 
     @Test
     void dbWorkingIsFalseWhenCheckConnectionThrows() {
-        // Issue 2: a JpaSystemException-equivalent during checkDatabaseConnection must degrade
-        // to dbWorking=false, not bubble to a 500 from the controller.
+        // A JpaSystemException-equivalent during checkConnection must degrade to dbWorking=false,
+        // not bubble to a 500 from the controller.
         allFetchesReturn(LATEST, MID, EARLIEST, LATEST, MID, LATEST);
-        when(catalogService.checkDatabaseConnection())
+        when(memberRepository.checkConnection())
                 .thenThrow(new DataAccessResourceFailureException("DB unavailable"));
         Page<ErrorLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 1), 0L);
         when(errorLogRepository.findAnyInRange(any(), any(), any())).thenReturn(page);
@@ -149,6 +146,19 @@ class HeartbeatServiceV2UnitTest {
 
         assertThat(hb.getDbWorking()).isFalse();
         assertThat(hb.getAppWorking()).isTrue();
+    }
+
+    @Test
+    void dbWorkingIsFalseWhenCheckConnectionReturnsUnexpectedValue() {
+        // checkConnection is a native "SELECT 1" -- anything other than 1 means something's off.
+        allFetchesReturn(LATEST, MID, EARLIEST, LATEST, MID, LATEST);
+        when(memberRepository.checkConnection()).thenReturn(0);
+        Page<ErrorLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 1), 0L);
+        when(errorLogRepository.findAnyInRange(any(), any(), any())).thenReturn(page);
+
+        HeartbeatV2Dto hb = service.heartbeat();
+
+        assertThat(hb.getDbWorking()).isFalse();
     }
 
     @Test
@@ -161,7 +171,7 @@ class HeartbeatServiceV2UnitTest {
         LocalDateTime t5 = LocalDateTime.of(2026, 4, 10, 5, 0);
         LocalDateTime t6 = LocalDateTime.of(2026, 4, 10, 6, 0);
         allFetchesReturn(t1, t2, t3, t4, t5, t6);
-        when(catalogService.checkDatabaseConnection()).thenReturn(Boolean.TRUE);
+        when(memberRepository.checkConnection()).thenReturn(1);
         Page<ErrorLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 1), 0L);
         when(errorLogRepository.findAnyInRange(any(), any(), any())).thenReturn(page);
 
@@ -175,5 +185,22 @@ class HeartbeatServiceV2UnitTest {
         assertThat(hb.getLastCollectionData().getRestsLastFetched()).isEqualTo(t6);
         assertThat(hb.getAppName()).isEqualTo("Test Lister");
         assertThat(hb.getAppVersion()).isEqualTo("9.9.9");
+        assertThat(hb.getSystemTime()).isEqualTo(LocalDateTime.now(FIXED_CLOCK));
+    }
+
+    @Test
+    void findLatestFetchedFailureDegradesToNullRatherThanThrowing() {
+        when(memberRepository.findLatestFetched()).thenThrow(new DataAccessResourceFailureException("boom"));
+        when(subsystemRepository.findLatestFetched()).thenReturn(MID);
+        when(serviceRepository.findLatestFetched()).thenReturn(MID);
+        when(descriptorRepository.findLatestWsdlFetched()).thenReturn(MID);
+        when(descriptorRepository.findLatestOpenApiFetched()).thenReturn(MID);
+        when(descriptorRepository.findLatestRestFetched()).thenReturn(MID);
+        when(memberRepository.checkConnection()).thenReturn(1);
+
+        HeartbeatV2Dto hb = service.heartbeat();
+
+        assertThat(hb.getLastCollectionData().getMembersLastFetched()).isNull();
+        assertThat(hb.getLastRunErrors()).isZero();
     }
 }

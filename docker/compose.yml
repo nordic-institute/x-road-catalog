@@ -58,7 +58,6 @@ services:
       - setting_xroad-catalog.tasks.fetch-run-unlimited=true
       - setting_xroad-catalog.tasks.fetch-time-after-hour=3
       - setting_xroad-catalog.tasks.fetch-time-before-hour=4
-
     volumes:
       - /etc/localtime:/etc/localtime:ro
     depends_on:

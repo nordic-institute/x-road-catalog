@@ -73,7 +73,6 @@ class ListControllerTest {
     private static final String PUB = "PUB";
     private static final String SORT_BY = "sortBy";
     private static final String SERVICE_COUNT = "serviceCount";
-    private static final String INCLUDE_REMOVED = "includeRemoved";
     private static final String JSON_ERROR = "$.error";
     private static final String JSON_MESSAGE = "$.message";
     private static final String JSON_STATUS = "$.status";
@@ -192,7 +191,7 @@ class ListControllerTest {
     void listMembersHonorsFilters() throws Exception {
         MemberDto m = MemberDto.builder().memberClass(PUB).memberCode("123").name("Alice")
                 .isProvider(true).subsystemCount(2).serviceCount(7).build();
-        when(memberService.getForList(eq(PUB), eq(Boolean.TRUE), eq(false), any(Pageable.class)))
+        when(memberService.getForList(eq(PUB), eq(Boolean.TRUE), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(m), PageRequest.of(0, 20), 1));
 
         mockMvc.perform(get(LIST_MEMBERS_PATH)
@@ -210,13 +209,13 @@ class ListControllerTest {
 
     @Test
     void listMembersAppliesDefaultSort() throws Exception {
-        when(memberService.getForList(eq(null), eq(null), eq(false), any(Pageable.class)))
+        when(memberService.getForList(eq(null), eq(null), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
         mockMvc.perform(get(LIST_MEMBERS_PATH)).andExpect(status().isOk());
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(memberService).getForList(eq(null), eq(null), eq(false), captor.capture());
+        verify(memberService).getForList(eq(null), eq(null), captor.capture());
         Sort.Order primary = captor.getValue().getSort().stream().findFirst().orElseThrow();
         assertThat(primary.getProperty()).isEqualTo("name");
         assertThat(primary.getDirection()).isEqualTo(Sort.Direction.ASC);
@@ -224,14 +223,14 @@ class ListControllerTest {
 
     @Test
     void listMembersTranslatesCreatedSortToEmbeddedPath() throws Exception {
-        when(memberService.getForList(eq(null), eq(null), eq(false), any(Pageable.class)))
+        when(memberService.getForList(eq(null), eq(null), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
         mockMvc.perform(get(LIST_MEMBERS_PATH).param("sortBy", "created"))
                 .andExpect(status().isOk());
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(memberService).getForList(eq(null), eq(null), eq(false), captor.capture());
+        verify(memberService).getForList(eq(null), eq(null), captor.capture());
         Sort.Order primary = captor.getValue().getSort().stream().findFirst().orElseThrow();
         assertThat(primary.getProperty()).isEqualTo("statusInfo.created");
     }
@@ -253,20 +252,11 @@ class ListControllerTest {
     }
 
     @Test
-    void listMembersIncludeRemovedDelegatesToService() throws Exception {
-        when(memberService.getForList(eq(null), eq(null), eq(true), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
-
-        mockMvc.perform(get(LIST_MEMBERS_PATH).param(INCLUDE_REMOVED, "true"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     void listSubsystemsReturnsParentContextFields() throws Exception {
         SubsystemDto dto = SubsystemDto.builder()
                 .memberClass(PUB).memberCode("123").memberName("Alice")
                 .subsystemCode("ss1").subsystemName("First").serviceCount(3).build();
-        when(subsystemService.getForList(eq(PUB), eq(false), any(Pageable.class)))
+        when(subsystemService.getForList(eq(PUB), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1));
 
         mockMvc.perform(get(LIST_SUBSYSTEMS_PATH).param(MEMBER_CLASS_PARAM, PUB))
@@ -289,14 +279,14 @@ class ListControllerTest {
 
     @Test
     void listSubsystemsTranslatesCreatedSort() throws Exception {
-        when(subsystemService.getForList(eq(null), eq(false), any(Pageable.class)))
+        when(subsystemService.getForList(eq(null), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
         mockMvc.perform(get(LIST_SUBSYSTEMS_PATH).param(SORT_BY, "changed").param("sortOrder", "desc"))
                 .andExpect(status().isOk());
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(subsystemService).getForList(eq(null), eq(false), captor.capture());
+        verify(subsystemService).getForList(eq(null), captor.capture());
         Sort.Order primary = captor.getValue().getSort().stream().findFirst().orElseThrow();
         assertThat(primary.getProperty()).isEqualTo("statusInfo.changed");
         assertThat(primary.getDirection()).isEqualTo(Sort.Direction.DESC);
@@ -314,7 +304,7 @@ class ListControllerTest {
                 .memberClass(PUB).memberCode("123").memberName("Alice").subsystemCode("ss1")
                 .serviceCode("getThing").serviceTypes(List.of("SOAP", "REST")).versionCount(2)
                 .versions(List.of()).build();
-        when(serviceService.getForList(eq(PUB), eq("SOAP"), eq(false), any(Pageable.class)))
+        when(serviceService.getForList(eq(PUB), eq("SOAP"), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1));
 
         mockMvc.perform(get(LIST_SERVICES_PATH)
@@ -339,7 +329,7 @@ class ListControllerTest {
 
     @Test
     void listServicesAcceptsAllowedServiceTypes() throws Exception {
-        when(serviceService.getForList(eq(null), anyString(), eq(false), any(Pageable.class)))
+        when(serviceService.getForList(eq(null), anyString(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
         for (String t : new String[] {"SOAP", "REST", "OPENAPI"}) {
             mockMvc.perform(get(LIST_SERVICES_PATH).param(SERVICE_TYPE, t))
@@ -349,14 +339,14 @@ class ListControllerTest {
 
     @Test
     void listServicesUsesUnsortedPageable() throws Exception {
-        when(serviceService.getForList(eq(null), eq(null), eq(false), any(Pageable.class)))
+        when(serviceService.getForList(eq(null), eq(null), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
         mockMvc.perform(get(LIST_SERVICES_PATH).param(SORT_BY, "versionCount"))
                 .andExpect(status().isOk());
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(serviceService).getForList(eq(null), eq(null), eq(false), captor.capture());
+        verify(serviceService).getForList(eq(null), eq(null), captor.capture());
         assertThat(captor.getValue().getSort().isUnsorted()).isTrue();
     }
 }

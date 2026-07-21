@@ -24,93 +24,193 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@TestPropertySource(properties = {"xroad-catalog.shared-params-file=src/test/resources/shared-params-dev-cs.xml"})
-@ActiveProfiles({"test", "general-testdata"})
-public class SubsystemServiceV2Test {
+@ExtendWith(MockitoExtension.class)
+class SubsystemServiceV2Test {
 
+    private static final String INSTANCE = "TEST-INSTANCE";
     private static final String PUB = "PUB";
     private static final String CODE_14151328 = "14151328";
     private static final String SUBSYSTEM_A1 = "subsystem_a1";
     private static final String SUBSYSTEM_A2 = "subsystem_a2";
-    private static final String SUBSYSTEM_A3_REMOVED = "subsystem_a3_removed";
 
-    @Autowired
-    private SubsystemServiceV2 subsystemService;
+    @Mock
+    private SubsystemRepositoryV2 subsystemRepository;
+
+    @Mock
+    private MemberRepositoryV2 memberRepository;
+
+    @Mock
+    private SharedParamsCache sharedParamsCache;
+
+    @Mock
+    private InstanceContext instanceContext;
+
+    private SubsystemServiceV2 service;
+
+    @BeforeEach
+    void setUp() {
+        service = new SubsystemServiceV2(subsystemRepository, memberRepository, new SubsystemConverter(),
+                sharedParamsCache, instanceContext);
+    }
 
     @Test
-    public void testGetByNaturalKey() {
-        // From fixture: member 14151328 / subsystem_a1 (active).
-        // shared-params-dev-cs.xml carries a <subsystemName>Subsystem A1</subsystemName> for it.
-        SubsystemDto dto = subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, false);
+    void testGetByNaturalKeyReturnsDtoWithNameFromSharedParams() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(subsystemRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1))
+                .thenReturn(Optional.of(subsystemListRow(SUBSYSTEM_A1, 3)));
+        when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) ->
+                PUB.equals(memberClass) && CODE_14151328.equals(memberCode) && SUBSYSTEM_A1.equals(subsystemCode)
+                        ? "Subsystem A1" : null);
+
+        SubsystemDto dto = service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1);
+
         assertNotNull(dto);
         assertEquals(SUBSYSTEM_A1, dto.getSubsystemCode());
         assertEquals("Subsystem A1", dto.getSubsystemName(),
-                "subsystemName must come from shared-params-dev-cs.xml v5 fixture");
+                "subsystemName must be resolved from the shared-params lookup");
+        assertEquals(3, dto.getServiceCount());
     }
 
     @Test
-    public void testGetByNaturalKeyRemovedReturnsNullByDefault() {
-        SubsystemDto dto = subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A3_REMOVED, false);
-        assertNull(dto);
+    void testGetByNaturalKeyReturnsNullWhenAbsent() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(subsystemRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, CODE_14151328, "does-not-exist"))
+                .thenReturn(Optional.empty());
+
+        assertNull(service.getByNaturalKey(PUB, CODE_14151328, "does-not-exist"));
     }
 
     @Test
-    public void testGetByNaturalKeyWithIncludeRemoved() {
-        SubsystemDto dto = subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A3_REMOVED, true);
-        assertNotNull(dto);
-        assertNotNull(dto.getRemoved());
+    void testExistsActiveDelegatesToRepository() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(subsystemRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1))
+                .thenReturn(true);
+
+        assertTrue(service.existsActive(PUB, CODE_14151328, SUBSYSTEM_A1));
     }
 
     @Test
-    public void testGetForList() {
-        Page<SubsystemDto> page = subsystemService.getForList(PUB, false, PageRequest.of(0, 20));
-        assertTrue(page.getTotalElements() > 0);
+    void testGetForListMapsPageOfRows() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) -> null);
+        Page<SubsystemListRow> page = new PageImpl<>(List.of(subsystemListRow(SUBSYSTEM_A1, 1)),
+                PageRequest.of(0, 20), 1);
+        when(subsystemRepository.findActiveForList(INSTANCE, PUB, PageRequest.of(0, 20))).thenReturn(page);
+
+        Page<SubsystemDto> result = service.getForList(PUB, PageRequest.of(0, 20));
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(SUBSYSTEM_A1, result.getContent().get(0).getSubsystemCode());
     }
 
     @Test
-    public void testGetForMemberSortedBySubsystemCode() {
-        List<SubsystemDto> result = subsystemService.getForMember(PUB, CODE_14151328, false);
-        assertEquals(2, result.size(), "active-only view must include subsystem_a1 and subsystem_a2");
-        assertEquals(SUBSYSTEM_A1, result.get(0).getSubsystemCode());
-        assertEquals(SUBSYSTEM_A2, result.get(1).getSubsystemCode());
+    void testGetForMemberReturnsEmptyOptionalWhenMemberAbsent() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, "no-such-member")).thenReturn(false);
+
+        assertTrue(service.getForMember(PUB, "no-such-member").isEmpty(),
+                "absent member must yield an empty Optional (404), not an empty list");
     }
 
     @Test
-    public void testGetForMemberExcludesRemovedByDefault() {
-        List<SubsystemDto> result = subsystemService.getForMember(PUB, CODE_14151328, false);
-        result.forEach(dto -> assertNull(dto.getRemoved(), "active-only view must not surface removed subsystems"));
+    void testGetForMemberReturnsSortedSubsystemsWhenMemberExists() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328)).thenReturn(true);
+        when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) -> null);
+        when(subsystemRepository.findActiveForMember(INSTANCE, PUB, CODE_14151328)).thenReturn(List.of(
+                subsystemListRow(SUBSYSTEM_A1, 1), subsystemListRow(SUBSYSTEM_A2, 0)));
+
+        Optional<List<SubsystemDto>> result = service.getForMember(PUB, CODE_14151328);
+
+        assertTrue(result.isPresent());
+        assertEquals(2, result.get().size());
+        assertEquals(SUBSYSTEM_A1, result.get().get(0).getSubsystemCode());
+        assertEquals(SUBSYSTEM_A2, result.get().get(1).getSubsystemCode());
     }
 
     @Test
-    public void testGetForMemberIncludesRemovedWhenRequested() {
-        List<SubsystemDto> result = subsystemService.getForMember(PUB, CODE_14151328, true);
-        assertEquals(3, result.size(), "includeRemoved=true must surface subsystem_a3_removed too");
-        assertEquals(SUBSYSTEM_A1, result.get(0).getSubsystemCode());
-        assertEquals(SUBSYSTEM_A2, result.get(1).getSubsystemCode());
-        assertEquals(SUBSYSTEM_A3_REMOVED, result.get(2).getSubsystemCode());
-        assertNotNull(result.get(2).getRemoved());
+    void testGetForMemberReturnsPresentButEmptyListWhenMemberHasNoSubsystems() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328)).thenReturn(true);
+        when(subsystemRepository.findActiveForMember(INSTANCE, PUB, CODE_14151328)).thenReturn(List.of());
+
+        Optional<List<SubsystemDto>> result = service.getForMember(PUB, CODE_14151328);
+
+        assertTrue(result.isPresent(), "an existing member with zero subsystems is still a present Optional");
+        assertTrue(result.get().isEmpty());
     }
 
-    @Test
-    public void testGetForMemberNonexistentReturnsEmpty() {
-        List<SubsystemDto> result = subsystemService.getForMember(PUB, "no-such-member", false);
-        assertTrue(result.isEmpty());
+    private static SubsystemListRow subsystemListRow(String subsystemCode, long serviceCount) {
+        LocalDateTime now = LocalDateTime.now();
+        return new SubsystemListRow() {
+            @Override
+            public String getMemberClass() {
+                return PUB;
+            }
+
+            @Override
+            public String getMemberCode() {
+                return CODE_14151328;
+            }
+
+            @Override
+            public String getMemberName() {
+                return "Nahka-Albert";
+            }
+
+            @Override
+            public String getSubsystemCode() {
+                return subsystemCode;
+            }
+
+            @Override
+            public long getServiceCount() {
+                return serviceCount;
+            }
+
+            @Override
+            public LocalDateTime getCreated() {
+                return now;
+            }
+
+            @Override
+            public LocalDateTime getChanged() {
+                return now;
+            }
+
+            @Override
+            public LocalDateTime getFetched() {
+                return now;
+            }
+
+            @Override
+            public LocalDateTime getRemoved() {
+                return null;
+            }
+        };
     }
 }

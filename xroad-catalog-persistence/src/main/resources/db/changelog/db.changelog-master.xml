@@ -11,4 +11,5 @@
     <include file="/db/changelog/collector/010-common-tables.xml" />
     <include file="/db/changelog/collector/011-common-sequences.xml" />
     <include file="/db/changelog/collector/012-common-indexes.xml" />
+    <include file="/db/changelog/collector/013-v2-denormalized-backfill.xml" />
 </databaseChangeLog>

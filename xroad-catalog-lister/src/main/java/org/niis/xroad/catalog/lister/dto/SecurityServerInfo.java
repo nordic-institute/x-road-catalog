@@ -29,6 +29,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
+ */
+@Deprecated
 @Getter
 @ToString
 @EqualsAndHashCode

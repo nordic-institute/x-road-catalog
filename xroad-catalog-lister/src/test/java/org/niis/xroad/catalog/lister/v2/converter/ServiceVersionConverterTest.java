@@ -27,202 +27,186 @@ package org.niis.xroad.catalog.lister.v2.converter;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionSummaryDto;
-import org.niis.xroad.catalog.persistence.entity.Endpoint;
-import org.niis.xroad.catalog.persistence.entity.OpenApi;
-import org.niis.xroad.catalog.persistence.entity.Rest;
-import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ServiceVersionConverterTest {
+class ServiceVersionConverterTest {
 
     private static final String SERVICE_CODE = "getTaxInfo";
 
-    private final ServiceVersionConverter converter = buildConverter();
-
-    private static ServiceVersionConverter buildConverter() {
-        ServiceVersionConverter c = new ServiceVersionConverter();
-        // Inject the classifier directly; @Autowired field is resolved by Spring in production but
-        // tests wire it explicitly via reflection to keep the converter pure-unit-test friendly.
-        ReflectionTestUtils.setField(c, "classifier", new ServiceClassifier());
-        return c;
-    }
+    private final ServiceVersionConverter converter = new ServiceVersionConverter();
 
     @Test
-    void testSoapServiceType() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.setWsdl(buildWsdl());
-        ServiceVersionDto dto = converter.toDto(svc, false);
+    void testSoapHasDescriptorTrue() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "SOAP");
+        ServiceVersionDto dto = converter.toDto(svc);
         assertEquals("SOAP", dto.getServiceType());
         assertTrue(dto.isHasDescriptor());
     }
 
     @Test
-    void testOpenApiServiceType() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.setOpenApi(buildOpenApi());
-        ServiceVersionDto dto = converter.toDto(svc, false);
+    void testOpenApiHasDescriptorTrue() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
+        ServiceVersionDto dto = converter.toDto(svc);
         assertEquals("OPENAPI", dto.getServiceType());
+        assertTrue(dto.isHasDescriptor());
     }
 
     @Test
-    void testRestServiceTypeAndHasDescriptorFalseForRestEntity() {
-        // A service with only a Rest entity is classified REST — but hasDescriptor must be false
-        // because V2's /descriptor endpoint only serves WSDL/OpenAPI raw documents.
-        Service svc = buildService(SERVICE_CODE, null);
-        svc.setRest(buildRest());
-        ServiceVersionDto dto = converter.toDto(svc, false);
+    void testRestHasDescriptorFalse() {
+        ServiceV2 svc = buildService(SERVICE_CODE, null, "REST");
+        ServiceVersionDto dto = converter.toDto(svc);
         assertEquals("REST", dto.getServiceType());
-        assertFalse(dto.isHasDescriptor(),
-                "Rest entity does not count as a descriptor for V2 /descriptor endpoint");
+        assertFalse(dto.isHasDescriptor(), "REST is the descriptor-less service type");
         assertNull(dto.getServiceVersion(), "null version passes through");
     }
 
     @Test
-    void testNoDescriptor() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        ServiceVersionDto dto = converter.toDto(svc, false);
-        assertFalse(dto.isHasDescriptor());
-        assertEquals("REST", dto.getServiceType(), "services with no descriptor default to REST per V1 semantics");
+    void testUnknownHasDescriptorFalse() {
+        ServiceV2 svc = buildService(SERVICE_CODE, null, "UNKNOWN");
+        ServiceVersionDto dto = converter.toDto(svc);
+        assertEquals("UNKNOWN", dto.getServiceType(), "the unclassified state surfaces as-is, not as a REST guess");
+        assertFalse(dto.isHasDescriptor(), "a not-yet-classified service must not claim a descriptor");
     }
 
     @Test
-    void testHasDescriptorTrueForSoap() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.setWsdl(buildWsdl());
-        ServiceVersionDto dto = converter.toDto(svc, false);
-        assertTrue(dto.isHasDescriptor());
-    }
-
-    @Test
-    void testHasDescriptorTrueForOpenApi() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.setOpenApi(buildOpenApi());
-        ServiceVersionDto dto = converter.toDto(svc, false);
-        assertTrue(dto.isHasDescriptor());
-    }
-
-    @Test
-    void testEndpointsActiveOnlyByDefault() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.getAllEndpoints().add(buildEndpoint("GET", "/active", false));
-        svc.getAllEndpoints().add(buildEndpoint("GET", "/removed", true));
-        ServiceVersionDto dto = converter.toDto(svc, false);
-        assertEquals(1, dto.getEndpoints().size());
+    void testEndpointsComeFromActiveEndpointsHelper() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "REST");
+        addEndpoint(svc, "GET", "/active", false);
+        addEndpoint(svc, "GET", "/removed", true);
+        ServiceVersionDto dto = converter.toDto(svc);
+        assertEquals(1, dto.getEndpoints().size(), "getActiveEndpoints() already excludes removed rows");
         assertEquals("/active", dto.getEndpoints().get(0).getPath());
     }
 
     @Test
-    void testEndpointsIncludeRemoved() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.getAllEndpoints().add(buildEndpoint("GET", "/active", false));
-        svc.getAllEndpoints().add(buildEndpoint("GET", "/removed", true));
-        ServiceVersionDto dto = converter.toDto(svc, true);
-        assertEquals(2, dto.getEndpoints().size());
-    }
-
-    @Test
-    void testToSummarySoapServiceType() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.setWsdl(buildWsdl());
+    void testToSummaryFromEntityReadsServiceTypeColumn() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
         ServiceVersionSummaryDto summary = converter.toSummary(svc);
         assertEquals("v1", summary.getServiceVersion());
-        assertEquals("SOAP", summary.getServiceType());
-    }
-
-    @Test
-    void testToSummaryOpenApiServiceType() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        svc.setOpenApi(buildOpenApi());
-        ServiceVersionSummaryDto summary = converter.toSummary(svc);
         assertEquals("OPENAPI", summary.getServiceType());
     }
 
     @Test
-    void testToSummaryRestServiceType() {
-        Service svc = buildService(SERVICE_CODE, null);
-        svc.setRest(buildRest());
-        ServiceVersionSummaryDto summary = converter.toSummary(svc);
-        assertEquals("REST", summary.getServiceType());
-        assertNull(summary.getServiceVersion(), "null version passes through");
-    }
-
-    @Test
-    void testToSummaryDefaultsToRestWithoutDescriptor() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        ServiceVersionSummaryDto summary = converter.toSummary(svc);
-        assertEquals("REST", summary.getServiceType(), "services with no descriptor default to REST per V1 semantics");
-    }
-
-    @Test
-    void testToSummaryPopulatesTimestamps() {
-        Service svc = buildService(SERVICE_CODE, "v1");
+    void testToSummaryFromEntityPopulatesTimestamps() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "REST");
         LocalDateTime removedAt = LocalDateTime.now();
-        svc.getStatusInfo().setRemoved(removedAt);
+        ReflectionTestUtils.setField(svc, "statusInfo",
+                new StatusInfo(removedAt, removedAt, removedAt, removedAt));
         ServiceVersionSummaryDto summary = converter.toSummary(svc);
-        assertNotNull(summary.getCreated());
-        assertNotNull(summary.getChanged());
-        assertNotNull(summary.getFetched());
         assertEquals(removedAt, summary.getRemoved());
     }
 
     @Test
-    void testToSummaryRemovedNullWhenActive() {
-        Service svc = buildService(SERVICE_CODE, "v1");
-        ServiceVersionSummaryDto summary = converter.toSummary(svc);
+    void testToSummaryFromRowMapsAllFields() {
+        LocalDateTime now = LocalDateTime.now();
+        ServiceVersionRow row = new FakeServiceVersionRow("PUB", "14151328", "Nahka-Albert", "sub1", 1L,
+                SERVICE_CODE, "v2", "SOAP", now, now, now, null);
+        ServiceVersionSummaryDto summary = converter.toSummary(row);
+        assertEquals("v2", summary.getServiceVersion());
+        assertEquals("SOAP", summary.getServiceType());
+        assertEquals(now, summary.getCreated());
         assertNull(summary.getRemoved());
     }
 
-    private Service buildService(String code, String version) {
-        Service s = new Service();
-        s.setServiceCode(code);
-        s.setServiceVersion(version);
+    private ServiceV2 buildService(String code, String version, String serviceType) {
+        ServiceV2 s = new ServiceV2();
+        ReflectionTestUtils.setField(s, "serviceCode", code);
+        ReflectionTestUtils.setField(s, "serviceVersion", version);
+        ReflectionTestUtils.setField(s, "serviceType", serviceType);
         LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, null));
-        s.setEndpoints(new HashSet<>());
-        s.setWsdls(new HashSet<>());
-        s.setOpenApis(new HashSet<>());
-        s.setRests(new HashSet<>());
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(s, "endpoints", new HashSet<EndpointV2>());
         return s;
     }
 
-    private Wsdl buildWsdl() {
-        Wsdl w = new Wsdl();
+    private void addEndpoint(ServiceV2 service, String method, String path, boolean removed) {
+        EndpointV2 e = new EndpointV2();
+        ReflectionTestUtils.setField(e, "service", service);
+        ReflectionTestUtils.setField(e, "method", method);
+        ReflectionTestUtils.setField(e, "path", path);
         LocalDateTime now = LocalDateTime.now();
-        w.setStatusInfo(new StatusInfo(now, now, now, null));
-        return w;
+        ReflectionTestUtils.setField(e, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
+        Set<EndpointV2> endpoints = service.getEndpoints();
+        endpoints.add(e);
     }
 
-    private OpenApi buildOpenApi() {
-        OpenApi o = new OpenApi();
-        LocalDateTime now = LocalDateTime.now();
-        o.setStatusInfo(new StatusInfo(now, now, now, null));
-        return o;
-    }
+    @SuppressWarnings("PMD.DataClass")
+    private record FakeServiceVersionRow(String memberClass, String memberCode, String memberName,
+                                  String subsystemCode, long subsystemId, String serviceCode, String serviceVersion,
+                                  String serviceType, LocalDateTime created, LocalDateTime changed,
+                                  LocalDateTime fetched, LocalDateTime removed) implements ServiceVersionRow {
 
-    private Rest buildRest() {
-        Rest r = new Rest();
-        LocalDateTime now = LocalDateTime.now();
-        r.setStatusInfo(new StatusInfo(now, now, now, null));
-        return r;
-    }
+        @Override
+        public String getMemberClass() {
+            return memberClass;
+        }
 
-    private Endpoint buildEndpoint(String method, String path, boolean removed) {
-        Endpoint e = new Endpoint();
-        e.setMethod(method);
-        e.setPath(path);
-        LocalDateTime now = LocalDateTime.now();
-        e.setStatusInfo(new StatusInfo(now, now, now, removed ? now : null));
-        return e;
+        @Override
+        public String getMemberCode() {
+            return memberCode;
+        }
+
+        @Override
+        public String getMemberName() {
+            return memberName;
+        }
+
+        @Override
+        public String getSubsystemCode() {
+            return subsystemCode;
+        }
+
+        @Override
+        public long getSubsystemId() {
+            return subsystemId;
+        }
+
+        @Override
+        public String getServiceCode() {
+            return serviceCode;
+        }
+
+        @Override
+        public String getServiceVersion() {
+            return serviceVersion;
+        }
+
+        @Override
+        public String getServiceType() {
+            return serviceType;
+        }
+
+        @Override
+        public LocalDateTime getCreated() {
+            return created;
+        }
+
+        @Override
+        public LocalDateTime getChanged() {
+            return changed;
+        }
+
+        @Override
+        public LocalDateTime getFetched() {
+            return fetched;
+        }
+
+        @Override
+        public LocalDateTime getRemoved() {
+            return removed;
+        }
     }
 }

@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.converter.MemberConverter;
 import org.niis.xroad.catalog.lister.v2.converter.ServiceAggregator;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
@@ -33,137 +32,94 @@ import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
-import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
-import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 
-@Slf4j
+/**
+ * V2 member service, backed by the {@link MemberRepositoryV2} read model.
+ */
 @Service
 public class MemberServiceV2 {
 
-    @Autowired
-    private MemberRepositoryV2 memberRepository;
+    private final MemberRepositoryV2 memberRepository;
+    private final MemberConverter converter;
+    private final SubsystemConverter subsystemConverter;
+    private final ServiceAggregator serviceAggregator;
+    private final SharedParamsCache sharedParamsCache;
+    private final InstanceContext instanceContext;
 
-    @Autowired
-    private MemberConverter converter;
-
-    @Autowired
-    private SubsystemConverter subsystemConverter;
-
-    @Autowired
-    private ServiceAggregator serviceAggregator;
-
-    @Autowired
-    private SharedParamsParserV2 sharedParamsParser;
-
-    @Autowired
-    private InstanceContext instanceContext;
-
-    @Value("${xroad-catalog.shared-params-file}")
-    private String sharedParamsFile;
-
-    public MemberDto getByNaturalKey(String memberClass, String memberCode, boolean includeRemoved) {
-        String xRoadInstance = instanceContext.getCurrentInstance();
-        Member member;
-        if (includeRemoved) {
-            member = memberRepository.findAnyByNaturalKey(xRoadInstance, memberClass, memberCode);
-        } else {
-            member = memberRepository.findActiveByNaturalKey(xRoadInstance, memberClass, memberCode);
-        }
-        if (member == null) {
-            return null;
-        }
-        return includeRemoved ? converter.toDtoIncludingRemoved(member) : converter.toDto(member);
+    public MemberServiceV2(MemberRepositoryV2 memberRepository, MemberConverter converter,
+            SubsystemConverter subsystemConverter, ServiceAggregator serviceAggregator,
+            SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+        this.memberRepository = memberRepository;
+        this.converter = converter;
+        this.subsystemConverter = subsystemConverter;
+        this.serviceAggregator = serviceAggregator;
+        this.sharedParamsCache = sharedParamsCache;
+        this.instanceContext = instanceContext;
     }
 
-    public Page<MemberDto> getForList(String memberClass, Boolean isProvider,
-                                      boolean includeRemoved, Pageable pageable) {
-        boolean activeOnly = !includeRemoved;
-        Page<Member> members = memberRepository.findForList(memberClass, isProvider, activeOnly, pageable);
-        return includeRemoved ? members.map(converter::toDtoIncludingRemoved) : members.map(converter::toDto);
+    /**
+     * @return the member's flat DTO, or {@code null} if absent or removed (controller maps to 404)
+     */
+    public MemberDto getByNaturalKey(String memberClass, String memberCode) {
+        return memberRepository.findActiveSummaryByNaturalKey(
+                        instanceContext.getCurrentInstance(), memberClass, memberCode)
+                .map(converter::toDto)
+                .orElse(null);
+    }
+
+    public boolean existsActive(String memberClass, String memberCode) {
+        return memberRepository.existsActiveByNaturalKey(
+                instanceContext.getCurrentInstance(), memberClass, memberCode);
+    }
+
+    public Page<MemberDto> getForList(String memberClass, Boolean isProvider, Pageable pageable) {
+        Page<MemberListRow> rows = memberRepository.findActiveForList(
+                instanceContext.getCurrentInstance(), memberClass, isProvider, pageable);
+        return rows.map(converter::toDto);
     }
 
     /**
      * Builds the full nested subtree for a single member ({@code ?full=true}). Returns {@code null}
-     * when the member is absent (or removed and {@code includeRemoved} is false) so the controller
-     * can map to 404. Subsystems are sorted by {@code subsystemCode} ascending and services within
-     * each subsystem by {@code serviceCode} ascending for deterministic output across restarts
-     * (the underlying entity Sets iterate in insertion order).
+     * when the member is absent so the controller can map to 404. Subsystems are sorted by
+     * {@code subsystemCode} ascending and services within each subsystem by {@code serviceCode}
+     * ascending for deterministic output across restarts.
      */
-    public FullMemberDto getFullTree(String memberClass, String memberCode, boolean includeRemoved) {
-        String xRoadInstance = instanceContext.getCurrentInstance();
-        Member member = includeRemoved
-                ? memberRepository.findAnyByNaturalKeyWithFullTree(xRoadInstance, memberClass, memberCode)
-                : memberRepository.findActiveByNaturalKeyWithFullTree(xRoadInstance, memberClass, memberCode);
+    public FullMemberDto getFullTree(String memberClass, String memberCode) {
+        MemberV2 member = memberRepository.findActiveWithTreeByNaturalKey(
+                instanceContext.getCurrentInstance(), memberClass, memberCode).orElse(null);
         if (member == null) {
             return null;
         }
-        SubsystemNameLookup nameLookup = subsystemNameLookup();
-        List<Subsystem> sortedSubsystems = sortedSubsystems(member, includeRemoved);
+        SubsystemNameLookup nameLookup = sharedParamsCache.subsystemNames();
         List<FullSubsystemDto> subsystemDtos = new ArrayList<>();
-        for (Subsystem sub : sortedSubsystems) {
-            List<ServiceDto> services = aggregateServices(sub, includeRemoved);
-            subsystemDtos.add(subsystemConverter.toFullDto(sub, nameLookup, services, includeRemoved));
-        }
-        return converter.toFullDto(member, subsystemDtos, includeRemoved);
-    }
-
-    private List<Subsystem> sortedSubsystems(Member member, boolean includeRemoved) {
-        Set<Subsystem> source = includeRemoved ? member.getAllSubsystems() : member.getActiveSubsystems();
-        List<Subsystem> list = new ArrayList<>(source);
-        list.sort(Comparator.comparing(Subsystem::getSubsystemCode));
-        return list;
-    }
-
-    private List<ServiceDto> aggregateServices(Subsystem subsystem, boolean includeRemoved) {
-        Set<org.niis.xroad.catalog.persistence.entity.Service> source = includeRemoved
-                ? subsystem.getAllServices() : subsystem.getActiveServices();
-        Map<String, List<org.niis.xroad.catalog.persistence.entity.Service>> byCode = new LinkedHashMap<>();
-        List<org.niis.xroad.catalog.persistence.entity.Service> sortedByCode = new ArrayList<>(source);
-        sortedByCode.sort(Comparator.comparing(org.niis.xroad.catalog.persistence.entity.Service::getServiceCode));
-        for (org.niis.xroad.catalog.persistence.entity.Service s : sortedByCode) {
-            byCode.computeIfAbsent(s.getServiceCode(), k -> new ArrayList<>()).add(s);
-        }
-        List<ServiceDto> aggregates = new ArrayList<>();
-        for (List<org.niis.xroad.catalog.persistence.entity.Service> group : byCode.values()) {
-            ServiceDto dto = serviceAggregator.aggregate(group, includeRemoved);
-            if (dto != null) {
-                aggregates.add(dto);
+        List<SubsystemV2> sorted = member.getActiveSubsystems().stream()
+                .sorted(Comparator.comparing(SubsystemV2::getSubsystemCode)).toList();
+        for (SubsystemV2 sub : sorted) {
+            Map<String, List<ServiceV2>> byCode = new TreeMap<>();
+            for (ServiceV2 svc : sub.getActiveServices()) {
+                byCode.computeIfAbsent(svc.getServiceCode(), k -> new ArrayList<>()).add(svc);
             }
-        }
-        aggregates.sort(Comparator.comparing(ServiceDto::getServiceCode));
-        return aggregates;
-    }
-
-    private SubsystemNameLookup subsystemNameLookup() {
-        Map<String, String> byKey = new HashMap<>();
-        try {
-            List<SubsystemNameInfo> names = sharedParamsParser.parseSubsystemNames(sharedParamsFile);
-            for (SubsystemNameInfo n : names) {
-                byKey.put(keyOf(n.getMemberClass(), n.getMemberCode(), n.getSubsystemCode()), n.getSubsystemName());
+            List<ServiceDto> services = new ArrayList<>();
+            for (List<ServiceV2> group : byCode.values()) {
+                services.add(serviceAggregator.fromEntities(member.getMemberClass(), member.getMemberCode(),
+                        member.getName(), sub.getSubsystemCode(), group));
             }
-        } catch (Exception e) {
-            log.warn("Failed to parse shared-params for subsystemName enrichment: {}", sharedParamsFile, e);
+            subsystemDtos.add(subsystemConverter.toFullDto(sub, nameLookup, services));
         }
-        return (mc, mcode, sc) -> byKey.get(keyOf(mc, mcode, sc));
-    }
-
-    private String keyOf(String memberClass, String memberCode, String subsystemCode) {
-        return memberClass + "|" + memberCode + "|" + subsystemCode;
+        return converter.toFullDto(member, subsystemDtos);
     }
 }

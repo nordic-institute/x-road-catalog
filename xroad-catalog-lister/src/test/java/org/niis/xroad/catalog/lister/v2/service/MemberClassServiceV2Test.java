@@ -24,53 +24,125 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberClassCountRow;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@TestPropertySource(properties = {"xroad-catalog.shared-params-file=src/test/resources/shared-params-2.xml"})
-@ActiveProfiles({"test", "general-testdata"})
-public class MemberClassServiceV2Test {
+@ExtendWith(MockitoExtension.class)
+class MemberClassServiceV2Test {
 
-    @Autowired
-    private MemberClassServiceV2 memberClassService;
+    private static final String INSTANCE = "TEST-INSTANCE";
+    private static final String PUB = "PUB";
+
+    @Mock
+    private SharedParamsCache sharedParamsCache;
+
+    @Mock
+    private MemberRepositoryV2 memberRepository;
+
+    @Mock
+    private InstanceContext instanceContext;
+
+    private MemberClassServiceV2 service;
+
+    @BeforeEach
+    void setUp() {
+        service = new MemberClassServiceV2(sharedParamsCache, memberRepository, instanceContext);
+    }
 
     @Test
-    public void testListMemberClassesIncludesPubMemberCount() {
-        List<MemberClassDto> classes = memberClassService.list();
-        assertNotNull(classes);
+    void testListIncludesPubMemberCount() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.memberClasses())
+                .thenReturn(new SharedParamsCache.MemberClasses(Map.of(PUB, "Public"), Set.of(PUB)));
+        when(memberRepository.countActiveGroupedByMemberClass(INSTANCE)).thenReturn(List.of(
+                countRow(PUB, 5L)));
+
+        List<MemberClassDto> classes = service.list();
+
         assertFalse(classes.isEmpty());
-        boolean pubPresent = classes.stream().anyMatch(c -> "PUB".equals(c.getCode()) && c.getMemberCount() > 0);
+        boolean pubPresent = classes.stream().anyMatch(c -> PUB.equals(c.getCode()) && c.getMemberCount() > 0);
         assertTrue(pubPresent, "PUB class present in DB must appear in listing with positive memberCount");
     }
 
     @Test
-    public void testGetByCodeReturnsMatchingClass() {
-        MemberClassDto pub = memberClassService.getByCode("PUB");
+    void testListSortsByCode() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.memberClasses())
+                .thenReturn(new SharedParamsCache.MemberClasses(Map.of(), Set.of()));
+        when(memberRepository.countActiveGroupedByMemberClass(INSTANCE)).thenReturn(List.of(
+                countRow(PUB, 2L), countRow("COM", 1L), countRow("GOV", 3L)));
+
+        List<MemberClassDto> classes = service.list();
+
+        assertEquals(List.of("COM", "GOV", PUB), classes.stream().map(MemberClassDto::getCode).toList());
+    }
+
+    @Test
+    void testGetByCodeReturnsMatchingClass() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(memberRepository.countActiveByMemberClass(INSTANCE, PUB)).thenReturn(4L);
+
+        MemberClassDto pub = service.getByCode(PUB);
+
         assertNotNull(pub, "PUB class should be returned by getByCode");
-        assertEquals("PUB", pub.getCode());
+        assertEquals(PUB, pub.getCode());
         assertTrue(pub.getMemberCount() > 0, "PUB must have a positive member count");
     }
 
     @Test
-    public void testGetByCodeReturnsNullForUnknownCode() {
-        assertNull(memberClassService.getByCode("DOES-NOT-EXIST"));
+    void testGetByCodeReturnsNullForUnknownCode() {
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(memberRepository.countActiveByMemberClass(INSTANCE, "DOES-NOT-EXIST")).thenReturn(0L);
+
+        assertNull(service.getByCode("DOES-NOT-EXIST"));
     }
 
     @Test
-    public void testGetByCodeReturnsNullForNullInput() {
-        assertNull(memberClassService.getByCode(null));
+    void testGetByCodeReturnsNullForNullInput() {
+        assertNull(service.getByCode(null));
+    }
+
+    @Test
+    void testGetByCodeToleratesParserFailure() {
+        // The cache absorbs parser failures internally and serves an empty map for the TTL window;
+        // the service must still surface a class backed by real members.
+        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.memberClassDescriptions()).thenReturn(Map.of());
+        when(memberRepository.countActiveByMemberClass(INSTANCE, PUB)).thenReturn(1L);
+
+        MemberClassDto pub = service.getByCode(PUB);
+
+        assertNotNull(pub, "a parser failure must not prevent returning a class backed by real members");
+    }
+
+    private static MemberClassCountRow countRow(String code, long count) {
+        return new MemberClassCountRow() {
+            @Override
+            public String getCode() {
+                return code;
+            }
+
+            @Override
+            public long getMemberCount() {
+                return count;
+            }
+        };
     }
 }

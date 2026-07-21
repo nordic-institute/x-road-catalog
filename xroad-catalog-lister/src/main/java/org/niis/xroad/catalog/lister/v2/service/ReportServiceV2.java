@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import org.niis.xroad.catalog.lister.v2.converter.ServiceClassifier;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogBucketDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogBucketsDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogDayDto;
@@ -32,54 +31,58 @@ import org.niis.xroad.catalog.lister.v2.dto.ChangeLogMemberItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Service;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.catalog.persistence.repository.ReportsRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberChangeRow;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceChangeRow;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemChangeRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * V2 report service. Produces reports derived from the collected catalog.
+ * V2 report service. Produces reports derived from the collected catalog, computed entirely via
+ * SQL aggregates on {@link ReportsRepositoryV2} — no entity hydration, no per-day query loops.
  *
- * <p>The per-day {@link #serviceStatistics(LocalDate, LocalDate)} report corrects a
- * V1 over-count bug: V1 used {@code !created.isAfter(dayEnd)} and so would include a service
- * created at {@code day+1 00:00:00} in the previous day's count. V2 uses
- * {@code created < nextDayStart} (half-open), aligning "end of day" with the natural
- * {@code [dayStart, nextDayStart)} window.
+ * <p>{@link #serviceStatistics(LocalDate, LocalDate)} pre-fills every day in the requested window
+ * with zero counts, then folds the single {@code countServicesPerDay} result set (one row per
+ * {@code (day, service_type)} pair, computed by a delta-based window-function query rather than a
+ * per-day join) on top of that scaffold, so the wire format has one row per day regardless of
+ * whether the query returns any rows for a given day.
  *
- * <p>The {@link #changeLog(LocalDate, LocalDate, Pageable)} report iterates the range
- * day by day and emits only days on which at least one member, subsystem or service was
- * created, modified or removed.
+ * <p>{@link #changeLog(LocalDate, LocalDate, Pageable)} first fetches the page's event days from
+ * {@code findChangeLogDayPage} — a single DB-paginated query over the whole window — then narrows
+ * the nine change-log item queries to that page's day span, so the cost of a page is proportional
+ * to the page rather than to the whole requested window.
  */
-@Component
+@Service
 public class ReportServiceV2 {
 
     /** Hard cap on the range passed to any report method (spec §4). */
     private static final long MAX_REPORT_DAYS = 90;
 
-    @Autowired
-    private MemberRepositoryV2 memberRepository;
+    private static final int SOAP_INDEX = 0;
+    private static final int OPENAPI_INDEX = 1;
+    private static final int REST_INDEX = 2;
+    private static final int SERVICE_TYPE_COLUMN_COUNT = 3;
+    // UNKNOWN (not yet classified by the collector recompute) belongs to no descriptor bucket and
+    // is left out rather than inflating the REST count with a guess.
+    private static final int UNCLASSIFIED_INDEX = -1;
 
-    @Autowired
-    private SubsystemRepositoryV2 subsystemRepository;
+    private final ReportsRepositoryV2 reportsRepository;
 
-    @Autowired
-    private ServiceRepositoryV2 serviceRepository;
-
-    @Autowired
-    private ServiceClassifier classifier;
+    public ReportServiceV2(ReportsRepositoryV2 reportsRepository) {
+        this.reportsRepository = reportsRepository;
+    }
 
     /**
      * Per-day snapshot of service counts by descriptor type over {@code [since, until)}.
@@ -92,56 +95,36 @@ public class ReportServiceV2 {
      */
     public List<ServiceStatisticsRowDto> serviceStatistics(LocalDate since, LocalDate until) {
         validateReportRange(since, until);
-
-        // Load all service rows once (active + removed). Counts are computed in memory per day
-        // because every day in the range needs to inspect the same full set.
-        List<Service> allServices = new ArrayList<>();
-        serviceRepository.findAll().forEach(allServices::add);
-
-        List<ServiceStatisticsRowDto> out = new ArrayList<>();
-        LocalDate day = since;
-        while (day.isBefore(until)) {
-            LocalDateTime nextDayStart = day.plusDays(1).atStartOfDay();
-            out.add(countServicesAtEndOfDay(day, nextDayStart, allServices));
-            day = day.plusDays(1);
+        List<Object[]> rows = reportsRepository.countServicesPerDay(since, until);
+        Map<LocalDate, long[]> byDay = new TreeMap<>();
+        for (LocalDate day = since; day.isBefore(until); day = day.plusDays(1)) {
+            byDay.put(day, new long[SERVICE_TYPE_COLUMN_COUNT]);
         }
-        return out;
-    }
-
-    /**
-     * Snapshot semantics: a service counts toward a given day when it existed at the
-     * end of that day — equivalently, when
-     * {@code created < nextDayStart && (removed == null || removed >= nextDayStart)}.
-     */
-    private ServiceStatisticsRowDto countServicesAtEndOfDay(LocalDate day,
-                                                            LocalDateTime nextDayStart,
-                                                            List<Service> allServices) {
-        long soap = 0;
-        long rest = 0;
-        long openapi = 0;
-        for (Service svc : allServices) {
-            LocalDateTime created = svc.getStatusInfo().getCreated();
-            LocalDateTime removed = svc.getStatusInfo().getRemoved();
-            boolean existedAtDayEnd = created.isBefore(nextDayStart)
-                    && (removed == null || !removed.isBefore(nextDayStart));
-            if (!existedAtDayEnd) {
+        for (Object[] row : rows) {
+            LocalDate day = ((Date) row[0]).toLocalDate();
+            long[] counts = byDay.get(day);
+            if (counts == null || row[1] == null) {
                 continue;
             }
-            String type = classifier.resolveType(svc);
-            if ("SOAP".equals(type)) {
-                soap++;
-            } else if ("OPENAPI".equals(type)) {
-                openapi++;
-            } else {
-                rest++;
+            long count = ((Number) row[2]).longValue();
+            int index = switch ((String) row[1]) {
+                case "SOAP" -> SOAP_INDEX;
+                case "OPENAPI" -> OPENAPI_INDEX;
+                case "REST" -> REST_INDEX;
+                default -> UNCLASSIFIED_INDEX;
+            };
+            if (index != UNCLASSIFIED_INDEX) {
+                counts[index] += count;
             }
         }
-        return ServiceStatisticsRowDto.builder()
+        List<ServiceStatisticsRowDto> out = new ArrayList<>(byDay.size());
+        byDay.forEach((day, counts) -> out.add(ServiceStatisticsRowDto.builder()
                 .date(day)
-                .soapServices(soap)
-                .restServices(rest)
-                .openApiServices(openapi)
-                .build();
+                .soapServices(counts[SOAP_INDEX])
+                .openApiServices(counts[OPENAPI_INDEX])
+                .restServices(counts[REST_INDEX])
+                .build()));
+        return out;
     }
 
     /**
@@ -160,57 +143,65 @@ public class ReportServiceV2 {
      */
     public Page<ChangeLogDayDto> changeLog(LocalDate since, LocalDate until, Pageable pageable) {
         validateReportRange(since, until);
+        LocalDateTime start = since.atStartOfDay();
+        LocalDateTime end = until.atStartOfDay();
 
-        List<ChangeLogDayDto> allDays = new ArrayList<>();
-        LocalDate day = since;
-        while (day.isBefore(until)) {
-            LocalDateTime dayStart = day.atStartOfDay();
-            LocalDateTime dayEnd = day.plusDays(1).atStartOfDay();
-            ChangeLogDayDto dayDto = buildDayDto(day, dayStart, dayEnd);
-            if (dayDto != null) {
-                allDays.add(dayDto);
-            }
-            day = day.plusDays(1);
+        List<Object[]> dayPage = reportsRepository.findChangeLogDayPage(
+                start, end, pageable.getPageSize(), pageable.getOffset());
+        if (dayPage.isEmpty()) {
+            long total = pageable.getOffset() == 0 ? 0 : reportsRepository.countChangeLogDays(start, end);
+            return new PageImpl<>(List.of(), pageable, total);
         }
-        int from = (int) Math.min(pageable.getOffset(), allDays.size());
-        int to = Math.min(from + pageable.getPageSize(), allDays.size());
-        return new PageImpl<>(allDays.subList(from, to), pageable, allDays.size());
+        long totalDays = ((Number) dayPage.get(0)[1]).longValue();
+        LocalDate firstDay = ((Date) dayPage.get(0)[0]).toLocalDate();
+        LocalDate lastDay = ((Date) dayPage.get(dayPage.size() - 1)[0]).toLocalDate();
+
+        // The page's days are consecutive members of the sorted event-day list, so narrowing the
+        // nine item queries to [firstDay, lastDay+1) yields exactly the items of this page: any
+        // event day inside that span would itself have been on the page.
+        LocalDateTime pageStart = firstDay.atStartOfDay();
+        LocalDateTime pageEnd = lastDay.plusDays(1).atStartOfDay();
+        Map<LocalDate, DayBuckets> days = new TreeMap<>();
+        reportsRepository.findMembersCreatedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).membersCreated.add(r));
+        reportsRepository.findMembersModifiedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).membersModified.add(r));
+        reportsRepository.findMembersRemovedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).membersRemoved.add(r));
+        reportsRepository.findSubsystemsCreatedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).subsystemsCreated.add(r));
+        reportsRepository.findSubsystemsModifiedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).subsystemsModified.add(r));
+        reportsRepository.findSubsystemsRemovedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).subsystemsRemoved.add(r));
+        reportsRepository.findServicesCreatedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).servicesCreated.add(r));
+        reportsRepository.findServicesModifiedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).servicesModified.add(r));
+        reportsRepository.findServicesRemovedBetween(pageStart, pageEnd)
+                .forEach(r -> dayOf(days, r.getEventTime()).servicesRemoved.add(r));
+
+        List<ChangeLogDayDto> dayDtos = days.entrySet().stream()
+                .map(e -> toDayDto(e.getKey(), e.getValue()))
+                .toList();
+        return new PageImpl<>(dayDtos, pageable, totalDays);
     }
 
-    /**
-     * Assembles a {@link ChangeLogDayDto} for a single {@code [dayStart, dayEnd)} slice.
-     * Returns {@code null} if nothing was created, modified or removed during that day.
-     */
-    private ChangeLogDayDto buildDayDto(LocalDate day, LocalDateTime dayStart, LocalDateTime dayEnd) {
-        List<Member> createdMembers = memberRepository.findCreatedBetween(dayStart, dayEnd);
-        List<Member> modifiedMembers = memberRepository.findModifiedBetween(dayStart, dayEnd);
-        List<Member> removedMembers = memberRepository.findRemovedBetween(dayStart, dayEnd);
-        List<Subsystem> createdSubs = subsystemRepository.findCreatedBetween(dayStart, dayEnd);
-        List<Subsystem> modifiedSubs = subsystemRepository.findChangedBetween(dayStart, dayEnd);
-        List<Subsystem> removedSubs = subsystemRepository.findRemovedBetween(dayStart, dayEnd);
-        List<Service> createdSvcs = serviceRepository.findCreatedBetween(dayStart, dayEnd);
-        List<Service> modifiedSvcs = serviceRepository.findChangedBetween(dayStart, dayEnd);
-        List<Service> removedSvcs = serviceRepository.findRemovedBetween(dayStart, dayEnd);
+    private static DayBuckets dayOf(Map<LocalDate, DayBuckets> days, LocalDateTime eventTime) {
+        return days.computeIfAbsent(eventTime.toLocalDate(), d -> new DayBuckets());
+    }
 
-        int total = createdMembers.size() + modifiedMembers.size() + removedMembers.size()
-                + createdSubs.size() + modifiedSubs.size() + removedSubs.size()
-                + createdSvcs.size() + modifiedSvcs.size() + removedSvcs.size();
-        if (total == 0) {
-            return null;
-        }
+    private static ChangeLogDayDto toDayDto(LocalDate day, DayBuckets b) {
         return ChangeLogDayDto.builder()
                 .date(day)
-                .created(bucketsFor(createdMembers, createdSubs, createdSvcs))
-                .modified(bucketsFor(modifiedMembers, modifiedSubs, modifiedSvcs))
-                .removed(bucketsFor(removedMembers, removedSubs, removedSvcs))
+                .created(bucketsFor(b.membersCreated, b.subsystemsCreated, b.servicesCreated))
+                .modified(bucketsFor(b.membersModified, b.subsystemsModified, b.servicesModified))
+                .removed(bucketsFor(b.membersRemoved, b.subsystemsRemoved, b.servicesRemoved))
                 .build();
     }
 
-    /**
-     * Wraps the three entity-type lists into a {@link ChangeLogBucketsDto} with per-type
-     * counts and item DTOs.
-     */
-    private ChangeLogBucketsDto bucketsFor(List<Member> members, List<Subsystem> subsystems, List<Service> services) {
+    private static ChangeLogBucketsDto bucketsFor(List<MemberChangeRow> members, List<SubsystemChangeRow> subsystems,
+            List<ServiceChangeRow> services) {
         return ChangeLogBucketsDto.builder()
                 .members(toMemberBucket(members))
                 .subsystems(toSubsystemBucket(subsystems))
@@ -218,57 +209,58 @@ public class ReportServiceV2 {
                 .build();
     }
 
-    private ChangeLogBucketDto<ChangeLogMemberItemDto> toMemberBucket(List<Member> members) {
-        List<ChangeLogMemberItemDto> items = new ArrayList<>(members.size());
-        for (Member m : members) {
+    private static ChangeLogBucketDto<ChangeLogMemberItemDto> toMemberBucket(List<MemberChangeRow> rows) {
+        List<ChangeLogMemberItemDto> items = new ArrayList<>(rows.size());
+        for (MemberChangeRow r : rows) {
             items.add(ChangeLogMemberItemDto.builder()
-                    .memberClass(m.getMemberClass())
-                    .memberCode(m.getMemberCode())
-                    .name(m.getName())
+                    .memberClass(r.getMemberClass())
+                    .memberCode(r.getMemberCode())
+                    .name(r.getName())
                     .build());
         }
-        return ChangeLogBucketDto.<ChangeLogMemberItemDto>builder()
-                .count(items.size())
-                .items(items)
-                .build();
+        return ChangeLogBucketDto.<ChangeLogMemberItemDto>builder().count(items.size()).items(items).build();
     }
 
-    private ChangeLogBucketDto<ChangeLogSubsystemItemDto> toSubsystemBucket(List<Subsystem> subsystems) {
-        List<ChangeLogSubsystemItemDto> items = new ArrayList<>(subsystems.size());
-        for (Subsystem s : subsystems) {
-            Member owner = s.getMember();
+    private static ChangeLogBucketDto<ChangeLogSubsystemItemDto> toSubsystemBucket(List<SubsystemChangeRow> rows) {
+        List<ChangeLogSubsystemItemDto> items = new ArrayList<>(rows.size());
+        for (SubsystemChangeRow r : rows) {
             items.add(ChangeLogSubsystemItemDto.builder()
-                    .memberClass(owner.getMemberClass())
-                    .memberCode(owner.getMemberCode())
-                    .memberName(owner.getName())
-                    .subsystemCode(s.getSubsystemCode())
+                    .memberClass(r.getMemberClass())
+                    .memberCode(r.getMemberCode())
+                    .memberName(r.getMemberName())
+                    .subsystemCode(r.getSubsystemCode())
                     .build());
         }
-        return ChangeLogBucketDto.<ChangeLogSubsystemItemDto>builder()
-                .count(items.size())
-                .items(items)
-                .build();
+        return ChangeLogBucketDto.<ChangeLogSubsystemItemDto>builder().count(items.size()).items(items).build();
     }
 
-    private ChangeLogBucketDto<ChangeLogServiceItemDto> toServiceBucket(List<Service> services) {
-        List<ChangeLogServiceItemDto> items = new ArrayList<>(services.size());
-        for (Service svc : services) {
-            Subsystem sub = svc.getSubsystem();
-            Member owner = sub.getMember();
+    private static ChangeLogBucketDto<ChangeLogServiceItemDto> toServiceBucket(List<ServiceChangeRow> rows) {
+        List<ChangeLogServiceItemDto> items = new ArrayList<>(rows.size());
+        for (ServiceChangeRow r : rows) {
             items.add(ChangeLogServiceItemDto.builder()
-                    .memberClass(owner.getMemberClass())
-                    .memberCode(owner.getMemberCode())
-                    .memberName(owner.getName())
-                    .subsystemCode(sub.getSubsystemCode())
-                    .serviceCode(svc.getServiceCode())
-                    .serviceVersion(svc.getServiceVersion())
-                    .serviceType(classifier.resolveType(svc))
+                    .memberClass(r.getMemberClass())
+                    .memberCode(r.getMemberCode())
+                    .memberName(r.getMemberName())
+                    .subsystemCode(r.getSubsystemCode())
+                    .serviceCode(r.getServiceCode())
+                    .serviceVersion(r.getServiceVersion())
+                    .serviceType(r.getServiceType())
                     .build());
         }
-        return ChangeLogBucketDto.<ChangeLogServiceItemDto>builder()
-                .count(items.size())
-                .items(items)
-                .build();
+        return ChangeLogBucketDto.<ChangeLogServiceItemDto>builder().count(items.size()).items(items).build();
+    }
+
+    /** Per-day buckets accumulated while folding the nine change-log query results. */
+    private static final class DayBuckets {
+        private final List<MemberChangeRow> membersCreated = new ArrayList<>();
+        private final List<MemberChangeRow> membersModified = new ArrayList<>();
+        private final List<MemberChangeRow> membersRemoved = new ArrayList<>();
+        private final List<SubsystemChangeRow> subsystemsCreated = new ArrayList<>();
+        private final List<SubsystemChangeRow> subsystemsModified = new ArrayList<>();
+        private final List<SubsystemChangeRow> subsystemsRemoved = new ArrayList<>();
+        private final List<ServiceChangeRow> servicesCreated = new ArrayList<>();
+        private final List<ServiceChangeRow> servicesModified = new ArrayList<>();
+        private final List<ServiceChangeRow> servicesRemoved = new ArrayList<>();
     }
 
     /**

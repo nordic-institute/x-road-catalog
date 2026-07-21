@@ -37,7 +37,6 @@ import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
 import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,7 +62,8 @@ import java.util.Set;
  * tomorrow 00:00 UTC (an exclusive cutoff so today is included) and {@code since} defaults to
  * one day before {@code until} (so the window collapses to "today's errors only" when both are
  * omitted). Because defaults always supply both bounds, missing-parameter 400s are no longer
- * possible — only malformed dates and {@code since > until} still surface a 400.</p>
+ * possible — only malformed dates, {@code since > until}, and date ranges exceeding 90 days
+ * still surface a 400.</p>
  */
 @RestController
 @RequestMapping("/api/v2/browse")
@@ -72,24 +72,25 @@ public class BrowseErrorsController {
     private static final Set<String> ERROR_SORT_FIELDS = Set.of("created", "code");
     private static final String DEFAULT_SORT_FIELD = "created";
     private static final String DEFAULT_SORT_ORDER = "desc";
+    private static final long MAX_ERROR_BROWSE_DAYS = 90;
 
-    @Autowired
-    private Clock clock;
+    private final Clock clock;
+    private final ErrorLogServiceV2 errorLogService;
+    private final MemberClassServiceV2 memberClassService;
+    private final MemberServiceV2 memberService;
+    private final SubsystemServiceV2 subsystemService;
+    private final ServiceServiceV2 serviceService;
 
-    @Autowired
-    private ErrorLogServiceV2 errorLogService;
-
-    @Autowired
-    private MemberClassServiceV2 memberClassService;
-
-    @Autowired
-    private MemberServiceV2 memberService;
-
-    @Autowired
-    private SubsystemServiceV2 subsystemService;
-
-    @Autowired
-    private ServiceServiceV2 serviceService;
+    public BrowseErrorsController(Clock clock, ErrorLogServiceV2 errorLogService,
+            MemberClassServiceV2 memberClassService, MemberServiceV2 memberService,
+            SubsystemServiceV2 subsystemService, ServiceServiceV2 serviceService) {
+        this.clock = clock;
+        this.errorLogService = errorLogService;
+        this.memberClassService = memberClassService;
+        this.memberService = memberService;
+        this.subsystemService = subsystemService;
+        this.serviceService = serviceService;
+    }
 
     @GetMapping("/errors")
     public PagedCollectionResponse<ErrorLogDto> catalogErrors(
@@ -191,8 +192,9 @@ public class BrowseErrorsController {
         LocalDate sinceDate = DateTimeUtil.parseDateOrDefault(sinceStr, untilDate.minusDays(1));
         LocalDateTime since = sinceDate.atStartOfDay();
         LocalDateTime until = untilDate.atStartOfDay();
-        // No 90-day cap on error browsing — pass Long.MAX_VALUE so only since>until still surfaces a 400.
-        DateTimeUtil.validateDateRange(since, until, Long.MAX_VALUE);
+        // Cap matches the reports endpoints and the collector's default error-log retention
+        // (xroad-catalog.log-storage.error-log-length-in-days: 90).
+        DateTimeUtil.validateDateRange(since, until, MAX_ERROR_BROWSE_DAYS);
         return new TimeRange(since, until);
     }
 
@@ -218,21 +220,21 @@ public class BrowseErrorsController {
     }
 
     private void guardMember(String memberClass, String memberCode) {
-        if (memberService.getByNaturalKey(memberClass, memberCode, false) == null) {
+        if (!memberService.existsActive(memberClass, memberCode)) {
             throw new V2ResourceNotFoundException(
                     "Member '" + memberClass + "/" + memberCode + "' not found");
         }
     }
 
     private void guardSubsystem(String memberClass, String memberCode, String subsystemCode) {
-        if (subsystemService.getByNaturalKey(memberClass, memberCode, subsystemCode, false) == null) {
+        if (!subsystemService.existsActive(memberClass, memberCode, subsystemCode)) {
             throw new V2ResourceNotFoundException(
                     "Subsystem '" + memberClass + "/" + memberCode + "/" + subsystemCode + "' not found");
         }
     }
 
     private void guardService(String memberClass, String memberCode, String subsystemCode, String serviceCode) {
-        if (serviceService.getByNaturalKey(memberClass, memberCode, subsystemCode, serviceCode, false) == null) {
+        if (!serviceService.existsActive(memberClass, memberCode, subsystemCode, serviceCode)) {
             throw new V2ResourceNotFoundException(
                     "Service '" + memberClass + "/" + memberCode + "/" + subsystemCode + "/"
                             + serviceCode + "' not found");
@@ -241,8 +243,7 @@ public class BrowseErrorsController {
 
     private void guardVersion(String memberClass, String memberCode, String subsystemCode,
                               String serviceCode, String serviceVersion) {
-        if (serviceService.getVersion(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion, false)
-                == null) {
+        if (!serviceService.existsActiveVersion(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)) {
             throw new V2ResourceNotFoundException(
                     "Service version '" + memberClass + "/" + memberCode + "/" + subsystemCode + "/"
                             + serviceCode + "/" + serviceVersion + "' not found");

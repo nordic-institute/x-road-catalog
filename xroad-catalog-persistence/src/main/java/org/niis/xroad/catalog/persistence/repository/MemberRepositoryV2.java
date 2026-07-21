@@ -24,148 +24,83 @@
  */
 package org.niis.xroad.catalog.persistence.repository;
 
-import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberClassCountRow;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * V2 repository for Member. Separate from V1 MemberRepository so V2 query changes
- * cannot accidentally alter V1 behavior.
+ * V2 read-model repository for {@link MemberV2}. Every query is instance-scoped
+ * ({@code m.xRoadInstance = :xRoadInstance}), unlike the V1-era {@code findForList} it replaces.
  */
-public interface MemberRepositoryV2 extends CrudRepository<Member, Long>, PagingAndSortingRepository<Member, Long> {
+public interface MemberRepositoryV2 extends Repository<MemberV2, Long>, V2ReadModelRepository {
+
+    String LIST_SELECT = "SELECT m.memberClass AS memberClass, m.memberCode AS memberCode, m.name AS name, "
+            + "m.isProvider AS provider, "
+            + "(SELECT COUNT(ss) FROM SubsystemV2 ss WHERE ss.member = m AND ss.statusInfo.removed IS NULL) AS subsystemCount, "
+            + "(SELECT COUNT(s) FROM ServiceV2 s WHERE s.subsystem.member = m AND s.statusInfo.removed IS NULL "
+            + "AND s.subsystem.statusInfo.removed IS NULL) AS serviceCount, "
+            + "m.statusInfo.created AS created, m.statusInfo.changed AS changed, "
+            + "m.statusInfo.fetched AS fetched, m.statusInfo.removed AS removed "
+            + "FROM MemberV2 m ";
+
+    String LIST_WHERE = "WHERE m.xRoadInstance = :xRoadInstance "
+            + "AND (:memberClass IS NULL OR m.memberClass = :memberClass) "
+            + "AND m.statusInfo.removed IS NULL "
+            + "AND (:isProvider IS NULL OR m.isProvider = :isProvider)";
+
+    @Query(value = LIST_SELECT + LIST_WHERE,
+            countQuery = "SELECT COUNT(m) FROM MemberV2 m " + LIST_WHERE)
+    Page<MemberListRow> findActiveForList(@Param("xRoadInstance") String xRoadInstance,
+                                          @Param("memberClass") String memberClass,
+                                          @Param("isProvider") Boolean isProvider,
+                                          Pageable pageable);
+
+    @Query(LIST_SELECT + "WHERE m.xRoadInstance = :xRoadInstance AND m.memberClass = :memberClass "
+            + "AND m.memberCode = :memberCode AND m.statusInfo.removed IS NULL")
+    Optional<MemberListRow> findActiveSummaryByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+                                                          @Param("memberClass") String memberClass,
+                                                          @Param("memberCode") String memberCode);
+
+    @Query("SELECT COUNT(m) > 0 FROM MemberV2 m WHERE m.xRoadInstance = :xRoadInstance "
+            + "AND m.memberClass = :memberClass AND m.memberCode = :memberCode AND m.statusInfo.removed IS NULL")
+    boolean existsActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+                                     @Param("memberClass") String memberClass,
+                                     @Param("memberCode") String memberCode);
 
     /**
-     * Natural-key lookup regardless of removed status.
+     * Active natural-key lookup pre-fetching the member's subsystem/service tree. Only the member
+     * root is active-filtered; the fetched subtree contains removed rows and callers must filter
+     * via the {@code getActive*} helpers on {@link MemberV2} and {@code SubsystemV2}.
      */
-    @EntityGraph(attributePaths = {"subsystems", "subsystems.services"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT m FROM Member m WHERE m.xRoadInstance = :xRoadInstance "
-            + "AND m.memberClass = :memberClass "
-            + "AND m.memberCode = :memberCode")
-    Member findAnyByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-            @Param("memberClass") String memberClass,
-            @Param("memberCode") String memberCode);
+    @EntityGraph(attributePaths = {"subsystems", "subsystems.services"})
+    @Query("SELECT m FROM MemberV2 m WHERE m.xRoadInstance = :xRoadInstance "
+            + "AND m.memberClass = :memberClass AND m.memberCode = :memberCode AND m.statusInfo.removed IS NULL")
+    Optional<MemberV2> findActiveWithTreeByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+                                                      @Param("memberClass") String memberClass,
+                                                      @Param("memberCode") String memberCode);
 
-    @Query("SELECT m FROM Member m WHERE m.statusInfo.removed IS NULL")
-    List<Member> findAllActive();
+    @Query("SELECT m.memberClass AS code, COUNT(m) AS memberCount FROM MemberV2 m "
+            + "WHERE m.xRoadInstance = :xRoadInstance AND m.statusInfo.removed IS NULL GROUP BY m.memberClass")
+    List<MemberClassCountRow> countActiveGroupedByMemberClass(@Param("xRoadInstance") String xRoadInstance);
 
-    /**
-     * Active natural-key lookup. Member has no parent, so no cascade is applicable.
-     */
-    @EntityGraph(attributePaths = {"subsystems", "subsystems.services"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT m FROM Member m WHERE m.xRoadInstance = :xRoadInstance "
-            + "AND m.memberClass = :memberClass "
-            + "AND m.memberCode = :memberCode "
-            + "AND m.statusInfo.removed IS NULL")
-    Member findActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-                                  @Param("memberClass") String memberClass,
-                                  @Param("memberCode") String memberCode);
+    @Query("SELECT COUNT(m) FROM MemberV2 m WHERE m.xRoadInstance = :xRoadInstance "
+            + "AND m.memberClass = :memberClass AND m.statusInfo.removed IS NULL")
+    long countActiveByMemberClass(@Param("xRoadInstance") String xRoadInstance,
+                                  @Param("memberClass") String memberClass);
 
-    /**
-     * Active natural-key lookup pre-fetching the full subtree used by the V2 {@code ?full=true}
-     * browse endpoint. The entity graph covers subsystems, services, and all four child collections
-     * (wsdls, openApis, rests, endpoints). The aggregate full-tree shape exposes only
-     * {@link org.niis.xroad.catalog.lister.v2.dto.ServiceVersionSummaryDto} per version (no
-     * endpoints); however, {@code Service.endpoints} is {@code FetchType.EAGER}, so Hibernate would
-     * still fire a per-service select for endpoints at hydration time. Including it in the graph
-     * collapses those fetches into the single join pass -- matching the {@code ServiceRepositoryV2}
-     * entity graph conventions and keeping query count invariant to subtree size.
-     */
-    @EntityGraph(attributePaths = {
-            "subsystems",
-            "subsystems.services",
-            "subsystems.services.wsdls",
-            "subsystems.services.openApis",
-            "subsystems.services.rests",
-            "subsystems.services.endpoints"
-    }, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT m FROM Member m WHERE m.xRoadInstance = :xRoadInstance "
-            + "AND m.memberClass = :memberClass "
-            + "AND m.memberCode = :memberCode "
-            + "AND m.statusInfo.removed IS NULL")
-    Member findActiveByNaturalKeyWithFullTree(@Param("xRoadInstance") String xRoadInstance,
-                                              @Param("memberClass") String memberClass,
-                                              @Param("memberCode") String memberCode);
+    @Query("SELECT MAX(m.statusInfo.fetched) FROM MemberV2 m")
+    LocalDateTime findLatestFetched();
 
-    /**
-     * Natural-key lookup regardless of removed status, pre-fetching the full subtree. Same entity
-     * graph as {@link #findActiveByNaturalKeyWithFullTree} without the removed filter so the
-     * {@code ?includeRemoved=true} case resolves both active and removed members.
-     */
-    @EntityGraph(attributePaths = {
-            "subsystems",
-            "subsystems.services",
-            "subsystems.services.wsdls",
-            "subsystems.services.openApis",
-            "subsystems.services.rests",
-            "subsystems.services.endpoints"
-    }, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT m FROM Member m WHERE m.xRoadInstance = :xRoadInstance "
-            + "AND m.memberClass = :memberClass "
-            + "AND m.memberCode = :memberCode")
-    Member findAnyByNaturalKeyWithFullTree(@Param("xRoadInstance") String xRoadInstance,
-                                           @Param("memberClass") String memberClass,
-                                           @Param("memberCode") String memberCode);
-
-    @Query("SELECT m FROM Member m WHERE "
-            + "(LOWER(m.name) LIKE LOWER(CONCAT('%', :q, '%')) "
-            + "OR LOWER(m.memberCode) LIKE LOWER(CONCAT('%', :q, '%'))) "
-            + "AND (:activeOnly = false OR m.statusInfo.removed IS NULL)")
-    Page<Member> searchByText(@Param("q") String query,
-                              @Param("activeOnly") boolean activeOnly,
-                              Pageable pageable);
-
-    /**
-     * Paged member list filter. The {@code :isProvider} predicate matches
-     * {@code MemberConverter.computeIsProvider} exactly: a member is a provider iff it is not
-     * removed and has at least one active service under an active subsystem. No descriptor check.
-     * See spec §6.1 and the V2 {@code serviceType} REST default.
-     */
-    @EntityGraph(attributePaths = {"subsystems", "subsystems.services"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT m FROM Member m WHERE "
-            + "(:memberClass IS NULL OR m.memberClass = :memberClass) "
-            + "AND (:activeOnly = false OR m.statusInfo.removed IS NULL) "
-            + "AND (:isProvider IS NULL "
-            + "     OR (:isProvider = true "
-            + "         AND m.statusInfo.removed IS NULL "
-            + "         AND EXISTS (SELECT s FROM Service s "
-            + "                     WHERE s.subsystem.member = m "
-            + "                     AND s.statusInfo.removed IS NULL "
-            + "                     AND s.subsystem.statusInfo.removed IS NULL)) "
-            + "     OR (:isProvider = false "
-            + "         AND (m.statusInfo.removed IS NOT NULL "
-            + "              OR NOT EXISTS (SELECT s FROM Service s "
-            + "                             WHERE s.subsystem.member = m "
-            + "                             AND s.statusInfo.removed IS NULL "
-            + "                             AND s.subsystem.statusInfo.removed IS NULL))))")
-    Page<Member> findForList(@Param("memberClass") String memberClass,
-                             @Param("isProvider") Boolean isProvider,
-                             @Param("activeOnly") boolean activeOnly,
-                             Pageable pageable);
-
-    @Query("SELECT m FROM Member m WHERE "
-            + "m.statusInfo.created >= :startDate AND m.statusInfo.created < :endDate")
-    List<Member> findCreatedBetween(@Param("startDate") LocalDateTime startDate,
-                                    @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT m FROM Member m WHERE "
-            + "m.statusInfo.changed >= :startDate AND m.statusInfo.changed < :endDate "
-            + "AND (m.statusInfo.created < :startDate OR m.statusInfo.created >= :endDate) "
-            + "AND (m.statusInfo.removed IS NULL "
-            + "     OR m.statusInfo.removed < :startDate "
-            + "     OR m.statusInfo.removed >= :endDate)")
-    List<Member> findModifiedBetween(@Param("startDate") LocalDateTime startDate,
-                                     @Param("endDate") LocalDateTime endDate);
-
-    @Query("SELECT m FROM Member m WHERE "
-            + "m.statusInfo.removed >= :startDate AND m.statusInfo.removed < :endDate")
-    List<Member> findRemovedBetween(@Param("startDate") LocalDateTime startDate,
-                                    @Param("endDate") LocalDateTime endDate);
+    @Query(value = "SELECT 1", nativeQuery = true)
+    Integer checkConnection();
 }

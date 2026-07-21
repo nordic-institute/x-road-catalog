@@ -32,6 +32,11 @@ import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 import org.niis.xroad.catalog.lister.endpoint.services.common.CommonSerializer;
 import org.niis.xroad.catalog.persistence.entity.Member;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
+ */
+@Deprecated
 public class ListMembersResponseSerializer extends AbstractServiceResponseSerializer<ListMembersRequest, Iterable<Member>> {
 
     /**

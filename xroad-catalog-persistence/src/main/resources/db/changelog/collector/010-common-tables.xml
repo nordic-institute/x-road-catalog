@@ -26,6 +26,9 @@
             <column name="name" type="text">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_provider" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="created" type="timestamptz">
                 <constraints nullable="false"/>
             </column>
@@ -85,6 +88,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="service_version" type="text"/>
+            <column name="service_type" type="text" defaultValue="UNKNOWN">
+                <constraints nullable="false"/>
+            </column>
             <column name="created" type="timestamptz">
                 <constraints nullable="false"/>
             </column>

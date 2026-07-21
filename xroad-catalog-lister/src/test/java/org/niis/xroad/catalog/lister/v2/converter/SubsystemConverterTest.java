@@ -25,78 +25,150 @@
 package org.niis.xroad.catalog.lister.v2.converter;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
+import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
+import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class SubsystemConverterTest {
+class SubsystemConverterTest {
 
     private final SubsystemConverter converter = new SubsystemConverter();
 
     @Test
-    void testConvertWithSubsystemNameLookup() {
-        Member m = buildMember();
-        Subsystem sub = buildSubsystem(m, "TaxServices", false);
-        Service svc = buildService(sub, "getTaxInfo", "v1", false);
-        sub.getAllServices().add(svc);
-        m.getAllSubsystems().add(sub);
+    void testToDtoMapsRowFieldsAndResolvesName() {
+        LocalDateTime now = LocalDateTime.now();
+        SubsystemListRow row = new FakeSubsystemListRow("PUB", "14151328", "Nahka-Albert",
+                "TaxServices", 3, now, now, now, null);
 
-        SubsystemDto dto = converter.toDto(sub, (mc, mcode, sc) -> "Tax Services");
+        SubsystemDto dto = converter.toDto(row, (mc, mcode, sc) -> "Tax Services");
+
         assertEquals("PUB", dto.getMemberClass());
         assertEquals("14151328", dto.getMemberCode());
         assertEquals("Nahka-Albert", dto.getMemberName());
         assertEquals("TaxServices", dto.getSubsystemCode());
         assertEquals("Tax Services", dto.getSubsystemName());
-        assertEquals(1, dto.getServiceCount());
+        assertEquals(3, dto.getServiceCount());
+        assertEquals(now, dto.getCreated());
+        assertNull(dto.getRemoved());
     }
 
     @Test
-    void testConvertWithoutSubsystemName() {
-        Member m = buildMember();
-        Subsystem sub = buildSubsystem(m, "PlainSub", false);
-        m.getAllSubsystems().add(sub);
+    void testToDtoNameLookupMayReturnNull() {
+        LocalDateTime now = LocalDateTime.now();
+        SubsystemListRow row = new FakeSubsystemListRow("PUB", "14151328", "Nahka-Albert",
+                "PlainSub", 0, now, now, now, null);
 
-        SubsystemDto dto = converter.toDto(sub, (mc, mcode, sc) -> null);
+        SubsystemDto dto = converter.toDto(row, (mc, mcode, sc) -> null);
+
         assertNull(dto.getSubsystemName());
     }
 
-    private Member buildMember() {
-        Member m = new Member();
-        m.setXRoadInstance("dev-cs");
-        m.setMemberClass("PUB");
-        m.setMemberCode("14151328");
-        m.setName("Nahka-Albert");
-        LocalDateTime now = LocalDateTime.now();
-        m.setStatusInfo(new StatusInfo(now, now, now, null));
-        m.setSubsystems(new HashSet<>());
-        return m;
+    @Test
+    void testToFullDtoUsesActiveServiceHelperAndCarriesSuppliedServices() {
+        SubsystemV2 subsystem = buildSubsystem();
+        addService(subsystem, false);
+        addService(subsystem, false);
+        addService(subsystem, true);
+        ServiceDto service = ServiceDto.builder().serviceCode("svcA").build();
+
+        FullSubsystemDto dto = converter.toFullDto(subsystem, (mc, mcode, sc) -> "Tax Services", List.of(service));
+
+        assertEquals("PUB", dto.getMemberClass());
+        assertEquals("14151328", dto.getMemberCode());
+        assertEquals("Nahka-Albert", dto.getMemberName());
+        assertEquals("TaxServices", dto.getSubsystemCode());
+        assertEquals("Tax Services", dto.getSubsystemName());
+        assertEquals(2, dto.getServiceCount(), "removed service must not be counted");
+        assertEquals(1, dto.getServices().size());
+        assertEquals("svcA", dto.getServices().get(0).getServiceCode());
     }
 
-    private Subsystem buildSubsystem(Member parent, String code, boolean removed) {
-        Subsystem s = new Subsystem();
-        s.setSubsystemCode(code);
-        s.setMember(parent);
+    private SubsystemV2 buildSubsystem() {
+        MemberV2 member = new MemberV2();
+        ReflectionTestUtils.setField(member, "memberClass", "PUB");
+        ReflectionTestUtils.setField(member, "memberCode", "14151328");
+        ReflectionTestUtils.setField(member, "name", "Nahka-Albert");
+
+        SubsystemV2 s = new SubsystemV2();
+        ReflectionTestUtils.setField(s, "member", member);
+        ReflectionTestUtils.setField(s, "subsystemCode", "TaxServices");
         LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, removed ? now : null));
-        s.setServices(new HashSet<>());
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(s, "services", new HashSet<ServiceV2>());
         return s;
     }
 
-    private Service buildService(Subsystem parent, String code, String version, boolean removed) {
-        Service s = new Service();
-        s.setSubsystem(parent);
-        s.setServiceCode(code);
-        s.setServiceVersion(version);
+    private void addService(SubsystemV2 subsystem, boolean removed) {
+        ServiceV2 svc = new ServiceV2();
+        ReflectionTestUtils.setField(svc, "subsystem", subsystem);
+        ReflectionTestUtils.setField(svc, "serviceCode", "svc");
+        ReflectionTestUtils.setField(svc, "serviceType", "REST");
         LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, removed ? now : null));
-        return s;
+        ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
+        subsystem.getServices().add(svc);
+    }
+
+    @SuppressWarnings("PMD.DataClass")
+    private record FakeSubsystemListRow(String memberClass, String memberCode, String memberName,
+                                         String subsystemCode, long serviceCount, LocalDateTime created,
+                                         LocalDateTime changed, LocalDateTime fetched,
+                                         LocalDateTime removed) implements SubsystemListRow {
+
+        @Override
+        public String getMemberClass() {
+            return memberClass;
+        }
+
+        @Override
+        public String getMemberCode() {
+            return memberCode;
+        }
+
+        @Override
+        public String getMemberName() {
+            return memberName;
+        }
+
+        @Override
+        public String getSubsystemCode() {
+            return subsystemCode;
+        }
+
+        @Override
+        public long getServiceCount() {
+            return serviceCount;
+        }
+
+        @Override
+        public LocalDateTime getCreated() {
+            return created;
+        }
+
+        @Override
+        public LocalDateTime getChanged() {
+            return changed;
+        }
+
+        @Override
+        public LocalDateTime getFetched() {
+            return fetched;
+        }
+
+        @Override
+        public LocalDateTime getRemoved() {
+            return removed;
+        }
     }
 }

@@ -29,10 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
-import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
-import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
-import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
-import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
 import org.niis.xroad.catalog.lister.v2.service.ErrorLogServiceV2;
 import org.niis.xroad.catalog.lister.v2.service.MemberClassServiceV2;
 import org.niis.xroad.catalog.lister.v2.service.MemberServiceV2;
@@ -326,7 +322,7 @@ class BrowseErrorsControllerTest {
     @Test
     void memberErrorsHappyPathDispatchesWithMemberClassAndCode() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(null), eq(null), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -350,7 +346,7 @@ class BrowseErrorsControllerTest {
     @Test
     void memberErrorsRemovedMemberReturns404() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(null);
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(false);
 
         mockMvc.perform(get(memberRoute(PUB, MEMBER_CODE))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
@@ -361,8 +357,8 @@ class BrowseErrorsControllerTest {
     @Test
     void subsystemErrorsHappyPath() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(subsystemDto());
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(null), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -376,8 +372,8 @@ class BrowseErrorsControllerTest {
     @Test
     void subsystemErrorsRemovedSubsystemReturns404() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(null);
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(false);
 
         mockMvc.perform(get(subsystemRoute(PUB, MEMBER_CODE, SUBSYSTEM_CODE))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
@@ -389,10 +385,10 @@ class BrowseErrorsControllerTest {
     @Test
     void serviceErrorsHappyPath() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(subsystemDto());
-        when(serviceService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, false))
-                .thenReturn(serviceDto());
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
+        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
+                .thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -406,9 +402,9 @@ class BrowseErrorsControllerTest {
     @Test
     void serviceErrorsUnknownServiceReturns404() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(subsystemDto());
-        when(serviceService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, MISSING, false)).thenReturn(null);
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
+        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, MISSING)).thenReturn(false);
 
         mockMvc.perform(get(serviceRoute(PUB, MEMBER_CODE, SUBSYSTEM_CODE, MISSING))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
@@ -420,12 +416,12 @@ class BrowseErrorsControllerTest {
     @Test
     void versionErrorsHappyPathDispatchesWithRawVersion() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(subsystemDto());
-        when(serviceService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, false))
-                .thenReturn(serviceDto());
-        when(serviceService.getVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, VERSION, false))
-                .thenReturn(versionDto(VERSION));
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
+        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
+                .thenReturn(true);
+        when(serviceService.existsActiveVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, VERSION))
+                .thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq(VERSION),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -439,12 +435,12 @@ class BrowseErrorsControllerTest {
     @Test
     void versionErrorsNullSentinelPassesRawLiteralToErrorService() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(subsystemDto());
-        when(serviceService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, false))
-                .thenReturn(serviceDto());
-        when(serviceService.getVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, NULL_LITERAL, false))
-                .thenReturn(versionDto(null));
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
+        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
+                .thenReturn(true);
+        when(serviceService.existsActiveVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, NULL_LITERAL))
+                .thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq(NULL_LITERAL),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf());
@@ -460,17 +456,36 @@ class BrowseErrorsControllerTest {
     @Test
     void versionErrorsUnknownVersionReturns404() throws Exception {
         when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.getByNaturalKey(PUB, MEMBER_CODE, false)).thenReturn(memberDto());
-        when(subsystemService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, false)).thenReturn(subsystemDto());
-        when(serviceService.getByNaturalKey(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, false))
-                .thenReturn(serviceDto());
-        when(serviceService.getVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, "v9", false)).thenReturn(null);
+        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
+        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
+        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
+                .thenReturn(true);
+        when(serviceService.existsActiveVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, "v9")).thenReturn(false);
 
         mockMvc.perform(get(versionRoute(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, "v9"))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath(JSON_MESSAGE)
                         .value("Service version 'PUB/14151328/subsystem_a1/getRandom/v9' not found"));
+    }
+
+    @Test
+    void errorsRangeOver90DaysIsRejectedWith400() throws Exception {
+        mockMvc.perform(get("/api/v2/browse/errors")
+                        .param("since", "2025-01-01")
+                        .param("until", "2025-06-01"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void errorsRangeOfExactly90DaysIsAccepted() throws Exception {
+        when(errorLogService.get(any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
+
+        mockMvc.perform(get("/api/v2/browse/errors")
+                        .param("since", "2025-01-01")
+                        .param("until", "2025-04-01"))
+                .andExpect(status().isOk());
     }
 
     private static String memberClassRoute(String mc) {
@@ -513,39 +528,5 @@ class BrowseErrorsControllerTest {
 
     private static MemberClassDto memberClassDto() {
         return MemberClassDto.builder().code(PUB).description("Public").memberCount(1).build();
-    }
-
-    private static MemberDto memberDto() {
-        LocalDateTime now = LocalDateTime.of(2016, 1, 1, 0, 0);
-        return MemberDto.builder()
-                .memberClass(PUB).memberCode(MEMBER_CODE).name("Nahka-Albert")
-                .isProvider(true).subsystemCount(1).serviceCount(1)
-                .created(now).changed(now).fetched(now).removed(null)
-                .build();
-    }
-
-    private static SubsystemDto subsystemDto() {
-        LocalDateTime now = LocalDateTime.of(2016, 1, 1, 0, 0);
-        return SubsystemDto.builder()
-                .memberClass(PUB).memberCode(MEMBER_CODE).memberName("Nahka-Albert")
-                .subsystemCode(SUBSYSTEM_CODE).subsystemName(null).serviceCount(1)
-                .created(now).changed(now).fetched(now).removed(null)
-                .build();
-    }
-
-    private static ServiceDto serviceDto() {
-        return ServiceDto.builder()
-                .memberClass(PUB).memberCode(MEMBER_CODE).memberName("Nahka-Albert")
-                .subsystemCode(SUBSYSTEM_CODE).serviceCode(SERVICE_CODE)
-                .versionCount(1).versions(List.of()).serviceTypes(List.of("SOAP"))
-                .build();
-    }
-
-    private static ServiceVersionDto versionDto(String version) {
-        LocalDateTime now = LocalDateTime.of(2016, 1, 1, 0, 0);
-        return ServiceVersionDto.builder()
-                .serviceVersion(version).serviceType("SOAP").hasDescriptor(true).endpoints(List.of())
-                .created(now).changed(now).fetched(now).removed(null)
-                .build();
     }
 }

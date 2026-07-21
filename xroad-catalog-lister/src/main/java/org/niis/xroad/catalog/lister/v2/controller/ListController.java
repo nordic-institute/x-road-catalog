@@ -34,7 +34,6 @@ import org.niis.xroad.catalog.lister.v2.service.SecurityServerServiceV2;
 import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
 import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,19 +62,22 @@ public class ListController {
 
     private static final Set<String> SUBSYSTEM_SORT_FIELDS = Set.of("subsystemCode", CREATED, CHANGED);
 
-    private static final Set<String> ALLOWED_SERVICE_TYPES = Set.of("SOAP", "REST", "OPENAPI");
+    // UNKNOWN is filterable so operators can find services collected but not yet classified by the
+    // collector recompute. It is a transient state, not a descriptor kind.
+    private static final Set<String> ALLOWED_SERVICE_TYPES = Set.of("SOAP", "REST", "OPENAPI", "UNKNOWN");
 
-    @Autowired
-    private MemberServiceV2 memberService;
+    private final MemberServiceV2 memberService;
+    private final SubsystemServiceV2 subsystemService;
+    private final ServiceServiceV2 serviceService;
+    private final SecurityServerServiceV2 securityServerService;
 
-    @Autowired
-    private SubsystemServiceV2 subsystemService;
-
-    @Autowired
-    private ServiceServiceV2 serviceService;
-
-    @Autowired
-    private SecurityServerServiceV2 securityServerService;
+    public ListController(MemberServiceV2 memberService, SubsystemServiceV2 subsystemService,
+            ServiceServiceV2 serviceService, SecurityServerServiceV2 securityServerService) {
+        this.memberService = memberService;
+        this.subsystemService = subsystemService;
+        this.serviceService = serviceService;
+        this.securityServerService = securityServerService;
+    }
 
     @GetMapping("/security-servers")
     public PagedCollectionResponse<SecurityServerListItemDto> listSecurityServers(
@@ -96,12 +98,11 @@ public class ListController {
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size,
             @RequestParam(value = "sortBy", required = false) String sortBy,
-            @RequestParam(value = "sortOrder", required = false) String sortOrder,
-            @RequestParam(value = "includeRemoved", defaultValue = "false") boolean includeRemoved) {
+            @RequestParam(value = "sortOrder", required = false) String sortOrder) {
         Boolean provider = parseTriState("provider", providerRaw);
         Pageable pageable = PaginationUtil.toPageable(page, size, sortBy, sortOrder, "name",
                 MEMBER_SORT_FIELDS, STATUS_TIMESTAMP_ALIASES);
-        Page<MemberDto> result = memberService.getForList(memberClass, provider, includeRemoved, pageable);
+        Page<MemberDto> result = memberService.getForList(memberClass, provider, pageable);
         return PagedCollectionResponse.fromPage(result);
     }
 
@@ -111,11 +112,10 @@ public class ListController {
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size,
             @RequestParam(value = "sortBy", required = false) String sortBy,
-            @RequestParam(value = "sortOrder", required = false) String sortOrder,
-            @RequestParam(value = "includeRemoved", defaultValue = "false") boolean includeRemoved) {
+            @RequestParam(value = "sortOrder", required = false) String sortOrder) {
         Pageable pageable = PaginationUtil.toPageable(page, size, sortBy, sortOrder, "subsystemCode",
                 SUBSYSTEM_SORT_FIELDS, STATUS_TIMESTAMP_ALIASES);
-        Page<SubsystemDto> result = subsystemService.getForList(memberClass, includeRemoved, pageable);
+        Page<SubsystemDto> result = subsystemService.getForList(memberClass, pageable);
         return PagedCollectionResponse.fromPage(result);
     }
 
@@ -124,8 +124,7 @@ public class ListController {
             @RequestParam(value = "memberClass", required = false) String memberClass,
             @RequestParam(value = "serviceType", required = false) String serviceType,
             @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "size", required = false) Integer size,
-            @RequestParam(value = "includeRemoved", defaultValue = "false") boolean includeRemoved) {
+            @RequestParam(value = "size", required = false) Integer size) {
         if (serviceType != null && !serviceType.isBlank() && !ALLOWED_SERVICE_TYPES.contains(serviceType)) {
             throw new IllegalArgumentException(
                     "Invalid value for query parameter 'serviceType': '" + serviceType
@@ -135,7 +134,7 @@ public class ListController {
         // (spec §8). sortBy/sortOrder are intentionally unsupported, mirroring /api/v2/search.
         Pageable pageable = PaginationUtil.toPageableNoSort(page, size);
         String resolvedType = (serviceType == null || serviceType.isBlank()) ? null : serviceType;
-        Page<ServiceDto> result = serviceService.getForList(memberClass, resolvedType, includeRemoved, pageable);
+        Page<ServiceDto> result = serviceService.getForList(memberClass, resolvedType, pageable);
         return PagedCollectionResponse.fromPage(result);
     }
 

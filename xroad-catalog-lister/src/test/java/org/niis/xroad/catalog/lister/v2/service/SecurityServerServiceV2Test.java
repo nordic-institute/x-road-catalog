@@ -26,24 +26,23 @@ package org.niis.xroad.catalog.lister.v2.service;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.catalog.lister.dto.MemberInfo;
-import org.niis.xroad.catalog.lister.dto.SecurityServerData;
-import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
-import org.niis.xroad.catalog.lister.parser.SharedParamsParser;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerBrowseItemDto;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -90,22 +89,15 @@ public class SecurityServerServiceV2Test {
     }
 
     @Test
-    public void testGetForMemberSortsByServerCodeAscending() throws Exception {
-        // Build a parser stub returning servers in non-alphabetical order under a single owner.
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2();
-        SharedParamsParser stubParser = Mockito.mock(SharedParamsParser.class);
-        MemberInfo owner = MemberInfo.builder().memberClass(ORG).memberCode(NIIS_CODE).name("NIIS").build();
-        SecurityServerData zSrv = SecurityServerData.builder()
-                .owner(owner).serverCode("zzz-server").address("10.0.0.9").clients(List.of()).build();
-        SecurityServerData mSrv = SecurityServerData.builder()
-                .owner(owner).serverCode("mmm-server").address("10.0.0.5").clients(List.of()).build();
-        SecurityServerData aSrv = SecurityServerData.builder()
-                .owner(owner).serverCode("aaa-server").address("10.0.0.1").clients(List.of()).build();
-        SecurityServerDataList parsed = new SecurityServerDataList();
-        parsed.setSecurityServerDataList(List.of(zSrv, mSrv, aSrv));
-        Mockito.when(stubParser.parseDetails(Mockito.anyString())).thenReturn(parsed);
-        ReflectionTestUtils.setField(isolated, "parser", stubParser);
-        ReflectionTestUtils.setField(isolated, "sharedParamsFile", "stub.xml");
+    public void testGetForMemberSortsByServerCodeAscending() {
+        // Build a cache stub returning servers in non-alphabetical order under a single owner.
+        SharedParamsCache stubCache = Mockito.mock(SharedParamsCache.class);
+        SecurityServerInfoV2.MemberRef owner = new SecurityServerInfoV2.MemberRef(ORG, NIIS_CODE, "NIIS");
+        SecurityServerInfoV2 zSrv = new SecurityServerInfoV2("zzz-server", "10.0.0.9", owner, List.of());
+        SecurityServerInfoV2 mSrv = new SecurityServerInfoV2("mmm-server", "10.0.0.5", owner, List.of());
+        SecurityServerInfoV2 aSrv = new SecurityServerInfoV2("aaa-server", "10.0.0.1", owner, List.of());
+        Mockito.when(stubCache.securityServers()).thenReturn(List.of(zSrv, mSrv, aSrv));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, Mockito.mock(InstanceContext.class));
 
         List<SecurityServerBrowseItemDto> servers = isolated.getForMember(ORG, NIIS_CODE);
         assertEquals(3, servers.size());
@@ -123,19 +115,13 @@ public class SecurityServerServiceV2Test {
     }
 
     @Test
-    public void testListSortByAddressBreaksTiesByServerCodeAscending() throws Exception {
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2();
-        SharedParamsParser stubParser = Mockito.mock(SharedParamsParser.class);
-        MemberInfo owner = MemberInfo.builder().memberClass(ORG).memberCode(NIIS_CODE).name("NIIS").build();
-        SecurityServerData ssB = SecurityServerData.builder()
-                .owner(owner).serverCode("B-01").address("10.0.0.1").clients(List.of()).build();
-        SecurityServerData ssA = SecurityServerData.builder()
-                .owner(owner).serverCode("A-02").address("10.0.0.1").clients(List.of()).build();
-        SecurityServerDataList parsed = new SecurityServerDataList();
-        parsed.setSecurityServerDataList(List.of(ssB, ssA));
-        Mockito.when(stubParser.parseDetails(Mockito.anyString())).thenReturn(parsed);
-        ReflectionTestUtils.setField(isolated, "parser", stubParser);
-        ReflectionTestUtils.setField(isolated, "sharedParamsFile", "stub.xml");
+    public void testListSortByAddressBreaksTiesByServerCodeAscending() {
+        SharedParamsCache stubCache = Mockito.mock(SharedParamsCache.class);
+        SecurityServerInfoV2.MemberRef owner = new SecurityServerInfoV2.MemberRef(ORG, NIIS_CODE, "NIIS");
+        SecurityServerInfoV2 ssB = new SecurityServerInfoV2("B-01", "10.0.0.1", owner, List.of());
+        SecurityServerInfoV2 ssA = new SecurityServerInfoV2("A-02", "10.0.0.1", owner, List.of());
+        Mockito.when(stubCache.securityServers()).thenReturn(List.of(ssB, ssA));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, Mockito.mock(InstanceContext.class));
 
         Page<SecurityServerListItemDto> page = isolated.list(PageRequest.of(0, 20,
                 org.springframework.data.domain.Sort.by(
@@ -147,19 +133,13 @@ public class SecurityServerServiceV2Test {
     }
 
     @Test
-    public void testListDescendingPrimaryStillBreaksTiesAscendingOnServerCode() throws Exception {
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2();
-        SharedParamsParser stubParser = Mockito.mock(SharedParamsParser.class);
-        MemberInfo owner = MemberInfo.builder().memberClass(ORG).memberCode(NIIS_CODE).name("NIIS").build();
-        SecurityServerData ssB = SecurityServerData.builder()
-                .owner(owner).serverCode("B-01").address("10.0.0.1").clients(List.of()).build();
-        SecurityServerData ssA = SecurityServerData.builder()
-                .owner(owner).serverCode("A-02").address("10.0.0.1").clients(List.of()).build();
-        SecurityServerDataList parsed = new SecurityServerDataList();
-        parsed.setSecurityServerDataList(List.of(ssB, ssA));
-        Mockito.when(stubParser.parseDetails(Mockito.anyString())).thenReturn(parsed);
-        ReflectionTestUtils.setField(isolated, "parser", stubParser);
-        ReflectionTestUtils.setField(isolated, "sharedParamsFile", "stub.xml");
+    public void testListDescendingPrimaryStillBreaksTiesAscendingOnServerCode() {
+        SharedParamsCache stubCache = Mockito.mock(SharedParamsCache.class);
+        SecurityServerInfoV2.MemberRef owner = new SecurityServerInfoV2.MemberRef(ORG, NIIS_CODE, "NIIS");
+        SecurityServerInfoV2 ssB = new SecurityServerInfoV2("B-01", "10.0.0.1", owner, List.of());
+        SecurityServerInfoV2 ssA = new SecurityServerInfoV2("A-02", "10.0.0.1", owner, List.of());
+        Mockito.when(stubCache.securityServers()).thenReturn(List.of(ssB, ssA));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, Mockito.mock(InstanceContext.class));
 
         Page<SecurityServerListItemDto> page = isolated.list(PageRequest.of(0, 20,
                 org.springframework.data.domain.Sort.by(
@@ -168,5 +148,22 @@ public class SecurityServerServiceV2Test {
         assertEquals(2, page.getContent().size());
         assertEquals("A-02", page.getContent().get(0).getServerCode());
         assertEquals("B-01", page.getContent().get(1).getServerCode());
+    }
+
+    @Test
+    public void testListPropagates503WhileInstanceNotYetReady() {
+        // SharedParamsCache caches a missing/unparseable shared-params.xml as an empty snapshot for
+        // its whole TTL, which is indistinguishable from "genuinely zero security servers". Routing
+        // through InstanceContext -- the same readiness gate every other V2 endpoint uses -- means
+        // this not-ready window surfaces as 503, not as an authoritative empty page.
+        SharedParamsCache stubCache = Mockito.mock(SharedParamsCache.class);
+        InstanceContext notReady = Mockito.mock(InstanceContext.class);
+        Mockito.when(notReady.getCurrentInstance()).thenThrow(
+                new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "not ready"));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, notReady);
+
+        assertThrows(ResponseStatusException.class, () -> isolated.list(PageRequest.of(0, 20)));
+        assertThrows(ResponseStatusException.class, () -> isolated.getForMember(ORG, NIIS_CODE));
+        Mockito.verifyNoInteractions(stubCache);
     }
 }

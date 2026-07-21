@@ -25,21 +25,18 @@
 package org.niis.xroad.catalog.lister.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.LastCollectionDataV2Dto;
+import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.MemberRepository;
-import org.niis.xroad.catalog.persistence.repository.OpenApiRepository;
-import org.niis.xroad.catalog.persistence.repository.RestRepository;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepository;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
-import org.niis.xroad.catalog.persistence.repository.WsdlRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -54,52 +51,46 @@ import java.util.function.Supplier;
  * run). If any entity type has never been fetched the counter is defined as 0 — the system
  * has not yet completed a full run, so there is no meaningful "since" anchor.
  *
- * <p>{@code findLatestFetched} queries are served from the V1 repositories because those
- * are pure {@code MAX(fetched)} aggregates with no soft-delete semantics, so there is no
- * risk of V1 changes silently altering V2 output. Error-log queries go through
- * {@link ErrorLogRepositoryV2} so half-open range semantics match the rest of the V2 API.
+ * <p>Every dependency here is V2-only: {@code findLatestFetched} queries are pure
+ * {@code MAX(fetched)} aggregates on the V2 read-model repositories, with no V1 dependency left
+ * to sever. Error-log queries go through {@link ErrorLogRepositoryV2} so half-open range
+ * semantics match the rest of the V2 API.
  */
 @Slf4j
-@Component
+@Service
 public class HeartbeatServiceV2 {
 
-    @Value("${xroad-catalog.app-name}")
-    private String appName;
+    private final String appName;
+    private final String appVersion;
+    private final MemberRepositoryV2 memberRepository;
+    private final SubsystemRepositoryV2 subsystemRepository;
+    private final ServiceRepositoryV2 serviceRepository;
+    private final DescriptorRepositoryV2 descriptorRepository;
+    private final ErrorLogRepositoryV2 errorLogRepository;
+    private final Clock clock;
 
-    @Value("${xroad-catalog.app-version}")
-    private String appVersion;
-
-    @Autowired
-    private CatalogService catalogService;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private SubsystemRepository subsystemRepository;
-
-    @Autowired
-    private ServiceRepository serviceRepository;
-
-    @Autowired
-    private WsdlRepository wsdlRepository;
-
-    @Autowired
-    private OpenApiRepository openApiRepository;
-
-    @Autowired
-    private RestRepository restRepository;
-
-    @Autowired
-    private ErrorLogRepositoryV2 errorLogRepository;
+    public HeartbeatServiceV2(@Value("${xroad-catalog.app-name}") String appName,
+            @Value("${xroad-catalog.app-version}") String appVersion,
+            MemberRepositoryV2 memberRepository, SubsystemRepositoryV2 subsystemRepository,
+            ServiceRepositoryV2 serviceRepository, DescriptorRepositoryV2 descriptorRepository,
+            ErrorLogRepositoryV2 errorLogRepository, Clock clock) {
+        this.appName = appName;
+        this.appVersion = appVersion;
+        this.memberRepository = memberRepository;
+        this.subsystemRepository = subsystemRepository;
+        this.serviceRepository = serviceRepository;
+        this.descriptorRepository = descriptorRepository;
+        this.errorLogRepository = errorLogRepository;
+        this.clock = clock;
+    }
 
     public HeartbeatV2Dto heartbeat() {
         LocalDateTime membersLastFetched = tryFetch(memberRepository::findLatestFetched);
         LocalDateTime subsystemsLastFetched = tryFetch(subsystemRepository::findLatestFetched);
         LocalDateTime servicesLastFetched = tryFetch(serviceRepository::findLatestFetched);
-        LocalDateTime wsdlsLastFetched = tryFetch(wsdlRepository::findLatestFetched);
-        LocalDateTime openapisLastFetched = tryFetch(openApiRepository::findLatestFetched);
-        LocalDateTime restsLastFetched = tryFetch(restRepository::findLatestFetched);
+        LocalDateTime wsdlsLastFetched = tryFetch(descriptorRepository::findLatestWsdlFetched);
+        LocalDateTime openapisLastFetched = tryFetch(descriptorRepository::findLatestOpenApiFetched);
+        LocalDateTime restsLastFetched = tryFetch(descriptorRepository::findLatestRestFetched);
 
         long lastRunErrors = computeLastRunErrors(membersLastFetched, subsystemsLastFetched,
                 servicesLastFetched, wsdlsLastFetched, openapisLastFetched, restsLastFetched);
@@ -109,7 +100,7 @@ public class HeartbeatServiceV2 {
                 .dbWorking(tryCheckDatabase())
                 .appName(appName)
                 .appVersion(appVersion)
-                .systemTime(LocalDateTime.now())
+                .systemTime(LocalDateTime.now(clock))
                 .lastCollectionData(LastCollectionDataV2Dto.builder()
                         .membersLastFetched(membersLastFetched)
                         .subsystemsLastFetched(subsystemsLastFetched)
@@ -141,7 +132,7 @@ public class HeartbeatServiceV2 {
         // ErrorLogRepositoryV2 exposes a paged query. A 1-row page is enough — we only care
         // about totalElements (the overall count, not the returned content).
         try {
-            return errorLogRepository.findAnyInRange(earliest, LocalDateTime.now(),
+            return errorLogRepository.findAnyInRange(earliest, LocalDateTime.now(clock),
                     Pageable.ofSize(1)).getTotalElements();
         } catch (Exception e) {
             log.warn("Failed to count errors since last collection run", e);
@@ -160,7 +151,7 @@ public class HeartbeatServiceV2 {
 
     private Boolean tryCheckDatabase() {
         try {
-            return catalogService.checkDatabaseConnection();
+            return Integer.valueOf(1).equals(memberRepository.checkConnection());
         } catch (Exception e) {
             log.warn("Database health check failed", e);
             return Boolean.FALSE;

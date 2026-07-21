@@ -26,141 +26,171 @@ package org.niis.xroad.catalog.lister.v2.converter;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ServiceAggregatorTest {
+class ServiceAggregatorTest {
 
-    private final ServiceVersionConverter versionConverter = buildConverter();
-    private final ServiceAggregator aggregator = new ServiceAggregator(versionConverter);
-
-    private static ServiceVersionConverter buildConverter() {
-        ServiceVersionConverter c = new ServiceVersionConverter();
-        ReflectionTestUtils.setField(c, "classifier", new ServiceClassifier());
-        return c;
-    }
+    private final ServiceAggregator aggregator = new ServiceAggregator(new ServiceVersionConverter());
 
     @Test
-    void testAggregateMultipleVersionsWithDifferentTypes() {
-        Member m = member("PUB", "14151328", "Nahka-Albert");
-        Subsystem s = subsystem(m, "sub1");
-        Service v1 = service(s, "mixedSvc", "v1");
-        v1.setWsdl(wsdl());
-        Service v2 = service(s, "mixedSvc", null);
-        // rests stay empty — toDto treats missing-wsdl + missing-openapi as REST
-        Set<Service> versions = new HashSet<>();
-        versions.add(v1);
-        versions.add(v2);
+    void testFromRowsSortsVersionsWithNullLast() {
+        LocalDateTime now = LocalDateTime.now();
+        ServiceVersionRow v1 = row("mixedSvc", "v1", "SOAP", now);
+        ServiceVersionRow vNull = row("mixedSvc", null, "REST", now);
+        List<ServiceVersionRow> rows = new ArrayList<>(List.of(vNull, v1));
 
-        ServiceDto dto = aggregator.aggregate(versions, false);
+        ServiceDto dto = aggregator.fromRows(rows);
+
         assertEquals("mixedSvc", dto.getServiceCode());
         assertEquals(2, dto.getVersionCount());
-        assertEquals(2, dto.getVersions().size());
-        // serviceTypes should contain SOAP and REST
-        assertTrue(dto.getServiceTypes().contains("SOAP"));
-        assertTrue(dto.getServiceTypes().contains("REST"));
-        // versions sorted with null last
         assertEquals(Arrays.asList("v1", null),
                 dto.getVersions().stream().map(v -> v.getServiceVersion()).toList());
     }
 
     @Test
-    void testAggregateVersionsFilteredByActiveOnly() {
-        Member m = member("PUB", "14151328", "Nahka-Albert");
-        Subsystem s = subsystem(m, "sub1");
-        Service active = service(s, "svc", "v1");
-        Service removed = service(s, "svc", "v2");
-        removed.getStatusInfo().setRemoved(LocalDateTime.now());
-        Set<Service> versions = new HashSet<>();
-        versions.add(active);
-        versions.add(removed);
+    void testFromRowsKeepsDistinctServiceTypesInVersionOrderWithoutCollapsing() {
+        LocalDateTime now = LocalDateTime.now();
+        ServiceVersionRow v1 = row("mixedSvc", "v1", "REST", now);
+        ServiceVersionRow v2 = row("mixedSvc", "v2", "SOAP", now);
+        List<ServiceVersionRow> rows = new ArrayList<>(List.of(v1, v2));
 
-        ServiceDto activeOnly = aggregator.aggregate(versions, false);
-        assertEquals(1, activeOnly.getVersionCount());
+        ServiceDto dto = aggregator.fromRows(rows);
 
-        ServiceDto all = aggregator.aggregate(versions, true);
-        assertEquals(2, all.getVersionCount());
+        assertEquals(List.of("REST", "SOAP"), dto.getServiceTypes(),
+                "a bare service code can legitimately be multi-typed; must not collapse to a scalar");
     }
 
     @Test
-    void testAggregateReturnsNullWhenAllFilteredOut() {
-        Member m = member("PUB", "14151328", "Nahka-Albert");
-        Subsystem s = subsystem(m, "sub1");
-        Service removed = service(s, "svc", "v1");
-        removed.getStatusInfo().setRemoved(LocalDateTime.now());
-        Set<Service> versions = new HashSet<>();
-        versions.add(removed);
-
-        ServiceDto dto = aggregator.aggregate(versions, false);
-        assertNull(dto, "aggregator must return null when the filter removes every row");
+    void testFromRowsThrowsForEmptyList() {
+        assertThrows(IllegalArgumentException.class, () -> aggregator.fromRows(List.of()));
     }
 
     @Test
-    void testPopulatesMemberMetadataFromFirstRow() {
-        Member m = member("PUB", "14151328", "Nahka-Albert");
-        Subsystem s = subsystem(m, "sub1");
-        Service svc = service(s, "svc", "v1");
-        Set<Service> versions = new HashSet<>();
-        versions.add(svc);
+    void testFromRowsPopulatesContextFromFirstSortedRow() {
+        LocalDateTime now = LocalDateTime.now();
+        ServiceVersionRow v1 = row("svc", "v1", "REST", now);
+        List<ServiceVersionRow> rows = new ArrayList<>(List.of(v1));
 
-        ServiceDto dto = aggregator.aggregate(versions, false);
+        ServiceDto dto = aggregator.fromRows(rows);
+
         assertEquals("PUB", dto.getMemberClass());
         assertEquals("14151328", dto.getMemberCode());
         assertEquals("Nahka-Albert", dto.getMemberName());
         assertEquals("sub1", dto.getSubsystemCode());
     }
 
-    private Member member(String mc, String code, String name) {
-        Member m = new Member();
-        m.setXRoadInstance("dev-cs");
-        m.setMemberClass(mc);
-        m.setMemberCode(code);
-        m.setName(name);
-        LocalDateTime now = LocalDateTime.now();
-        m.setStatusInfo(new StatusInfo(now, now, now, null));
-        return m;
+    @Test
+    void testFromEntitiesSortsAndAggregatesVersions() {
+        ServiceV2 v1 = service("mixedSvc", "v1", "SOAP");
+        ServiceV2 vNull = service("mixedSvc", null, "REST");
+
+        ServiceDto dto = aggregator.fromEntities("PUB", "14151328", "Nahka-Albert", "sub1",
+                List.of(vNull, v1));
+
+        assertEquals("mixedSvc", dto.getServiceCode());
+        assertEquals(2, dto.getVersionCount());
+        assertTrue(dto.getServiceTypes().containsAll(List.of("SOAP", "REST")));
+        assertEquals(Arrays.asList("v1", null),
+                dto.getVersions().stream().map(v -> v.getServiceVersion()).toList());
     }
 
-    private Subsystem subsystem(Member parent, String code) {
-        Subsystem s = new Subsystem();
-        s.setSubsystemCode(code);
-        s.setMember(parent);
+    @Test
+    void testFromEntitiesThrowsForEmptyCollection() {
+        assertThrows(IllegalArgumentException.class,
+                () -> aggregator.fromEntities("PUB", "14151328", "Nahka-Albert", "sub1", List.of()));
+    }
+
+    private ServiceVersionRow row(String serviceCode, String version, String serviceType, LocalDateTime now) {
+        return new FakeServiceVersionRow("PUB", "14151328", "Nahka-Albert", "sub1", 1L,
+                serviceCode, version, serviceType, now, now, now, null);
+    }
+
+    private ServiceV2 service(String code, String version, String serviceType) {
+        ServiceV2 s = new ServiceV2();
+        ReflectionTestUtils.setField(s, "serviceCode", code);
+        ReflectionTestUtils.setField(s, "serviceVersion", version);
+        ReflectionTestUtils.setField(s, "serviceType", serviceType);
         LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
         return s;
     }
 
-    private Service service(Subsystem parent, String code, String version) {
-        Service s = new Service();
-        s.setSubsystem(parent);
-        s.setServiceCode(code);
-        s.setServiceVersion(version);
-        LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, null));
-        s.setEndpoints(new HashSet<>());
-        s.setWsdls(new HashSet<>());
-        s.setOpenApis(new HashSet<>());
-        s.setRests(new HashSet<>());
-        return s;
-    }
+    @SuppressWarnings("PMD.DataClass")
+    private record FakeServiceVersionRow(String memberClass, String memberCode, String memberName,
+                                  String subsystemCode, long subsystemId, String serviceCode, String serviceVersion,
+                                  String serviceType, LocalDateTime created, LocalDateTime changed,
+                                  LocalDateTime fetched, LocalDateTime removed) implements ServiceVersionRow {
 
-    private Wsdl wsdl() {
-        Wsdl w = new Wsdl();
-        LocalDateTime now = LocalDateTime.now();
-        w.setStatusInfo(new StatusInfo(now, now, now, null));
-        return w;
+        @Override
+        public String getMemberClass() {
+            return memberClass;
+        }
+
+        @Override
+        public String getMemberCode() {
+            return memberCode;
+        }
+
+        @Override
+        public String getMemberName() {
+            return memberName;
+        }
+
+        @Override
+        public String getSubsystemCode() {
+            return subsystemCode;
+        }
+
+        @Override
+        public long getSubsystemId() {
+            return subsystemId;
+        }
+
+        @Override
+        public String getServiceCode() {
+            return serviceCode;
+        }
+
+        @Override
+        public String getServiceVersion() {
+            return serviceVersion;
+        }
+
+        @Override
+        public String getServiceType() {
+            return serviceType;
+        }
+
+        @Override
+        public LocalDateTime getCreated() {
+            return created;
+        }
+
+        @Override
+        public LocalDateTime getChanged() {
+            return changed;
+        }
+
+        @Override
+        public LocalDateTime getFetched() {
+            return fetched;
+        }
+
+        @Override
+        public LocalDateTime getRemoved() {
+            return removed;
+        }
     }
 }

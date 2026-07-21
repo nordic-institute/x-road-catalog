@@ -25,12 +25,25 @@
 package org.niis.xroad.catalog.lister.configuration;
 
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.FilterType;
 
+/**
+ * Does not {@code @Import(PersistenceDefaultConfiguration.class)} -- it reproduces that class's
+ * component/entity scan directly and excludes {@code PersistenceDefaultConfiguration} itself from
+ * the component scan so that class's own {@code @EnableJpaRepositories} (which knows nothing about
+ * the lister's V1/V2 dual entity-scan split) never fires. Repository enabling is instead split
+ * across mutually exclusive {@code @Profile}-gated classes -- {@link V2ProductionConfiguration} and
+ * its {@code test}-profile siblings -- each contributing its own {@code @EnableJpaRepositories}
+ * declaration (one per profile); see their javadoc. This
+ * mirrors the same restructuring already applied to {@code CollectorDefaultConfiguration} for the
+ * analogous problem of a V2 read-model repository not being resolvable against every context.
+ */
 @Configuration
-@Import(PersistenceDefaultConfiguration.class)
-@ComponentScan(basePackages = "org.niis.xroad.catalog.lister")
+@ComponentScan(basePackages = {"org.niis.xroad.catalog.lister", "org.niis.xroad.catalog.persistence"},
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PersistenceDefaultConfiguration.class))
+@EntityScan("org.niis.xroad.catalog.persistence.entity")
 public class ListerDefaultConfiguration {
 }

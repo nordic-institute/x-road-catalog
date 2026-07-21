@@ -24,35 +24,69 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-        "xroad-catalog.shared-params-file=src/test/resources/shared-params-dev-cs.xml",
-        "xroad-catalog.app-name=X-Road Catalog Lister V2",
-        "xroad-catalog.app-version=2.0.0"
-})
-@ActiveProfiles({"test", "general-testdata"})
-public class HeartbeatServiceV2Test {
+/**
+ * Happy-path shape test for {@link HeartbeatServiceV2#heartbeat()}; edge cases (null lastFetched
+ * values, repository failures) live in {@link HeartbeatServiceV2UnitTest}.
+ */
+@ExtendWith(MockitoExtension.class)
+class HeartbeatServiceV2Test {
 
-    @Autowired
-    private HeartbeatServiceV2 heartbeatService;
+    private static final LocalDateTime NOW = LocalDateTime.now();
+
+    @Mock private MemberRepositoryV2 memberRepository;
+    @Mock private SubsystemRepositoryV2 subsystemRepository;
+    @Mock private ServiceRepositoryV2 serviceRepository;
+    @Mock private DescriptorRepositoryV2 descriptorRepository;
+    @Mock private ErrorLogRepositoryV2 errorLogRepository;
+
+    private HeartbeatServiceV2 service;
+
+    @BeforeEach
+    void setUp() {
+        service = new HeartbeatServiceV2("X-Road Catalog Lister V2", "2.0.0", memberRepository, subsystemRepository,
+                serviceRepository, descriptorRepository, errorLogRepository, Clock.systemDefaultZone());
+
+        when(memberRepository.findLatestFetched()).thenReturn(NOW);
+        when(subsystemRepository.findLatestFetched()).thenReturn(NOW);
+        when(serviceRepository.findLatestFetched()).thenReturn(NOW);
+        when(descriptorRepository.findLatestWsdlFetched()).thenReturn(NOW);
+        when(descriptorRepository.findLatestOpenApiFetched()).thenReturn(NOW);
+        when(descriptorRepository.findLatestRestFetched()).thenReturn(NOW);
+        when(memberRepository.checkConnection()).thenReturn(1);
+        Page<ErrorLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 1), 0L);
+        when(errorLogRepository.findAnyInRange(any(), any(), any())).thenReturn(page);
+    }
 
     @Test
-    public void testHeartbeatHasExpectedFields() {
-        HeartbeatV2Dto hb = heartbeatService.heartbeat();
+    void testHeartbeatHasExpectedFields() {
+        HeartbeatV2Dto hb = service.heartbeat();
         assertNotNull(hb);
         assertEquals(Boolean.TRUE, hb.getAppWorking(), "appWorking must be true");
         assertEquals(Boolean.TRUE, hb.getDbWorking(), "dbWorking must be true when DB reachable");
@@ -63,12 +97,12 @@ public class HeartbeatServiceV2Test {
                 "systemTime must be approximately now");
         assertNotNull(hb.getLastCollectionData(), "lastCollectionData must be populated");
         assertNotNull(hb.getLastCollectionData().getRestsLastFetched(),
-                "restsLastFetched must be wired and non-null given rest fixture rows");
+                "restsLastFetched must be wired to DescriptorRepositoryV2#findLatestRestFetched");
     }
 
     @Test
-    public void testLastRunErrorsCounted() {
-        HeartbeatV2Dto hb = heartbeatService.heartbeat();
+    void testLastRunErrorsCounted() {
+        HeartbeatV2Dto hb = service.heartbeat();
         assertTrue(hb.getLastRunErrors() >= 0, "lastRunErrors must be non-negative");
     }
 }

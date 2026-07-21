@@ -24,244 +24,152 @@
  */
 package org.niis.xroad.catalog.persistence.repository;
 
-import org.niis.xroad.catalog.persistence.entity.Service;
-import org.springframework.data.domain.Page;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceAggregateRow;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * V2 repository for Service. Separate from V1 ServiceRepository so V2 query changes
- * cannot accidentally alter V1 behavior.
- *
- * Active-only queries exclude services whose parent subsystem or member has been removed
- * (parent-cascade check) — spec's active-only contract applies to the whole hierarchy.
+ * V2 read-model repository for {@link ServiceV2}. Every query is instance-scoped
+ * ({@code s.subsystem.member.xRoadInstance = :xRoadInstance}), unlike the V1-era
+ * {@code findAggregatesForList} it replaces. Active-only queries apply the parent-cascade check:
+ * a service is active only when neither it, its parent subsystem, nor its parent member has been
+ * soft-deleted. Descriptor blobs (WSDL/OpenAPI {@code data}) never ride along these queries; see
+ * {@link DescriptorRepositoryV2}.
  */
-public interface ServiceRepositoryV2 extends CrudRepository<Service, Long>,
-        PagingAndSortingRepository<Service, Long> {
+public interface ServiceRepositoryV2 extends Repository<ServiceV2, Long>, V2ReadModelRepository {
+
+    String ACTIVE_CASCADE = "s.statusInfo.removed IS NULL AND s.subsystem.statusInfo.removed IS NULL "
+            + "AND s.subsystem.member.statusInfo.removed IS NULL";
+
+    String NATURAL_KEY = "s.serviceCode = :serviceCode AND s.subsystem.subsystemCode = :subsystemCode "
+            + "AND s.subsystem.member.memberCode = :memberCode AND s.subsystem.member.memberClass = :memberClass "
+            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance";
+
+    String VERSION_ROW_SELECT = "SELECT s.subsystem.member.memberClass AS memberClass, "
+            + "s.subsystem.member.memberCode AS memberCode, s.subsystem.member.name AS memberName, "
+            + "s.subsystem.subsystemCode AS subsystemCode, s.subsystem.id AS subsystemId, "
+            + "s.serviceCode AS serviceCode, s.serviceVersion AS serviceVersion, s.serviceType AS serviceType, "
+            + "s.statusInfo.created AS created, s.statusInfo.changed AS changed, "
+            + "s.statusInfo.fetched AS fetched, s.statusInfo.removed AS removed FROM ServiceV2 s ";
 
     /**
-     * All versions for a (member, subsystem, serviceCode) regardless of removed state.
-     * Intended for `includeRemoved=true` lookups and for {@code getVersions} when all rows are needed.
+     * One row per unique {@code serviceCode} within a subsystem (a "service aggregate") for the V2
+     * service list endpoint. {@code s.subsystem.id} is added to the {@code GROUP BY} to key the
+     * subsequent version batch fetch; it does not widen the grouping because it is functionally
+     * determined by the natural-key tuple already being grouped on. {@code serviceType} filtering
+     * uses a per-group existence test via {@code SUM(CASE ...) > 0} because JPQL has no portable
+     * {@code BOOL_OR} aggregate.
      */
-    @EntityGraph(attributePaths = {"wsdls", "openApis", "rests", "endpoints"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Service s WHERE s.serviceCode = :serviceCode "
-            + "AND s.subsystem.subsystemCode = :subsystemCode "
-            + "AND s.subsystem.member.memberCode = :memberCode "
-            + "AND s.subsystem.member.memberClass = :memberClass "
-            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance")
-    List<Service> findAnyByMemberServiceAndSubsystem(@Param("xRoadInstance") String xRoadInstance,
-                                                    @Param("memberClass") String memberClass,
-                                                    @Param("memberCode") String memberCode,
-                                                    @Param("serviceCode") String serviceCode,
-                                                    @Param("subsystemCode") String subsystemCode);
-
-    /**
-     * Active versions for a (member, subsystem, serviceCode) with parent cascade.
-     * Returns only service rows whose own {@code removed} is null AND whose parent subsystem
-     * and parent member have not been removed.
-     */
-    @EntityGraph(attributePaths = {"wsdls", "openApis", "rests", "endpoints"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Service s WHERE s.serviceCode = :serviceCode "
-            + "AND s.subsystem.subsystemCode = :subsystemCode "
-            + "AND s.subsystem.member.memberCode = :memberCode "
-            + "AND s.subsystem.member.memberClass = :memberClass "
-            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance "
-            + "AND s.statusInfo.removed IS NULL "
-            + "AND s.subsystem.statusInfo.removed IS NULL "
-            + "AND s.subsystem.member.statusInfo.removed IS NULL")
-    List<Service> findActiveByMemberServiceAndSubsystem(@Param("xRoadInstance") String xRoadInstance,
-                                                       @Param("memberClass") String memberClass,
-                                                       @Param("memberCode") String memberCode,
-                                                       @Param("serviceCode") String serviceCode,
-                                                       @Param("subsystemCode") String subsystemCode);
-
-    /**
-     * Exact version lookup regardless of removed state.
-     */
-    @EntityGraph(attributePaths = {"wsdls", "openApis", "rests", "endpoints"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Service s WHERE s.serviceCode = :serviceCode "
-            + "AND s.subsystem.subsystemCode = :subsystemCode "
-            + "AND s.subsystem.member.memberCode = :memberCode "
-            + "AND s.subsystem.member.memberClass = :memberClass "
-            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance "
-            + "AND s.serviceVersion = :serviceVersion")
-    Service findAnyByMemberServiceAndSubsystemAndVersion(@Param("xRoadInstance") String xRoadInstance,
-                                                        @Param("memberClass") String memberClass,
-                                                        @Param("memberCode") String memberCode,
-                                                        @Param("serviceCode") String serviceCode,
-                                                        @Param("subsystemCode") String subsystemCode,
-                                                        @Param("serviceVersion") String serviceVersion);
-
-    /**
-     * Exact version lookup with parent cascade (active service + active subsystem + active member).
-     */
-    @EntityGraph(attributePaths = {"wsdls", "openApis", "rests", "endpoints"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Service s WHERE s.serviceCode = :serviceCode "
-            + "AND s.subsystem.subsystemCode = :subsystemCode "
-            + "AND s.subsystem.member.memberCode = :memberCode "
-            + "AND s.subsystem.member.memberClass = :memberClass "
-            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance "
-            + "AND s.serviceVersion = :serviceVersion "
-            + "AND s.statusInfo.removed IS NULL "
-            + "AND s.subsystem.statusInfo.removed IS NULL "
-            + "AND s.subsystem.member.statusInfo.removed IS NULL")
-    Service findActiveByMemberServiceAndSubsystemAndVersion(@Param("xRoadInstance") String xRoadInstance,
-                                                            @Param("memberClass") String memberClass,
-                                                            @Param("memberCode") String memberCode,
-                                                            @Param("serviceCode") String serviceCode,
-                                                            @Param("subsystemCode") String subsystemCode,
-                                                            @Param("serviceVersion") String serviceVersion);
-
-    /**
-     * Null-version lookup regardless of removed state.
-     */
-    @EntityGraph(attributePaths = {"wsdls", "openApis", "rests", "endpoints"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Service s WHERE s.serviceCode = :serviceCode "
-            + "AND s.subsystem.subsystemCode = :subsystemCode "
-            + "AND s.subsystem.member.memberCode = :memberCode "
-            + "AND s.subsystem.member.memberClass = :memberClass "
-            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance "
-            + "AND s.serviceVersion IS NULL")
-    Service findAnyNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-                                           @Param("memberClass") String memberClass,
-                                           @Param("memberCode") String memberCode,
-                                           @Param("serviceCode") String serviceCode,
-                                           @Param("subsystemCode") String subsystemCode);
-
-    /**
-     * Null-version lookup with parent cascade (active service + active subsystem + active member).
-     */
-    @EntityGraph(attributePaths = {"wsdls", "openApis", "rests", "endpoints"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("SELECT s FROM Service s WHERE s.serviceCode = :serviceCode "
-            + "AND s.subsystem.subsystemCode = :subsystemCode "
-            + "AND s.subsystem.member.memberCode = :memberCode "
-            + "AND s.subsystem.member.memberClass = :memberClass "
-            + "AND s.subsystem.member.xRoadInstance = :xRoadInstance "
-            + "AND s.serviceVersion IS NULL "
-            + "AND s.statusInfo.removed IS NULL "
-            + "AND s.subsystem.statusInfo.removed IS NULL "
-            + "AND s.subsystem.member.statusInfo.removed IS NULL")
-    Service findActiveNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-                                              @Param("memberClass") String memberClass,
-                                              @Param("memberCode") String memberCode,
-                                              @Param("serviceCode") String serviceCode,
-                                              @Param("subsystemCode") String subsystemCode);
-
-    @Query("SELECT s FROM Service s WHERE "
-            + "LOWER(s.serviceCode) LIKE LOWER(CONCAT('%', :q, '%')) "
-            + "AND (:activeOnly = false OR (s.statusInfo.removed IS NULL "
-            + "                              AND s.subsystem.statusInfo.removed IS NULL "
-            + "                              AND s.subsystem.member.statusInfo.removed IS NULL))")
-    Page<Service> searchByText(@Param("q") String query,
-                               @Param("activeOnly") boolean activeOnly,
-                               Pageable pageable);
-
-    /**
-     * Returns service aggregates (one row per unique serviceCode within a subsystem) for the V2 list endpoint.
-     * Each row: [memberClass, memberCode, subsystemCode, serviceCode]. serviceType filtering matches V2
-     * converter classification (priority: SOAP &gt; OPENAPI &gt; REST); descriptor-less versions are classified
-     * as REST. Filtering is applied in HAVING so that ALL versions of a matching aggregate are counted.
-     *
-     * Active-only mode filters services whose own `removed` is null AND whose parent subsystem and member are
-     * not removed — the soft-delete cascade is enforced at query time.
-     *
-     * Ordering is fixed at serviceCode ascending with the full GROUP BY tuple appended as a deterministic
-     * tie-break (spec §8). The endpoint does not expose sortBy/sortOrder; callers pass an unsorted Pageable.
-     */
-    @Query("SELECT s.subsystem.member.memberClass, s.subsystem.member.memberCode, "
-            + "s.subsystem.subsystemCode, s.serviceCode "
-            + "FROM Service s WHERE "
-            + "(:memberClass IS NULL OR s.subsystem.member.memberClass = :memberClass) "
-            + "AND (:activeOnly = false OR (s.statusInfo.removed IS NULL "
-            + "                              AND s.subsystem.statusInfo.removed IS NULL "
-            + "                              AND s.subsystem.member.statusInfo.removed IS NULL)) "
+    @Query("SELECT s.subsystem.member.memberClass AS memberClass, s.subsystem.member.memberCode AS memberCode, "
+            + "s.subsystem.subsystemCode AS subsystemCode, s.serviceCode AS serviceCode, s.subsystem.id AS subsystemId "
+            + "FROM ServiceV2 s WHERE s.subsystem.member.xRoadInstance = :xRoadInstance "
+            + "AND (:memberClass IS NULL OR s.subsystem.member.memberClass = :memberClass) "
+            + "AND " + ACTIVE_CASCADE + " "
             + "GROUP BY s.subsystem.member.memberClass, s.subsystem.member.memberCode, "
-            + "s.subsystem.subsystemCode, s.serviceCode "
-            + "HAVING (:serviceType IS NULL "
-            + "        OR (:serviceType = 'SOAP' "
-            + "            AND SUM(CASE WHEN EXISTS (SELECT w FROM Wsdl w "
-            + "                                       WHERE w.service = s AND w.statusInfo.removed IS NULL) "
-            + "                         THEN 1 ELSE 0 END) > 0) "
-            + "        OR (:serviceType = 'OPENAPI' "
-            + "            AND SUM(CASE WHEN (NOT EXISTS (SELECT w FROM Wsdl w "
-            + "                                            WHERE w.service = s AND w.statusInfo.removed IS NULL)) "
-            + "                          AND EXISTS (SELECT o FROM OpenApi o "
-            + "                                      WHERE o.service = s AND o.statusInfo.removed IS NULL) "
-            + "                         THEN 1 ELSE 0 END) > 0) "
-            + "        OR (:serviceType = 'REST' "
-            + "            AND SUM(CASE WHEN (NOT EXISTS (SELECT w FROM Wsdl w "
-            + "                                            WHERE w.service = s AND w.statusInfo.removed IS NULL)) "
-            + "                          AND (NOT EXISTS (SELECT o FROM OpenApi o "
-            + "                                           WHERE o.service = s AND o.statusInfo.removed IS NULL)) "
-            + "                         THEN 1 ELSE 0 END) > 0)) "
+            + "s.subsystem.subsystemCode, s.serviceCode, s.subsystem.id "
+            + "HAVING (:serviceType IS NULL OR SUM(CASE WHEN s.serviceType = :serviceType THEN 1 ELSE 0 END) > 0) "
             + "ORDER BY s.serviceCode ASC, s.subsystem.member.memberClass ASC, "
             + "s.subsystem.member.memberCode ASC, s.subsystem.subsystemCode ASC")
-    List<Object[]> findAggregatesForList(@Param("memberClass") String memberClass,
-                                         @Param("serviceType") String serviceType,
-                                         @Param("activeOnly") boolean activeOnly,
-                                         Pageable pageable);
+    List<ServiceAggregateRow> findActiveAggregatesForList(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("serviceType") String serviceType, Pageable pageable);
 
     /**
-     * Count of aggregates matching the same filters as findAggregatesForList. Descriptor presence
-     * is evaluated against non-removed rows only, to match the converter-side {@code resolveType}.
+     * Count of aggregates matching the same filters as {@link #findActiveAggregatesForList}. Must
+     * always equal the unpaged row count of that method — pinned by the parity matrix test in
+     * {@code ServiceRepositoryV2PgTest}. Native SQL so the count is a plain COUNT over the same
+     * GROUP BY the rows query uses, instead of hashing a CONCAT of the natural key per row.
      */
-    @Query("SELECT COUNT(DISTINCT CONCAT(s.subsystem.member.memberClass, '|', "
-            + "s.subsystem.member.memberCode, '|', s.subsystem.subsystemCode, '|', s.serviceCode)) "
-            + "FROM Service s WHERE "
-            + "(:memberClass IS NULL OR s.subsystem.member.memberClass = :memberClass) "
-            + "AND (:activeOnly = false OR (s.statusInfo.removed IS NULL "
-            + "                              AND s.subsystem.statusInfo.removed IS NULL "
-            + "                              AND s.subsystem.member.statusInfo.removed IS NULL)) "
-            + "AND (:serviceType IS NULL "
-            + "     OR (:serviceType = 'SOAP' AND EXISTS ("
-            + "         SELECT s2 FROM Service s2 WHERE s2.subsystem = s.subsystem "
-            + "         AND s2.serviceCode = s.serviceCode "
-            + "         AND (:activeOnly = false OR s2.statusInfo.removed IS NULL) "
-            + "         AND EXISTS (SELECT w FROM Wsdl w "
-            + "                     WHERE w.service = s2 AND w.statusInfo.removed IS NULL))) "
-            + "     OR (:serviceType = 'OPENAPI' AND EXISTS ("
-            + "         SELECT s2 FROM Service s2 WHERE s2.subsystem = s.subsystem "
-            + "         AND s2.serviceCode = s.serviceCode "
-            + "         AND (:activeOnly = false OR s2.statusInfo.removed IS NULL) "
-            + "         AND (NOT EXISTS (SELECT w FROM Wsdl w "
-            + "                          WHERE w.service = s2 AND w.statusInfo.removed IS NULL)) "
-            + "         AND EXISTS (SELECT o FROM OpenApi o "
-            + "                     WHERE o.service = s2 AND o.statusInfo.removed IS NULL))) "
-            + "     OR (:serviceType = 'REST' AND EXISTS ("
-            + "         SELECT s2 FROM Service s2 WHERE s2.subsystem = s.subsystem "
-            + "         AND s2.serviceCode = s.serviceCode "
-            + "         AND (:activeOnly = false OR s2.statusInfo.removed IS NULL) "
-            + "         AND (NOT EXISTS (SELECT w FROM Wsdl w "
-            + "                          WHERE w.service = s2 AND w.statusInfo.removed IS NULL)) "
-            + "         AND (NOT EXISTS (SELECT o FROM OpenApi o "
-            + "                          WHERE o.service = s2 AND o.statusInfo.removed IS NULL)))))")
-    long countAggregatesForList(@Param("memberClass") String memberClass,
-                                @Param("serviceType") String serviceType,
-                                @Param("activeOnly") boolean activeOnly);
+    @Query(value = "SELECT COUNT(*) FROM ("
+            + " SELECT 1 FROM service s"
+            + " JOIN subsystem sub ON s.subsystem_id = sub.id"
+            + " JOIN member m ON sub.member_id = m.id"
+            + " WHERE m.x_road_instance = :xRoadInstance"
+            + "   AND (:memberClass IS NULL OR m.member_class = :memberClass)"
+            + "   AND s.removed IS NULL AND sub.removed IS NULL AND m.removed IS NULL"
+            + " GROUP BY m.member_class, m.member_code, sub.subsystem_code, s.service_code, s.subsystem_id"
+            + " HAVING (:serviceType IS NULL"
+            + "   OR SUM(CASE WHEN s.service_type = :serviceType THEN 1 ELSE 0 END) > 0)"
+            + ") g", nativeQuery = true)
+    long countActiveAggregatesForList(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("serviceType") String serviceType);
 
-    @Query("SELECT s FROM Service s WHERE "
-            + "s.statusInfo.created >= :startDate AND s.statusInfo.created < :endDate")
-    List<Service> findCreatedBetween(@Param("startDate") LocalDateTime startDate,
-                                     @Param("endDate") LocalDateTime endDate);
+    /**
+     * Active version rows for a page of aggregates, keyed by {@code (subsystemId, serviceCode)}.
+     * JPQL has no portable row-value {@code IN}, so this over-selects the cross product of the two
+     * IN-lists rather than the exact pair set; the caller (service layer) must discard rows whose
+     * {@code (subsystemId, serviceCode)} pair was not actually requested.
+     */
+    @Query(VERSION_ROW_SELECT + "WHERE s.subsystem.id IN :subsystemIds AND s.serviceCode IN :serviceCodes "
+            + "AND s.statusInfo.removed IS NULL ORDER BY s.serviceCode, s.serviceVersion")
+    List<ServiceVersionRow> findActiveVersionRowsForKeys(@Param("subsystemIds") Collection<Long> subsystemIds,
+            @Param("serviceCodes") Collection<String> serviceCodes);
 
-    @Query("SELECT s FROM Service s WHERE "
-            + "s.statusInfo.changed >= :startDate AND s.statusInfo.changed < :endDate "
-            + "AND (s.statusInfo.created < :startDate OR s.statusInfo.created >= :endDate) "
-            + "AND (s.statusInfo.removed IS NULL "
-            + "     OR s.statusInfo.removed < :startDate "
-            + "     OR s.statusInfo.removed >= :endDate)")
-    List<Service> findChangedBetween(@Param("startDate") LocalDateTime startDate,
-                                     @Param("endDate") LocalDateTime endDate);
+    @Query(VERSION_ROW_SELECT + "WHERE " + NATURAL_KEY + " AND " + ACTIVE_CASCADE)
+    List<ServiceVersionRow> findActiveVersionRowsForService(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
 
-    @Query("SELECT s FROM Service s WHERE "
-            + "s.statusInfo.removed >= :startDate AND s.statusInfo.removed < :endDate")
-    List<Service> findRemovedBetween(@Param("startDate") LocalDateTime startDate,
-                                     @Param("endDate") LocalDateTime endDate);
+    @Query(VERSION_ROW_SELECT + "WHERE s.subsystem.member.xRoadInstance = :xRoadInstance "
+            + "AND s.subsystem.member.memberClass = :memberClass AND s.subsystem.member.memberCode = :memberCode "
+            + "AND s.subsystem.subsystemCode = :subsystemCode AND " + ACTIVE_CASCADE
+            + " ORDER BY s.serviceCode, s.serviceVersion")
+    List<ServiceVersionRow> findActiveVersionRowsForSubsystem(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode);
+
+    /**
+     * Active versions for one service natural key (all {@code serviceVersion} rows, including the
+     * null-version case) with the {@code endpoints} collection pre-fetched so detail-endpoint
+     * traversal does not N+1.
+     */
+    @EntityGraph(attributePaths = {"endpoints"})
+    @Query("SELECT s FROM ServiceV2 s WHERE " + NATURAL_KEY + " AND " + ACTIVE_CASCADE)
+    List<ServiceV2> findActiveVersionsByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
+
+    @EntityGraph(attributePaths = {"endpoints"})
+    @Query("SELECT s FROM ServiceV2 s WHERE " + NATURAL_KEY + " AND s.serviceVersion = :serviceVersion AND "
+            + ACTIVE_CASCADE)
+    Optional<ServiceV2> findActiveVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode,
+            @Param("serviceVersion") String serviceVersion);
+
+    @EntityGraph(attributePaths = {"endpoints"})
+    @Query("SELECT s FROM ServiceV2 s WHERE " + NATURAL_KEY + " AND s.serviceVersion IS NULL AND " + ACTIVE_CASCADE)
+    Optional<ServiceV2> findActiveNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
+
+    @Query("SELECT COUNT(s) > 0 FROM ServiceV2 s WHERE " + NATURAL_KEY + " AND " + ACTIVE_CASCADE)
+    boolean existsActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
+
+    @Query("SELECT COUNT(s) > 0 FROM ServiceV2 s WHERE " + NATURAL_KEY
+            + " AND s.serviceVersion = :serviceVersion AND " + ACTIVE_CASCADE)
+    boolean existsActiveVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode,
+            @Param("serviceVersion") String serviceVersion);
+
+    @Query("SELECT COUNT(s) > 0 FROM ServiceV2 s WHERE " + NATURAL_KEY
+            + " AND s.serviceVersion IS NULL AND " + ACTIVE_CASCADE)
+    boolean existsActiveNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
+            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
+            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
+
+    @Query("SELECT MAX(s.statusInfo.fetched) FROM ServiceV2 s")
+    LocalDateTime findLatestFetched();
 }

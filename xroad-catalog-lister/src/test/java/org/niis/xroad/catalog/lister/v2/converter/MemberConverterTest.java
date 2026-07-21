@@ -25,157 +25,192 @@
 package org.niis.xroad.catalog.lister.v2.converter;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
+import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
-import org.niis.xroad.catalog.persistence.entity.Wsdl;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MemberConverterTest {
+class MemberConverterTest {
 
     private final MemberConverter converter = new MemberConverter();
 
     @Test
-    void testConvertActiveMemberWithProvider() {
-        Member member = buildMember("PUB", "14151328", "Nahka-Albert", false);
-        Subsystem sub = buildSubsystem(member, "sub1", false);
-        Service svc = buildService(sub, "svcA", "v1", false);
-        Wsdl wsdl = new Wsdl();
-        wsdl.setStatusInfo(new StatusInfo(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), null));
-        svc.setWsdl(wsdl);
-        sub.getAllServices().add(svc);
-        member.getAllSubsystems().add(sub);
+    void testToDtoMapsRowFieldsDirectly() {
+        LocalDateTime now = LocalDateTime.now();
+        MemberListRow row = new FakeMemberListRow("PUB", "14151328", "Nahka-Albert", true, 2, 5,
+                now, now, now, null);
 
-        MemberDto dto = converter.toDto(member);
+        MemberDto dto = converter.toDto(row);
+
         assertEquals("PUB", dto.getMemberClass());
         assertEquals("14151328", dto.getMemberCode());
-        assertTrue(dto.isProvider(), "member with an active service under an active subsystem must be provider");
-        assertEquals(1, dto.getSubsystemCount());
-        assertEquals(1, dto.getServiceCount());
+        assertEquals("Nahka-Albert", dto.getName());
+        assertTrue(dto.isProvider());
+        assertEquals(2, dto.getSubsystemCount());
+        assertEquals(5, dto.getServiceCount());
+        assertEquals(now, dto.getCreated());
+        assertEquals(now, dto.getChanged());
+        assertEquals(now, dto.getFetched());
+        assertNull(dto.getRemoved());
     }
 
     @Test
-    void testConvertNonProviderNoServices() {
-        Member member = buildMember("PUB", "14151329", "Plain member", false);
-        Subsystem sub = buildSubsystem(member, "sub1", false);
-        member.getAllSubsystems().add(sub);
-        MemberDto dto = converter.toDto(member);
-        assertFalse(dto.isProvider(), "member with no services is not a provider");
-        assertEquals(1, dto.getSubsystemCount());
-        assertEquals(0, dto.getServiceCount());
-    }
-
-    /**
-     * Task 1.5 invariant 1: the new isProvider predicate is service-existence based (not
-     * descriptor-existence based). A descriptor-less active service still counts.
-     */
-    @Test
-    void testDescriptorLessActiveServiceMakesMemberProvider() {
-        Member member = buildMember("PUB", "descriptor-less", "no descriptors", false);
-        Subsystem sub = buildSubsystem(member, "sub1", false);
-        Service svc = buildService(sub, "svcA", "v1", false);
-        sub.getAllServices().add(svc);
-        member.getAllSubsystems().add(sub);
-
-        MemberDto dto = converter.toDto(member);
-        assertTrue(dto.isProvider(),
-                "member with an active service but no descriptor rows must still be a provider");
-        assertEquals(1, dto.getServiceCount());
-    }
-
-    /**
-     * Task 1.5 invariant 2: an active subsystem whose only service is removed does not make the
-     * member a provider.
-     */
-    @Test
-    void testActiveSubsystemWithOnlyRemovedServiceIsNotProvider() {
-        Member member = buildMember("PUB", "only-removed-service", "only removed", false);
-        Subsystem sub = buildSubsystem(member, "sub1", false);
-        Service removedSvc = buildService(sub, "removedSvc", "v1", true);
-        sub.getAllServices().add(removedSvc);
-        member.getAllSubsystems().add(sub);
-
-        MemberDto dto = converter.toDto(member);
-        assertFalse(dto.isProvider(),
-                "active subsystem with only removed services must not make member a provider");
-    }
-
-    /**
-     * Task 1.5 invariant 3: an active service under a removed subsystem does not make the member a
-     * provider - the subsystem-level filter excludes the orphaned child.
-     */
-    @Test
-    void testActiveServiceUnderRemovedSubsystemIsNotProvider() {
-        Member member = buildMember("PUB", "svc-under-removed-sub", "svc under removed sub", false);
-        Subsystem removedSub = buildSubsystem(member, "sub1", true);
-        Service activeSvc = buildService(removedSub, "svcA", "v1", false);
-        removedSub.getAllServices().add(activeSvc);
-        member.getAllSubsystems().add(removedSub);
-
-        MemberDto dto = converter.toDto(member);
-        assertFalse(dto.isProvider(),
-                "active service under a removed subsystem must NOT make member a provider");
-    }
-
-    /**
-     * Task 1.5 invariant 4: a removed member with stale active children is never a provider, in
-     * both {@code toDto} and {@code toDtoIncludingRemoved}. The state indicator is pinned to the
-     * active view independent of the {@code includeRemoved} flag.
-     */
-    @Test
-    void testRemovedMemberWithStaleActiveChildrenIsNotProvider() {
-        Member member = buildMember("PUB", "removed-with-stale", "removed with stale", true);
-        Subsystem activeSub = buildSubsystem(member, "staleSub", false);
-        Service activeSvc = buildService(activeSub, "staleSvc", "v1", false);
-        activeSub.getAllServices().add(activeSvc);
-        member.getAllSubsystems().add(activeSub);
-
-        MemberDto dtoActive = converter.toDto(member);
-        assertFalse(dtoActive.isProvider(),
-                "removed member must never be a provider, even with stale active children (toDto)");
-
-        MemberDto dtoIncludingRemoved = converter.toDtoIncludingRemoved(member);
-        assertFalse(dtoIncludingRemoved.isProvider(),
-                "removed member must never be a provider (toDtoIncludingRemoved short-circuit)");
-    }
-
-    private Member buildMember(String mc, String code, String name, boolean removed) {
-        Member m = new Member();
-        m.setXRoadInstance("dev-cs");
-        m.setMemberClass(mc);
-        m.setMemberCode(code);
-        m.setName(name);
+    void testToDtoNonProviderRemovedRow() {
         LocalDateTime now = LocalDateTime.now();
-        m.setStatusInfo(new StatusInfo(now, now, now, removed ? now : null));
-        m.setSubsystems(new HashSet<>());
+        MemberListRow row = new FakeMemberListRow("PUB", "14151329", "Plain member", false, 0, 0,
+                now, now, now, now);
+
+        MemberDto dto = converter.toDto(row);
+
+        assertFalse(dto.isProvider());
+        assertEquals(now, dto.getRemoved());
+    }
+
+    @Test
+    void testToFullDtoComputesCountsFromActiveHelpersAndUsesEntityIsProvider() {
+        MemberV2 member = buildMember(true);
+        SubsystemV2 activeSub = buildSubsystem(member, "sub1", false);
+        addActiveService(activeSub, "svcA");
+        addActiveService(activeSub, "svcB");
+        SubsystemV2 removedSub = buildSubsystem(member, "sub2", true);
+        addActiveService(removedSub, "svcC");
+        member.getSubsystems().add(activeSub);
+        member.getSubsystems().add(removedSub);
+
+        FullMemberDto dto = converter.toFullDto(member, List.of());
+
+        assertEquals("PUB", dto.getMemberClass());
+        assertEquals("14151328", dto.getMemberCode());
+        assertTrue(dto.isProvider(), "isProvider must come from the entity column, not from walking children");
+        assertEquals(1, dto.getSubsystemCount(), "removed subsystem must not be counted");
+        assertEquals(2, dto.getServiceCount(), "services under the removed subsystem must not be counted");
+    }
+
+    @Test
+    void testToFullDtoIsProviderFalseWhenColumnFalseDespiteActiveChildren() {
+        MemberV2 member = buildMember(false);
+        SubsystemV2 sub = buildSubsystem(member, "sub1", false);
+        addActiveService(sub, "svcA");
+        member.getSubsystems().add(sub);
+
+        FullMemberDto dto = converter.toFullDto(member, List.of());
+
+        assertFalse(dto.isProvider(), "isProvider is the denormalized column value, not recomputed here");
+    }
+
+    @Test
+    void testToFullDtoCarriesSuppliedSubsystems() {
+        MemberV2 member = buildMember(false);
+        FullSubsystemDto sub = FullSubsystemDto.builder().subsystemCode("sub1").build();
+
+        FullMemberDto dto = converter.toFullDto(member, List.of(sub));
+
+        assertEquals(1, dto.getSubsystems().size());
+        assertEquals("sub1", dto.getSubsystems().get(0).getSubsystemCode());
+    }
+
+    private MemberV2 buildMember(boolean provider) {
+        MemberV2 m = new MemberV2();
+        ReflectionTestUtils.setField(m, "memberClass", "PUB");
+        ReflectionTestUtils.setField(m, "memberCode", "14151328");
+        ReflectionTestUtils.setField(m, "name", "Nahka-Albert");
+        ReflectionTestUtils.setField(m, "isProvider", provider);
+        LocalDateTime now = LocalDateTime.now();
+        ReflectionTestUtils.setField(m, "statusInfo", new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(m, "subsystems", new HashSet<SubsystemV2>());
         return m;
     }
 
-    private Subsystem buildSubsystem(Member parent, String code, boolean removed) {
-        Subsystem s = new Subsystem();
-        s.setSubsystemCode(code);
-        s.setMember(parent);
+    private SubsystemV2 buildSubsystem(MemberV2 parent, String code, boolean removed) {
+        SubsystemV2 s = new SubsystemV2();
+        ReflectionTestUtils.setField(s, "member", parent);
+        ReflectionTestUtils.setField(s, "subsystemCode", code);
         LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, removed ? now : null));
-        s.setServices(new HashSet<>());
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
+        ReflectionTestUtils.setField(s, "services", new HashSet<ServiceV2>());
         return s;
     }
 
-    private Service buildService(Subsystem parent, String code, String version, boolean removed) {
-        Service s = new Service();
-        s.setSubsystem(parent);
-        s.setServiceCode(code);
-        s.setServiceVersion(version);
+    private void addActiveService(SubsystemV2 subsystem, String serviceCode) {
+        ServiceV2 svc = new ServiceV2();
+        ReflectionTestUtils.setField(svc, "subsystem", subsystem);
+        ReflectionTestUtils.setField(svc, "serviceCode", serviceCode);
+        ReflectionTestUtils.setField(svc, "serviceType", "REST");
         LocalDateTime now = LocalDateTime.now();
-        s.setStatusInfo(new StatusInfo(now, now, now, removed ? now : null));
-        return s;
+        ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now, null));
+        Set<ServiceV2> services = subsystem.getServices();
+        services.add(svc);
+    }
+
+    @SuppressWarnings("PMD.DataClass")
+    private record FakeMemberListRow(String memberClass, String memberCode, String name, boolean provider,
+                                      long subsystemCount, long serviceCount, LocalDateTime created,
+                                      LocalDateTime changed, LocalDateTime fetched,
+                                      LocalDateTime removed) implements MemberListRow {
+
+        @Override
+        public String getMemberClass() {
+            return memberClass;
+        }
+
+        @Override
+        public String getMemberCode() {
+            return memberCode;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean isProvider() {
+            return provider;
+        }
+
+        @Override
+        public long getSubsystemCount() {
+            return subsystemCount;
+        }
+
+        @Override
+        public long getServiceCount() {
+            return serviceCount;
+        }
+
+        @Override
+        public LocalDateTime getCreated() {
+            return created;
+        }
+
+        @Override
+        public LocalDateTime getChanged() {
+            return changed;
+        }
+
+        @Override
+        public LocalDateTime getFetched() {
+            return fetched;
+        }
+
+        @Override
+        public LocalDateTime getRemoved() {
+            return removed;
+        }
     }
 }

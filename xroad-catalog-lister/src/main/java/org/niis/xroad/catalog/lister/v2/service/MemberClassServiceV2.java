@@ -24,15 +24,10 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
-import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
-import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2;
-import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberClassCountRow;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -42,48 +37,64 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Slf4j
-@Component
+/**
+ * V2 member-class service. Member counts come straight from the database (denormalized nowhere);
+ * descriptions come from the shared-params XML global settings.
+ */
+@Service
 public class MemberClassServiceV2 {
 
-    @Autowired
-    private SharedParamsParserV2 parser;
+    private final SharedParamsCache sharedParamsCache;
+    private final MemberRepositoryV2 memberRepository;
+    private final InstanceContext instanceContext;
 
-    @Autowired
-    private MemberRepositoryV2 memberRepository;
+    public MemberClassServiceV2(SharedParamsCache sharedParamsCache, MemberRepositoryV2 memberRepository,
+            InstanceContext instanceContext) {
+        this.sharedParamsCache = sharedParamsCache;
+        this.memberRepository = memberRepository;
+        this.instanceContext = instanceContext;
+    }
 
-    @Value("${xroad-catalog.shared-params-file}")
-    private String sharedParamsFile;
-
+    /**
+     * Looks up a single member class by code. {@code memberCount} is resolved via
+     * {@link MemberRepositoryV2#countActiveByMemberClass} rather than {@link #list()} so a lookup
+     * for one code costs one grouped count query, not a full description parse plus a full grouped
+     * count query. A code is considered to exist when it has either a shared-params description or
+     * at least one active member; an unknown code (neither) returns {@code null} (controller maps to
+     * 404).
+     */
     public MemberClassDto getByCode(String code) {
         if (code == null) {
             return null;
         }
-        for (MemberClassDto dto : list()) {
-            if (code.equals(dto.getCode())) {
-                return dto;
-            }
+        String description = sharedParamsCache.memberClassDescriptions().get(code);
+        long count = memberRepository.countActiveByMemberClass(instanceContext.getCurrentInstance(), code);
+        if (description == null && count == 0) {
+            return null;
         }
-        return null;
+        return MemberClassDto.builder()
+                .code(code)
+                .description(description)
+                .memberCount(Math.toIntExact(count))
+                .build();
     }
 
+    /**
+     * Lists every known member class: the union of codes declared in the shared-params global
+     * settings and codes with at least one active member. Member counts come from
+     * {@link MemberRepositoryV2#countActiveGroupedByMemberClass} (one grouped query) instead of the
+     * old per-member counting loop.
+     */
     public List<MemberClassDto> list() {
-        Map<String, String> descriptions = new HashMap<>();
-        try {
-            for (MemberClassInfo info : parser.parseMemberClasses(sharedParamsFile)) {
-                descriptions.put(info.getCode(), info.getDescription());
-            }
-        } catch (Exception e) {
-            log.warn("Failed to parse member classes from shared-params file {}", sharedParamsFile, e);
+        SharedParamsCache.MemberClasses memberClasses = sharedParamsCache.memberClasses();
+        Map<String, String> descriptions = memberClasses.descriptions();
+
+        Map<String, Long> counts = new HashMap<>();
+        for (MemberClassCountRow row : memberRepository.countActiveGroupedByMemberClass(instanceContext.getCurrentInstance())) {
+            counts.put(row.getCode(), row.getMemberCount());
         }
 
-        Map<String, Integer> counts = new HashMap<>();
-        for (Member member : memberRepository.findAllActive()) {
-            counts.merge(member.getMemberClass(), 1, Integer::sum);
-        }
-
-        Set<String> allCodes = new HashSet<>();
-        allCodes.addAll(descriptions.keySet());
+        Set<String> allCodes = new HashSet<>(memberClasses.codes());
         allCodes.addAll(counts.keySet());
 
         List<MemberClassDto> out = new ArrayList<>();
@@ -91,7 +102,7 @@ public class MemberClassServiceV2 {
             out.add(MemberClassDto.builder()
                     .code(code)
                     .description(descriptions.get(code))
-                    .memberCount(counts.getOrDefault(code, 0))
+                    .memberCount(Math.toIntExact(counts.getOrDefault(code, 0L)))
                     .build());
         }
         out.sort(Comparator.comparing(MemberClassDto::getCode));

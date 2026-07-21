@@ -27,10 +27,10 @@ package org.niis.xroad.catalog.lister.v2.converter;
 import org.niis.xroad.catalog.lister.v2.dto.EndpointDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionSummaryDto;
-import org.niis.xroad.catalog.persistence.entity.Endpoint;
-import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -39,29 +39,32 @@ import java.util.List;
 @Component
 public class ServiceVersionConverter {
 
-    @Autowired
-    private ServiceClassifier classifier;
+    private static final String SOAP_SERVICE_TYPE = "SOAP";
+    private static final String OPENAPI_SERVICE_TYPE = "OPENAPI";
 
-    public ServiceVersionDto toDto(Service service, boolean includeRemoved) {
-        String serviceType = classifier.resolveType(service);
-        boolean hasDescriptor = classifier.hasDescriptor(service);
+    /**
+     * {@code serviceType} is read straight from the denormalized column maintained by the collector
+     * recompute (a descriptor fetched mid-collection-cycle surfaces after the next recompute — an
+     * accepted staleness window, during which the type reads {@code UNKNOWN}). {@code hasDescriptor}
+     * is asserted only for the two types that carry one: SOAP has a WSDL, OPENAPI has an OpenAPI
+     * document. REST is the settled descriptor-less type and UNKNOWN is not yet classified, so both
+     * report {@code false} rather than claiming a descriptor that may not exist.
+     */
+    public ServiceVersionDto toDto(ServiceV2 service) {
+        String serviceType = service.getServiceType();
         List<EndpointDto> endpoints = new ArrayList<>();
-        for (Endpoint e : service.getAllEndpoints()) {
-            boolean removed = e.getStatusInfo().isRemoved();
-            if (removed && !includeRemoved) {
-                continue;
-            }
+        for (EndpointV2 e : service.getActiveEndpoints()) {
             endpoints.add(EndpointDto.builder()
                     .method(e.getMethod())
                     .path(e.getPath())
-                    .removed(removed ? e.getStatusInfo().getRemoved() : null)
+                    .removed(e.getStatusInfo().getRemoved())
                     .build());
         }
         StatusInfo info = service.getStatusInfo();
         return ServiceVersionDto.builder()
                 .serviceVersion(service.getServiceVersion())
                 .serviceType(serviceType)
-                .hasDescriptor(hasDescriptor)
+                .hasDescriptor(SOAP_SERVICE_TYPE.equals(serviceType) || OPENAPI_SERVICE_TYPE.equals(serviceType))
                 .endpoints(endpoints)
                 .created(info.getCreated())
                 .changed(info.getChanged())
@@ -70,15 +73,26 @@ public class ServiceVersionConverter {
                 .build();
     }
 
-    public ServiceVersionSummaryDto toSummary(Service service) {
+    public ServiceVersionSummaryDto toSummary(ServiceV2 service) {
         StatusInfo info = service.getStatusInfo();
         return ServiceVersionSummaryDto.builder()
                 .serviceVersion(service.getServiceVersion())
-                .serviceType(classifier.resolveType(service))
+                .serviceType(service.getServiceType())
                 .created(info.getCreated())
                 .changed(info.getChanged())
                 .fetched(info.getFetched())
                 .removed(info.getRemoved())
+                .build();
+    }
+
+    public ServiceVersionSummaryDto toSummary(ServiceVersionRow row) {
+        return ServiceVersionSummaryDto.builder()
+                .serviceVersion(row.getServiceVersion())
+                .serviceType(row.getServiceType())
+                .created(row.getCreated())
+                .changed(row.getChanged())
+                .fetched(row.getFetched())
+                .removed(row.getRemoved())
                 .build();
     }
 }

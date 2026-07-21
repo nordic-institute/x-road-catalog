@@ -30,6 +30,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
+ */
+@Deprecated
 @RequestMapping("/default")
 public interface ServiceOperations {
 

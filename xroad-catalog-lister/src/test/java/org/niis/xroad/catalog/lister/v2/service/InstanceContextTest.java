@@ -26,7 +26,6 @@ package org.niis.xroad.catalog.lister.v2.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.Files;
@@ -49,8 +48,7 @@ class InstanceContextTest {
         Path file = tmp.resolve("shared-params.xml");
         Files.writeString(file, SHARED_PARAMS_XML);
 
-        InstanceContext context = new InstanceContext();
-        ReflectionTestUtils.setField(context, "sharedParamsFile", file.toString());
+        InstanceContext context = new InstanceContext(file.toString());
 
         assertEquals("DEV", context.getCurrentInstance());
     }
@@ -59,8 +57,7 @@ class InstanceContextTest {
     void throwsServiceUnavailableWhenFileMissing(@TempDir Path tmp) {
         Path file = tmp.resolve("missing.xml");
 
-        InstanceContext context = new InstanceContext();
-        ReflectionTestUtils.setField(context, "sharedParamsFile", file.toString());
+        InstanceContext context = new InstanceContext(file.toString());
 
         ResponseStatusException ex = assertThrows(
                 ResponseStatusException.class,
@@ -73,8 +70,7 @@ class InstanceContextTest {
         Path file = tmp.resolve("shared-params.xml");
         Files.writeString(file, SHARED_PARAMS_XML);
 
-        InstanceContext context = new InstanceContext();
-        ReflectionTestUtils.setField(context, "sharedParamsFile", file.toString());
+        InstanceContext context = new InstanceContext(file.toString());
 
         String first = context.getCurrentInstance();
 
@@ -90,8 +86,7 @@ class InstanceContextTest {
     void recoversAfterFileAppears(@TempDir Path tmp) throws Exception {
         Path file = tmp.resolve("shared-params.xml");
 
-        InstanceContext context = new InstanceContext();
-        ReflectionTestUtils.setField(context, "sharedParamsFile", file.toString());
+        InstanceContext context = new InstanceContext(file.toString());
 
         assertThrows(ResponseStatusException.class, context::getCurrentInstance);
 

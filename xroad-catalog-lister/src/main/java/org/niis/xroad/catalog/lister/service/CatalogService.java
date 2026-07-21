@@ -50,7 +50,11 @@ import java.util.List;
  * creation and deletion. This is important since getActiveMembers(Date
  * updatedSince) only checks
  * updated-field and ignores created & deleted.
+ *
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
  */
+@Deprecated
 public interface CatalogService {
 
     /**

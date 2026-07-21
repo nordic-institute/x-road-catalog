@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.lister.v2.service.HeartbeatServiceV2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -57,8 +56,11 @@ import org.springframework.web.bind.annotation.RestController;
 @PropertySource("classpath:version.properties")
 public class HeartbeatV2Controller {
 
-    @Autowired
-    private HeartbeatServiceV2 heartbeatService;
+    private final HeartbeatServiceV2 heartbeatService;
+
+    public HeartbeatV2Controller(HeartbeatServiceV2 heartbeatService) {
+        this.heartbeatService = heartbeatService;
+    }
 
     @GetMapping(path = "/heartbeat", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses({

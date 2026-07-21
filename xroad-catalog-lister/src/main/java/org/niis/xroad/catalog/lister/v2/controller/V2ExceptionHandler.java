@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.catalog.lister.v2.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+@Slf4j
 @RestControllerAdvice(basePackages = "org.niis.xroad.catalog.lister.v2")
 public class V2ExceptionHandler {
 
@@ -90,11 +92,12 @@ public class V2ExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        log.error("Unhandled exception serving V2 request", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.fromStatus(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "InternalServerError",
-                        ex.getMessage()));
+                        "Internal server error"));
     }
 }

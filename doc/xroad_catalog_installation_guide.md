@@ -34,6 +34,7 @@ Doc. ID: IG-XRDCAT
     * [2.5.1 X-Road Catalog Collector](#251-x-road-catalog-collector)
     * [2.5.2 X-Road Catalog Lister](#252-x-road-catalog-lister)
     * [2.5.3 services](#253-services)
+    * [2.5.4 Time zone configuration](#254-time-zone-configuration)
   * [2.6 SSL (optional)](#26-ssl-optional)
   * [2.7 Post-Installation Checks](#27-post-installation-checks)
   * [2.8 Logs](#28-logs)
@@ -199,6 +200,22 @@ sudo systemctl enable xroad-catalog-collector
 sudo systemctl restart xroad-catalog-lister
 sudo systemctl restart xroad-catalog-collector
 ```
+
+### 2.5.4 Time zone configuration
+
+X-Road Catalog stores every timestamp in the collector host's local wall-clock time, not UTC.
+The lister reads and serializes those timestamps back using the same convention, so
+the `xroad-catalog-collector`, `xroad-catalog-lister`, and the PostgreSQL database **must all run
+in the same time zone**. If they don't, day-boundary defaults used by the `/api/v2/reports/*` and
+`/errors` endpoints (which default to "today" in the server's local time) will be off by a day for
+requests made near midnight.
+
+Container images default to UTC, so when running X-Road Catalog in containers make sure all three
+services use the host's time zone, e.g. by bind-mounting `/etc/localtime:/etc/localtime:ro` as done
+in `docker/compose.yml`, or by setting the same explicit `TZ` environment variable on all three
+services. When installing from packages, verify that the host's
+configured time zone (`timedatectl`) is the same on the collector host, the lister host, and the
+PostgreSQL host.
 
 ## 2.6 SSL (optional)
 

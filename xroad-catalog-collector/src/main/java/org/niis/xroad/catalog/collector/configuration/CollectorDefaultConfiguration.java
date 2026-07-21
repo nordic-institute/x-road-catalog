@@ -25,12 +25,28 @@
 package org.niis.xroad.catalog.collector.configuration;
 
 import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+/**
+ * Does not {@code @Import(PersistenceDefaultConfiguration.class)} — it reproduces that class's
+ * component/entity scan directly and excludes {@code PersistenceDefaultConfiguration} itself from
+ * the component scan so its own (unfiltered) {@code @EnableJpaRepositories} never also fires.
+ * {@code @EnableJpaRepositories} here excludes every {@code *RepositoryV2} interface: those are V2
+ * read-model repositories bound to {@code v2entity}-package domain types (e.g. {@code MemberV2}
+ * for {@code MemberRepositoryV2}), which this application's {@code @EntityScan} never registers
+ * (the collector writes only through the V1 entities). Without the exclusion, Spring would try to
+ * resolve a V2 repository's {@code EntityInformation} against a domain type that isn't a managed
+ * type in this context and fail at startup, even though the collector never uses that repository.
+ */
 @Configuration
-@Import(PersistenceDefaultConfiguration.class)
-@ComponentScan(basePackages = "org.niis.xroad.catalog.collector")
+@ComponentScan(basePackages = {"org.niis.xroad.catalog.collector", "org.niis.xroad.catalog.persistence"},
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PersistenceDefaultConfiguration.class))
+@EnableJpaRepositories(value = "org.niis.xroad.catalog.persistence.repository",
+        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*RepositoryV2"))
+@EntityScan("org.niis.xroad.catalog.persistence.entity")
 public class CollectorDefaultConfiguration {
 }

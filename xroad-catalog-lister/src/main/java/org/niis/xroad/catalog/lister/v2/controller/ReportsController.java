@@ -30,7 +30,6 @@ import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
 import org.niis.xroad.catalog.lister.v2.service.ReportServiceV2;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -71,11 +70,13 @@ public class ReportsController {
 
     private static final int DEFAULT_REPORT_WINDOW_DAYS = 7;
 
-    @Autowired
-    private ReportServiceV2 reportService;
+    private final ReportServiceV2 reportService;
+    private final Clock clock;
 
-    @Autowired
-    private Clock clock;
+    public ReportsController(ReportServiceV2 reportService, Clock clock) {
+        this.reportService = reportService;
+        this.clock = clock;
+    }
 
     @GetMapping(path = "/service-statistics", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedCollectionResponse<ServiceStatisticsRowDto> serviceStatistics(

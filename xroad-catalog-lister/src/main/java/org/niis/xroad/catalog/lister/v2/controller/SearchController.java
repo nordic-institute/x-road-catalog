@@ -28,7 +28,6 @@ import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
 import org.niis.xroad.catalog.lister.v2.service.SearchServiceV2;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,8 +39,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v2/search")
 public class SearchController {
 
-    @Autowired
-    private SearchServiceV2 searchService;
+    private final SearchServiceV2 searchService;
+
+    public SearchController(SearchServiceV2 searchService) {
+        this.searchService = searchService;
+    }
 
     @GetMapping
     public PagedCollectionResponse<SearchHit> search(

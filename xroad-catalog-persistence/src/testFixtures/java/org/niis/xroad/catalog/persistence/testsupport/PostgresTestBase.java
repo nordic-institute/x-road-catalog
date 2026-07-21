@@ -54,4 +54,17 @@ public abstract class PostgresTestBase {
         registry.add("spring.liquibase.contexts", () -> "test");
         registry.add("spring.sql.init.mode", () -> "never");
     }
+
+    /**
+     * Exposes the container's credentials so subclasses can point module-specific settings (e.g. a
+     * production {@code spring.liquibase.user}/{@code password} pinned in {@code application.yaml})
+     * back at the same Testcontainers instance.
+     */
+    protected static String getDatasourceUsername() {
+        return POSTGRES.getUsername();
+    }
+
+    protected static String getDatasourcePassword() {
+        return POSTGRES.getPassword();
+    }
 }

@@ -24,8 +24,12 @@
  */
 package org.niis.xroad.catalog.lister.v2.controller;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorResponse;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -90,7 +94,7 @@ class V2ExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getBody().getStatus());
         assertEquals("InternalServerError", response.getBody().getError());
-        assertEquals("unexpected", response.getBody().getMessage());
+        assertEquals("Internal server error", response.getBody().getMessage());
     }
 
     @Test
@@ -129,5 +133,31 @@ class V2ExceptionHandlerTest {
         assertEquals("BadRequest", response.getBody().getError());
         assertTrue(response.getBody().getMessage().contains("page"),
                 "message should surface the first field error");
+    }
+
+    @Test
+    void genericExceptionResponseNeverEchoesTheExceptionMessage() {
+        ResponseEntity<ErrorResponse> response =
+                handler.handleException(new IllegalStateException("/etc/xroad/globalconf/DEV/shared-params.xml"));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal server error", response.getBody().getMessage());
+    }
+
+    @Test
+    void genericExceptionHandlerLogsTheException() {
+        Logger logger = (Logger) LoggerFactory.getLogger(V2ExceptionHandler.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            IllegalStateException ex = new IllegalStateException("test error");
+            handler.handleException(ex);
+            assertEquals(1, appender.list.size(), "exactly one log event should be recorded");
+            ILoggingEvent event = appender.list.get(0);
+            assertEquals(ch.qos.logback.classic.Level.ERROR, event.getLevel());
+            assertNotNull(event.getThrowableProxy(), "logged event should contain the exception");
+        } finally {
+            logger.detachAppender(appender);
+        }
     }
 }

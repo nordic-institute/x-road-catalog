@@ -27,12 +27,10 @@ package org.niis.xroad.catalog.lister.v2.controller;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
 import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -51,8 +49,11 @@ public class BrowseDescriptorController {
     private static final String SERVICE_DESCRIPTOR_PATH = "/member-classes/{memberClass}/members/{memberCode}"
             + "/subsystems/{subsystemCode}/services/{serviceCode}/descriptor";
 
-    @Autowired
-    private ServiceServiceV2 serviceService;
+    private final ServiceServiceV2 serviceService;
+
+    public BrowseDescriptorController(ServiceServiceV2 serviceService) {
+        this.serviceService = serviceService;
+    }
 
     @GetMapping(VERSION_DESCRIPTOR_PATH)
     public ResponseEntity<byte[]> getVersionDescriptor(
@@ -65,11 +66,10 @@ public class BrowseDescriptorController {
                             + "address a service version that has no version label. A real version literally "
                             + "named \"null\" is therefore unaddressable.",
                     example = "v1")
-            @PathVariable("serviceVersion") String serviceVersion,
-            @RequestParam(value = "includeRemoved", defaultValue = "false") boolean includeRemoved) {
+            @PathVariable("serviceVersion") String serviceVersion) {
         // serviceVersion is the raw URL segment ("null" sentinel resolved inside the service layer).
         DescriptorPayload payload = serviceService.getVersionDescriptor(
-                memberClass, memberCode, subsystemCode, serviceCode, serviceVersion, includeRemoved);
+                memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
         if (payload == null) {
             throw new V2ResourceNotFoundException(
                     "Descriptor for service version '" + memberClass + "/" + memberCode + "/"
@@ -85,13 +85,12 @@ public class BrowseDescriptorController {
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode,
-            @PathVariable("serviceCode") String serviceCode,
-            @RequestParam(value = "includeRemoved", defaultValue = "false") boolean includeRemoved) {
+            @PathVariable("serviceCode") String serviceCode) {
         // The service layer throws MultipleVersionsException for 2+ visible versions; that maps to
         // 409 in V2ExceptionHandler. A null result means "0 versions" or "1 version, no descriptor"
         // — both surface as 404 here without distinguishing them (spec §1.2 doesn't require it).
         DescriptorPayload payload = serviceService.getServiceLevelDescriptor(
-                memberClass, memberCode, subsystemCode, serviceCode, includeRemoved);
+                memberClass, memberCode, subsystemCode, serviceCode);
         if (payload == null) {
             throw new V2ResourceNotFoundException(
                     "Descriptor for service '" + memberClass + "/" + memberCode + "/"

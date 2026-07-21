@@ -30,6 +30,11 @@ import jakarta.xml.soap.SOAPException;
 import org.niis.xrd4j.common.message.ServiceResponse;
 import org.niis.xrd4j.server.serializer.AbstractServiceResponseSerializer;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
+ *             V1 is kept for compatibility and is scheduled for removal.
+ */
+@Deprecated
 public class GetOpenAPIResponseSerializer extends AbstractServiceResponseSerializer<GetOpenAPIRequest, String> {
 
     /**

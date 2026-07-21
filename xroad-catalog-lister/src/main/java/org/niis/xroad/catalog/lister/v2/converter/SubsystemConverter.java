@@ -28,7 +28,8 @@ import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -36,43 +37,31 @@ import java.util.List;
 @Component
 public class SubsystemConverter {
 
-    public SubsystemDto toDto(Subsystem subsystem, SubsystemNameLookup nameLookup) {
-        return toDto(subsystem, nameLookup, false);
-    }
-
-    public SubsystemDto toDto(Subsystem subsystem, SubsystemNameLookup nameLookup, boolean includeRemoved) {
-        int serviceCount = includeRemoved
-                ? subsystem.getAllServices().size()
-                : subsystem.getActiveServices().size();
-        String memberClass = subsystem.getMember().getMemberClass();
-        String memberCode = subsystem.getMember().getMemberCode();
-        String subsystemCode = subsystem.getSubsystemCode();
-        StatusInfo info = subsystem.getStatusInfo();
+    public SubsystemDto toDto(SubsystemListRow row, SubsystemNameLookup nameLookup) {
+        String memberClass = row.getMemberClass();
+        String memberCode = row.getMemberCode();
+        String subsystemCode = row.getSubsystemCode();
         return SubsystemDto.builder()
                 .memberClass(memberClass)
                 .memberCode(memberCode)
-                .memberName(subsystem.getMember().getName())
+                .memberName(row.getMemberName())
                 .subsystemCode(subsystemCode)
                 .subsystemName(nameLookup.resolve(memberClass, memberCode, subsystemCode))
-                .serviceCount(serviceCount)
-                .created(info.getCreated())
-                .changed(info.getChanged())
-                .fetched(info.getFetched())
-                .removed(info.getRemoved())
+                .serviceCount(Math.toIntExact(row.getServiceCount()))
+                .created(row.getCreated())
+                .changed(row.getChanged())
+                .fetched(row.getFetched())
+                .removed(row.getRemoved())
                 .build();
     }
 
     /**
      * Builds the {@link FullSubsystemDto} used by the {@code ?full=true} browse endpoint. Flat
-     * subsystem fields mirror {@link #toDto(Subsystem, SubsystemNameLookup, boolean)}; the caller
+     * subsystem fields mirror {@link #toDto(SubsystemListRow, SubsystemNameLookup)}; the caller
      * provides the already-aggregated {@code services} list (produced via {@code ServiceAggregator}
      * grouped by {@code serviceCode}).
      */
-    public FullSubsystemDto toFullDto(Subsystem subsystem, SubsystemNameLookup nameLookup,
-                                      List<ServiceDto> services, boolean includeRemoved) {
-        int serviceCount = includeRemoved
-                ? subsystem.getAllServices().size()
-                : subsystem.getActiveServices().size();
+    public FullSubsystemDto toFullDto(SubsystemV2 subsystem, SubsystemNameLookup nameLookup, List<ServiceDto> services) {
         String memberClass = subsystem.getMember().getMemberClass();
         String memberCode = subsystem.getMember().getMemberCode();
         String subsystemCode = subsystem.getSubsystemCode();
@@ -83,7 +72,7 @@ public class SubsystemConverter {
                 .memberName(subsystem.getMember().getName())
                 .subsystemCode(subsystemCode)
                 .subsystemName(nameLookup.resolve(memberClass, memberCode, subsystemCode))
-                .serviceCount(serviceCount)
+                .serviceCount(subsystem.getActiveServices().size())
                 .created(info.getCreated())
                 .changed(info.getChanged())
                 .fetched(info.getFetched())

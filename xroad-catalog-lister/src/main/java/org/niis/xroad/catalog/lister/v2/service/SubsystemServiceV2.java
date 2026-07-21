@@ -24,112 +24,78 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
-import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
-@Slf4j
+/**
+ * V2 subsystem service, backed by the {@link SubsystemRepositoryV2} read model.
+ */
 @Service
 public class SubsystemServiceV2 {
 
-    @Autowired
-    private SubsystemRepositoryV2 subsystemRepository;
+    private final SubsystemRepositoryV2 subsystemRepository;
+    private final MemberRepositoryV2 memberRepository;
+    private final SubsystemConverter converter;
+    private final SharedParamsCache sharedParamsCache;
+    private final InstanceContext instanceContext;
 
-    @Autowired
-    private MemberRepositoryV2 memberRepository;
-
-    @Autowired
-    private SubsystemConverter converter;
-
-    @Autowired
-    private SharedParamsParserV2 sharedParamsParser;
-
-    @Autowired
-    private InstanceContext instanceContext;
-
-    @Value("${xroad-catalog.shared-params-file}")
-    private String sharedParamsFile;
-
-    public SubsystemDto getByNaturalKey(String memberClass, String memberCode, String subsystemCode,
-                                        boolean includeRemoved) {
-        String instance = instanceContext.getCurrentInstance();
-        Subsystem subsystem = includeRemoved
-                ? subsystemRepository.findAnyByNaturalKey(instance, memberClass, memberCode, subsystemCode)
-                : subsystemRepository.findActiveByNaturalKey(instance, memberClass, memberCode, subsystemCode);
-        if (subsystem == null) {
-            return null;
-        }
-        return converter.toDto(subsystem, subsystemNameLookup(), includeRemoved);
+    public SubsystemServiceV2(SubsystemRepositoryV2 subsystemRepository, MemberRepositoryV2 memberRepository,
+            SubsystemConverter converter, SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+        this.subsystemRepository = subsystemRepository;
+        this.memberRepository = memberRepository;
+        this.converter = converter;
+        this.sharedParamsCache = sharedParamsCache;
+        this.instanceContext = instanceContext;
     }
 
-    public Page<SubsystemDto> getForList(String memberClass, boolean includeRemoved, Pageable pageable) {
-        boolean activeOnly = !includeRemoved;
-        Page<Subsystem> page = subsystemRepository.findForList(memberClass, activeOnly, pageable);
-        SubsystemNameLookup lookup = subsystemNameLookup();
-        return page.map(sub -> converter.toDto(sub, lookup, includeRemoved));
+    public SubsystemDto getByNaturalKey(String memberClass, String memberCode, String subsystemCode) {
+        SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
+        return subsystemRepository.findActiveSummaryByNaturalKey(
+                        instanceContext.getCurrentInstance(), memberClass, memberCode, subsystemCode)
+                .map(row -> converter.toDto(row, lookup))
+                .orElse(null);
+    }
+
+    public boolean existsActive(String memberClass, String memberCode, String subsystemCode) {
+        return subsystemRepository.existsActiveByNaturalKey(
+                instanceContext.getCurrentInstance(), memberClass, memberCode, subsystemCode);
+    }
+
+    public Page<SubsystemDto> getForList(String memberClass, Pageable pageable) {
+        Page<SubsystemListRow> rows = subsystemRepository.findActiveForList(
+                instanceContext.getCurrentInstance(), memberClass, pageable);
+        SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
+        return rows.map(row -> converter.toDto(row, lookup));
     }
 
     /**
-     * Returns the subsystems under a single member, sorted by {@code subsystemCode} ascending.
-     * Member is looked up via {@link MemberRepositoryV2} (entity-graph annotated in Task 0) so the
-     * subsystem set is pre-fetched. Returns an empty list when the member is absent (the controller
-     * is responsible for the parent 404; this method stays defensive). When {@code includeRemoved}
-     * is true, removed subsystems are included; otherwise the active-only view is returned.
+     * Returns the subsystems under a single member, sorted by {@code subsystemCode} ascending (the
+     * repository query already orders the rows, so no re-sort is needed here). An empty
+     * {@link Optional} means the member itself is absent (404); a present-but-empty list means the
+     * member exists but has no active subsystems (200 {@code []}).
      */
-    public List<SubsystemDto> getForMember(String memberClass, String memberCode, boolean includeRemoved) {
+    public Optional<List<SubsystemDto>> getForMember(String memberClass, String memberCode) {
         String instance = instanceContext.getCurrentInstance();
-        Member member = includeRemoved
-                ? memberRepository.findAnyByNaturalKey(instance, memberClass, memberCode)
-                : memberRepository.findActiveByNaturalKey(instance, memberClass, memberCode);
-        if (member == null) {
-            return Collections.emptyList();
+        if (!memberRepository.existsActiveByNaturalKey(instance, memberClass, memberCode)) {
+            return Optional.empty();
         }
-        Set<Subsystem> source = includeRemoved ? member.getAllSubsystems() : member.getActiveSubsystems();
-        SubsystemNameLookup lookup = subsystemNameLookup();
-        List<Subsystem> sorted = new ArrayList<>(source);
-        sorted.sort(Comparator.comparing(Subsystem::getSubsystemCode));
-        List<SubsystemDto> result = new ArrayList<>(sorted.size());
-        for (Subsystem sub : sorted) {
-            result.add(converter.toDto(sub, lookup, includeRemoved));
+        List<SubsystemListRow> rows = subsystemRepository.findActiveForMember(instance, memberClass, memberCode);
+        SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
+        List<SubsystemDto> result = new ArrayList<>(rows.size());
+        for (SubsystemListRow row : rows) {
+            result.add(converter.toDto(row, lookup));
         }
-        return result;
-    }
-
-    private SubsystemNameLookup subsystemNameLookup() {
-        Map<String, String> byKey = new HashMap<>();
-        try {
-            List<SubsystemNameInfo> names = sharedParamsParser.parseSubsystemNames(sharedParamsFile);
-            for (SubsystemNameInfo n : names) {
-                byKey.put(keyOf(n.getMemberClass(), n.getMemberCode(), n.getSubsystemCode()), n.getSubsystemName());
-            }
-        } catch (Exception e) {
-            // parse errors must not break API serving — subsystemName is best-effort
-            log.warn("Failed to parse shared-params for subsystemName enrichment: {}", sharedParamsFile, e);
-        }
-        return (mc, mcode, sc) -> byKey.get(keyOf(mc, mcode, sc));
-    }
-
-    private String keyOf(String memberClass, String memberCode, String subsystemCode) {
-        return memberClass + "|" + memberCode + "|" + subsystemCode;
+        return Optional.of(result);
     }
 }

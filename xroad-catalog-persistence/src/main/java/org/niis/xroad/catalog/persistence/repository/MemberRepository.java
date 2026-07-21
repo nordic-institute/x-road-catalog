@@ -67,7 +67,7 @@ public interface MemberRepository extends CrudRepository<Member, Long> {
 
     /**
      * Returns only active items (non-deleted)
-     *
+     * 
      * @param xRoadInstance X-Road instance parameter, for example FI
      * @param memberClass   X-Road member class, for example GOF
      * @param memberCode    X-Road member class, for example Company code
@@ -88,8 +88,7 @@ public interface MemberRepository extends CrudRepository<Member, Long> {
     Instant findLatestFetchedInstant();
 
     default LocalDateTime findLatestFetched() {
-        Instant instant = findLatestFetchedInstant();
-        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
     }
 
     @Query(value = "SELECT mem.member_code"

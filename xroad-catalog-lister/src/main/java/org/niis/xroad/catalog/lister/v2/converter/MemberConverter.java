@@ -27,70 +27,53 @@ package org.niis.xroad.catalog.lister.v2.converter;
 import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class MemberConverter {
 
-    public MemberDto toDto(Member member) {
-        return toDto(member, false);
-    }
-
-    public MemberDto toDtoIncludingRemoved(Member member) {
-        return toDto(member, true);
-    }
-
-    private MemberDto toDto(Member member, boolean includeRemoved) {
-        Set<Subsystem> subsystems = includeRemoved ? member.getAllSubsystems() : member.getActiveSubsystems();
-        int subsystemCount = subsystems.size();
-        int serviceCount = 0;
-        for (Subsystem sub : subsystems) {
-            Set<Service> services = includeRemoved ? sub.getAllServices() : sub.getActiveServices();
-            serviceCount += services.size();
-        }
-        StatusInfo info = member.getStatusInfo();
+    public MemberDto toDto(MemberListRow row) {
         return MemberDto.builder()
-                .memberClass(member.getMemberClass())
-                .memberCode(member.getMemberCode())
-                .name(member.getName())
-                .isProvider(computeIsProvider(member))
-                .subsystemCount(subsystemCount)
-                .serviceCount(serviceCount)
-                .created(info.getCreated())
-                .changed(info.getChanged())
-                .fetched(info.getFetched())
-                .removed(info.getRemoved())
+                .memberClass(row.getMemberClass())
+                .memberCode(row.getMemberCode())
+                .name(row.getName())
+                .isProvider(row.isProvider())
+                .subsystemCount(Math.toIntExact(row.getSubsystemCount()))
+                .serviceCount(Math.toIntExact(row.getServiceCount()))
+                .created(row.getCreated())
+                .changed(row.getChanged())
+                .fetched(row.getFetched())
+                .removed(row.getRemoved())
                 .build();
     }
 
     /**
-     * Builds the {@link FullMemberDto} for the {@code ?full=true} browse endpoint. The flat
-     * member-level fields (including {@code subsystemCount} and {@code serviceCount}) are computed
-     * identically to {@link #toDto(Member, boolean)}; the caller supplies the already-assembled
-     * {@code subsystems} list so this converter does not depend on the subsystem converter or the
-     * service aggregator.
+     * Builds the {@link FullMemberDto} for the {@code ?full=true} browse endpoint. {@code isProvider}
+     * comes straight from the denormalized {@link MemberV2#isProvider()} column maintained by the
+     * collector recompute; {@code subsystemCount}/{@code serviceCount} are computed from the
+     * {@code getActive*} helpers over the loaded entity graph. The caller supplies the
+     * already-assembled {@code subsystems} list so this converter does not depend on the subsystem
+     * converter or the service aggregator.
      */
-    public FullMemberDto toFullDto(Member member, List<FullSubsystemDto> subsystems, boolean includeRemoved) {
-        Set<Subsystem> entitySubsystems = includeRemoved ? member.getAllSubsystems() : member.getActiveSubsystems();
-        int subsystemCount = entitySubsystems.size();
+    public FullMemberDto toFullDto(MemberV2 member, List<FullSubsystemDto> subsystems) {
+        int subsystemCount = 0;
         int serviceCount = 0;
-        for (Subsystem sub : entitySubsystems) {
-            Set<Service> services = includeRemoved ? sub.getAllServices() : sub.getActiveServices();
-            serviceCount += services.size();
+        for (SubsystemV2 sub : member.getActiveSubsystems()) {
+            subsystemCount++;
+            serviceCount += sub.getActiveServices().size();
         }
         StatusInfo info = member.getStatusInfo();
         return FullMemberDto.builder()
                 .memberClass(member.getMemberClass())
                 .memberCode(member.getMemberCode())
                 .name(member.getName())
-                .isProvider(computeIsProvider(member))
+                .isProvider(member.isProvider())
                 .subsystemCount(subsystemCount)
                 .serviceCount(serviceCount)
                 .created(info.getCreated())
@@ -99,24 +82,5 @@ public class MemberConverter {
                 .removed(info.getRemoved())
                 .subsystems(subsystems)
                 .build();
-    }
-
-    /**
-     * Spec §6.1 / Task 1.5: a member is a provider iff it is not removed and has at least one
-     * active service under an active subsystem. No descriptor check — a descriptor-less active
-     * service still classifies as REST under {@code ServiceClassifier}, so it counts. This method
-     * is pinned to the active view independent of {@code includeRemoved}: a removed member is
-     * never currently a provider, even with stale active children surfaced via includeRemoved.
-     */
-    private boolean computeIsProvider(Member member) {
-        if (member.getStatusInfo().isRemoved()) {
-            return false;
-        }
-        for (Subsystem sub : member.getActiveSubsystems()) {
-            if (!sub.getActiveServices().isEmpty()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

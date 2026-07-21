@@ -51,6 +51,8 @@ public class DefaultTasksInitializer implements ApplicationListener<ApplicationS
     @Autowired
     private ListMethodsTask listMethodsTask;
     @Autowired private ListClientsTask listClientsTask;
+    @Autowired
+    private RecomputeDenormalizedColumnsTask recomputeDenormalizedColumnsTask;
 
 
     @Override
@@ -68,6 +70,9 @@ public class DefaultTasksInitializer implements ApplicationListener<ApplicationS
         long collectorInterval = taskPoolConfiguration.getCollectorInterval();
         log.info("Starting up catalog collector with collector interval of {} minutes", collectorInterval);
 
-        scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);
+        scheduler.scheduleWithFixedDelay(() -> {
+            listClientsTask.run();
+            recomputeDenormalizedColumnsTask.run();
+        }, 0, collectorInterval, TimeUnit.MINUTES);
     }
 }

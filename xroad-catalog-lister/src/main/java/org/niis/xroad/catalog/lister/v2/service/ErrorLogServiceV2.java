@@ -29,21 +29,22 @@ import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-@Component
+@Service
 public class ErrorLogServiceV2 {
 
-    @Autowired
-    private ErrorLogRepositoryV2 errorLogRepository;
+    private final ErrorLogRepositoryV2 errorLogRepository;
+    private final ErrorLogConverter converter;
 
-    @Autowired
-    private ErrorLogConverter converter;
+    public ErrorLogServiceV2(ErrorLogRepositoryV2 errorLogRepository, ErrorLogConverter converter) {
+        this.errorLogRepository = errorLogRepository;
+        this.converter = converter;
+    }
 
     public Page<ErrorLogDto> get(String memberClass, String memberCode, String subsystemCode,
                                  String serviceCode, String serviceVersion,

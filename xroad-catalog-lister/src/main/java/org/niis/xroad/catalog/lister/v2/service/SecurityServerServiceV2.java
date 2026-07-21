@@ -24,39 +24,35 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.lister.dto.MemberInfo;
-import org.niis.xroad.catalog.lister.dto.SecurityServerData;
-import org.niis.xroad.catalog.lister.dto.SecurityServerDataList;
-import org.niis.xroad.catalog.lister.parser.SharedParamsParser;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerBrowseItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerClientDto;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerOwnerDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-@Slf4j
-@Component
+@Service
 public class SecurityServerServiceV2 {
 
-    @Autowired
-    private SharedParamsParser parser;
+    private final SharedParamsCache sharedParamsCache;
+    private final InstanceContext instanceContext;
 
-    @Value("${xroad-catalog.shared-params-file}")
-    private String sharedParamsFile;
+    public SecurityServerServiceV2(SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+        this.sharedParamsCache = sharedParamsCache;
+        this.instanceContext = instanceContext;
+    }
 
     public Page<SecurityServerListItemDto> list(Pageable pageable) {
-        List<SecurityServerData> all = loadAll();
+        assertReady();
+        List<SecurityServerInfoV2> all = sharedParamsCache.securityServers();
         List<SecurityServerListItemDto> items = new ArrayList<>(all.stream().map(this::toListItem).toList());
         items.sort(buildComparator(pageable));
         int from = (int) Math.min(pageable.getOffset(), items.size());
@@ -65,19 +61,32 @@ public class SecurityServerServiceV2 {
     }
 
     public List<SecurityServerBrowseItemDto> getForMember(String memberClass, String memberCode) {
-        List<SecurityServerData> all = loadAll();
+        assertReady();
+        List<SecurityServerInfoV2> all = sharedParamsCache.securityServers();
         List<SecurityServerBrowseItemDto> result = new ArrayList<>();
-        for (SecurityServerData s : all) {
-            MemberInfo owner = s.getOwner();
+        for (SecurityServerInfoV2 s : all) {
+            SecurityServerInfoV2.MemberRef owner = s.owner();
             if (owner != null
-                    && memberClass.equals(owner.getMemberClass())
-                    && memberCode.equals(owner.getMemberCode())) {
+                    && memberClass.equals(owner.memberClass())
+                    && memberCode.equals(owner.memberCode())) {
                 result.add(toBrowseItem(s));
             }
         }
         result.sort(Comparator.comparing(SecurityServerBrowseItemDto::getServerCode,
                 Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
         return result;
+    }
+
+    // SharedParamsCache caches a parse failure (missing/unreadable shared-params.xml) as an empty
+    // snapshot for the full TTL, so an empty securityServers() list is ambiguous between "not ready
+    // yet" and "genuinely zero security servers". InstanceContext already distinguishes those two
+    // cases for every other V2 endpoint (it raises 503 until shared-params.xml first becomes
+    // readable, then caches success for the process lifetime); routing through it here keeps this
+    // endpoint's not-ready signalling identical to its siblings without adding another failure-mode
+    // cache to SharedParamsCache itself. The returned instance id is intentionally unused -- only
+    // the readiness check matters here.
+    private void assertReady() {
+        instanceContext.getCurrentInstance();
     }
 
     private Comparator<SecurityServerListItemDto> buildComparator(Pageable pageable) {
@@ -100,54 +109,42 @@ public class SecurityServerServiceV2 {
         return primary.thenComparing(tieBreak);
     }
 
-    private List<SecurityServerData> loadAll() {
-        try {
-            SecurityServerDataList data = parser.parseDetails(sharedParamsFile);
-            return data != null && data.getSecurityServerDataList() != null
-                    ? data.getSecurityServerDataList()
-                    : List.of();
-        } catch (Exception e) {
-            log.warn("Failed to parse security server details from {}", sharedParamsFile, e);
-            return List.of();
-        }
-    }
-
-    private SecurityServerListItemDto toListItem(SecurityServerData data) {
+    private SecurityServerListItemDto toListItem(SecurityServerInfoV2 data) {
         return SecurityServerListItemDto.builder()
-                .serverCode(data.getServerCode())
-                .address(data.getAddress())
-                .owner(toOwner(data.getOwner()))
-                .clientCount(data.getClients() != null ? data.getClients().size() : 0)
+                .serverCode(data.serverCode())
+                .address(data.address())
+                .owner(toOwner(data.owner()))
+                .clientCount(data.clients() != null ? data.clients().size() : 0)
                 .build();
     }
 
-    private SecurityServerBrowseItemDto toBrowseItem(SecurityServerData data) {
+    private SecurityServerBrowseItemDto toBrowseItem(SecurityServerInfoV2 data) {
         List<SecurityServerClientDto> clients = new ArrayList<>();
-        if (data.getClients() != null) {
-            for (MemberInfo c : data.getClients()) {
+        if (data.clients() != null) {
+            for (SecurityServerInfoV2.ClientRef c : data.clients()) {
                 clients.add(SecurityServerClientDto.builder()
-                        .memberClass(c.getMemberClass())
-                        .memberCode(c.getMemberCode())
-                        .subsystemCode(c.getSubsystemCode())
+                        .memberClass(c.memberClass())
+                        .memberCode(c.memberCode())
+                        .subsystemCode(c.subsystemCode())
                         .build());
             }
         }
         return SecurityServerBrowseItemDto.builder()
-                .serverCode(data.getServerCode())
-                .address(data.getAddress())
-                .owner(toOwner(data.getOwner()))
+                .serverCode(data.serverCode())
+                .address(data.address())
+                .owner(toOwner(data.owner()))
                 .clients(clients)
                 .build();
     }
 
-    private SecurityServerOwnerDto toOwner(MemberInfo info) {
-        if (info == null) {
+    private SecurityServerOwnerDto toOwner(SecurityServerInfoV2.MemberRef ref) {
+        if (ref == null) {
             return null;
         }
         return SecurityServerOwnerDto.builder()
-                .memberClass(info.getMemberClass())
-                .memberCode(info.getMemberCode())
-                .name(info.getName())
+                .memberClass(ref.memberClass())
+                .memberCode(ref.memberCode())
+                .name(ref.name())
                 .build();
     }
 }

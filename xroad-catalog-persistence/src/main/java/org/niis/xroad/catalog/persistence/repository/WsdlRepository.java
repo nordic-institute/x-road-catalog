@@ -43,7 +43,6 @@ public interface WsdlRepository extends CrudRepository<Wsdl, Long> {
     Instant findLatestFetchedInstant();
 
     default LocalDateTime findLatestFetched() {
-        Instant instant = findLatestFetchedInstant();
-        return instant == null ? null : LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+        return LocalDateTime.ofInstant(findLatestFetchedInstant(), ZoneId.systemDefault());
     }
 }

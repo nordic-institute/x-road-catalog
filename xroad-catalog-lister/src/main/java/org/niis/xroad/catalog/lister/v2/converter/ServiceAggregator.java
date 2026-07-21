@@ -27,7 +27,8 @@ package org.niis.xroad.catalog.lister.v2.converter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionSummaryDto;
-import org.niis.xroad.catalog.persistence.entity.Service;
+import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -37,33 +38,49 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Aggregates one bare {@code serviceCode} within one subsystem into a single {@link ServiceDto}.
+ * Versions are sorted by {@code serviceVersion} with nulls last; {@code serviceTypes} is the
+ * distinct set of types in that sorted version order rather than a single scalar, because a bare
+ * service code can legitimately be multi-typed: the asymmetric REST-then-versioned-WSDL path lets a
+ * descriptor-less first version and a WSDL-backed later version coexist under the same aggregate.
+ * Collapsing that to one type would silently drop information the API contract needs.
+ *
+ * <p>Both entry points require a non-empty input: every real caller only ever builds an aggregate
+ * from a {@code serviceCode} that is already known to have at least one active version row (the
+ * aggregate query and the entity-graph subtree traversal both only produce groups that exist), so an
+ * empty collection here means a caller-side bug, not a legitimate "no versions" case. Rather than
+ * silently returning {@code null} into a page of DTOs, both methods fail loudly.
+ */
 @Component
 @RequiredArgsConstructor
 public class ServiceAggregator {
 
     private final ServiceVersionConverter versionConverter;
 
-    public ServiceDto aggregate(Collection<Service> serviceRows, boolean includeRemoved) {
-        List<Service> filtered = serviceRows.stream()
-                .filter(s -> includeRemoved || !s.getStatusInfo().isRemoved())
-                .sorted(versionComparator())
-                .toList();
-        if (filtered.isEmpty()) {
-            return null;
+    /**
+     * @throws IllegalArgumentException if {@code versionRows} is null or empty
+     */
+    public ServiceDto fromRows(List<ServiceVersionRow> versionRows) {
+        if (versionRows == null || versionRows.isEmpty()) {
+            throw new IllegalArgumentException("versionRows must not be null or empty");
         }
-        Service first = filtered.get(0);
+        List<ServiceVersionRow> sorted = versionRows.stream()
+                .sorted(Comparator.comparing(ServiceVersionRow::getServiceVersion, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+        ServiceVersionRow first = sorted.get(0);
         List<ServiceVersionSummaryDto> versions = new ArrayList<>();
         Set<String> types = new LinkedHashSet<>();
-        for (Service s : filtered) {
-            ServiceVersionSummaryDto v = versionConverter.toSummary(s);
+        for (ServiceVersionRow row : sorted) {
+            ServiceVersionSummaryDto v = versionConverter.toSummary(row);
             versions.add(v);
             types.add(v.getServiceType());
         }
         return ServiceDto.builder()
-                .memberClass(first.getSubsystem().getMember().getMemberClass())
-                .memberCode(first.getSubsystem().getMember().getMemberCode())
-                .memberName(first.getSubsystem().getMember().getName())
-                .subsystemCode(first.getSubsystem().getSubsystemCode())
+                .memberClass(first.getMemberClass())
+                .memberCode(first.getMemberCode())
+                .memberName(first.getMemberName())
+                .subsystemCode(first.getSubsystemCode())
                 .serviceCode(first.getServiceCode())
                 .versionCount(versions.size())
                 .versions(versions)
@@ -71,8 +88,34 @@ public class ServiceAggregator {
                 .build();
     }
 
-    private Comparator<Service> versionComparator() {
-        return Comparator.comparing(Service::getServiceVersion,
-                Comparator.nullsLast(Comparator.naturalOrder()));
+    /**
+     * @throws IllegalArgumentException if {@code versions} is null or empty
+     */
+    public ServiceDto fromEntities(String memberClass, String memberCode, String memberName,
+                                   String subsystemCode, Collection<ServiceV2> versions) {
+        if (versions == null || versions.isEmpty()) {
+            throw new IllegalArgumentException("versions must not be null or empty");
+        }
+        List<ServiceV2> sorted = versions.stream()
+                .sorted(Comparator.comparing(ServiceV2::getServiceVersion, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+        ServiceV2 first = sorted.get(0);
+        List<ServiceVersionSummaryDto> summaries = new ArrayList<>();
+        Set<String> types = new LinkedHashSet<>();
+        for (ServiceV2 service : sorted) {
+            ServiceVersionSummaryDto v = versionConverter.toSummary(service);
+            summaries.add(v);
+            types.add(v.getServiceType());
+        }
+        return ServiceDto.builder()
+                .memberClass(memberClass)
+                .memberCode(memberCode)
+                .memberName(memberName)
+                .subsystemCode(subsystemCode)
+                .serviceCode(first.getServiceCode())
+                .versionCount(summaries.size())
+                .versions(summaries)
+                .serviceTypes(new ArrayList<>(types))
+                .build();
     }
 }

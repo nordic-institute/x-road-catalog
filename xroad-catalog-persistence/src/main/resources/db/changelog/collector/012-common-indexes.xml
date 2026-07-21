@@ -139,4 +139,137 @@
             <column name="changed"/>
         </createIndex>
     </changeSet>
+    <changeSet id="012-common-indexes-idx_error_log_created" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_error_log_created index exists">
+            <not>
+                <indexExists indexName="idx_error_log_created"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="error_log" indexName="idx_error_log_created">
+            <column name="created"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_error_log_member_created" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_error_log_member_created index exists">
+            <not>
+                <indexExists indexName="idx_error_log_member_created"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="error_log" indexName="idx_error_log_member_created">
+            <column name="member_class"/>
+            <column name="member_code"/>
+            <column name="created"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_member_instance_class" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_member_instance_class index exists">
+            <not>
+                <indexExists indexName="idx_member_instance_class"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="member" indexName="idx_member_instance_class">
+            <column name="x_road_instance"/>
+            <column name="member_class"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_wsdl_service_id" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_wsdl_service_id index exists">
+            <not>
+                <indexExists indexName="idx_wsdl_service_id"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="wsdl" indexName="idx_wsdl_service_id">
+            <column name="service_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_open_api_service_id" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_open_api_service_id index exists">
+            <not>
+                <indexExists indexName="idx_open_api_service_id"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="open_api" indexName="idx_open_api_service_id">
+            <column name="service_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_rest_service_id" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_rest_service_id index exists">
+            <not>
+                <indexExists indexName="idx_rest_service_id"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="rest" indexName="idx_rest_service_id">
+            <column name="service_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_endpoint_service_id" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_endpoint_service_id index exists">
+            <not>
+                <indexExists indexName="idx_endpoint_service_id"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="endpoint" indexName="idx_endpoint_service_id">
+            <column name="service_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_member_created" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_member_created index exists">
+            <not>
+                <indexExists indexName="idx_member_created"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="member" indexName="idx_member_created">
+            <column name="created"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_member_removed" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_member_removed index exists">
+            <not>
+                <indexExists indexName="idx_member_removed"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="member" indexName="idx_member_removed">
+            <column name="removed"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_subsystem_created" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_subsystem_created index exists">
+            <not>
+                <indexExists indexName="idx_subsystem_created"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="subsystem" indexName="idx_subsystem_created">
+            <column name="created"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_subsystem_removed" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_subsystem_removed index exists">
+            <not>
+                <indexExists indexName="idx_subsystem_removed"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="subsystem" indexName="idx_subsystem_removed">
+            <column name="removed"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_service_created" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_service_created index exists">
+            <not>
+                <indexExists indexName="idx_service_created"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="service" indexName="idx_service_created">
+            <column name="created"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="012-common-indexes-idx_service_removed" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="idx_service_removed index exists">
+            <not>
+                <indexExists indexName="idx_service_removed"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="service" indexName="idx_service_removed">
+            <column name="removed"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

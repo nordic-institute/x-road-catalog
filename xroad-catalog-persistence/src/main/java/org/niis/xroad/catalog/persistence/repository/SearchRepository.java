@@ -44,17 +44,25 @@ import java.util.List;
  *   [5] member_name
  *   [6] subsystem_code (null for members)
  *   [7] service_code  (null for members and subsystems)
+ *   [8] is_provider:  boolean — real value for member rows, NULL for subsystem/service rows
+ *   [9] service_types: comma-joined, sorted, distinct service_type values aggregated across every
+ *                       version of the service_code — real value for service rows, NULL for
+ *                       member/subsystem rows
+ *   [10] total_count:  exact count of matching rows across every page, carried on every row via
+ *                       {@code COUNT(*) OVER ()}
  *
  * Extends Repository&lt;Member, Long&gt; only so Spring Data recognises it; queries are native and
  * not tied to the Member entity.
  */
 public interface SearchRepository extends Repository<Member, Long> {
 
-    String SEARCH_UNION_SQL = "SELECT * FROM ("
+    String SEARCH_UNION_SQL = "SELECT u.*, CAST(COUNT(*) OVER () AS bigint) AS total_count FROM ("
+            + " SELECT * FROM ("
             + " SELECT 'member' AS entity_type, m.id AS entity_id,"
             + "        LOWER(m.name) AS sort_key,"
             + "        m.member_class AS member_class, m.member_code AS member_code, m.name AS member_name,"
-            + "        CAST(NULL AS VARCHAR) AS subsystem_code, CAST(NULL AS VARCHAR) AS service_code"
+            + "        CAST(NULL AS VARCHAR) AS subsystem_code, CAST(NULL AS VARCHAR) AS service_code,"
+            + "        m.is_provider AS is_provider, CAST(NULL AS VARCHAR) AS service_types"
             + " FROM member m"
             + " WHERE (LOWER(m.name) LIKE LOWER(:qLike) ESCAPE '\\'"
             + "        OR LOWER(m.member_code) LIKE LOWER(:qLike) ESCAPE '\\')"
@@ -62,7 +70,8 @@ public interface SearchRepository extends Repository<Member, Long> {
             + " UNION ALL"
             + " SELECT 'subsystem', sub.id, LOWER(sub.subsystem_code),"
             + "        m.member_class, m.member_code, m.name,"
-            + "        sub.subsystem_code, CAST(NULL AS VARCHAR)"
+            + "        sub.subsystem_code, CAST(NULL AS VARCHAR),"
+            + "        CAST(NULL AS BOOLEAN), CAST(NULL AS VARCHAR)"
             + " FROM subsystem sub"
             + " JOIN member m ON sub.member_id = m.id"
             + " WHERE LOWER(sub.subsystem_code) LIKE LOWER(:qLike) ESCAPE '\\'"
@@ -70,14 +79,15 @@ public interface SearchRepository extends Repository<Member, Long> {
             + " UNION ALL"
             + " SELECT 'service', MIN(s.id), LOWER(s.service_code),"
             + "        m.member_class, m.member_code, m.name,"
-            + "        sub.subsystem_code, s.service_code"
+            + "        sub.subsystem_code, s.service_code,"
+            + "        CAST(NULL AS BOOLEAN), string_agg(DISTINCT s.service_type, ',' ORDER BY s.service_type)"
             + " FROM service s"
             + " JOIN subsystem sub ON s.subsystem_id = sub.id"
             + " JOIN member m ON sub.member_id = m.id"
             + " WHERE LOWER(s.service_code) LIKE LOWER(:qLike) ESCAPE '\\'"
             + "   AND s.removed IS NULL AND sub.removed IS NULL AND m.removed IS NULL"
             + " GROUP BY s.service_code, m.member_class, m.member_code, m.name, sub.subsystem_code"
-            + ") u ORDER BY u.sort_key, u.entity_type, u.entity_id"
+            + ") u2) u ORDER BY u.sort_key, u.entity_type, u.entity_id"
             + " LIMIT :pageSize OFFSET :offset";
 
     String SEARCH_COUNT_SQL = "SELECT COUNT(*) FROM ("
@@ -104,6 +114,11 @@ public interface SearchRepository extends Repository<Member, Long> {
                                @Param("pageSize") int pageSize,
                                @Param("offset") long offset);
 
+    /**
+     * Fallback only: used when a page is requested at a non-zero offset past the end of the result
+     * set, so {@link #searchUnion} returns no rows and cannot carry {@code total_count}. Every other
+     * call site gets its exact total from column [10] of {@link #searchUnion} directly.
+     */
     @Query(value = SEARCH_COUNT_SQL, nativeQuery = true)
     long countSearchUnion(@Param("qLike") String qLike);
 }

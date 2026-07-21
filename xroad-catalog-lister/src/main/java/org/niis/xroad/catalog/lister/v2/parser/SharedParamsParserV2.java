@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.parser;
 
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -54,6 +55,13 @@ public class SharedParamsParserV2 {
     private static final String GLOBAL_SETTINGS = "globalSettings";
     private static final String CODE = "code";
     private static final String DESCRIPTION = "description";
+    private static final String SECURITY_SERVER = "securityServer";
+    private static final String OWNER = "owner";
+    private static final String SERVER_CODE = "serverCode";
+    private static final String ADDRESS = "address";
+    private static final String CLIENT = "client";
+    private static final String ID = "id";
+    private static final String NAME = "name";
 
     public List<MemberClassInfo> parseMemberClasses(String sharedParamsFile)
             throws ParserConfigurationException, IOException, SAXException {
@@ -120,6 +128,103 @@ public class SharedParamsParserV2 {
             }
         }
         return names;
+    }
+
+    /**
+     * Parses security server information from X-Road global configuration shared-params.xml,
+     * resolving each security server's owner and clients against the member/subsystem {@code id}
+     * attributes referenced by the security server element.
+     *
+     * @return list of {@link SecurityServerInfoV2} objects, one per {@code securityServer} element
+     * @throws ParserConfigurationException when there are issues with parsing the file
+     * @throws IOException                  when unable to read input file
+     * @throws SAXException                 when there are issues with parsing of XML
+     */
+    public List<SecurityServerInfoV2> parseSecurityServers(String sharedParamsFile)
+            throws ParserConfigurationException, IOException, SAXException {
+        Document document = parseDocument(sharedParamsFile);
+        NodeList securityServers = document.getElementsByTagName(SECURITY_SERVER);
+        NodeList members = document.getElementsByTagName(MEMBER);
+        List<SecurityServerInfoV2> result = new ArrayList<>();
+        for (int i = 0; i < securityServers.getLength(); i++) {
+            Node node = securityServers.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                result.add(toSecurityServerInfo((Element) node, members));
+            }
+        }
+        return result;
+    }
+
+    private SecurityServerInfoV2 toSecurityServerInfo(Element securityServerElement, NodeList members) {
+        String ownerId = text(securityServerElement, OWNER);
+        String serverCode = text(securityServerElement, SERVER_CODE);
+        String address = text(securityServerElement, ADDRESS);
+        List<String> clientIdList = clientIdList(securityServerElement.getElementsByTagName(CLIENT));
+        SecurityServerInfoV2.MemberRef owner = ownerRef(members, ownerId);
+        List<SecurityServerInfoV2.ClientRef> clients = clientRefs(members, clientIdList);
+        return new SecurityServerInfoV2(serverCode, address, owner, clients);
+    }
+
+    private List<String> clientIdList(NodeList clientIds) {
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < clientIds.getLength(); i++) {
+            ids.add(clientIds.item(i).getFirstChild().getNodeValue());
+        }
+        return ids;
+    }
+
+    private SecurityServerInfoV2.MemberRef ownerRef(NodeList members, String ownerId) {
+        for (int i = 0; i < members.getLength(); i++) {
+            Node node = members.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element memberElement = (Element) node;
+                if (memberElement.getAttribute(ID).equals(ownerId)) {
+                    return new SecurityServerInfoV2.MemberRef(memberClassOf(memberElement),
+                            text(memberElement, MEMBER_CODE), text(memberElement, NAME));
+                }
+            }
+        }
+        return new SecurityServerInfoV2.MemberRef(null, null, null);
+    }
+
+    /**
+     * Resolves each client id against the member/subsystem elements. For every client id the whole
+     * member list is scanned from the start: a member-level match short-circuits the scan for that
+     * id, but a subsystem-level match only breaks out of the inner subsystem loop — the outer scan
+     * continues over the remaining members for the same id. This mirrors the original V1 traversal
+     * exactly; it is a no-op in practice since shared-params {@code id} attributes are unique.
+     */
+    private List<SecurityServerInfoV2.ClientRef> clientRefs(NodeList members, List<String> clientIdList) {
+        List<SecurityServerInfoV2.ClientRef> clients = new ArrayList<>();
+        for (String clientId : clientIdList) {
+            for (int j = 0; j < members.getLength(); j++) {
+                Node node = members.item(j);
+                if (node.getNodeType() != Node.ELEMENT_NODE) {
+                    continue;
+                }
+                Element memberElement = (Element) node;
+                if (memberElement.getAttribute(ID).equals(clientId)) {
+                    clients.add(new SecurityServerInfoV2.ClientRef(memberClassOf(memberElement),
+                            text(memberElement, MEMBER_CODE), null));
+                    break;
+                }
+                NodeList subsystems = memberElement.getElementsByTagName(SUBSYSTEM);
+                for (int k = 0; k < subsystems.getLength(); k++) {
+                    Element subsystemElement = (Element) subsystems.item(k);
+                    if (subsystemElement.getAttribute(ID).equals(clientId)) {
+                        clients.add(new SecurityServerInfoV2.ClientRef(memberClassOf(memberElement),
+                                text(memberElement, MEMBER_CODE), text(subsystemElement, SUBSYSTEM_CODE)));
+                        break;
+                    }
+                }
+            }
+        }
+        return clients;
+    }
+
+    private String memberClassOf(Element memberElement) {
+        Element memberClassElement = firstChildElement(memberElement, MEMBER_CLASS);
+        return memberClassElement != null ? text(memberClassElement, CODE) : null;
     }
 
     private Document parseDocument(String file) throws ParserConfigurationException, IOException, SAXException {

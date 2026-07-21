@@ -34,6 +34,12 @@ import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * One active version of a service. {@code serviceType} is {@code SOAP}, {@code OPENAPI},
+ * {@code REST} or {@code UNKNOWN} — the latter meaning the service has been collected but not yet
+ * classified, which resolves within one collector interval. {@code hasDescriptor} is {@code true}
+ * only for SOAP and OPENAPI.
+ */
 @Getter
 @Builder
 @AllArgsConstructor

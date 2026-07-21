@@ -29,6 +29,15 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+/**
+ * Retained solely as a {@code @ComponentScan} exclude-filter target -- it is never imported, so its
+ * own {@code @EnableJpaRepositories} and {@code @EntityScan} never take effect. Every actual consumer
+ * ({@code ListerDefaultConfiguration}, {@code CollectorDefaultConfiguration}, and the test-only
+ * {@code PersistenceTestApplication}) instead reproduces this class's component/entity scan directly
+ * and excludes this class itself by type via {@code @ComponentScan.Filter(type = ASSIGNABLE_TYPE)}.
+ * Do not delete this class: doing so would remove the type each of those three exclude filters
+ * targets, changing their component scan behavior.
+ */
 @Configuration
 @ComponentScan(basePackages = "org.niis.xroad.catalog.persistence")
 @EnableJpaRepositories("org.niis.xroad.catalog.persistence.repository")

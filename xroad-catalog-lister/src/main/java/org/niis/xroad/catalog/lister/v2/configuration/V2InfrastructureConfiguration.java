@@ -44,13 +44,22 @@ import java.util.UUID;
 public class V2InfrastructureConfiguration {
 
     /**
-     * UTC system clock. Tests override with a fixed clock via their own {@code @TestConfiguration};
-     * {@link ConditionalOnMissingBean} keeps the production bean from clashing with those overrides.
+     * System-default-zone clock, not UTC. Every persisted timestamp is written with a zero-arg
+     * {@code LocalDateTime.now()} — both in the collector and in entity lifecycle hooks — which
+     * captures the JVM host's local wall-clock time, not UTC. V1 reads that same system-default
+     * time back unchanged, and the V2 JSON serializer ({@link JacksonV2Configuration}) stamps an
+     * offset onto it using {@code ZoneId.systemDefault()}. This bean must agree with all of that,
+     * or day-boundary defaults derived from {@code today()} (e.g. the {@code /api/v2/reports/*}
+     * and {@code /errors} endpoints) end up anchored a day off whenever the query runs near
+     * midnight. Deployment invariant: the collector, the lister, and the Postgres session must all
+     * share one timezone. Tests override with a fixed clock via their own
+     * {@code @TestConfiguration}; {@link ConditionalOnMissingBean} keeps this production bean from
+     * clashing with those overrides.
      */
     @Bean
     @ConditionalOnMissingBean(Clock.class)
-    public Clock systemUtcClock() {
-        return Clock.systemUTC();
+    public Clock systemClock() {
+        return Clock.systemDefaultZone();
     }
 
     /**

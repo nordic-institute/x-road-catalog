@@ -53,10 +53,13 @@ import java.io.File;
 @Component
 public class InstanceContext {
 
-    @Value("${xroad-catalog.shared-params-file}")
-    private String sharedParamsFile;
+    private final String sharedParamsFile;
 
     private String cachedInstance;
+
+    public InstanceContext(@Value("${xroad-catalog.shared-params-file}") String sharedParamsFile) {
+        this.sharedParamsFile = sharedParamsFile;
+    }
 
     public synchronized String getCurrentInstance() {
         if (cachedInstance == null) {

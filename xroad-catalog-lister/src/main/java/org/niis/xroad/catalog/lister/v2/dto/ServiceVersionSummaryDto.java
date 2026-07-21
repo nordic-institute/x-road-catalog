@@ -33,6 +33,10 @@ import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
 
 import java.time.LocalDateTime;
 
+/**
+ * Descriptor-free summary of one service version. {@code serviceType} is {@code SOAP},
+ * {@code OPENAPI}, {@code REST} or {@code UNKNOWN} (collected but not yet classified).
+ */
 @Getter
 @Builder
 @AllArgsConstructor
