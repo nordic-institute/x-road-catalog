@@ -13,7 +13,7 @@
 -- removed subsystem).
 -- service_type: 21=SOAP, 22=OPENAPI (WSDL removed), 23=REST (rest row 36), 24/25/26=UNKNOWN
 -- (no active descriptor and no rest row), 27=SOAP (anomaly: active WSDL and OpenAPI).
-TRUNCATE endpoint, rest, open_api, wsdl, service, subsystem, member, error_log RESTART IDENTITY CASCADE;
+TRUNCATE endpoint, rest, open_api, wsdl, service, subsystem, member, error_log, collection_run RESTART IDENTITY CASCADE;
 
 INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched, removed) VALUES
   (1, 'TEST', 'GOV', 'M1', 'Provider Member',           '2025-01-01 10:00', '2025-01-01 10:00', '2025-06-01 10:00', NULL),

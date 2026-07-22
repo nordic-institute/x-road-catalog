@@ -56,7 +56,7 @@ public interface ReportsRepositoryV2 extends Repository<MemberV2, Long>, V2ReadM
             + " SELECT CAST(generate_series(CAST(:since AS date), CAST(:until AS date) - 1,"
             + "   INTERVAL '1 day') AS date) AS day"
             + "), types AS ("
-            + " SELECT DISTINCT s.service_type FROM service s"
+            + " SELECT t.service_type FROM (VALUES ('SOAP'), ('OPENAPI'), ('REST'), ('UNKNOWN')) AS t(service_type)"
             + "), baseline AS ("
             + " SELECT s.service_type, COUNT(*) AS cnt FROM service s"
             + " WHERE s.created < CAST(:since AS date)"

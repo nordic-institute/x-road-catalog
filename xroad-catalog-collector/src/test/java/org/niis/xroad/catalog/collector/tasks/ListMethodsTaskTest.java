@@ -46,6 +46,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.Queue;
@@ -56,6 +57,7 @@ import java.util.concurrent.Semaphore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,13 +98,15 @@ public class ListMethodsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> openApiServices = new LinkedBlockingQueue<>();
+        FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+        fetchWorkTracker.register(1);
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
-                restServices, openApiServices, taskPoolConfiguration);
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate());
         ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
@@ -131,6 +135,10 @@ public class ListMethodsTaskTest {
         assertEquals(0, restServices.size());
 
         assertEquals(0, openApiServices.size());
+
+        // worker completed its own registered item (-1) and registered one per enqueued SOAP service (+3);
+        // no REST services were enqueued so that registration was a no-op.
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> fetchWorkTracker.pending() == 3);
     }
 
     @Test
@@ -157,13 +165,15 @@ public class ListMethodsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> openApiServices = new LinkedBlockingQueue<>();
+        FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+        fetchWorkTracker.register(1);
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
-                restServices, openApiServices, taskPoolConfiguration);
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate());
         ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
@@ -192,6 +202,63 @@ public class ListMethodsTaskTest {
         assertEquals(0, restServices.size());
 
         assertEquals(0, openApiServices.size());
+
+        // ignored subsystem returns early: the worker's own registered item is completed, nothing enqueued.
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> fetchWorkTracker.pending() == 0);
+    }
+
+    @Test
+    public void testListMethodsTaskPendingReturnsToZeroWhenSaveServicesThrows()
+            throws InterruptedException, XRd4JException, SOAPException {
+        SOAPClient soapClient = mock(SOAPClient.class);
+        ServiceResponse<String, java.util.List<ProducerMember>> response = new ServiceResponse<>();
+        response.setResponseData(java.util.List.of(
+                XRoadIdentifier.builder()
+                        .xRoadInstance("INSTANCE").memberClass("CLASS").memberCode("CODE")
+                        .subsystemCode("SUBSYSTEM").serviceCode("testServiceFoo").serviceVersion("v1")
+                        .build().toProducerMember()
+        ));
+        when(soapClient.listMethods(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost())))
+                .thenReturn(response);
+        XRoadClient xRoadClient = new XRoadClient(soapClient,
+                new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
+                        taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
+        doThrow(new RuntimeException("boom")).when(catalogService).saveServices(any(), any());
+        BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
+        Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
+        Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
+        Queue<XRoadIdentifier> openApiServices = new LinkedBlockingQueue<>();
+        FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+        fetchWorkTracker.register(1);
+        ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate());
+        ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
+        Semaphore semaphore = new Semaphore(1);
+        ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
+        Thread listMethodsRunner = Thread.ofVirtual().start(listMethodsTask::run);
+        MemberWithName clientType = new MemberWithName();
+        XRoadIdentifier value = XRoadIdentifier.builder()
+                .xRoadInstance("INSTANCE")
+                .memberClass("CLASS")
+                .memberCode("CODE")
+                .subsystemCode("SUBSYSTEM")
+                .build();
+        value.setObjectType(ObjectType.SUBSYSTEM);
+        clientType.setId(value);
+        listedClients.add(clientType);
+
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(listedClients::isEmpty);
+
+        semaphore.acquire();
+        listMethodsRunner.interrupt();
+
+        assertEquals(0, wsdlServices.size());
+        assertEquals(0, restServices.size());
+        assertEquals(0, openApiServices.size());
+
+        // saveServices throws before either queue registration runs; only the worker's own item completes.
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> fetchWorkTracker.pending() == 0);
     }
 
 }

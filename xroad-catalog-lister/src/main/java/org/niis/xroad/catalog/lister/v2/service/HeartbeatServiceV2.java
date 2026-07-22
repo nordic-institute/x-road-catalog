@@ -25,36 +25,38 @@
 package org.niis.xroad.catalog.lister.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.lister.v2.dto.CurrentRunV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.LastCollectionDataV2Dto;
-import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
+import org.niis.xroad.catalog.persistence.entity.CollectionRun;
+import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.function.Supplier;
 
 /**
  * V2 heartbeat service. Produces the JSON response returned by {@code GET /api/v2/heartbeat}.
  *
  * <p>V2 heartbeat is a superset of V1: it adds {@code restsLastFetched} to the collection
- * timestamps and an aggregate {@code lastRunErrors} counter. The {@code lastRunErrors}
- * counter is the number of error-log rows recorded since the earliest of the per-type
- * last-fetched timestamps (i.e. since the start of the most recently completed collection
- * run). If any entity type has never been fetched the counter is defined as 0 — the system
- * has not yet completed a full run, so there is no meaningful "since" anchor.
+ * timestamps and an aggregate {@code lastRunErrors} counter. Freshness now comes from the
+ * collector's run metadata rather than per-poll {@code MAX(fetched)} scans: the six
+ * {@code lastCollectionData} timestamps are the snapshot columns on the latest finished
+ * {@link CollectionRun} row, and {@code lastRunErrors} counts error-log rows recorded since that
+ * run's {@code started} timestamp. If no run has finished yet, the timestamps are null and
+ * {@code lastRunErrors} is 0.
  *
- * <p>Every dependency here is V2-only: {@code findLatestFetched} queries are pure
- * {@code MAX(fetched)} aggregates on the V2 read-model repositories, with no V1 dependency left
- * to sever. Error-log queries go through {@link ErrorLogRepositoryV2} so half-open range
- * semantics match the rest of the V2 API.
+ * <p>Error-log queries go through {@link ErrorLogRepositoryV2} so half-open range semantics match
+ * the rest of the V2 API.
+ *
+ * <p>{@code currentRun} is nullable and present only while a collection cycle is in progress
+ * (the {@link CollectionRun} row with a {@code null} {@code finished} timestamp). Operators can
+ * use it to distinguish a stuck run from a healthy one: {@code pendingItems} not decreasing while
+ * {@code progressUpdated} keeps advancing means the collector is alive but its work is hung,
+ * whereas a stale {@code progressUpdated} on an old unfinished run means the collector died
+ * mid-cycle.
  */
 @Slf4j
 @Service
@@ -62,96 +64,92 @@ public class HeartbeatServiceV2 {
 
     private final String appName;
     private final String appVersion;
-    private final MemberRepositoryV2 memberRepository;
-    private final SubsystemRepositoryV2 subsystemRepository;
-    private final ServiceRepositoryV2 serviceRepository;
-    private final DescriptorRepositoryV2 descriptorRepository;
+    private final CollectionRunRepository collectionRunRepository;
     private final ErrorLogRepositoryV2 errorLogRepository;
     private final Clock clock;
 
     public HeartbeatServiceV2(@Value("${xroad-catalog.app-name}") String appName,
             @Value("${xroad-catalog.app-version}") String appVersion,
-            MemberRepositoryV2 memberRepository, SubsystemRepositoryV2 subsystemRepository,
-            ServiceRepositoryV2 serviceRepository, DescriptorRepositoryV2 descriptorRepository,
-            ErrorLogRepositoryV2 errorLogRepository, Clock clock) {
+            CollectionRunRepository collectionRunRepository, ErrorLogRepositoryV2 errorLogRepository, Clock clock) {
         this.appName = appName;
         this.appVersion = appVersion;
-        this.memberRepository = memberRepository;
-        this.subsystemRepository = subsystemRepository;
-        this.serviceRepository = serviceRepository;
-        this.descriptorRepository = descriptorRepository;
+        this.collectionRunRepository = collectionRunRepository;
         this.errorLogRepository = errorLogRepository;
         this.clock = clock;
     }
 
     public HeartbeatV2Dto heartbeat() {
-        LocalDateTime membersLastFetched = tryFetch(memberRepository::findLatestFetched);
-        LocalDateTime subsystemsLastFetched = tryFetch(subsystemRepository::findLatestFetched);
-        LocalDateTime servicesLastFetched = tryFetch(serviceRepository::findLatestFetched);
-        LocalDateTime wsdlsLastFetched = tryFetch(descriptorRepository::findLatestWsdlFetched);
-        LocalDateTime openapisLastFetched = tryFetch(descriptorRepository::findLatestOpenApiFetched);
-        LocalDateTime restsLastFetched = tryFetch(descriptorRepository::findLatestRestFetched);
-
-        long lastRunErrors = computeLastRunErrors(membersLastFetched, subsystemsLastFetched,
-                servicesLastFetched, wsdlsLastFetched, openapisLastFetched, restsLastFetched);
-
+        CollectionRun lastRun = tryFetchLastFinishedRun();
         return HeartbeatV2Dto.builder()
                 .appWorking(Boolean.TRUE)
                 .dbWorking(tryCheckDatabase())
                 .appName(appName)
                 .appVersion(appVersion)
                 .systemTime(LocalDateTime.now(clock))
-                .lastCollectionData(LastCollectionDataV2Dto.builder()
-                        .membersLastFetched(membersLastFetched)
-                        .subsystemsLastFetched(subsystemsLastFetched)
-                        .servicesLastFetched(servicesLastFetched)
-                        .wsdlsLastFetched(wsdlsLastFetched)
-                        .openapisLastFetched(openapisLastFetched)
-                        .restsLastFetched(restsLastFetched)
-                        .build())
-                .lastRunErrors(lastRunErrors)
+                .lastCollectionData(toLastCollectionData(lastRun))
+                .lastRunErrors(computeLastRunErrors(lastRun))
+                .currentRun(toCurrentRun(tryFetchCurrentRun()))
                 .build();
     }
 
-    private LocalDateTime tryFetch(Supplier<LocalDateTime> supplier) {
+    private CollectionRun tryFetchLastFinishedRun() {
         try {
-            return supplier.get();
+            return collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc().orElse(null);
         } catch (Exception e) {
-            log.warn("findLatestFetched failed; reporting null", e);
+            log.warn("Failed to load latest collection run; reporting empty collection data", e);
             return null;
         }
     }
 
-    private long computeLastRunErrors(LocalDateTime... lastFetchedValues) {
-        if (hasNull(lastFetchedValues)) {
-            return 0;
-        }
-        LocalDateTime earliest = Arrays.stream(lastFetchedValues)
-                .min(LocalDateTime::compareTo)
-                .orElseThrow();
-        // ErrorLogRepositoryV2 exposes a paged query. A 1-row page is enough — we only care
-        // about totalElements (the overall count, not the returned content).
+    private CollectionRun tryFetchCurrentRun() {
         try {
-            return errorLogRepository.findAnyInRange(earliest, LocalDateTime.now(clock),
-                    Pageable.ofSize(1)).getTotalElements();
+            return collectionRunRepository.findFirstByFinishedIsNullOrderByStartedDesc().orElse(null);
+        } catch (Exception e) {
+            log.warn("Failed to load in-progress collection run; reporting no current run", e);
+            return null;
+        }
+    }
+
+    private CurrentRunV2Dto toCurrentRun(CollectionRun currentRun) {
+        if (currentRun == null) {
+            return null;
+        }
+        return CurrentRunV2Dto.builder()
+                .started(currentRun.getStarted())
+                .pendingItems(currentRun.getPendingItems())
+                .progressUpdated(currentRun.getProgressUpdated())
+                .build();
+    }
+
+    private LastCollectionDataV2Dto toLastCollectionData(CollectionRun lastRun) {
+        if (lastRun == null) {
+            return LastCollectionDataV2Dto.builder().build();
+        }
+        return LastCollectionDataV2Dto.builder()
+                .membersLastFetched(lastRun.getMembersLastFetched())
+                .subsystemsLastFetched(lastRun.getSubsystemsLastFetched())
+                .servicesLastFetched(lastRun.getServicesLastFetched())
+                .wsdlsLastFetched(lastRun.getWsdlsLastFetched())
+                .openapisLastFetched(lastRun.getOpenapisLastFetched())
+                .restsLastFetched(lastRun.getRestsLastFetched())
+                .build();
+    }
+
+    private long computeLastRunErrors(CollectionRun lastRun) {
+        if (lastRun == null) {
+            return 0L;
+        }
+        try {
+            return errorLogRepository.countInRange(lastRun.getStarted(), LocalDateTime.now(clock));
         } catch (Exception e) {
             log.warn("Failed to count errors since last collection run", e);
             return 0L;
         }
     }
 
-    private boolean hasNull(LocalDateTime... values) {
-        for (LocalDateTime v : values) {
-            if (v == null) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private Boolean tryCheckDatabase() {
         try {
-            return Integer.valueOf(1).equals(memberRepository.checkConnection());
+            return Integer.valueOf(1).equals(collectionRunRepository.checkConnection());
         } catch (Exception e) {
             log.warn("Database health check failed", e);
             return Boolean.FALSE;

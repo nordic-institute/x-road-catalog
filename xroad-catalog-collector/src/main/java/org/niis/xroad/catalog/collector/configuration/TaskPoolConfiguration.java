@@ -24,11 +24,16 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.Set;
 
 @Getter
@@ -88,6 +93,14 @@ public class TaskPoolConfiguration {
     @Value("${xroad-catalog.tasks.fetch-time-before-hour:4}")
     private int fetchTimeBeforeHour;
 
+    // Bounds on outbound client I/O so every worker is guaranteed to terminate
+
+    @Value("${xroad-catalog.tasks.client-connect-timeout-seconds:10}")
+    private long clientConnectTimeoutSeconds;
+
+    @Value("${xroad-catalog.tasks.client-read-timeout-seconds:60}")
+    private long clientReadTimeoutSeconds;
+
     // Collector internal pool parameters
 
     @Value("${xroad-catalog.pool-size.list-methods:50}")
@@ -104,6 +117,29 @@ public class TaskPoolConfiguration {
 
     public Set<String> getIgnoredSubsystemIds() {
         return ignoredSubsystemIdsProperties.getIgnoredSubsystemIds();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofSeconds(clientConnectTimeoutSeconds));
+        requestFactory.setReadTimeout(Duration.ofSeconds(clientReadTimeoutSeconds));
+        return new RestTemplate(requestFactory);
+    }
+
+    /**
+     * SAAJ-RI (saaj-impl 3.0.4) reads {@code saaj.connect.timeout} and {@code saaj.read.timeout} once, at
+     * class-load time of {@code com.sun.xml.messaging.saaj.client.p2p.HttpSOAPConnection}. That class is only
+     * loaded on the first SOAP send performed by xrd4j's {@code SOAPClientImpl}, which happens long after
+     * context initialization, so setting the properties here in a {@code @PostConstruct} method is early
+     * enough. The Jakarta SOAP 3 instance-level {@code setConnectTimeout}/{@code setReadTimeout} API would be
+     * the proper fix, but it requires an upstream xrd4j change and is deferred.
+     */
+    @PostConstruct
+    public void configureSaajTimeouts() {
+        // Both parse timeout millis as int; must stay below Integer.MAX_VALUE/1000
+        System.setProperty("saaj.connect.timeout", String.valueOf(Duration.ofSeconds(clientConnectTimeoutSeconds).toMillis()));
+        System.setProperty("saaj.read.timeout", String.valueOf(Duration.ofSeconds(clientReadTimeoutSeconds).toMillis()));
     }
 
 }

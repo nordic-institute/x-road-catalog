@@ -40,6 +40,7 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,9 +74,14 @@ public class ListMethodsTask implements Runnable {
 
     private final Queue<XRoadIdentifier> restQueue;
 
+    private final FetchWorkTracker fetchWorkTracker;
+
+    private final RestTemplate restTemplate;
+
     public ListMethodsTask(final CatalogService  catalogService, final BlockingQueue<MemberWithName> listMethodsQueue,
                            final Queue<ProducerMember> wsdlServicesQueue, final Queue<XRoadIdentifier> restServicesQueue,
-                           final Queue<XRoadIdentifier> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration)
+                           final Queue<XRoadIdentifier> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration,
+                           final FetchWorkTracker fetchWorkTracker, final RestTemplate restTemplate)
             throws XRd4JException, SOAPException {
         this.catalogService = catalogService;
 
@@ -83,6 +89,8 @@ public class ListMethodsTask implements Runnable {
         this.wsdlQueue = wsdlServicesQueue;
         this.openApiQueue = openApiServicesQueue;
         this.restQueue = restServicesQueue;
+        this.fetchWorkTracker = fetchWorkTracker;
+        this.restTemplate = restTemplate;
 
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
@@ -94,7 +102,7 @@ public class ListMethodsTask implements Runnable {
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getListMethodsPoolSize());
 
-        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate);
     }
 
     public void run() {
@@ -129,7 +137,7 @@ public class ListMethodsTask implements Runnable {
             log.debug("Handling subsystem {} ", subsystem);
 
             List<XRoadIdentifier> restServices = MethodListUtil.methodListFromResponse(client.getId(),
-                    xroadSecurityServerHost, consumerMember, catalogService);
+                    xroadSecurityServerHost, consumerMember, catalogService, restTemplate);
             log.info("Received {} REST methods for client {} ", restServices.size(),
                     IdentifierUtil.toString(client));
 
@@ -147,8 +155,10 @@ public class ListMethodsTask implements Runnable {
 
             catalogService.saveServices(subsystem.createKey(), services);
 
+            fetchWorkTracker.register(soapServices.size());
             this.wsdlQueue.addAll(soapServices);
 
+            fetchWorkTracker.register(restServices.size());
             for (XRoadIdentifier service : restServices) {
                 if (service.getServiceType().equalsIgnoreCase(SERVICE_TYPE_REST)) {
                     this.restQueue.add(service);
@@ -162,6 +172,7 @@ public class ListMethodsTask implements Runnable {
             log.error("Error while handling client {}", IdentifierUtil.toString(client), e);
         } finally {
             semaphore.release();
+            fetchWorkTracker.complete();
         }
     }
 

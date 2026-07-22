@@ -34,7 +34,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -97,10 +96,4 @@ public interface MemberRepositoryV2 extends Repository<MemberV2, Long>, V2ReadMo
             + "AND m.memberClass = :memberClass AND m.statusInfo.removed IS NULL")
     long countActiveByMemberClass(@Param("xRoadInstance") String xRoadInstance,
                                   @Param("memberClass") String memberClass);
-
-    @Query("SELECT MAX(m.statusInfo.fetched) FROM MemberV2 m")
-    LocalDateTime findLatestFetched();
-
-    @Query(value = "SELECT 1", nativeQuery = true)
-    Integer checkConnection();
 }

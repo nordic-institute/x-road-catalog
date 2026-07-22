@@ -35,6 +35,7 @@ Doc. ID: IG-XRDCAT
     * [2.5.2 X-Road Catalog Lister](#252-x-road-catalog-lister)
     * [2.5.3 services](#253-services)
     * [2.5.4 Time zone configuration](#254-time-zone-configuration)
+    * [2.5.5 Search performance](#255-search-performance)
   * [2.6 SSL (optional)](#26-ssl-optional)
   * [2.7 Post-Installation Checks](#27-post-installation-checks)
   * [2.8 Logs](#28-logs)
@@ -216,6 +217,15 @@ in `docker/compose.yml`, or by setting the same explicit `TZ` environment variab
 services. When installing from packages, verify that the host's
 configured time zone (`timedatectl`) is the same on the collector host, the lister host, and the
 PostgreSQL host.
+
+### 2.5.5 Search performance
+
+The `/api/v2/search` endpoint matches substrings (`LIKE '%query%'`) across member names/codes,
+subsystem codes and service codes. Substring matching cannot use ordinary b-tree indexes, so each
+search request scans those tables. This is acceptable at typical catalog sizes; for very large
+ecosystems, PostgreSQL's `pg_trgm` extension with GIN trigram indexes on the searched columns
+removes the scans. X-Road Catalog does not create the extension itself — apply it manually if
+search latency becomes a concern.
 
 ## 2.6 SSL (optional)
 

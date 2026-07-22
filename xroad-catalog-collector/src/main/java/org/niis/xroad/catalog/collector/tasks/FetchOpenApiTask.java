@@ -36,6 +36,7 @@ import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -53,8 +54,10 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
     private final XRoadClient xroadClient;
 
     public FetchOpenApiTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-                            final BlockingQueue<XRoadIdentifier> openApiServicesQueue) throws XRd4JException, SOAPException {
-        super(openApiServicesQueue, taskPoolConfiguration.getFetchOpenapiPoolSize());
+                            final BlockingQueue<XRoadIdentifier> openApiServicesQueue, final FetchWorkTracker fetchWorkTracker,
+                            final RestTemplate restTemplate)
+            throws XRd4JException, SOAPException {
+        super(openApiServicesQueue, taskPoolConfiguration.getFetchOpenapiPoolSize(), fetchWorkTracker);
         this.catalogService = catalogService;
 
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
@@ -66,7 +69,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
 
         String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
 
-        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate);
     }
 
     @Override

@@ -38,7 +38,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -74,6 +73,7 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
 
     private static final String INSTANCE = "TEST";
     private static final String GOV = "GOV";
+    private static final String SS1 = "SS1";
 
     @Autowired
     private ServiceRepositoryV2 serviceRepository;
@@ -102,7 +102,7 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
         rows.forEach(row -> {
             assertEquals(GOV, row.getMemberClass());
             assertEquals("M1", row.getMemberCode());
-            assertEquals("SS1", row.getSubsystemCode());
+            assertEquals(SS1, row.getSubsystemCode());
             assertEquals(11L, row.getSubsystemId());
         });
     }
@@ -178,11 +178,11 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
     @Test
     void findActiveVersionRowsForServiceExcludesRemovedAndCascadedServices() {
         List<ServiceVersionRow> svcA = serviceRepository.findActiveVersionRowsForService(
-                INSTANCE, GOV, "M1", "SS1", "svcA");
+                INSTANCE, GOV, "M1", SS1, "svcA");
         assertEquals(2, svcA.size());
 
         List<ServiceVersionRow> svcC = serviceRepository.findActiveVersionRowsForService(
-                INSTANCE, GOV, "M1", "SS1", "svcC");
+                INSTANCE, GOV, "M1", SS1, "svcC");
         assertTrue(svcC.isEmpty(), "svcC is itself removed");
 
         List<ServiceVersionRow> svcD = serviceRepository.findActiveVersionRowsForService(
@@ -194,7 +194,7 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
     @Transactional
     void findActiveVersionsByNaturalKeyReturnsOneEntityWithOneActiveEndpoint() {
         List<ServiceV2> svcB = serviceRepository.findActiveVersionsByNaturalKey(
-                INSTANCE, GOV, "M1", "SS1", "svcB");
+                INSTANCE, GOV, "M1", SS1, "svcB");
 
         assertEquals(1, svcB.size());
         assertEquals(1, svcB.get(0).getActiveEndpoints().size(), "POST /bar is removed, GET /foo is active");
@@ -203,18 +203,18 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
     @Test
     void findActiveVersionByNaturalKeyAndFindActiveNullVersionByNaturalKeyResolveExactVersions() {
         Optional<ServiceV2> svcA10 = serviceRepository.findActiveVersionByNaturalKey(
-                INSTANCE, GOV, "M1", "SS1", "svcA", "1.0");
+                INSTANCE, GOV, "M1", SS1, "svcA", "1.0");
         assertTrue(svcA10.isPresent());
 
         Optional<ServiceV2> svcB = serviceRepository.findActiveNullVersionByNaturalKey(
-                INSTANCE, GOV, "M1", "SS1", "svcB");
+                INSTANCE, GOV, "M1", SS1, "svcB");
         assertTrue(svcB.isPresent());
     }
 
     @Test
     void existsActiveByNaturalKeyChecksServiceAndParentCascade() {
-        assertTrue(serviceRepository.existsActiveByNaturalKey(INSTANCE, GOV, "M1", "SS1", "svcB"));
-        assertFalse(serviceRepository.existsActiveByNaturalKey(INSTANCE, GOV, "M1", "SS1", "svcC"),
+        assertTrue(serviceRepository.existsActiveByNaturalKey(INSTANCE, GOV, "M1", SS1, "svcB"));
+        assertFalse(serviceRepository.existsActiveByNaturalKey(INSTANCE, GOV, "M1", SS1, "svcC"),
                 "svcC is itself removed");
         assertFalse(serviceRepository.existsActiveByNaturalKey(INSTANCE, "COM", "M3", "SS3", "svcD"),
                 "svcD's parent member M3 is removed");
@@ -222,15 +222,10 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
 
     @Test
     void existsActiveVersionChecksExactVersionIncludingNullSentinelWithoutHydratingEndpoints() {
-        assertTrue(serviceRepository.existsActiveVersionByNaturalKey("TEST", "GOV", "M1", "SS1", "svcA", "1.0"));
-        assertFalse(serviceRepository.existsActiveVersionByNaturalKey("TEST", "GOV", "M1", "SS1", "svcA", "9.9"));
-        assertTrue(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", "SS1", "svcB"));
-        assertFalse(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", "SS1", "svcA"));
-    }
-
-    @Test
-    void findLatestFetchedReturnsMaxAcrossAllServices() {
-        assertEquals(LocalDateTime.of(2025, 6, 1, 10, 0), serviceRepository.findLatestFetched());
+        assertTrue(serviceRepository.existsActiveVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcA", "1.0"));
+        assertFalse(serviceRepository.existsActiveVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcA", "9.9"));
+        assertTrue(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcB"));
+        assertFalse(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcA"));
     }
 
     @Test

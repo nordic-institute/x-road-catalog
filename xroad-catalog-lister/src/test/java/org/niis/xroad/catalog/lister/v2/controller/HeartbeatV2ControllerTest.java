@@ -26,6 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.lister.v2.dto.CurrentRunV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.LastCollectionDataV2Dto;
 import org.niis.xroad.catalog.lister.v2.service.HeartbeatServiceV2;
@@ -66,6 +67,8 @@ class HeartbeatV2ControllerTest {
 
     private static final LocalDateTime FETCHED = LocalDateTime.of(2026, 4, 10, 11, 30);
     private static final LocalDateTime SYSTEM_TIME = LocalDateTime.of(2026, 4, 10, 12, 0);
+    private static final LocalDateTime STARTED = LocalDateTime.of(2026, 4, 10, 13, 0);
+    private static final LocalDateTime PROGRESS_UPDATED = LocalDateTime.of(2026, 4, 10, 13, 25);
 
     private static String expectedOffset(LocalDateTime ldt) {
         return ldt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
@@ -109,10 +112,38 @@ class HeartbeatV2ControllerTest {
                 .andExpect(jsonPath("$.lastCollectionData.wsdlsLastFetched").value(expectedOffset(FETCHED)))
                 .andExpect(jsonPath("$.lastCollectionData.openapisLastFetched").value(expectedOffset(FETCHED)))
                 .andExpect(jsonPath("$.lastCollectionData.restsLastFetched").value(expectedOffset(FETCHED)))
-                .andExpect(jsonPath("$.lastRunErrors").value(3));
+                .andExpect(jsonPath("$.lastRunErrors").value(3))
+                .andExpect(jsonPath("$.currentRun").value(Matchers.nullValue()));
 
         verify(heartbeatService).heartbeat();
         verifyNoMoreInteractions(heartbeatService);
+    }
+
+    @Test
+    void heartbeatIncludesCurrentRunWithOffsetTimestampsWhenCycleInProgress() throws Exception {
+        CurrentRunV2Dto currentRun = CurrentRunV2Dto.builder()
+                .started(STARTED).pendingItems(37).progressUpdated(PROGRESS_UPDATED)
+                .build();
+        HeartbeatV2Dto hb = fullyPopulated();
+        hb.setCurrentRun(currentRun);
+        when(heartbeatService.heartbeat()).thenReturn(hb);
+
+        mockMvc.perform(get(HEARTBEAT_PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentRun.started").value(expectedOffset(STARTED)))
+                .andExpect(jsonPath("$.currentRun.pendingItems").value(37))
+                .andExpect(jsonPath("$.currentRun.progressUpdated").value(expectedOffset(PROGRESS_UPDATED)));
+    }
+
+    @Test
+    void heartbeatRendersCurrentRunAsJsonNullWhenNoCycleInProgress() throws Exception {
+        when(heartbeatService.heartbeat()).thenReturn(fullyPopulated());
+
+        mockMvc.perform(get(HEARTBEAT_PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currentRun").value(Matchers.nullValue()))
+                // Pin "key present, value null" distinctly from the key being absent altogether.
+                .andExpect(content().string(Matchers.containsString("\"currentRun\":null")));
     }
 
     @Test

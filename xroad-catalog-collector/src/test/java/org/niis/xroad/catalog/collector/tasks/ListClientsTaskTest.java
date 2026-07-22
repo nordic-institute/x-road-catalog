@@ -42,6 +42,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,6 +73,12 @@ public class ListClientsTaskTest {
     @MockitoBean
     NewMembersEventPublisher newMembersEventPublisher;
 
+    // DefaultTasksInitializer schedules CollectionCycleRunner::run on ApplicationStartedEvent, which
+    // would otherwise call the real, Spring-managed ListClientsTask bean (sharing this test's mocked
+    // catalogService) from a background thread and race with the manually constructed instances below.
+    @MockitoBean
+    CollectionCycleRunner collectionCycleRunner;
+
     @Test
     public void testOnReceiveWhenFetchUnlimited() throws XRd4JException {
 
@@ -89,7 +96,7 @@ public class ListClientsTaskTest {
                     createClientType(ObjectType.SUBSYSTEM, "member2", "sssub2")
             );
 
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class)))
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(String.class), any(RestTemplate.class)))
                     .thenReturn(clientList);
 
             final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
@@ -100,13 +107,16 @@ public class ListClientsTaskTest {
             member2.setMemberCode("member2");
             Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of(member1, member2));
 
-            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate());
             listClientsTask.run();
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
             verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
 
             assertEquals(5, listMethodsQueue.size());
+            assertEquals(5, fetchWorkTracker.pending());
         }
     }
 
@@ -128,7 +138,7 @@ public class ListClientsTaskTest {
                     createClientType(ObjectType.MEMBER, "member1", null)
             );
 
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any())).thenReturn(clientList);
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class))).thenReturn(clientList);
 
             final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
@@ -137,13 +147,16 @@ public class ListClientsTaskTest {
             final Member member2 = new Member();
             member2.setMemberCode("member2");
 
-            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate());
             listClientsTask.run();
 
             verifyNoInteractions(catalogService);
             verifyNoInteractions(newMembersEventPublisher);
 
             assertEquals(0, listMethodsQueue.size());
+            assertEquals(0, fetchWorkTracker.pending());
         }
     }
 
@@ -165,7 +178,7 @@ public class ListClientsTaskTest {
                     createClientType(ObjectType.SUBSYSTEM, "member2", "sssub2")
             );
 
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any())).thenReturn(clientList);
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class))).thenReturn(clientList);
 
             final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
@@ -175,13 +188,16 @@ public class ListClientsTaskTest {
             member2.setMemberCode("member2");
             Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of(member1, member2));
 
-            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate());
             listClientsTask.run();
 
             // Note: This line is time-sensitive and will fail if run between 23:00-00:00.
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
             verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
             assertEquals(5, listMethodsQueue.size());
+            assertEquals(5, fetchWorkTracker.pending());
         }
     }
 
@@ -192,18 +208,21 @@ public class ListClientsTaskTest {
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", true);
 
             List<MemberWithName> clientList = new ArrayList<>();
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any())).thenReturn(clientList);
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class))).thenReturn(clientList);
 
             final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
             Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of());
 
-            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate());
             listClientsTask.run();
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
             verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(any());
             assertEquals(0, listMethodsQueue.size());
+            assertEquals(0, fetchWorkTracker.pending());
         }
     }
 
@@ -213,12 +232,15 @@ public class ListClientsTaskTest {
 
         final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
 
-        ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher);
+        FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+        ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                fetchWorkTracker, new RestTemplate());
         listClientsTask.run();
 
         verify(catalogService, times(1)).saveErrorLog(any());
         verifyNoInteractions(newMembersEventPublisher);
         assertEquals(0, listMethodsQueue.size());
+        assertEquals(0, fetchWorkTracker.pending());
     }
 
     private MemberWithName createClientType(ObjectType objectType, String memberCode, String subsystemCode) throws XRd4JException {

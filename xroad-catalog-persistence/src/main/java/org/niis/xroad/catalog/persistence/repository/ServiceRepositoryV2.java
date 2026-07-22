@@ -33,7 +33,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -169,7 +168,4 @@ public interface ServiceRepositoryV2 extends Repository<ServiceV2, Long>, V2Read
     boolean existsActiveNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
             @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
             @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
-
-    @Query("SELECT MAX(s.statusInfo.fetched) FROM ServiceV2 s")
-    LocalDateTime findLatestFetched();
 }

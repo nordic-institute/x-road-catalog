@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="014-collection-run-table" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="collection_run table exists">
+            <not>
+                <tableExists tableName="collection_run"/>
+            </not>
+        </preConditions>
+        <createTable tableName="collection_run">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="collection_run_pkey"/>
+            </column>
+            <column name="started" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="finished" type="timestamptz"/>
+            <column name="success" type="boolean"/>
+            <column name="pending_items" type="integer"/>
+            <column name="progress_updated" type="timestamptz"/>
+            <column name="members_last_fetched" type="timestamptz"/>
+            <column name="subsystems_last_fetched" type="timestamptz"/>
+            <column name="services_last_fetched" type="timestamptz"/>
+            <column name="wsdls_last_fetched" type="timestamptz"/>
+            <column name="openapis_last_fetched" type="timestamptz"/>
+            <column name="rests_last_fetched" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="014-collection-run-sequence" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="collection_run_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="collection_run_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="collection_run_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE collection_run_id_seq OWNED BY collection_run.id;</sql>
+    </changeSet>
+</databaseChangeLog>

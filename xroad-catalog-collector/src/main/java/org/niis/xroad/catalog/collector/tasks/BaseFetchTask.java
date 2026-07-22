@@ -40,11 +40,15 @@ public abstract class BaseFetchTask<T> implements Runnable {
 
     private final Semaphore semaphore;
 
-    protected BaseFetchTask(final BlockingQueue<T> inputQueue, final int poolSize) {
+    private final FetchWorkTracker fetchWorkTracker;
+
+    protected BaseFetchTask(final BlockingQueue<T> inputQueue, final int poolSize, final FetchWorkTracker fetchWorkTracker) {
 
         this.inputQueue = inputQueue;
 
         this.semaphore = new Semaphore(poolSize);
+
+        this.fetchWorkTracker = fetchWorkTracker;
     }
 
     public void run() {
@@ -71,6 +75,7 @@ public abstract class BaseFetchTask<T> implements Runnable {
             log.error("Error fetching data", e);
         } finally {
             semaphore.release();
+            fetchWorkTracker.complete();
         }
     }
 

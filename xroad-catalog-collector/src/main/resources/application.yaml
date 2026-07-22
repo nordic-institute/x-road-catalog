@@ -58,3 +58,5 @@ xroad-catalog:
     fetch-run-unlimited: false
     fetch-time-after-hour: 3
     fetch-time-before-hour: 4
+    client-connect-timeout-seconds: 10
+    client-read-timeout-seconds: 60

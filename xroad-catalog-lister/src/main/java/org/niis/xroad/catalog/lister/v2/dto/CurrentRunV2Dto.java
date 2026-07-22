@@ -22,26 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.persistence.repository;
+package org.niis.xroad.catalog.lister.v2.dto;
 
-import org.niis.xroad.catalog.persistence.v2entity.WsdlV2;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.query.Param;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
- * V2 read-model repository for service descriptor blobs (WSDL / OpenAPI / REST). Used only by the
- * descriptor endpoints — descriptor {@code data} must never ride along the service tree/list
- * queries in {@link ServiceRepositoryV2}, so it is exposed here as plain {@code String}
- * projections, ordered by id, rather than as entity associations.
+ * Snapshot of the in-progress {@code CollectionRun}, present in the V2 heartbeat while a
+ * collection cycle is running and absent once it finishes.
  */
-public interface DescriptorRepositoryV2 extends Repository<WsdlV2, Long>, V2ReadModelRepository {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+public class CurrentRunV2Dto {
 
-    @Query("SELECT w.data FROM WsdlV2 w WHERE w.serviceId = :serviceId AND w.statusInfo.removed IS NULL ORDER BY w.id")
-    List<String> findActiveWsdlData(@Param("serviceId") long serviceId);
+    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    private LocalDateTime started;
 
-    @Query("SELECT o.data FROM OpenApiV2 o WHERE o.serviceId = :serviceId AND o.statusInfo.removed IS NULL ORDER BY o.id")
-    List<String> findActiveOpenApiData(@Param("serviceId") long serviceId);
+    private Integer pendingItems;
+
+    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    private LocalDateTime progressUpdated;
 }

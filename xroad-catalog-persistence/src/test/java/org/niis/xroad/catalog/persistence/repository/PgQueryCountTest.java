@@ -73,7 +73,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         "org.niis.xroad.catalog.persistence.entity",
         "org.niis.xroad.catalog.persistence.v2entity"
 })
-@Sql(scripts = {"classpath:pg/v2-fixture.sql", "classpath:pg/query-count-padding.sql"},
+@Sql(scripts = {"classpath:pg/v2-fixture.sql", "classpath:pg/query-count-padding.sql", "classpath:pg/error-log-padding.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class PgQueryCountTest extends PostgresTestBase {
 
@@ -91,6 +91,9 @@ class PgQueryCountTest extends PostgresTestBase {
 
     @Autowired
     private ReportsRepositoryV2 reportsRepository;
+
+    @Autowired
+    private ErrorLogRepositoryV2 errorLogRepository;
 
     @Autowired
     private DenormalizationRepository denormalizationRepository;
@@ -259,5 +262,33 @@ class PgQueryCountTest extends PostgresTestBase {
                 java.time.LocalDateTime.of(2025, 1, 1, 0, 0),
                 java.time.LocalDateTime.of(2025, 3, 31, 0, 0), 10, 0);
         assertEquals(1, stats.getPrepareStatementCount(), "day-page query must be a single statement");
+    }
+
+    /**
+     * The errors browse endpoints are rows + count — 2 statements — at every page size. Pinned
+     * against pg/error-log-padding.sql (25 rows) so PageableExecutionUtils can never derive the
+     * count from content size. Requires @Sql to also load error-log-padding for this class; add
+     * "classpath:pg/error-log-padding.sql" to the class-level @Sql script list.
+     */
+    @Test
+    void errorsRangeQueryCountIsExactlyTwoAtBothPageSizes() {
+        java.time.LocalDateTime since = java.time.LocalDateTime.of(2025, 5, 1, 0, 0);
+        java.time.LocalDateTime until = java.time.LocalDateTime.of(2025, 5, 10, 0, 0);
+
+        entityManager.clear();
+        stats.clear();
+        Page<?> page1 = errorLogRepository.findAnyInRange(since, until, PageRequest.of(0, 1));
+        long queriesAtPageSize1 = stats.getPrepareStatementCount();
+
+        entityManager.clear();
+        stats.clear();
+        Page<?> page20 = errorLogRepository.findAnyInRange(since, until, PageRequest.of(0, 20));
+        long queriesAtPageSize20 = stats.getPrepareStatementCount();
+
+        assertEquals(25, page1.getTotalElements());
+        assertEquals(20, page20.getContent().size());
+        assertEquals(2, queriesAtPageSize1, "errors range query must be exactly rows + count");
+        assertEquals(queriesAtPageSize1, queriesAtPageSize20,
+                "errors query count must not grow with page size");
     }
 }

@@ -40,7 +40,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -157,16 +156,6 @@ class MemberRepositoryV2PgTest extends PostgresTestBase {
         SubsystemV2 ss1 = m1.getActiveSubsystems().iterator().next();
         assertEquals("SS1", ss1.getSubsystemCode());
         assertEquals(4, ss1.getActiveServices().size());
-    }
-
-    @Test
-    void findLatestFetchedReturnsMaxAcrossAllMembers() {
-        assertEquals(LocalDateTime.of(2025, 6, 1, 10, 0), memberRepository.findLatestFetched());
-    }
-
-    @Test
-    void checkConnectionReturnsOne() {
-        assertEquals(1, memberRepository.checkConnection());
     }
 
     private static MemberListRow findByCode(List<MemberListRow> rows, String memberCode) {

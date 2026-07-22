@@ -22,44 +22,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.dto;
+package org.niis.xroad.catalog.persistence.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
 
 import java.time.LocalDateTime;
 
-/**
- * V2 heartbeat response. Adds {@code lastRunErrors} (count of errors since the earliest
- * successful collection run) on top of the V1 shape, and carries a V2-specific
- * {@link LastCollectionDataV2Dto} which includes {@code restsLastFetched}.
- */
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Entity
+@Table(name = "collection_run")
 @Getter
 @Setter
-public class HeartbeatV2Dto {
+@NoArgsConstructor
+public class CollectionRun {
 
-    private Boolean appWorking;
+    @Id
+    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "COLLECTION_RUN_GEN")
+    @SequenceGenerator(name = "COLLECTION_RUN_GEN", sequenceName = "COLLECTION_RUN_ID_SEQ", allocationSize = 1)
+    private long id;
 
-    private Boolean dbWorking;
+    @Column(nullable = false)
+    private LocalDateTime started;
 
-    private String appName;
+    private LocalDateTime finished;
 
-    private String appVersion;
+    private Boolean success;
 
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
-    private LocalDateTime systemTime;
+    private Integer pendingItems;
 
-    private LastCollectionDataV2Dto lastCollectionData;
+    private LocalDateTime progressUpdated;
 
-    private long lastRunErrors;
+    private LocalDateTime membersLastFetched;
 
-    private CurrentRunV2Dto currentRun;
+    private LocalDateTime subsystemsLastFetched;
+
+    private LocalDateTime servicesLastFetched;
+
+    private LocalDateTime wsdlsLastFetched;
+
+    private LocalDateTime openapisLastFetched;
+
+    private LocalDateTime restsLastFetched;
 }

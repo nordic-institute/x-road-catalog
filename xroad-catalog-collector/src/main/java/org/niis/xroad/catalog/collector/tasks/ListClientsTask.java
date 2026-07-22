@@ -38,6 +38,7 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.MemberId;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,13 +55,18 @@ public class ListClientsTask implements Runnable {
     private final CatalogService catalogService;
     private final Queue<MemberWithName> listMethodsQueue;
     private final NewMembersEventPublisher newMembersEventPublisher;
+    private final FetchWorkTracker fetchWorkTracker;
+    private final RestTemplate restTemplate;
 
     public ListClientsTask(CatalogService catalogService, TaskPoolConfiguration taskPoolConfiguration,
-                           Queue<MemberWithName> listMethodsQueue, NewMembersEventPublisher newMembersEventPublisher) {
+                           Queue<MemberWithName> listMethodsQueue, NewMembersEventPublisher newMembersEventPublisher,
+                           FetchWorkTracker fetchWorkTracker, RestTemplate restTemplate) {
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.catalogService = catalogService;
         this.listMethodsQueue = listMethodsQueue;
         this.newMembersEventPublisher = newMembersEventPublisher;
+        this.fetchWorkTracker = fetchWorkTracker;
+        this.restTemplate = restTemplate;
     }
 
     public void run() {
@@ -81,7 +87,7 @@ public class ListClientsTask implements Runnable {
         String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
         try {
             log.info("Getting client list from {}", listClientsUrl);
-            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl);
+            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate);
             HashMap<MemberId, Member> m = populateMapWithMembers(clientList);
             Set<Member> newMembers = catalogService.saveAllMembersAndSubsystems(m.values());
 
@@ -89,6 +95,7 @@ public class ListClientsTask implements Runnable {
             List<MemberWithName> subsystems = clientList.stream()
                     .filter(client -> ObjectType.SUBSYSTEM.equals(client.getId().getObjectType()))
                     .toList();
+            fetchWorkTracker.register(subsystems.size());
             listMethodsQueue.addAll(subsystems);
 
             log.info("All subsystems ({}) sent to ListMethodsTask", subsystems.size());

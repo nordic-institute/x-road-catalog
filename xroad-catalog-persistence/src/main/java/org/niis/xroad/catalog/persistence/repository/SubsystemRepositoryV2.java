@@ -32,7 +32,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,7 +82,4 @@ public interface SubsystemRepositoryV2 extends Repository<SubsystemV2, Long>, V2
                                      @Param("memberClass") String memberClass,
                                      @Param("memberCode") String memberCode,
                                      @Param("subsystemCode") String subsystemCode);
-
-    @Query("SELECT MAX(s.statusInfo.fetched) FROM SubsystemV2 s")
-    LocalDateTime findLatestFetched();
 }

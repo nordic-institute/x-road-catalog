@@ -30,58 +30,57 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
-import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
+import org.niis.xroad.catalog.persistence.entity.CollectionRun;
+import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
- * Happy-path shape test for {@link HeartbeatServiceV2#heartbeat()}; edge cases (null lastFetched
- * values, repository failures) live in {@link HeartbeatServiceV2UnitTest}.
+ * Happy-path shape test for {@link HeartbeatServiceV2#heartbeat()}; edge cases (no finished run,
+ * repository failures) live in {@link HeartbeatServiceV2UnitTest}.
  */
 @ExtendWith(MockitoExtension.class)
 class HeartbeatServiceV2Test {
 
     private static final LocalDateTime NOW = LocalDateTime.now();
 
-    @Mock private MemberRepositoryV2 memberRepository;
-    @Mock private SubsystemRepositoryV2 subsystemRepository;
-    @Mock private ServiceRepositoryV2 serviceRepository;
-    @Mock private DescriptorRepositoryV2 descriptorRepository;
+    @Mock private CollectionRunRepository collectionRunRepository;
     @Mock private ErrorLogRepositoryV2 errorLogRepository;
 
     private HeartbeatServiceV2 service;
 
     @BeforeEach
     void setUp() {
-        service = new HeartbeatServiceV2("X-Road Catalog Lister V2", "2.0.0", memberRepository, subsystemRepository,
-                serviceRepository, descriptorRepository, errorLogRepository, Clock.systemDefaultZone());
+        service = new HeartbeatServiceV2("X-Road Catalog Lister V2", "2.0.0", collectionRunRepository,
+                errorLogRepository, Clock.systemDefaultZone());
 
-        when(memberRepository.findLatestFetched()).thenReturn(NOW);
-        when(subsystemRepository.findLatestFetched()).thenReturn(NOW);
-        when(serviceRepository.findLatestFetched()).thenReturn(NOW);
-        when(descriptorRepository.findLatestWsdlFetched()).thenReturn(NOW);
-        when(descriptorRepository.findLatestOpenApiFetched()).thenReturn(NOW);
-        when(descriptorRepository.findLatestRestFetched()).thenReturn(NOW);
-        when(memberRepository.checkConnection()).thenReturn(1);
-        Page<ErrorLog> page = new PageImpl<>(List.of(), PageRequest.of(0, 1), 0L);
-        when(errorLogRepository.findAnyInRange(any(), any(), any())).thenReturn(page);
+        CollectionRun run = new CollectionRun();
+        run.setStarted(NOW);
+        run.setFinished(NOW);
+        run.setSuccess(Boolean.TRUE);
+        run.setMembersLastFetched(NOW);
+        run.setSubsystemsLastFetched(NOW);
+        run.setServicesLastFetched(NOW);
+        run.setWsdlsLastFetched(NOW);
+        run.setOpenapisLastFetched(NOW);
+        run.setRestsLastFetched(NOW);
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.of(run));
+        when(collectionRunRepository.findFirstByFinishedIsNullOrderByStartedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+        when(errorLogRepository.countInRange(any(), any())).thenReturn(0L);
     }
 
     @Test
@@ -97,12 +96,30 @@ class HeartbeatServiceV2Test {
                 "systemTime must be approximately now");
         assertNotNull(hb.getLastCollectionData(), "lastCollectionData must be populated");
         assertNotNull(hb.getLastCollectionData().getRestsLastFetched(),
-                "restsLastFetched must be wired to DescriptorRepositoryV2#findLatestRestFetched");
+                "restsLastFetched must be wired to the latest finished CollectionRun");
+        assertNull(hb.getCurrentRun(), "currentRun must be null when no cycle is in progress");
     }
 
     @Test
     void testLastRunErrorsCounted() {
         HeartbeatV2Dto hb = service.heartbeat();
         assertTrue(hb.getLastRunErrors() >= 0, "lastRunErrors must be non-negative");
+    }
+
+    @Test
+    void testCurrentRunPopulatedWhenCycleInProgress() {
+        CollectionRun inProgress = new CollectionRun();
+        inProgress.setStarted(NOW);
+        inProgress.setPendingItems(37);
+        inProgress.setProgressUpdated(NOW);
+        when(collectionRunRepository.findFirstByFinishedIsNullOrderByStartedDesc())
+                .thenReturn(Optional.of(inProgress));
+
+        HeartbeatV2Dto hb = service.heartbeat();
+
+        assertNotNull(hb.getCurrentRun(), "currentRun must be populated while a cycle is in progress");
+        assertEquals(NOW, hb.getCurrentRun().getStarted());
+        assertEquals(37, hb.getCurrentRun().getPendingItems());
+        assertEquals(NOW, hb.getCurrentRun().getProgressUpdated());
     }
 }

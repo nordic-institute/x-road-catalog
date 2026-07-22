@@ -46,8 +46,6 @@ import java.util.List;
 @Slf4j
 public final class MethodListUtil {
 
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
-
     private static SecurityServerMetadata securityServerMetadata;
 
     private MethodListUtil() {
@@ -57,7 +55,8 @@ public final class MethodListUtil {
     public static List<XRoadIdentifier> methodListFromResponse(XRoadIdentifier clientType,
                                                                String host,
                                                                ConsumerMember consumerMember,
-                                                               CatalogService catalogService) throws XRd4JException {
+                                                               CatalogService catalogService,
+                                                               RestTemplate restTemplate) throws XRd4JException {
         final String url = host + "/r1/"
                 + clientType.getXRoadInstance() + '/'
                 + clientType.getMemberClass() + '/'
@@ -66,7 +65,7 @@ public final class MethodListUtil {
 
         String xRoadClientHeader = createHeader(consumerMember);
         List<XRoadIdentifier> restServices = new ArrayList<>();
-        JSONObject json = MethodListUtil.getJSON(url, clientType, xRoadClientHeader, catalogService);
+        JSONObject json = MethodListUtil.getJSON(url, clientType, xRoadClientHeader, catalogService, restTemplate);
         if (json != null) {
             JSONArray serviceList = json.getJSONArray("service");
             for (int i = 0; i < serviceList.length(); i++) {
@@ -100,7 +99,8 @@ public final class MethodListUtil {
     public static String openApiFromResponse(XRoadIdentifier clientType,
                                              String host,
                                              ConsumerMember consumerMember,
-                                             CatalogService catalogService) {
+                                             CatalogService catalogService,
+                                             RestTemplate restTemplate) {
         final String url = host + "/r1/"
                 + clientType.getXRoadInstance() + '/'
                 + clientType.getMemberClass() + '/'
@@ -109,7 +109,7 @@ public final class MethodListUtil {
                 + clientType.getServiceCode();
 
         String xRoadClientHeader = createHeader(consumerMember);
-        JSONObject json = MethodListUtil.getJSON(url, clientType, xRoadClientHeader, catalogService);
+        JSONObject json = MethodListUtil.getJSON(url, clientType, xRoadClientHeader, catalogService, restTemplate);
 
         return (json != null) ? json.toString() : "";
     }
@@ -132,7 +132,7 @@ public final class MethodListUtil {
     }
 
     private static JSONObject getJSON(String url, XRoadIdentifier client, String xRoadClientHeader,
-                                      CatalogService catalogService) {
+                                      CatalogService catalogService, RestTemplate restTemplate) {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);
@@ -140,7 +140,7 @@ public final class MethodListUtil {
         headers.set("X-Road-Client", xRoadClientHeader);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, entity,
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,
                     String.class);
             return new JSONObject(response.getBody());
         } catch (Exception e) {

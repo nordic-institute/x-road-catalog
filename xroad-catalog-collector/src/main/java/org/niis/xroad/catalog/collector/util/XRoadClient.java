@@ -37,6 +37,7 @@ import org.niis.xrd4j.common.util.Constants;
 import org.niis.xroad.catalog.collector.exception.XRoadClientException;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,15 +52,19 @@ public class XRoadClient {
     final SOAPClient soapClient;
     final ConsumerMember consumerMember;
     final String securityServerURL;
+    final RestTemplate restTemplate;
 
-    public XRoadClient(final SOAPClient soapClient, final ConsumerMember consumerMember, final String securityServerURL) {
+    public XRoadClient(final SOAPClient soapClient, final ConsumerMember consumerMember, final String securityServerURL,
+                       final RestTemplate restTemplate) {
         this.soapClient = soapClient;
         this.consumerMember = consumerMember;
         this.securityServerURL = securityServerURL;
+        this.restTemplate = restTemplate;
     }
 
-    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL) throws SOAPException {
-        this(new SOAPClientImpl(), consumerMember, securityServerURL);
+    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL, final RestTemplate restTemplate)
+            throws SOAPException {
+        this(new SOAPClientImpl(), consumerMember, securityServerURL, restTemplate);
     }
 
     /**
@@ -126,7 +131,7 @@ public class XRoadClient {
                              ConsumerMember clientIdentifier,
                              CatalogService catalogService) {
 
-        return MethodListUtil.openApiFromResponse(service, host, clientIdentifier, catalogService);
+        return MethodListUtil.openApiFromResponse(service, host, clientIdentifier, catalogService, restTemplate);
     }
 
     private String queryId() {

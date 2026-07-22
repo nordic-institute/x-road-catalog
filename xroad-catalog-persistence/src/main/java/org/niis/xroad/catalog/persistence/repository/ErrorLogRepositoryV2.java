@@ -50,6 +50,9 @@ public interface ErrorLogRepositoryV2 extends CrudRepository<ErrorLog, Long>,
                                   @Param("endDate") LocalDateTime endDate,
                                   Pageable pageable);
 
+    @Query("SELECT COUNT(e) FROM ErrorLog e WHERE e.created >= :startDate AND e.created < :endDate")
+    long countInRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
     @Query("SELECT e FROM ErrorLog e WHERE e.created >= :startDate AND e.created < :endDate "
             + "AND e.memberClass = :memberClass")
     Page<ErrorLog> findAnyByMemberClass(@Param("startDate") LocalDateTime startDate,

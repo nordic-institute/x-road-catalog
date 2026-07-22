@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:4910/xroad_catalog
+    url: jdbc:postgresql://localhost:4910/xroad_catalog?socketTimeout=60
     username: xroad_catalog_collector
     password: xroad_catalog_collector
   liquibase:
