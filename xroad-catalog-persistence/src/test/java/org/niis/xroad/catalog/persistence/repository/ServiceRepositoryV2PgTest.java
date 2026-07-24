@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -209,23 +208,6 @@ class ServiceRepositoryV2PgTest extends PostgresTestBase {
         Optional<ServiceV2> svcB = serviceRepository.findActiveNullVersionByNaturalKey(
                 INSTANCE, GOV, "M1", SS1, "svcB");
         assertTrue(svcB.isPresent());
-    }
-
-    @Test
-    void existsActiveByNaturalKeyChecksServiceAndParentCascade() {
-        assertTrue(serviceRepository.existsActiveByNaturalKey(INSTANCE, GOV, "M1", SS1, "svcB"));
-        assertFalse(serviceRepository.existsActiveByNaturalKey(INSTANCE, GOV, "M1", SS1, "svcC"),
-                "svcC is itself removed");
-        assertFalse(serviceRepository.existsActiveByNaturalKey(INSTANCE, "COM", "M3", "SS3", "svcD"),
-                "svcD's parent member M3 is removed");
-    }
-
-    @Test
-    void existsActiveVersionChecksExactVersionIncludingNullSentinelWithoutHydratingEndpoints() {
-        assertTrue(serviceRepository.existsActiveVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcA", "1.0"));
-        assertFalse(serviceRepository.existsActiveVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcA", "9.9"));
-        assertTrue(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcB"));
-        assertFalse(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", SS1, "svcA"));
     }
 
     @Test

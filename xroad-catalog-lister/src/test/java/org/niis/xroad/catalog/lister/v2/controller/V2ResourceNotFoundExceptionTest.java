@@ -24,26 +24,36 @@
  */
 package org.niis.xroad.catalog.lister.v2.controller;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
 
-public final class V2ResourceNotFoundException extends RuntimeException {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private V2ResourceNotFoundException(String message) {
-        super(message);
+class V2ResourceNotFoundExceptionTest {
+
+    @Test
+    void ofRendersSingleIdPart() {
+        V2ResourceNotFoundException ex = V2ResourceNotFoundException.of("Member class", "GOV");
+        assertThat(ex.getMessage()).isEqualTo("Member class 'GOV' not found");
     }
 
-    /**
-     * Builds a {@code "<label> '<id>' not found"} message, where {@code id} is the non-null
-     * {@code idParts} joined with {@code "/"}. Null parts are skipped so an absent segment
-     * (e.g. no service version) does not render as a literal {@code "null"} in the message.
-     */
-    @SuppressWarnings("PMD.ShortMethodName")
-    public static V2ResourceNotFoundException of(String label, String... idParts) {
-        String id = Arrays.stream(idParts)
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining("/"));
-        return new V2ResourceNotFoundException(label + " '" + id + "' not found");
+    @Test
+    void ofJoinsMultipleIdPartsWithSlash() {
+        V2ResourceNotFoundException ex = V2ResourceNotFoundException.of(
+                "Service", "GOV", "1234", "SUBSYSTEM", "service");
+        assertThat(ex.getMessage()).isEqualTo("Service 'GOV/1234/SUBSYSTEM/service' not found");
+    }
+
+    @Test
+    void ofSkipsNullIdParts() {
+        V2ResourceNotFoundException ex = V2ResourceNotFoundException.of(
+                "Service version", "GOV", "1234", "SUBSYSTEM", "service", null);
+        assertThat(ex.getMessage()).isEqualTo("Service version 'GOV/1234/SUBSYSTEM/service' not found");
+    }
+
+    @Test
+    void ofSupportsMultiWordLabel() {
+        V2ResourceNotFoundException ex = V2ResourceNotFoundException.of(
+                "Descriptor for service version", "GOV", "1234", "SUBSYSTEM", "service", "v1");
+        assertThat(ex.getMessage()).isEqualTo("Descriptor for service version 'GOV/1234/SUBSYSTEM/service/v1' not found");
     }
 }

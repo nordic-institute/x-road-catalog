@@ -31,6 +31,7 @@ import org.niis.xroad.catalog.lister.v2.dto.ChangeLogMemberItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
+import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.persistence.repository.ReportsRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.projection.MemberChangeRow;
 import org.niis.xroad.catalog.persistence.repository.projection.ServiceChangeRow;
@@ -43,7 +44,6 @@ import org.springframework.stereotype.Service;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -91,10 +91,11 @@ public class ReportServiceV2 {
      * @param since inclusive start date
      * @param until exclusive end date
      * @return one row per day in the range, in chronological order
-     * @throws IllegalArgumentException if inputs fail {@link #validateReportRange}
+     * @throws IllegalArgumentException if {@code since} is after {@code until} or the range exceeds
+     *         {@value #MAX_REPORT_DAYS} days; see {@link DateTimeUtil#validateDateRange}
      */
     public List<ServiceStatisticsRowDto> serviceStatistics(LocalDate since, LocalDate until) {
-        validateReportRange(since, until);
+        DateTimeUtil.validateDateRange(since.atStartOfDay(), until.atStartOfDay(), MAX_REPORT_DAYS);
         List<Object[]> rows = reportsRepository.countServicesPerDay(since, until);
         Map<LocalDate, long[]> byDay = new TreeMap<>();
         for (LocalDate day = since; day.isBefore(until); day = day.plusDays(1)) {
@@ -139,12 +140,13 @@ public class ReportServiceV2 {
      * @param pageable Spring page request (offset + size; sort is ignored — always chronological)
      * @return page of {@link ChangeLogDayDto}; {@code totalElements} is the number of
      *         days with at least one change, not the number of calendar days in the range
-     * @throws IllegalArgumentException if inputs fail {@link #validateReportRange}
+     * @throws IllegalArgumentException if {@code since} is after {@code until} or the range exceeds
+     *         {@value #MAX_REPORT_DAYS} days; see {@link DateTimeUtil#validateDateRange}
      */
     public Page<ChangeLogDayDto> changeLog(LocalDate since, LocalDate until, Pageable pageable) {
-        validateReportRange(since, until);
         LocalDateTime start = since.atStartOfDay();
         LocalDateTime end = until.atStartOfDay();
+        DateTimeUtil.validateDateRange(start, end, MAX_REPORT_DAYS);
 
         List<Object[]> dayPage = reportsRepository.findChangeLogDayPage(
                 start, end, pageable.getPageSize(), pageable.getOffset());
@@ -261,24 +263,5 @@ public class ReportServiceV2 {
         private final List<ServiceChangeRow> servicesCreated = new ArrayList<>();
         private final List<ServiceChangeRow> servicesModified = new ArrayList<>();
         private final List<ServiceChangeRow> servicesRemoved = new ArrayList<>();
-    }
-
-    /**
-     * Validates a report-range request. With the date-only contract, the midnight invariant is
-     * carried by the {@link LocalDate} type — no runtime midnight check is needed.
-     *
-     * @param since inclusive start date
-     * @param until exclusive end date
-     * @throws IllegalArgumentException if {@code since >= until} or {@code until - since > MAX_REPORT_DAYS}
-     */
-    void validateReportRange(LocalDate since, LocalDate until) {
-        if (!since.isBefore(until)) {
-            throw new IllegalArgumentException("'since' must be strictly before 'until'");
-        }
-        long days = ChronoUnit.DAYS.between(since, until);
-        if (days > MAX_REPORT_DAYS) {
-            throw new IllegalArgumentException(
-                    "Date range exceeds maximum of " + MAX_REPORT_DAYS + " days (requested: " + days + ")");
-        }
     }
 }

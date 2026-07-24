@@ -133,9 +133,11 @@ class ReportServiceV2Test {
     }
 
     @Test
-    void testServiceStatisticsRejectsSinceEqualUntil() {
+    void testServiceStatisticsAcceptsSinceEqualUntil() {
+        // Canonical DateTimeUtil semantics: since == until is an empty window, not an error.
         LocalDate day = LocalDate.of(2016, 1, 1);
-        assertThrows(IllegalArgumentException.class, () -> reportService.serviceStatistics(day, day));
+        List<ServiceStatisticsRowDto> rows = reportService.serviceStatistics(day, day);
+        assertTrue(rows.isEmpty());
     }
 
     @Test
@@ -157,7 +159,7 @@ class ReportServiceV2Test {
     void testServiceStatisticsAcceptsExactlyMaxRange() {
         // 90 days — right at the cap. The service layer pre-fills every requested day regardless
         // of what the SQL query returns, so a mocked empty result still yields one zeroed DTO per
-        // day; the point of this test is that validateReportRange does not reject the boundary.
+        // day; the point of this test is that DateTimeUtil.validateDateRange does not reject the boundary.
         when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(List.of());
         LocalDate since = LocalDate.of(2025, 1, 1);
         LocalDate until = LocalDate.of(2025, 4, 1);
@@ -221,6 +223,14 @@ class ReportServiceV2Test {
         LocalDate until = LocalDate.of(2025, 6, 1);
         assertThrows(IllegalArgumentException.class,
                 () -> reportService.changeLog(since, until, PageRequest.of(0, 10)));
+    }
+
+    @Test
+    void testChangeLogAcceptsSinceEqualUntil() {
+        // Canonical DateTimeUtil semantics: since == until is an empty window, not an error.
+        LocalDate day = LocalDate.of(2016, 1, 1);
+        Page<ChangeLogDayDto> page = reportService.changeLog(day, day, PageRequest.of(0, 100));
+        assertTrue(page.isEmpty());
     }
 
     @Test

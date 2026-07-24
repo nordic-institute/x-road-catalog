@@ -140,8 +140,8 @@ class BrowseControllerTest {
 
     @Test
     void getMemberClassReturnsDto() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(
-                MemberClassDto.builder().code(PUB).description("Public").memberCount(5).build());
+        when(memberClassService.getByCode(PUB)).thenReturn(Optional.of(
+                MemberClassDto.builder().code(PUB).description("Public").memberCount(5).build()));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB"))
                 .andExpect(status().isOk())
@@ -154,7 +154,7 @@ class BrowseControllerTest {
 
     @Test
     void getMemberClassReturns404WhenAbsent() throws Exception {
-        when(memberClassService.getByCode(ABSENT_MEMBER_CLASS)).thenReturn(null);
+        when(memberClassService.getByCode(ABSENT_MEMBER_CLASS)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/NOPE"))
                 .andExpect(status().isNotFound())
@@ -165,7 +165,7 @@ class BrowseControllerTest {
 
     @Test
     void listMembersReturnsPagedResponseWithMetadata() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(MemberClassDto.builder().code(PUB).build());
+        when(memberClassService.getByCode(PUB)).thenReturn(Optional.of(MemberClassDto.builder().code(PUB).build()));
         MemberDto dto = memberDto(PUB, CODE_14151328, MEMBER_NAME);
         Page<MemberDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1);
         when(memberService.getForList(eq(PUB), eq(null), any(Pageable.class))).thenReturn(page);
@@ -184,7 +184,7 @@ class BrowseControllerTest {
 
     @Test
     void listMembersDisallowedSortByReturns400() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(MemberClassDto.builder().code(PUB).build());
+        when(memberClassService.getByCode(PUB)).thenReturn(Optional.of(MemberClassDto.builder().code(PUB).build()));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members?sortBy=bogus"))
                 .andExpect(status().isBadRequest())
@@ -194,7 +194,7 @@ class BrowseControllerTest {
 
     @Test
     void listMembersUnknownMemberClassReturns404() throws Exception {
-        when(memberClassService.getByCode(ABSENT_MEMBER_CLASS)).thenReturn(null);
+        when(memberClassService.getByCode(ABSENT_MEMBER_CLASS)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/NOPE/members"))
                 .andExpect(status().isNotFound())
@@ -205,7 +205,7 @@ class BrowseControllerTest {
 
     @Test
     void listMembersTranslatesCreatedSortToEmbeddedPath() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(MemberClassDto.builder().code(PUB).build());
+        when(memberClassService.getByCode(PUB)).thenReturn(Optional.of(MemberClassDto.builder().code(PUB).build()));
         when(memberService.getForList(eq(PUB), eq(null), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 
@@ -223,7 +223,7 @@ class BrowseControllerTest {
     @Test
     void getMemberReturnsDtoWithoutPaginationMetadata() throws Exception {
         MemberDto dto = memberDto(PUB, CODE_14151328, MEMBER_NAME);
-        when(memberService.getByNaturalKey(PUB, CODE_14151328)).thenReturn(dto);
+        when(memberService.getByNaturalKey(PUB, CODE_14151328)).thenReturn(Optional.of(dto));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328"))
                 .andExpect(status().isOk())
@@ -237,7 +237,7 @@ class BrowseControllerTest {
 
     @Test
     void getMemberRemovedReturns404() throws Exception {
-        when(memberService.getByNaturalKey(PUB, CODE_14151329)).thenReturn(null);
+        when(memberService.getByNaturalKey(PUB, CODE_14151329)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/" + CODE_14151329))
                 .andExpect(status().isNotFound())
@@ -248,7 +248,7 @@ class BrowseControllerTest {
 
     @Test
     void getMemberNonexistentReturns404() throws Exception {
-        when(memberService.getByNaturalKey(PUB, MISSING)).thenReturn(null);
+        when(memberService.getByNaturalKey(PUB, MISSING)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/missing"))
                 .andExpect(status().isNotFound());
@@ -257,7 +257,7 @@ class BrowseControllerTest {
     @Test
     void getMemberFullTrueReturnsNestedStructure() throws Exception {
         FullMemberDto fullDto = fullMemberDto();
-        when(memberService.getFullTree(PUB, CODE_14151328)).thenReturn(fullDto);
+        when(memberService.getFullTree(PUB, CODE_14151328)).thenReturn(Optional.of(fullDto));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328?full=true"))
                 .andExpect(status().isOk())
@@ -276,7 +276,7 @@ class BrowseControllerTest {
 
     @Test
     void getMemberFullTrueReturns404WhenAbsent() throws Exception {
-        when(memberService.getFullTree(PUB, MISSING)).thenReturn(null);
+        when(memberService.getFullTree(PUB, MISSING)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/missing?full=true"))
                 .andExpect(status().isNotFound())
@@ -325,7 +325,7 @@ class BrowseControllerTest {
     @Test
     void getSubsystemReturnsDto() throws Exception {
         SubsystemDto dto = subsystemDto(SUBSYSTEM_A1, null);
-        when(subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1)).thenReturn(dto);
+        when(subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1)).thenReturn(Optional.of(dto));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328/subsystems/subsystem_a1"))
                 .andExpect(status().isOk())
@@ -338,7 +338,7 @@ class BrowseControllerTest {
 
     @Test
     void getSubsystemRemovedReturns404() throws Exception {
-        when(subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A3_REMOVED)).thenReturn(null);
+        when(subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A3_REMOVED)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328/subsystems/subsystem_a3_removed"))
                 .andExpect(status().isNotFound())
@@ -349,7 +349,7 @@ class BrowseControllerTest {
 
     @Test
     void getSubsystemNonexistentReturns404() throws Exception {
-        when(subsystemService.getByNaturalKey(PUB, CODE_14151328, MISSING)).thenReturn(null);
+        when(subsystemService.getByNaturalKey(PUB, CODE_14151328, MISSING)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328/subsystems/missing"))
                 .andExpect(status().isNotFound());
@@ -404,7 +404,7 @@ class BrowseControllerTest {
         ServiceDto dto = serviceDto(SERVICE_MIXED, List.of(
                 versionSummary("v1", SOAP, null),
                 versionSummary("v2", REST, null)));
-        when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED)).thenReturn(dto);
+        when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED)).thenReturn(Optional.of(dto));
 
         mockMvc.perform(get(servicePath(SUBSYSTEM_A1, SERVICE_MIXED)))
                 .andExpect(status().isOk())
@@ -418,7 +418,7 @@ class BrowseControllerTest {
 
     @Test
     void getServiceAllVersionsRemovedReturns404ByDefault() throws Exception {
-        when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED)).thenReturn(null);
+        when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(servicePath(SUBSYSTEM_A1, SERVICE_MIXED)))
                 .andExpect(status().isNotFound())
@@ -427,7 +427,7 @@ class BrowseControllerTest {
 
     @Test
     void getServiceNonexistentReturns404() throws Exception {
-        when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, MISSING)).thenReturn(null);
+        when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, MISSING)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(servicePath(SUBSYSTEM_A1, MISSING)))
                 .andExpect(status().isNotFound());
@@ -464,7 +464,7 @@ class BrowseControllerTest {
     @Test
     void getServiceVersionReturnsFullShape() throws Exception {
         ServiceVersionDto v = versionFull("v1", SOAP, true, List.of());
-        when(serviceService.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v1")).thenReturn(v);
+        when(serviceService.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v1")).thenReturn(Optional.of(v));
 
         mockMvc.perform(get(versionsPath(SUBSYSTEM_A1, SERVICE_MIXED) + "/v1"))
                 .andExpect(status().isOk())
@@ -481,7 +481,7 @@ class BrowseControllerTest {
         // assert that contract.
         ServiceVersionDto nullVersion = versionFull(null, REST, false, List.of());
         when(serviceService.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "null"))
-                .thenReturn(nullVersion);
+                .thenReturn(Optional.of(nullVersion));
 
         mockMvc.perform(get(versionsPath(SUBSYSTEM_A1, SERVICE_MIXED) + "/null"))
                 .andExpect(status().isOk())
@@ -491,7 +491,7 @@ class BrowseControllerTest {
 
     @Test
     void getServiceVersionNonexistentReturns404() throws Exception {
-        when(serviceService.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v9")).thenReturn(null);
+        when(serviceService.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v9")).thenReturn(Optional.empty());
 
         mockMvc.perform(get(versionsPath(SUBSYSTEM_A1, SERVICE_MIXED) + "/v9"))
                 .andExpect(status().isNotFound())

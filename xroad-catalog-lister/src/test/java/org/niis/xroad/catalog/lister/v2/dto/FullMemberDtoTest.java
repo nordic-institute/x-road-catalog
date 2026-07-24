@@ -22,14 +22,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.converter;
+package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
-import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
-import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
 import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
 import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
@@ -42,47 +38,12 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MemberConverterTest {
-
-    private final MemberConverter converter = new MemberConverter();
+class FullMemberDtoTest {
 
     @Test
-    void testToDtoMapsRowFieldsDirectly() {
-        LocalDateTime now = LocalDateTime.now();
-        MemberListRow row = new FakeMemberListRow("PUB", "14151328", "Nahka-Albert", true, 2, 5,
-                now, now, now, null);
-
-        MemberDto dto = converter.toDto(row);
-
-        assertEquals("PUB", dto.getMemberClass());
-        assertEquals("14151328", dto.getMemberCode());
-        assertEquals("Nahka-Albert", dto.getName());
-        assertTrue(dto.isProvider());
-        assertEquals(2, dto.getSubsystemCount());
-        assertEquals(5, dto.getServiceCount());
-        assertEquals(now, dto.getCreated());
-        assertEquals(now, dto.getChanged());
-        assertEquals(now, dto.getFetched());
-        assertNull(dto.getRemoved());
-    }
-
-    @Test
-    void testToDtoNonProviderRemovedRow() {
-        LocalDateTime now = LocalDateTime.now();
-        MemberListRow row = new FakeMemberListRow("PUB", "14151329", "Plain member", false, 0, 0,
-                now, now, now, now);
-
-        MemberDto dto = converter.toDto(row);
-
-        assertFalse(dto.isProvider());
-        assertEquals(now, dto.getRemoved());
-    }
-
-    @Test
-    void testToFullDtoComputesCountsFromActiveHelpersAndUsesEntityIsProvider() {
+    void testFromComputesCountsFromActiveHelpersAndUsesEntityIsProvider() {
         MemberV2 member = buildMember(true);
         SubsystemV2 activeSub = buildSubsystem(member, "sub1", false);
         addActiveService(activeSub, "svcA");
@@ -92,7 +53,7 @@ class MemberConverterTest {
         member.getSubsystems().add(activeSub);
         member.getSubsystems().add(removedSub);
 
-        FullMemberDto dto = converter.toFullDto(member, List.of());
+        FullMemberDto dto = FullMemberDto.from(member, List.of());
 
         assertEquals("PUB", dto.getMemberClass());
         assertEquals("14151328", dto.getMemberCode());
@@ -102,23 +63,23 @@ class MemberConverterTest {
     }
 
     @Test
-    void testToFullDtoIsProviderFalseWhenColumnFalseDespiteActiveChildren() {
+    void testFromIsProviderFalseWhenColumnFalseDespiteActiveChildren() {
         MemberV2 member = buildMember(false);
         SubsystemV2 sub = buildSubsystem(member, "sub1", false);
         addActiveService(sub, "svcA");
         member.getSubsystems().add(sub);
 
-        FullMemberDto dto = converter.toFullDto(member, List.of());
+        FullMemberDto dto = FullMemberDto.from(member, List.of());
 
         assertFalse(dto.isProvider(), "isProvider is the denormalized column value, not recomputed here");
     }
 
     @Test
-    void testToFullDtoCarriesSuppliedSubsystems() {
+    void testFromCarriesSuppliedSubsystems() {
         MemberV2 member = buildMember(false);
         FullSubsystemDto sub = FullSubsystemDto.builder().subsystemCode("sub1").build();
 
-        FullMemberDto dto = converter.toFullDto(member, List.of(sub));
+        FullMemberDto dto = FullMemberDto.from(member, List.of(sub));
 
         assertEquals(1, dto.getSubsystems().size());
         assertEquals("sub1", dto.getSubsystems().get(0).getSubsystemCode());
@@ -155,62 +116,5 @@ class MemberConverterTest {
         ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now, null));
         Set<ServiceV2> services = subsystem.getServices();
         services.add(svc);
-    }
-
-    @SuppressWarnings("PMD.DataClass")
-    private record FakeMemberListRow(String memberClass, String memberCode, String name, boolean provider,
-                                      long subsystemCount, long serviceCount, LocalDateTime created,
-                                      LocalDateTime changed, LocalDateTime fetched,
-                                      LocalDateTime removed) implements MemberListRow {
-
-        @Override
-        public String getMemberClass() {
-            return memberClass;
-        }
-
-        @Override
-        public String getMemberCode() {
-            return memberCode;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public boolean isProvider() {
-            return provider;
-        }
-
-        @Override
-        public long getSubsystemCount() {
-            return subsystemCount;
-        }
-
-        @Override
-        public long getServiceCount() {
-            return serviceCount;
-        }
-
-        @Override
-        public LocalDateTime getCreated() {
-            return created;
-        }
-
-        @Override
-        public LocalDateTime getChanged() {
-            return changed;
-        }
-
-        @Override
-        public LocalDateTime getFetched() {
-            return fetched;
-        }
-
-        @Override
-        public LocalDateTime getRemoved() {
-            return removed;
-        }
     }
 }

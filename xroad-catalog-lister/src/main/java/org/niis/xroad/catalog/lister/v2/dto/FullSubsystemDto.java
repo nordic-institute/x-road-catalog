@@ -30,6 +30,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
+import org.niis.xroad.catalog.persistence.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,4 +63,30 @@ public class FullSubsystemDto {
     private final LocalDateTime removed;
 
     private final List<ServiceDto> services;
+
+    /**
+     * Builds the {@link FullSubsystemDto} used by the {@code ?full=true} browse endpoint. Flat
+     * subsystem fields mirror {@link SubsystemDto}; the caller provides the already-aggregated
+     * {@code services} list (produced via {@code ServiceDto.fromEntities} grouped by
+     * {@code serviceCode}).
+     */
+    public static FullSubsystemDto from(SubsystemV2 subsystem, SubsystemNameLookup nameLookup, List<ServiceDto> services) {
+        String memberClass = subsystem.getMember().getMemberClass();
+        String memberCode = subsystem.getMember().getMemberCode();
+        String subsystemCode = subsystem.getSubsystemCode();
+        StatusInfo info = subsystem.getStatusInfo();
+        return FullSubsystemDto.builder()
+                .memberClass(memberClass)
+                .memberCode(memberCode)
+                .memberName(subsystem.getMember().getName())
+                .subsystemCode(subsystemCode)
+                .subsystemName(nameLookup.resolve(memberClass, memberCode, subsystemCode))
+                .serviceCount(subsystem.getActiveServices().size())
+                .created(info.getCreated())
+                .changed(info.getChanged())
+                .fetched(info.getFetched())
+                .removed(info.getRemoved())
+                .services(services)
+                .build();
+    }
 }

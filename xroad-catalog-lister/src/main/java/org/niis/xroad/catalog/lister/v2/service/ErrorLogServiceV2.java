@@ -24,9 +24,9 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import org.niis.xroad.catalog.lister.v2.converter.ErrorLogConverter;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
+import org.niis.xroad.catalog.lister.v2.util.ServiceVersionUtil;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
 import org.springframework.data.domain.Page;
@@ -38,22 +38,31 @@ import java.time.LocalDateTime;
 @Service
 public class ErrorLogServiceV2 {
 
-    private final ErrorLogRepositoryV2 errorLogRepository;
-    private final ErrorLogConverter converter;
+    /**
+     * Hard cap on the range accepted by {@link #get}. Matches the reports endpoints' cap and the
+     * collector's default error-log retention (xroad-catalog.log-storage.error-log-length-in-days: 90).
+     */
+    private static final long MAX_ERROR_LOG_DAYS = 90;
 
-    public ErrorLogServiceV2(ErrorLogRepositoryV2 errorLogRepository, ErrorLogConverter converter) {
+    private final ErrorLogRepositoryV2 errorLogRepository;
+
+    public ErrorLogServiceV2(ErrorLogRepositoryV2 errorLogRepository) {
         this.errorLogRepository = errorLogRepository;
-        this.converter = converter;
     }
 
+    /**
+     * @throws IllegalArgumentException if {@code since} is after {@code until} or the range exceeds
+     *         {@value #MAX_ERROR_LOG_DAYS} days; see {@link DateTimeUtil#validateDateRange}
+     */
     public Page<ErrorLogDto> get(String memberClass, String memberCode, String subsystemCode,
                                  String serviceCode, String serviceVersion,
                                  LocalDateTime since, LocalDateTime until, Pageable pageable) {
+        DateTimeUtil.validateDateRange(since, until, MAX_ERROR_LOG_DAYS);
         // Contract: serviceVersion is the raw URL segment. Java null means "no version-level query".
         // "null" sentinel means "null-version filter". Any other string is an explicit version.
         Page<ErrorLog> rows;
         if (serviceCode != null && serviceVersion != null) {
-            String resolvedVersion = DateTimeUtil.resolveVersionSentinel(serviceVersion);
+            String resolvedVersion = ServiceVersionUtil.resolveVersionSentinel(serviceVersion);
             if (resolvedVersion == null) {
                 rows = errorLogRepository.findAnyByNullVersion(since, until,
                         memberClass, memberCode, subsystemCode, serviceCode, pageable);
@@ -75,6 +84,6 @@ public class ErrorLogServiceV2 {
         } else {
             rows = errorLogRepository.findAnyInRange(since, until, pageable);
         }
-        return rows.map(converter::toDto);
+        return rows.map(ErrorLogDto::from);
     }
 }

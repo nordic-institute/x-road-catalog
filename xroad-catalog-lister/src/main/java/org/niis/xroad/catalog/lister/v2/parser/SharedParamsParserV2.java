@@ -24,104 +24,88 @@
  */
 package org.niis.xroad.catalog.lister.v2.parser;
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
+import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.globalconf.model.SharedParametersV2;
+import org.niis.xroad.globalconf.model.SharedParametersV3;
+import org.niis.xroad.globalconf.model.SharedParametersV4;
+import org.niis.xroad.globalconf.model.SharedParametersV5;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.security.cert.CertificateEncodingException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Parses X-Road global configuration shared-params XML using the {@code configuration-client}
+ * library's JAXB model ({@link SharedParameters}) instead of hand-rolled DOM traversal.
+ *
+ * <p><b>Version handling:</b> the library has no version-detecting entry point, only one
+ * unmarshaller class per schema version ({@link SharedParametersV2}..{@link SharedParametersV5}),
+ * each performing mandatory, non-bypassable XSD validation on construction. This parser tries the
+ * newest version first (V5) and falls back to V4, V3, V2; that strict per-version validation is
+ * what guarantees a document written for a newer/unsupported schema throws instead of being
+ * silently mis-parsed. {@code SharedParamsCache} caches such a failure as empty for its TTL.
+ *
+ * <p><b>XXE hardening:</b> the library's own unmarshalling reads the file through a plain,
+ * unhardened {@code FileInputStream}/{@code StreamSource} with no DOCTYPE ban and no caller seam
+ * to inject an already-hardened {@code Source}. So every file is first run through the same
+ * disallow-doctype-decl gate the previous DOM-based parser used, purely to reject a DOCTYPE (the
+ * XXE vector) before the library ever sees the bytes; that pre-flight parse result is discarded.
+ */
 @Component
 public class SharedParamsParserV2 {
 
-    private static final String MEMBER = "member";
-    private static final String MEMBER_CLASS = "memberClass";
-    private static final String MEMBER_CODE = "memberCode";
-    private static final String SUBSYSTEM = "subsystem";
-    private static final String SUBSYSTEM_CODE = "subsystemCode";
-    private static final String SUBSYSTEM_NAME = "subsystemName";
-    private static final String GLOBAL_SETTINGS = "globalSettings";
-    private static final String CODE = "code";
-    private static final String DESCRIPTION = "description";
-    private static final String SECURITY_SERVER = "securityServer";
-    private static final String OWNER = "owner";
-    private static final String SERVER_CODE = "serverCode";
-    private static final String ADDRESS = "address";
-    private static final String CLIENT = "client";
-    private static final String ID = "id";
-    private static final String NAME = "name";
+    @FunctionalInterface
+    private interface VersionUnmarshaller {
+        SharedParameters unmarshal(Path sharedParamsFile) throws CertificateEncodingException, IOException;
+    }
+
+    // Newest supported schema version first; see the version-handling section of the class javadoc.
+    private static final List<VersionUnmarshaller> VERSION_UNMARSHALLERS = List.of(
+            file -> new SharedParametersV5(file, OffsetDateTime.MAX).getSharedParameters(),
+            file -> new SharedParametersV4(file, OffsetDateTime.MAX).getSharedParameters(),
+            file -> new SharedParametersV3(file, OffsetDateTime.MAX).getSharedParameters(),
+            file -> new SharedParametersV2(file, OffsetDateTime.MAX).getSharedParameters());
 
     public List<MemberClassInfo> parseMemberClasses(String sharedParamsFile)
             throws ParserConfigurationException, IOException, SAXException {
-        Document document = parseDocument(sharedParamsFile);
-        NodeList globalSettings = document.getElementsByTagName(GLOBAL_SETTINGS);
-        List<MemberClassInfo> classes = new ArrayList<>();
-        if (globalSettings.getLength() == 0) {
-            return classes;
+        SharedParameters.GlobalSettings settings = unmarshal(sharedParamsFile).getGlobalSettings();
+        if (settings == null || settings.getMemberClasses() == null) {
+            return List.of();
         }
-        Element gs = (Element) globalSettings.item(0);
-        NodeList memberClasses = gs.getElementsByTagName(MEMBER_CLASS);
-        for (int i = 0; i < memberClasses.getLength(); i++) {
-            Element mc = (Element) memberClasses.item(i);
-            // Only consider direct children of globalSettings, not nested ones
-            if (!gs.isSameNode(mc.getParentNode())) {
-                continue;
-            }
-            String code = text(mc, CODE);
-            String description = text(mc, DESCRIPTION);
-            if (code != null) {
-                classes.add(MemberClassInfo.builder().code(code).description(description).build());
-            }
+        List<MemberClassInfo> classes = new ArrayList<>();
+        for (SharedParameters.MemberClass memberClass : settings.getMemberClasses()) {
+            classes.add(MemberClassInfo.builder().code(memberClass.getCode()).description(memberClass.getDescription()).build());
         }
         return classes;
     }
 
     public List<SubsystemNameInfo> parseSubsystemNames(String sharedParamsFile)
             throws ParserConfigurationException, IOException, SAXException {
-        Document document = parseDocument(sharedParamsFile);
-        NodeList members = document.getElementsByTagName(MEMBER);
         List<SubsystemNameInfo> names = new ArrayList<>();
-        for (int i = 0; i < members.getLength(); i++) {
-            Node memberNode = members.item(i);
-            if (memberNode.getNodeType() != Node.ELEMENT_NODE) {
-                continue;
-            }
-            Element memberElement = (Element) memberNode;
-            // Skip memberClass elements that happen to be under other tags — only top-level <member>
-            Node parent = memberElement.getParentNode();
-            boolean parentIsConf = parent != null && "conf".equals(localName(parent));
-            boolean parentDetached = parent == null || parent.getParentNode() == null;
-            if (!parentIsConf && !parentDetached) {
-                continue;
-            }
-            Element memberClassElement = firstChildElement(memberElement, MEMBER_CLASS);
-            if (memberClassElement == null) {
-                continue;
-            }
-            String memberClass = text(memberClassElement, CODE);
-            String memberCode = text(memberElement, MEMBER_CODE);
-            NodeList subsystems = memberElement.getElementsByTagName(SUBSYSTEM);
-            for (int j = 0; j < subsystems.getLength(); j++) {
-                Element sub = (Element) subsystems.item(j);
-                String subsystemCode = text(sub, SUBSYSTEM_CODE);
-                String subsystemName = text(sub, SUBSYSTEM_NAME);
+        for (SharedParameters.Member member : nullToEmpty(unmarshal(sharedParamsFile).getMembers())) {
+            String memberClass = member.getMemberClass() != null ? member.getMemberClass().getCode() : null;
+            for (SharedParameters.Subsystem subsystem : nullToEmpty(member.getSubsystems())) {
+                String subsystemName = subsystem.getSubsystemName();
                 if (subsystemName != null && !subsystemName.isBlank()) {
                     names.add(SubsystemNameInfo.builder()
                             .memberClass(memberClass)
-                            .memberCode(memberCode)
-                            .subsystemCode(subsystemCode)
+                            .memberCode(member.getMemberCode())
+                            .subsystemCode(subsystem.getSubsystemCode())
                             .subsystemName(subsystemName)
                             .build());
                 }
@@ -131,127 +115,100 @@ public class SharedParamsParserV2 {
     }
 
     /**
-     * Parses security server information from X-Road global configuration shared-params.xml,
-     * resolving each security server's owner and clients against the member/subsystem {@code id}
-     * attributes referenced by the security server element.
+     * Parses security server information from X-Road global configuration shared-params.xml. The
+     * owner and each client of a security server are already-resolved {@link ClientId}s in the
+     * library model, so — unlike the previous DOM-based implementation — no id-attribute
+     * cross-referencing is needed for them; only the owner's display name requires a lookup
+     * against the member list.
      *
      * @return list of {@link SecurityServerInfoV2} objects, one per {@code securityServer} element
      * @throws ParserConfigurationException when there are issues with parsing the file
-     * @throws IOException                  when unable to read input file
+     * @throws IOException                  when unable to read input file, or when the file does
+     *                                       not validate against any supported schema version
      * @throws SAXException                 when there are issues with parsing of XML
      */
     public List<SecurityServerInfoV2> parseSecurityServers(String sharedParamsFile)
             throws ParserConfigurationException, IOException, SAXException {
-        Document document = parseDocument(sharedParamsFile);
-        NodeList securityServers = document.getElementsByTagName(SECURITY_SERVER);
-        NodeList members = document.getElementsByTagName(MEMBER);
-        List<SecurityServerInfoV2> result = new ArrayList<>();
-        for (int i = 0; i < securityServers.getLength(); i++) {
-            Node node = securityServers.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                result.add(toSecurityServerInfo((Element) node, members));
+        SharedParameters params = unmarshal(sharedParamsFile);
+        Map<String, SharedParameters.Member> membersByKey = new HashMap<>();
+        for (SharedParameters.Member member : nullToEmpty(params.getMembers())) {
+            if (member.getId() != null) {
+                membersByKey.put(keyOf(member.getId()), member);
             }
+        }
+        List<SecurityServerInfoV2> result = new ArrayList<>();
+        for (SharedParameters.SecurityServer server : nullToEmpty(params.getSecurityServers())) {
+            result.add(toSecurityServerInfo(server, membersByKey));
         }
         return result;
     }
 
-    private SecurityServerInfoV2 toSecurityServerInfo(Element securityServerElement, NodeList members) {
-        String ownerId = text(securityServerElement, OWNER);
-        String serverCode = text(securityServerElement, SERVER_CODE);
-        String address = text(securityServerElement, ADDRESS);
-        List<String> clientIdList = clientIdList(securityServerElement.getElementsByTagName(CLIENT));
-        SecurityServerInfoV2.MemberRef owner = ownerRef(members, ownerId);
-        List<SecurityServerInfoV2.ClientRef> clients = clientRefs(members, clientIdList);
-        return new SecurityServerInfoV2(serverCode, address, owner, clients);
+    private SecurityServerInfoV2 toSecurityServerInfo(SharedParameters.SecurityServer server,
+            Map<String, SharedParameters.Member> membersByKey) {
+        SecurityServerInfoV2.MemberRef owner = ownerRef(server.getOwner(), membersByKey);
+        List<SecurityServerInfoV2.ClientRef> clients = new ArrayList<>();
+        for (ClientId clientId : nullToEmpty(server.getClients())) {
+            clients.add(new SecurityServerInfoV2.ClientRef(clientId.getMemberClass(), clientId.getMemberCode(),
+                    clientId.getSubsystemCode()));
+        }
+        return new SecurityServerInfoV2(server.getServerCode(), server.getAddress(), owner, clients);
     }
 
-    private List<String> clientIdList(NodeList clientIds) {
-        List<String> ids = new ArrayList<>();
-        for (int i = 0; i < clientIds.getLength(); i++) {
-            ids.add(clientIds.item(i).getFirstChild().getNodeValue());
+    private SecurityServerInfoV2.MemberRef ownerRef(ClientId owner, Map<String, SharedParameters.Member> membersByKey) {
+        if (owner == null) {
+            return new SecurityServerInfoV2.MemberRef(null, null, null);
         }
-        return ids;
+        SharedParameters.Member member = membersByKey.get(keyOf(owner));
+        return new SecurityServerInfoV2.MemberRef(owner.getMemberClass(), owner.getMemberCode(),
+                member != null ? member.getName() : null);
     }
 
-    private SecurityServerInfoV2.MemberRef ownerRef(NodeList members, String ownerId) {
-        for (int i = 0; i < members.getLength(); i++) {
-            Node node = members.item(i);
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                Element memberElement = (Element) node;
-                if (memberElement.getAttribute(ID).equals(ownerId)) {
-                    return new SecurityServerInfoV2.MemberRef(memberClassOf(memberElement),
-                            text(memberElement, MEMBER_CODE), text(memberElement, NAME));
-                }
-            }
-        }
-        return new SecurityServerInfoV2.MemberRef(null, null, null);
+    private static String keyOf(ClientId id) {
+        return id.getMemberClass() + "|" + id.getMemberCode();
+    }
+
+    private static <T> List<T> nullToEmpty(List<T> list) {
+        return list != null ? list : List.of();
     }
 
     /**
-     * Resolves each client id against the member/subsystem elements. For every client id the whole
-     * member list is scanned from the start: a member-level match short-circuits the scan for that
-     * id, but a subsystem-level match only breaks out of the inner subsystem loop — the outer scan
-     * continues over the remaining members for the same id. This mirrors the original V1 traversal
-     * exactly; it is a no-op in practice since shared-params {@code id} attributes are unique.
+     * Unmarshals a shared-params XML file into the library's version-agnostic
+     * {@link SharedParameters} model. The file is first run through {@link #rejectUnsafeXml} as
+     * an XXE gate, then handed to each of {@link #VERSION_UNMARSHALLERS} newest-first until one
+     * accepts it; see the class javadoc for why both steps exist.
+     *
+     * <p>Each public parse method calls this independently, so it repeats its own newest-first
+     * fallback rather than sharing a cached result; a cold cache refresh can therefore attempt
+     * several schema validations. Acceptable because {@code SharedParamsCache} TTL-caches and
+     * single-flights the refresh off the request path.
      */
-    private List<SecurityServerInfoV2.ClientRef> clientRefs(NodeList members, List<String> clientIdList) {
-        List<SecurityServerInfoV2.ClientRef> clients = new ArrayList<>();
-        for (String clientId : clientIdList) {
-            for (int j = 0; j < members.getLength(); j++) {
-                Node node = members.item(j);
-                if (node.getNodeType() != Node.ELEMENT_NODE) {
-                    continue;
-                }
-                Element memberElement = (Element) node;
-                if (memberElement.getAttribute(ID).equals(clientId)) {
-                    clients.add(new SecurityServerInfoV2.ClientRef(memberClassOf(memberElement),
-                            text(memberElement, MEMBER_CODE), null));
-                    break;
-                }
-                NodeList subsystems = memberElement.getElementsByTagName(SUBSYSTEM);
-                for (int k = 0; k < subsystems.getLength(); k++) {
-                    Element subsystemElement = (Element) subsystems.item(k);
-                    if (subsystemElement.getAttribute(ID).equals(clientId)) {
-                        clients.add(new SecurityServerInfoV2.ClientRef(memberClassOf(memberElement),
-                                text(memberElement, MEMBER_CODE), text(subsystemElement, SUBSYSTEM_CODE)));
-                        break;
-                    }
-                }
+    private SharedParameters unmarshal(String sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
+        Path path = Path.of(sharedParamsFile);
+        rejectUnsafeXml(path);
+
+        Exception lastFailure = null;
+        for (VersionUnmarshaller attempt : VERSION_UNMARSHALLERS) {
+            try {
+                return attempt.unmarshal(path);
+            } catch (CertificateEncodingException | IOException | RuntimeException e) {
+                lastFailure = e;
             }
         }
-        return clients;
+        throw new IOException("Shared-params file " + sharedParamsFile + " did not validate against any "
+                + "supported shared-parameters schema version (V2-V5)", lastFailure);
     }
 
-    private String memberClassOf(Element memberElement) {
-        Element memberClassElement = firstChildElement(memberElement, MEMBER_CLASS);
-        return memberClassElement != null ? text(memberClassElement, CODE) : null;
-    }
-
-    private Document parseDocument(String file) throws ParserConfigurationException, IOException, SAXException {
+    /**
+     * Runs the raw file through the same hardened, DOCTYPE-rejecting parse the previous DOM-based
+     * implementation used, purely as a security gate — the resulting {@link org.w3c.dom.Document}
+     * is discarded. See the XXE-hardening section of the class javadoc for why this exists
+     * alongside the library's own, separately-invoked unmarshalling.
+     */
+    private void rejectUnsafeXml(Path sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.parse(new File(file));
-    }
-
-    private String text(Element parent, String tag) {
-        NodeList list = parent.getElementsByTagName(tag);
-        if (list.getLength() == 0) {
-            return null;
-        }
-        Node child = list.item(0);
-        return child != null ? child.getTextContent() : null;
-    }
-
-    private Element firstChildElement(Element parent, String tag) {
-        NodeList list = parent.getElementsByTagName(tag);
-        return list.getLength() == 0 ? null : (Element) list.item(0);
-    }
-
-    private String localName(Node node) {
-        String name = node.getLocalName();
-        return name != null ? name : node.getNodeName().replaceAll(".*:", "");
+        factory.newDocumentBuilder().parse(sharedParamsFile.toFile());
     }
 }

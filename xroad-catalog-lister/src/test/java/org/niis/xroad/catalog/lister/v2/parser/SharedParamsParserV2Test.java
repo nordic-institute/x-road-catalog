@@ -28,11 +28,14 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
+import org.xml.sax.SAXParseException;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SharedParamsParserV2Test {
@@ -41,7 +44,7 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseMemberClasses() throws Exception {
-        // shared-params-2.xml contains <globalSettings> with ORG, COM, GOV member classes
+        // shared-params-2.xml (schema V5) contains <globalSettings> with ORG, COM, GOV member classes
         List<MemberClassInfo> classes = parser.parseMemberClasses("src/test/resources/shared-params-2.xml");
         assertEquals(3, classes.size());
         assertTrue(classes.stream().anyMatch(c -> "ORG".equals(c.getCode()) && c.getDescription().contains("Non-profit")));
@@ -51,24 +54,60 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseSubsystemNames() throws Exception {
-        // After step 1, shared-params-2.xml has at least one <subsystemName> element
+        // shared-params-2.xml only validates as schema V5, the only version whose XSD allows
+        // <subsystemName>; it has at least one such element
         List<SubsystemNameInfo> names = parser.parseSubsystemNames("src/test/resources/shared-params-2.xml");
-        // Either empty (v4-style xml without <subsystemName>) or one-or-more entries
         names.forEach(n -> {
             assertTrue(n.getMemberClass() != null && !n.getMemberClass().isBlank());
             assertTrue(n.getMemberCode() != null && !n.getMemberCode().isBlank());
             assertTrue(n.getSubsystemCode() != null && !n.getSubsystemCode().isBlank());
             assertTrue(n.getSubsystemName() != null && !n.getSubsystemName().isBlank());
         });
-        // The step-1 extension should ensure at least one entry here
         assertTrue(!names.isEmpty(), "test fixture should include at least one subsystemName");
     }
 
     @Test
-    void testParseSubsystemNamesEmptyWhenV4Schema() throws Exception {
-        // shared-params.xml (v4) has no <subsystemName> elements
+    void testParseSubsystemNamesEmptyWhenV2Schema() throws Exception {
+        // shared-params.xml only validates as schema V2, whose XSD has no <subsystemName> element
         List<SubsystemNameInfo> names = parser.parseSubsystemNames("src/test/resources/shared-params.xml");
         assertEquals(0, names.size());
+    }
+
+    @Test
+    void testParseSubsystemNamesFromSecondV5Fixture() throws Exception {
+        // shared-params-dev-cs.xml also only validates as schema V5; confirms the newest-first
+        // fallback isn't accidentally tied to a single fixture
+        List<SubsystemNameInfo> names = parser.parseSubsystemNames("src/test/resources/shared-params-dev-cs.xml");
+        assertEquals(1, names.size());
+        assertEquals("PUB", names.get(0).getMemberClass());
+        assertEquals("14151328", names.get(0).getMemberCode());
+        assertEquals("subsystem_a1", names.get(0).getSubsystemCode());
+        assertEquals("Subsystem A1", names.get(0).getSubsystemName());
+    }
+
+    @Test
+    void testParseThrowsWhenDocumentMatchesNoSupportedSchemaVersion() {
+        // shared-params-unsupported.xml is well-formed XML but doesn't conform to any of the
+        // V2-V5 shared-parameters schemas; the parser must fail loudly rather than silently
+        // returning empty/partial data, so SharedParamsCache can tell "not parseable" apart from
+        // "genuinely empty". Assert the specific exception thrown once the newest-first V5->V2
+        // fallback is exhausted, not just "some exception", so an incidental failure (e.g. a
+        // missing fixture file) can't slip past this test.
+        IOException exception = assertThrows(IOException.class,
+                () -> parser.parseMemberClasses("src/test/resources/shared-params-unsupported.xml"));
+        assertTrue(exception.getMessage().contains("did not validate against any supported shared-parameters schema version"));
+    }
+
+    @Test
+    void testParseRejectsDoctypeBearingDocumentBeforeReachingTheLibraryUnmarshaller() {
+        // shared-params-xxe.xml declares a DOCTYPE with an external entity; the pre-flight,
+        // disallow-doctype-decl gate must reject it before configuration-client's own (unhardened)
+        // unmarshalling path ever sees the bytes. Assert the specific SAXParseException/message the
+        // gate produces, proving the rejection came from the gate and not, say, one of the library's
+        // own schema unmarshallers rejecting the DOCTYPE for an unrelated reason.
+        SAXParseException exception = assertThrows(SAXParseException.class,
+                () -> parser.parseMemberClasses("src/test/resources/shared-params-xxe.xml"));
+        assertTrue(exception.getMessage().contains("DOCTYPE is disallowed"));
     }
 
     @Test

@@ -22,24 +22,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.converter;
+package org.niis.xroad.catalog.lister.v2.util;
 
-import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
-import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import org.springframework.stereotype.Component;
+public final class ServiceVersionUtil {
 
-@Component
-public class ErrorLogConverter {
-    public ErrorLogDto toDto(ErrorLog e) {
-        return ErrorLogDto.builder()
-                .message(e.getMessage())
-                .code(e.getCode())
-                .memberClass(e.getMemberClass())
-                .memberCode(e.getMemberCode())
-                .subsystemCode(e.getSubsystemCode())
-                .serviceCode(e.getServiceCode())
-                .serviceVersion(e.getServiceVersion())
-                .created(e.getCreated())
-                .build();
+    private static final String VERSION_SENTINEL = "null";
+
+    private ServiceVersionUtil() {
+    }
+
+    /**
+     * Resolves the URL-segment version sentinel. The literal {@code "null"} (case-sensitive) in a
+     * service-version path segment maps to a Java {@code null}, which the persistence layer treats
+     * as "service has no version label". Any other string is passed through unchanged. A real
+     * version literally named {@code "null"} is therefore unaddressable; this is documented in the
+     * V2 OpenAPI spec.
+     */
+    public static String resolveVersionSentinel(String serviceVersion) {
+        if (VERSION_SENTINEL.equals(serviceVersion)) {
+            return null;
+        }
+        return serviceVersion;
     }
 }

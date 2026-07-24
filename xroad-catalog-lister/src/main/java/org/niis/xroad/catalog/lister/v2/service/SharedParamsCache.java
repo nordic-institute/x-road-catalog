@@ -113,6 +113,13 @@ public class SharedParamsCache {
         return existing;
     }
 
+    /**
+     * Single-flight / stampede-protection guard: {@code synchronized} plus the double-checked
+     * expiry test below ensure that when many concurrent callers hit an expired TTL at once, only
+     * the first one through the lock actually re-parses the file — every other thread that was
+     * waiting on the lock finds the snapshot already fresh and returns it instead of triggering a
+     * redundant, concurrent re-parse of its own.
+     */
     private synchronized Snapshot refresh() {
         Instant now = clock.instant();
         Snapshot existing = snapshot;

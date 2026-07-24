@@ -22,10 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.converter;
+package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 import java.time.LocalDateTime;
@@ -33,12 +32,10 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class ErrorLogConverterTest {
-
-    private final ErrorLogConverter converter = new ErrorLogConverter();
+class ErrorLogDtoTest {
 
     @Test
-    void testConvertFullyPopulatedErrorLog() {
+    void testFromFullyPopulatedErrorLog() {
         LocalDateTime created = LocalDateTime.parse("2020-05-04T11:41:24");
         ErrorLog entity = ErrorLog.builder()
                 .id(1L)
@@ -53,7 +50,7 @@ public class ErrorLogConverterTest {
                 .serviceVersion("v1")
                 .build();
 
-        ErrorLogDto dto = converter.toDto(entity);
+        ErrorLogDto dto = ErrorLogDto.from(entity);
 
         assertEquals("Fetch of WSDL failed", dto.getMessage());
         assertEquals("500", dto.getCode());
@@ -66,7 +63,7 @@ public class ErrorLogConverterTest {
     }
 
     @Test
-    void testConvertPreservesNullServiceVersion() {
+    void testFromPreservesNullServiceVersion() {
         ErrorLog entity = ErrorLog.builder()
                 .id(2L)
                 .message("Fetch of REST services failed")
@@ -79,7 +76,7 @@ public class ErrorLogConverterTest {
                 .serviceVersion(null)
                 .build();
 
-        ErrorLogDto dto = converter.toDto(entity);
+        ErrorLogDto dto = ErrorLogDto.from(entity);
 
         assertNull(dto.getServiceVersion());
         assertEquals("restService", dto.getServiceCode());

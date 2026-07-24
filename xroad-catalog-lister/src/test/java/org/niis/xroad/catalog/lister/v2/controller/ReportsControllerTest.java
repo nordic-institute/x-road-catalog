@@ -232,30 +232,36 @@ class ReportsControllerTest {
 
     @Test
     void serviceStatisticsRejectsSinceAfterUntil() throws Exception {
+        // Unified DateTimeUtil wording (Task B4): the service layer now calls
+        // DateTimeUtil.validateDateRange directly, so a since-after-until rejection carries the
+        // "must not be after" wording instead of ReportServiceV2's former "strictly before" text.
         when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
-                .thenThrow(new IllegalArgumentException("'since' must be strictly before 'until'"));
+                .thenThrow(new IllegalArgumentException("'since' must not be after 'until'"));
 
         mockMvc.perform(get(STATS_PATH).param(SINCE, "2026-04-05").param(UNTIL, SINCE_2026_04_01))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(JSON_ERROR).value(BAD_REQUEST_ERROR))
-                .andExpect(jsonPath(JSON_MESSAGE).value(Matchers.containsString("strictly before")));
+                .andExpect(jsonPath(JSON_MESSAGE).value(Matchers.containsString("must not be after")));
     }
 
     @Test
-    void serviceStatisticsRejectsSinceEqualsUntil() throws Exception {
-        when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
-                .thenThrow(new IllegalArgumentException("'since' must be strictly before 'until'"));
+    void serviceStatisticsAcceptsSinceEqualsUntil() throws Exception {
+        // Behavioural change (Task B4): since == until is now an accepted empty window, not a 400 —
+        // matches DateTimeUtil.validateDateRange's canonical semantics.
+        when(reportService.serviceStatistics(eq(SINCE_DATE), eq(SINCE_DATE)))
+                .thenReturn(List.of());
 
         mockMvc.perform(get(STATS_PATH).param(SINCE, SINCE_2026_04_01).param(UNTIL, SINCE_2026_04_01))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath(JSON_MESSAGE).value(Matchers.containsString("strictly before")));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
     }
 
     @Test
     void serviceStatisticsRejectsRangeAbove90Days() throws Exception {
+        // Unified DateTimeUtil wording (Task B4).
         when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
                 .thenThrow(new IllegalArgumentException(
-                        "Date range exceeds maximum of 90 days (requested: 91)"));
+                        "Date range must not exceed 90 days (was 91 days)"));
 
         mockMvc.perform(get(STATS_PATH).param(SINCE, "2026-01-01").param(UNTIL, "2026-04-02"))
                 .andExpect(status().isBadRequest())
@@ -497,9 +503,10 @@ class ReportsControllerTest {
 
     @Test
     void changesRejectsRangeAbove90Days() throws Exception {
+        // Unified DateTimeUtil wording (Task B4).
         when(reportService.changeLog(any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
                 .thenThrow(new IllegalArgumentException(
-                        "Date range exceeds maximum of 90 days (requested: 91)"));
+                        "Date range must not exceed 90 days (was 91 days)"));
 
         mockMvc.perform(get(CHANGES_PATH).param(SINCE, "2026-01-01").param(UNTIL, "2026-04-02"))
                 .andExpect(status().isBadRequest())

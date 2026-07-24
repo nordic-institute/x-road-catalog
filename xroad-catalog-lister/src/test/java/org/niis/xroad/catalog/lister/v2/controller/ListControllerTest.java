@@ -237,8 +237,12 @@ class ListControllerTest {
 
     @Test
     void listMembersRejectsInvalidProvider() throws Exception {
-        mockMvc.perform(get(LIST_MEMBERS_PATH).param("provider", "yes"))
+        // provider is now bound directly as Boolean (Task B4); an unparsable value falls through to
+        // the generic type-mismatch 400 from V2ExceptionHandler instead of a custom tristate message.
+        // "yes"/"no"/"on"/"off"/"1"/"0" are valid Spring boolean aliases, so use a value outside that set.
+        mockMvc.perform(get(LIST_MEMBERS_PATH).param("provider", "banana"))
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath(JSON_ERROR).value(BAD_REQUEST_ERROR))
                 .andExpect(jsonPath(JSON_MESSAGE).value(
                         Matchers.containsString("provider")));
     }

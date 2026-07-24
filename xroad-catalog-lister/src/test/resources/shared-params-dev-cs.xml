@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <instanceIdentifier>dev-cs</instanceIdentifier>
+    <source>
+        <address>https://example.org/dev-cs/globalconf</address>
+    </source>
     <member id="id1">
         <memberClass>
             <code>PUB</code>
@@ -21,5 +24,6 @@
             <code>PUB</code>
             <description>Public sector</description>
         </memberClass>
+        <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
     </globalSettings>
 </ns3:conf>

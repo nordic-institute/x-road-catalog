@@ -31,8 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.controller.MultipleVersionsException;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceAggregator;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceVersionConverter;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
@@ -55,11 +53,9 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -92,9 +88,8 @@ class ServiceServiceV2Test {
 
     @BeforeEach
     void setUp() {
-        ServiceAggregator aggregator = new ServiceAggregator(new ServiceVersionConverter());
-        service = new ServiceServiceV2(serviceRepository, subsystemRepository, descriptorRepository, aggregator,
-                new ServiceVersionConverter(), instanceContext, new ObjectMapper());
+        service = new ServiceServiceV2(serviceRepository, subsystemRepository, descriptorRepository,
+                instanceContext, new ObjectMapper());
         org.mockito.Mockito.lenient().when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
     }
 
@@ -105,36 +100,20 @@ class ServiceServiceV2Test {
                         versionRow(1L, MIXED_SVC, "v1", "SOAP"),
                         versionRow(1L, MIXED_SVC, "v2", REST)));
 
-        ServiceDto dto = service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC);
+        Optional<ServiceDto> result = service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC);
 
-        assertNotNull(dto);
+        assertTrue(result.isPresent());
+        ServiceDto dto = result.get();
         assertEquals(2, dto.getVersionCount());
         assertTrue(dto.getServiceTypes().containsAll(List.of("SOAP", REST)));
     }
 
     @Test
-    void testGetByNaturalKeyReturnsNullForMissingService() {
+    void testGetByNaturalKeyReturnsEmptyOptionalForMissingService() {
         when(serviceRepository.findActiveVersionRowsForService(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "doesNotExist"))
                 .thenReturn(List.of());
 
-        assertNull(service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, "doesNotExist"));
-    }
-
-    @Test
-    void testExistsActiveDelegatesToRepository() {
-        when(serviceRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC))
-                .thenReturn(true);
-
-        assertTrue(service.existsActive(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC));
-    }
-
-    @Test
-    void existsActiveVersionResolvesNullSentinelToNullVersionQuery() {
-        when(instanceContext.getCurrentInstance()).thenReturn("TEST");
-        when(serviceRepository.existsActiveNullVersionByNaturalKey("TEST", "GOV", "M1", "SS1", "svcB"))
-                .thenReturn(true);
-        assertTrue(service.existsActiveVersion("GOV", "M1", "SS1", "svcB", "null"));
-        verify(serviceRepository, never()).existsActiveVersionByNaturalKey(any(), any(), any(), any(), any(), any());
+        assertTrue(service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, "doesNotExist").isEmpty());
     }
 
     @Test
@@ -233,18 +212,19 @@ class ServiceServiceV2Test {
         when(serviceRepository.findActiveNullVersionByNaturalKey(INSTANCE, PUB, "15", "subsystem_7-1",
                 "service-with-null-version")).thenReturn(Optional.of(svc));
 
-        ServiceVersionDto dto = service.getVersion(PUB, "15", "subsystem_7-1", "service-with-null-version", "null");
+        Optional<ServiceVersionDto> result =
+                service.getVersion(PUB, "15", "subsystem_7-1", "service-with-null-version", "null");
 
-        assertNotNull(dto);
-        assertNull(dto.getServiceVersion());
+        assertTrue(result.isPresent());
+        assertNull(result.get().getServiceVersion());
     }
 
     @Test
-    void testGetVersionReturnsNullWhenAbsent() {
+    void testGetVersionReturnsEmptyOptionalWhenAbsent() {
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v99"))
                 .thenReturn(Optional.empty());
 
-        assertNull(service.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v99"));
+        assertTrue(service.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v99").isEmpty());
     }
 
     @Test
@@ -254,9 +234,10 @@ class ServiceServiceV2Test {
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(101L)).thenReturn(List.of("<wsdl>wsdl-mixedSvc-v1</wsdl>"));
 
-        DescriptorPayload payload = service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v1");
+        Optional<DescriptorPayload> result = service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v1");
 
-        assertNotNull(payload);
+        assertTrue(result.isPresent());
+        DescriptorPayload payload = result.get();
         assertEquals(MediaType.APPLICATION_XML, payload.contentType());
         assertTrue(new String(payload.content(), StandardCharsets.UTF_8).contains("wsdl-mixedSvc-v1"));
     }
@@ -269,10 +250,11 @@ class ServiceServiceV2Test {
         when(descriptorRepository.findActiveWsdlData(102L)).thenReturn(List.of());
         when(descriptorRepository.findActiveOpenApiData(102L)).thenReturn(List.of("{\"openapi\":\"3.0.0\"}"));
 
-        DescriptorPayload payload = service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonSvc", "v1");
+        Optional<DescriptorPayload> result =
+                service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonSvc", "v1");
 
-        assertNotNull(payload);
-        assertEquals(MediaType.APPLICATION_JSON, payload.contentType());
+        assertTrue(result.isPresent());
+        assertEquals(MediaType.APPLICATION_JSON, result.get().contentType());
     }
 
     @Test
@@ -283,30 +265,32 @@ class ServiceServiceV2Test {
         when(descriptorRepository.findActiveWsdlData(103L)).thenReturn(List.of());
         when(descriptorRepository.findActiveOpenApiData(103L)).thenReturn(List.of("openapi: 3.0.0\ninfo:\n  title: x"));
 
-        DescriptorPayload payload = service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1");
+        Optional<DescriptorPayload> result =
+                service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1");
 
-        assertNotNull(payload);
+        assertTrue(result.isPresent());
+        DescriptorPayload payload = result.get();
         assertEquals(MediaType.parseMediaType("application/yaml"), payload.contentType());
         assertTrue(new String(payload.content(), StandardCharsets.UTF_8).startsWith("openapi:"));
     }
 
     @Test
-    void testGetVersionDescriptorReturnsNullForNoDescriptor() {
+    void testGetVersionDescriptorReturnsEmptyOptionalForNoDescriptor() {
         ServiceV2 svc = serviceEntityWithId(104L, "descRestOnlySvc", "v1", REST);
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descRestOnlySvc", "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(104L)).thenReturn(List.of());
         when(descriptorRepository.findActiveOpenApiData(104L)).thenReturn(List.of());
 
-        assertNull(service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descRestOnlySvc", "v1"));
+        assertTrue(service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descRestOnlySvc", "v1").isEmpty());
     }
 
     @Test
-    void testGetVersionDescriptorReturnsNullForMissingVersion() {
+    void testGetVersionDescriptorReturnsEmptyOptionalForMissingVersion() {
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v99"))
                 .thenReturn(Optional.empty());
 
-        assertNull(service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v99"));
+        assertTrue(service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v99").isEmpty());
     }
 
     @Test
@@ -317,18 +301,19 @@ class ServiceServiceV2Test {
         when(descriptorRepository.findActiveWsdlData(105L)).thenReturn(List.of());
         when(descriptorRepository.findActiveOpenApiData(105L)).thenReturn(List.of("{\"openapi\":\"3.0.0\"}"));
 
-        DescriptorPayload payload = service.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonSvc");
+        Optional<DescriptorPayload> result =
+                service.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonSvc");
 
-        assertNotNull(payload);
-        assertEquals(MediaType.APPLICATION_JSON, payload.contentType());
+        assertTrue(result.isPresent());
+        assertEquals(MediaType.APPLICATION_JSON, result.get().contentType());
     }
 
     @Test
-    void testGetServiceLevelDescriptorReturnsNullForNoVersions() {
+    void testGetServiceLevelDescriptorReturnsEmptyOptionalForNoVersions() {
         when(serviceRepository.findActiveVersionsByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "doesNotExist"))
                 .thenReturn(List.of());
 
-        assertNull(service.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "doesNotExist"));
+        assertTrue(service.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "doesNotExist").isEmpty());
     }
 
     @Test

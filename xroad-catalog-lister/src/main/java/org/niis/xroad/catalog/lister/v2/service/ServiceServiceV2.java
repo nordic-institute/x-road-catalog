@@ -26,12 +26,10 @@ package org.niis.xroad.catalog.lister.v2.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.niis.xroad.catalog.lister.v2.controller.MultipleVersionsException;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceAggregator;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceVersionConverter;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
-import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
+import org.niis.xroad.catalog.lister.v2.util.ServiceVersionUtil;
 import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
@@ -67,48 +65,29 @@ public class ServiceServiceV2 {
     private final ServiceRepositoryV2 serviceRepository;
     private final SubsystemRepositoryV2 subsystemRepository;
     private final DescriptorRepositoryV2 descriptorRepository;
-    private final ServiceAggregator aggregator;
-    private final ServiceVersionConverter versionConverter;
     private final InstanceContext instanceContext;
     private final ObjectMapper objectMapper;
 
     public ServiceServiceV2(ServiceRepositoryV2 serviceRepository, SubsystemRepositoryV2 subsystemRepository,
-            DescriptorRepositoryV2 descriptorRepository, ServiceAggregator aggregator,
-            ServiceVersionConverter versionConverter, InstanceContext instanceContext, ObjectMapper objectMapper) {
+            DescriptorRepositoryV2 descriptorRepository, InstanceContext instanceContext, ObjectMapper objectMapper) {
         this.serviceRepository = serviceRepository;
         this.subsystemRepository = subsystemRepository;
         this.descriptorRepository = descriptorRepository;
-        this.aggregator = aggregator;
-        this.versionConverter = versionConverter;
         this.instanceContext = instanceContext;
         this.objectMapper = objectMapper;
     }
 
-    public ServiceDto getByNaturalKey(String memberClass, String memberCode, String subsystemCode, String serviceCode) {
+    /**
+     * @return the service aggregate DTO, or an empty {@link Optional} if absent (controller maps to 404)
+     */
+    public Optional<ServiceDto> getByNaturalKey(String memberClass, String memberCode, String subsystemCode, String serviceCode) {
         String instance = instanceContext.getCurrentInstance();
         List<ServiceVersionRow> versions = serviceRepository.findActiveVersionRowsForService(
                 instance, memberClass, memberCode, subsystemCode, serviceCode);
         if (versions.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
-        return aggregator.fromRows(versions);
-    }
-
-    public boolean existsActive(String memberClass, String memberCode, String subsystemCode, String serviceCode) {
-        return serviceRepository.existsActiveByNaturalKey(
-                instanceContext.getCurrentInstance(), memberClass, memberCode, subsystemCode, serviceCode);
-    }
-
-    public boolean existsActiveVersion(String memberClass, String memberCode, String subsystemCode,
-                                       String serviceCode, String serviceVersion) {
-        String instance = instanceContext.getCurrentInstance();
-        String resolvedVersion = DateTimeUtil.resolveVersionSentinel(serviceVersion);
-        if (resolvedVersion == null) {
-            return serviceRepository.existsActiveNullVersionByNaturalKey(
-                    instance, memberClass, memberCode, subsystemCode, serviceCode);
-        }
-        return serviceRepository.existsActiveVersionByNaturalKey(
-                instance, memberClass, memberCode, subsystemCode, serviceCode, resolvedVersion);
+        return Optional.of(ServiceDto.from(versions));
     }
 
     /**
@@ -138,7 +117,7 @@ public class ServiceServiceV2 {
         }
         List<ServiceDto> dtos = new ArrayList<>(aggregates.size());
         for (ServiceAggregateRow agg : aggregates) {
-            dtos.add(aggregator.fromRows(byKey.get(agg.getSubsystemId() + "|" + agg.getServiceCode())));
+            dtos.add(ServiceDto.from(byKey.get(agg.getSubsystemId() + "|" + agg.getServiceCode())));
         }
         return new PageImpl<>(dtos, pageable, totalCount);
     }
@@ -163,7 +142,7 @@ public class ServiceServiceV2 {
         }
         List<ServiceDto> result = new ArrayList<>(byCode.size());
         for (List<ServiceVersionRow> group : byCode.values()) {
-            result.add(aggregator.fromRows(group));
+            result.add(ServiceDto.from(group));
         }
         return Optional.of(result);
     }
@@ -186,43 +165,46 @@ public class ServiceServiceV2 {
                 .toList();
         List<ServiceVersionDto> result = new ArrayList<>(sorted.size());
         for (ServiceV2 s : sorted) {
-            result.add(versionConverter.toDto(s));
+            result.add(ServiceVersionDto.from(s));
         }
         return Optional.of(result);
     }
 
-    public ServiceVersionDto getVersion(String memberClass, String memberCode, String subsystemCode,
+    /**
+     * @return the version DTO, or an empty {@link Optional} if no such version exists (controller maps to 404)
+     */
+    public Optional<ServiceVersionDto> getVersion(String memberClass, String memberCode, String subsystemCode,
                                         String serviceCode, String serviceVersion) {
-        ServiceV2 svc = findVersionEntity(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
-        return svc == null ? null : versionConverter.toDto(svc);
+        return findVersionEntity(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)
+                .map(ServiceVersionDto::from);
     }
 
     /**
-     * Returns the active descriptor bytes for a single service version, or {@code null} if no such
+     * Returns the active descriptor bytes for a single service version, or an empty {@link Optional} if no such
      * version exists or the version exists but has no active WSDL or OpenAPI row.
      */
-    public DescriptorPayload getVersionDescriptor(String memberClass, String memberCode, String subsystemCode,
+    public Optional<DescriptorPayload> getVersionDescriptor(String memberClass, String memberCode, String subsystemCode,
                                                   String serviceCode, String serviceVersion) {
-        ServiceV2 svc = findVersionEntity(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
-        return svc == null ? null : payloadFor(svc.getId());
+        return findVersionEntity(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)
+                .map(svc -> payloadFor(svc.getId()));
     }
 
     /**
      * Returns the active descriptor bytes for a service that has exactly one active version. Throws
      * {@link MultipleVersionsException} when 2+ active versions exist (caller must pick a specific
-     * version path). Returns {@code null} when 0 active versions exist or when the only version has
-     * no active descriptor.
+     * version path). Returns an empty {@link Optional} when 0 active versions exist or when the only
+     * version has no active descriptor.
      */
-    public DescriptorPayload getServiceLevelDescriptor(String memberClass, String memberCode, String subsystemCode,
+    public Optional<DescriptorPayload> getServiceLevelDescriptor(String memberClass, String memberCode, String subsystemCode,
                                                        String serviceCode) {
         String instance = instanceContext.getCurrentInstance();
         List<ServiceV2> versions = serviceRepository.findActiveVersionsByNaturalKey(
                 instance, memberClass, memberCode, subsystemCode, serviceCode);
         if (versions.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         if (versions.size() == 1) {
-            return payloadFor(versions.get(0).getId());
+            return Optional.ofNullable(payloadFor(versions.get(0).getId()));
         }
         List<String> versionLabels = new ArrayList<>();
         for (ServiceV2 s : versions) {
@@ -233,16 +215,16 @@ public class ServiceServiceV2 {
                 versionLabels);
     }
 
-    private ServiceV2 findVersionEntity(String memberClass, String memberCode, String subsystemCode,
+    private Optional<ServiceV2> findVersionEntity(String memberClass, String memberCode, String subsystemCode,
                                         String serviceCode, String serviceVersion) {
         String instance = instanceContext.getCurrentInstance();
-        String resolvedVersion = DateTimeUtil.resolveVersionSentinel(serviceVersion);
+        String resolvedVersion = ServiceVersionUtil.resolveVersionSentinel(serviceVersion);
         if (resolvedVersion == null) {
             return serviceRepository.findActiveNullVersionByNaturalKey(
-                    instance, memberClass, memberCode, subsystemCode, serviceCode).orElse(null);
+                    instance, memberClass, memberCode, subsystemCode, serviceCode);
         }
         return serviceRepository.findActiveVersionByNaturalKey(
-                instance, memberClass, memberCode, subsystemCode, serviceCode, resolvedVersion).orElse(null);
+                instance, memberClass, memberCode, subsystemCode, serviceCode, resolvedVersion);
     }
 
     /**

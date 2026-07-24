@@ -118,36 +118,6 @@ class DateTimeUtilTest {
     }
 
     @Test
-    void resolveVersionSentinelMapsLiteralNullStringToJavaNull() {
-        assertThat(DateTimeUtil.resolveVersionSentinel("null")).isNull();
-    }
-
-    @Test
-    void resolveVersionSentinelPassesThroughDashCharacter() {
-        assertThat(DateTimeUtil.resolveVersionSentinel("-")).isEqualTo("-");
-    }
-
-    @Test
-    void resolveVersionSentinelPassesThroughEmptyAndOther() {
-        assertThat(DateTimeUtil.resolveVersionSentinel("v1.0")).isEqualTo("v1.0");
-    }
-
-    @Test
-    void resolveVersionSentinelNormal() {
-        assertThat(DateTimeUtil.resolveVersionSentinel("v1")).isEqualTo("v1");
-    }
-
-    @Test
-    void resolveVersionSentinelNull() {
-        assertThat(DateTimeUtil.resolveVersionSentinel(null)).isNull();
-    }
-
-    @Test
-    void resolveVersionSentinelEmpty() {
-        assertThat(DateTimeUtil.resolveVersionSentinel("")).isEmpty();
-    }
-
-    @Test
     void parseDateOrDefaultReturnsParsedWhenPresent() {
         LocalDate fallback = LocalDate.of(2026, 1, 1);
         assertThat(DateTimeUtil.parseDateOrDefault("2026-04-30", fallback))

@@ -30,6 +30,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
+import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
 
 import java.time.LocalDateTime;
 
@@ -53,4 +55,22 @@ public class SubsystemDto {
     private final LocalDateTime fetched;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime removed;
+
+    public static SubsystemDto from(SubsystemListRow row, SubsystemNameLookup nameLookup) {
+        String memberClass = row.getMemberClass();
+        String memberCode = row.getMemberCode();
+        String subsystemCode = row.getSubsystemCode();
+        return SubsystemDto.builder()
+                .memberClass(memberClass)
+                .memberCode(memberCode)
+                .memberName(row.getMemberName())
+                .subsystemCode(subsystemCode)
+                .subsystemName(nameLookup.resolve(memberClass, memberCode, subsystemCode))
+                .serviceCount(Math.toIntExact(row.getServiceCount()))
+                .created(row.getCreated())
+                .changed(row.getChanged())
+                .fetched(row.getFetched())
+                .removed(row.getRemoved())
+                .build();
+    }
 }

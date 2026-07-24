@@ -60,13 +60,13 @@ class V2ExceptionHandlerTest {
     @Test
     void handleResourceNotFoundExceptionReturnsNotFound() {
         ResponseEntity<ErrorResponse> response =
-                handler.handleResourceNotFoundException(new V2ResourceNotFoundException("not found"));
+                handler.handleResourceNotFoundException(V2ResourceNotFoundException.of("Widget", "abc"));
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getBody().getStatus());
         assertEquals("NotFound", response.getBody().getError());
-        assertEquals("not found", response.getBody().getMessage());
+        assertEquals("Widget 'abc' not found", response.getBody().getMessage());
     }
 
     @Test

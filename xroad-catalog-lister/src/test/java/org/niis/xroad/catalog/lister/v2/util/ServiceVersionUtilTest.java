@@ -22,17 +22,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.converter;
+package org.niis.xroad.catalog.lister.v2.util;
 
-/**
- * Resolves the shared-params <code>subsystemName</code> for a given subsystem natural key.
- *
- * Used by {@link org.niis.xroad.catalog.lister.v2.dto.SubsystemDto#from} and
- * {@link org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto#from} to enrich those DTOs with
- * display names sourced from the shared-params XML. Implementations must tolerate missing entries
- * and return {@code null} when no name is available — name enrichment is best-effort.
- */
-@FunctionalInterface
-public interface SubsystemNameLookup {
-    String resolve(String memberClass, String memberCode, String subsystemCode);
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class ServiceVersionUtilTest {
+
+    @Test
+    void resolveVersionSentinelMapsLiteralNullStringToJavaNull() {
+        assertThat(ServiceVersionUtil.resolveVersionSentinel("null")).isNull();
+    }
+
+    @Test
+    void resolveVersionSentinelPassesThroughDashCharacter() {
+        assertThat(ServiceVersionUtil.resolveVersionSentinel("-")).isEqualTo("-");
+    }
+
+    @Test
+    void resolveVersionSentinelPassesThroughEmptyAndOther() {
+        assertThat(ServiceVersionUtil.resolveVersionSentinel("v1.0")).isEqualTo("v1.0");
+    }
+
+    @Test
+    void resolveVersionSentinelNormal() {
+        assertThat(ServiceVersionUtil.resolveVersionSentinel("v1")).isEqualTo("v1");
+    }
+
+    @Test
+    void resolveVersionSentinelNull() {
+        assertThat(ServiceVersionUtil.resolveVersionSentinel(null)).isNull();
+    }
+
+    @Test
+    void resolveVersionSentinelEmpty() {
+        assertThat(ServiceVersionUtil.resolveVersionSentinel("")).isEmpty();
+    }
 }

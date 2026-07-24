@@ -35,12 +35,11 @@ import org.niis.xroad.catalog.persistence.repository.projection.MemberClassCount
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -99,24 +98,24 @@ class MemberClassServiceV2Test {
         when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.countActiveByMemberClass(INSTANCE, PUB)).thenReturn(4L);
 
-        MemberClassDto pub = service.getByCode(PUB);
+        Optional<MemberClassDto> result = service.getByCode(PUB);
 
-        assertNotNull(pub, "PUB class should be returned by getByCode");
-        assertEquals(PUB, pub.getCode());
-        assertTrue(pub.getMemberCount() > 0, "PUB must have a positive member count");
+        assertTrue(result.isPresent(), "PUB class should be returned by getByCode");
+        assertEquals(PUB, result.get().getCode());
+        assertTrue(result.get().getMemberCount() > 0, "PUB must have a positive member count");
     }
 
     @Test
-    void testGetByCodeReturnsNullForUnknownCode() {
+    void testGetByCodeReturnsEmptyOptionalForUnknownCode() {
         when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.countActiveByMemberClass(INSTANCE, "DOES-NOT-EXIST")).thenReturn(0L);
 
-        assertNull(service.getByCode("DOES-NOT-EXIST"));
+        assertTrue(service.getByCode("DOES-NOT-EXIST").isEmpty());
     }
 
     @Test
-    void testGetByCodeReturnsNullForNullInput() {
-        assertNull(service.getByCode(null));
+    void testGetByCodeReturnsEmptyOptionalForNullInput() {
+        assertTrue(service.getByCode(null).isEmpty());
     }
 
     @Test
@@ -127,9 +126,9 @@ class MemberClassServiceV2Test {
         when(sharedParamsCache.memberClassDescriptions()).thenReturn(Map.of());
         when(memberRepository.countActiveByMemberClass(INSTANCE, PUB)).thenReturn(1L);
 
-        MemberClassDto pub = service.getByCode(PUB);
+        Optional<MemberClassDto> result = service.getByCode(PUB);
 
-        assertNotNull(pub, "a parser failure must not prevent returning a class backed by real members");
+        assertTrue(result.isPresent(), "a parser failure must not prevent returning a class backed by real members");
     }
 
     private static MemberClassCountRow countRow(String code, long count) {

@@ -22,108 +22,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.converter;
+package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
 import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
 import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-class ServiceAggregatorTest {
+class ServiceVersionSummaryDtoTest {
 
-    private final ServiceAggregator aggregator = new ServiceAggregator(new ServiceVersionConverter());
+    private static final String SERVICE_CODE = "getTaxInfo";
 
     @Test
-    void testFromRowsSortsVersionsWithNullLast() {
+    void testFromEntityReadsServiceTypeColumn() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
+        ServiceVersionSummaryDto summary = ServiceVersionSummaryDto.from(svc);
+        assertEquals("v1", summary.getServiceVersion());
+        assertEquals("OPENAPI", summary.getServiceType());
+    }
+
+    @Test
+    void testFromEntityPopulatesTimestamps() {
+        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "REST");
+        LocalDateTime removedAt = LocalDateTime.now();
+        ReflectionTestUtils.setField(svc, "statusInfo",
+                new StatusInfo(removedAt, removedAt, removedAt, removedAt));
+        ServiceVersionSummaryDto summary = ServiceVersionSummaryDto.from(svc);
+        assertEquals(removedAt, summary.getRemoved());
+    }
+
+    @Test
+    void testFromRowMapsAllFields() {
         LocalDateTime now = LocalDateTime.now();
-        ServiceVersionRow v1 = row("mixedSvc", "v1", "SOAP", now);
-        ServiceVersionRow vNull = row("mixedSvc", null, "REST", now);
-        List<ServiceVersionRow> rows = new ArrayList<>(List.of(vNull, v1));
-
-        ServiceDto dto = aggregator.fromRows(rows);
-
-        assertEquals("mixedSvc", dto.getServiceCode());
-        assertEquals(2, dto.getVersionCount());
-        assertEquals(Arrays.asList("v1", null),
-                dto.getVersions().stream().map(v -> v.getServiceVersion()).toList());
+        ServiceVersionRow row = new FakeServiceVersionRow("PUB", "14151328", "Nahka-Albert", "sub1", 1L,
+                SERVICE_CODE, "v2", "SOAP", now, now, now, null);
+        ServiceVersionSummaryDto summary = ServiceVersionSummaryDto.from(row);
+        assertEquals("v2", summary.getServiceVersion());
+        assertEquals("SOAP", summary.getServiceType());
+        assertEquals(now, summary.getCreated());
+        assertNull(summary.getRemoved());
     }
 
-    @Test
-    void testFromRowsKeepsDistinctServiceTypesInVersionOrderWithoutCollapsing() {
-        LocalDateTime now = LocalDateTime.now();
-        ServiceVersionRow v1 = row("mixedSvc", "v1", "REST", now);
-        ServiceVersionRow v2 = row("mixedSvc", "v2", "SOAP", now);
-        List<ServiceVersionRow> rows = new ArrayList<>(List.of(v1, v2));
-
-        ServiceDto dto = aggregator.fromRows(rows);
-
-        assertEquals(List.of("REST", "SOAP"), dto.getServiceTypes(),
-                "a bare service code can legitimately be multi-typed; must not collapse to a scalar");
-    }
-
-    @Test
-    void testFromRowsThrowsForEmptyList() {
-        assertThrows(IllegalArgumentException.class, () -> aggregator.fromRows(List.of()));
-    }
-
-    @Test
-    void testFromRowsPopulatesContextFromFirstSortedRow() {
-        LocalDateTime now = LocalDateTime.now();
-        ServiceVersionRow v1 = row("svc", "v1", "REST", now);
-        List<ServiceVersionRow> rows = new ArrayList<>(List.of(v1));
-
-        ServiceDto dto = aggregator.fromRows(rows);
-
-        assertEquals("PUB", dto.getMemberClass());
-        assertEquals("14151328", dto.getMemberCode());
-        assertEquals("Nahka-Albert", dto.getMemberName());
-        assertEquals("sub1", dto.getSubsystemCode());
-    }
-
-    @Test
-    void testFromEntitiesSortsAndAggregatesVersions() {
-        ServiceV2 v1 = service("mixedSvc", "v1", "SOAP");
-        ServiceV2 vNull = service("mixedSvc", null, "REST");
-
-        ServiceDto dto = aggregator.fromEntities("PUB", "14151328", "Nahka-Albert", "sub1",
-                List.of(vNull, v1));
-
-        assertEquals("mixedSvc", dto.getServiceCode());
-        assertEquals(2, dto.getVersionCount());
-        assertTrue(dto.getServiceTypes().containsAll(List.of("SOAP", "REST")));
-        assertEquals(Arrays.asList("v1", null),
-                dto.getVersions().stream().map(v -> v.getServiceVersion()).toList());
-    }
-
-    @Test
-    void testFromEntitiesThrowsForEmptyCollection() {
-        assertThrows(IllegalArgumentException.class,
-                () -> aggregator.fromEntities("PUB", "14151328", "Nahka-Albert", "sub1", List.of()));
-    }
-
-    private ServiceVersionRow row(String serviceCode, String version, String serviceType, LocalDateTime now) {
-        return new FakeServiceVersionRow("PUB", "14151328", "Nahka-Albert", "sub1", 1L,
-                serviceCode, version, serviceType, now, now, now, null);
-    }
-
-    private ServiceV2 service(String code, String version, String serviceType) {
+    private ServiceV2 buildService(String code, String version, String serviceType) {
         ServiceV2 s = new ServiceV2();
         ReflectionTestUtils.setField(s, "serviceCode", code);
         ReflectionTestUtils.setField(s, "serviceVersion", version);
         ReflectionTestUtils.setField(s, "serviceType", serviceType);
         LocalDateTime now = LocalDateTime.now();
         ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(s, "endpoints", new HashSet<EndpointV2>());
         return s;
     }
 

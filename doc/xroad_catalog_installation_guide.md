@@ -214,9 +214,8 @@ requests made near midnight.
 Container images default to UTC, so when running X-Road Catalog in containers make sure all three
 services use the host's time zone, e.g. by bind-mounting `/etc/localtime:/etc/localtime:ro` as done
 in `docker/compose.yml`, or by setting the same explicit `TZ` environment variable on all three
-services. When installing from packages, verify that the host's
-configured time zone (`timedatectl`) is the same on the collector host, the lister host, and the
-PostgreSQL host.
+services. Verify that the host's configured time zone (`timedatectl`) is the same on the
+collector host, the lister host, and the PostgreSQL host.
 
 ### 2.5.5 Search performance
 
@@ -226,6 +225,19 @@ search request scans those tables. This is acceptable at typical catalog sizes; 
 ecosystems, PostgreSQL's `pg_trgm` extension with GIN trigram indexes on the searched columns
 removes the scans. X-Road Catalog does not create the extension itself — apply it manually if
 search latency becomes a concern.
+
+The search matches against the lowercased values of `member.name`, `member.member_code`,
+`subsystem.subsystem_code` and `service.service_code`, so the trigram indexes must be built on
+the same `LOWER(...)` expressions. As the database superuser:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_member_name_trgm ON member USING gin (LOWER(name) gin_trgm_ops);
+CREATE INDEX idx_member_code_trgm ON member USING gin (LOWER(member_code) gin_trgm_ops);
+CREATE INDEX idx_subsystem_code_trgm ON subsystem USING gin (LOWER(subsystem_code) gin_trgm_ops);
+CREATE INDEX idx_service_code_trgm ON service USING gin (LOWER(service_code) gin_trgm_ops);
+```
 
 ## 2.6 SSL (optional)
 

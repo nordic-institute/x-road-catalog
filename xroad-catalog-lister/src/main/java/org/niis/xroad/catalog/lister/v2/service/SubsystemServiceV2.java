@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
 import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
@@ -46,37 +45,32 @@ public class SubsystemServiceV2 {
 
     private final SubsystemRepositoryV2 subsystemRepository;
     private final MemberRepositoryV2 memberRepository;
-    private final SubsystemConverter converter;
     private final SharedParamsCache sharedParamsCache;
     private final InstanceContext instanceContext;
 
     public SubsystemServiceV2(SubsystemRepositoryV2 subsystemRepository, MemberRepositoryV2 memberRepository,
-            SubsystemConverter converter, SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+            SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
         this.subsystemRepository = subsystemRepository;
         this.memberRepository = memberRepository;
-        this.converter = converter;
         this.sharedParamsCache = sharedParamsCache;
         this.instanceContext = instanceContext;
     }
 
-    public SubsystemDto getByNaturalKey(String memberClass, String memberCode, String subsystemCode) {
+    /**
+     * @return the subsystem's DTO, or an empty {@link Optional} if absent (controller maps to 404)
+     */
+    public Optional<SubsystemDto> getByNaturalKey(String memberClass, String memberCode, String subsystemCode) {
         SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
         return subsystemRepository.findActiveSummaryByNaturalKey(
                         instanceContext.getCurrentInstance(), memberClass, memberCode, subsystemCode)
-                .map(row -> converter.toDto(row, lookup))
-                .orElse(null);
-    }
-
-    public boolean existsActive(String memberClass, String memberCode, String subsystemCode) {
-        return subsystemRepository.existsActiveByNaturalKey(
-                instanceContext.getCurrentInstance(), memberClass, memberCode, subsystemCode);
+                .map(row -> SubsystemDto.from(row, lookup));
     }
 
     public Page<SubsystemDto> getForList(String memberClass, Pageable pageable) {
         Page<SubsystemListRow> rows = subsystemRepository.findActiveForList(
                 instanceContext.getCurrentInstance(), memberClass, pageable);
         SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
-        return rows.map(row -> converter.toDto(row, lookup));
+        return rows.map(row -> SubsystemDto.from(row, lookup));
     }
 
     /**
@@ -94,7 +88,7 @@ public class SubsystemServiceV2 {
         SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
         List<SubsystemDto> result = new ArrayList<>(rows.size());
         for (SubsystemListRow row : rows) {
-            result.add(converter.toDto(row, lookup));
+            result.add(SubsystemDto.from(row, lookup));
         }
         return Optional.of(result);
     }

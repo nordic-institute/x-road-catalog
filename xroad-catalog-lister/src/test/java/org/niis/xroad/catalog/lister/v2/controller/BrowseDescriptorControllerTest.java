@@ -36,6 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -70,7 +71,7 @@ class BrowseDescriptorControllerTest {
         DescriptorPayload payload = new DescriptorPayload(
                 "<wsdl/>".getBytes(StandardCharsets.UTF_8), MediaType.APPLICATION_XML);
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v1"))
-                .thenReturn(payload);
+                .thenReturn(Optional.of(payload));
 
         mockMvc.perform(get(VERSION_PATH))
                 .andExpect(status().isOk())
@@ -83,7 +84,7 @@ class BrowseDescriptorControllerTest {
         DescriptorPayload payload = new DescriptorPayload(
                 "{\"openapi\":\"3.0.0\"}".getBytes(StandardCharsets.UTF_8), MediaType.APPLICATION_JSON);
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v1"))
-                .thenReturn(payload);
+                .thenReturn(Optional.of(payload));
 
         mockMvc.perform(get(VERSION_PATH))
                 .andExpect(status().isOk())
@@ -95,7 +96,7 @@ class BrowseDescriptorControllerTest {
         DescriptorPayload payload = new DescriptorPayload(
                 "openapi: 3.0.0\n".getBytes(StandardCharsets.UTF_8), MediaType.parseMediaType(YAML));
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v1"))
-                .thenReturn(payload);
+                .thenReturn(Optional.of(payload));
 
         mockMvc.perform(get(VERSION_PATH))
                 .andExpect(status().isOk())
@@ -105,7 +106,7 @@ class BrowseDescriptorControllerTest {
     @Test
     void versionLevelRestOnlyReturns404() throws Exception {
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v1"))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
 
         mockMvc.perform(get(VERSION_PATH))
                 .andExpect(status().isNotFound())
@@ -116,7 +117,7 @@ class BrowseDescriptorControllerTest {
     @Test
     void versionLevelMissingVersionReturns404() throws Exception {
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "v99"))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
 
         mockMvc.perform(get(VERSION_PATH.replace("/versions/v1/", "/versions/v99/")))
                 .andExpect(status().isNotFound());
@@ -125,9 +126,9 @@ class BrowseDescriptorControllerTest {
     @Test
     void versionLevelOnlyRemovedWsdlReturns404() throws Exception {
         // Regression for the active-row contract from Task 1.5: even when a service has a removed WSDL,
-        // the service layer returns null (no active descriptor) so the controller emits 404.
+        // the service layer returns an empty Optional (no active descriptor) so the controller emits 404.
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1,
-                "descRemovedWsdlSvc", "v1")).thenReturn(null);
+                "descRemovedWsdlSvc", "v1")).thenReturn(Optional.empty());
 
         mockMvc.perform(get(VERSION_PATH
                         .replace("/services/mixedSvc/", "/services/descRemovedWsdlSvc/")))
@@ -140,7 +141,7 @@ class BrowseDescriptorControllerTest {
         DescriptorPayload payload = new DescriptorPayload(
                 "{}".getBytes(StandardCharsets.UTF_8), MediaType.APPLICATION_JSON);
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "null"))
-                .thenReturn(payload);
+                .thenReturn(Optional.of(payload));
 
         mockMvc.perform(get(VERSION_PATH.replace("/versions/v1/", "/versions/null/")))
                 .andExpect(status().isOk())
@@ -152,7 +153,7 @@ class BrowseDescriptorControllerTest {
         DescriptorPayload payload = new DescriptorPayload(
                 "<wsdl/>".getBytes(StandardCharsets.UTF_8), MediaType.APPLICATION_XML);
         when(serviceService.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED))
-                .thenReturn(payload);
+                .thenReturn(Optional.of(payload));
 
         mockMvc.perform(get(SERVICE_PATH))
                 .andExpect(status().isOk())
@@ -163,7 +164,7 @@ class BrowseDescriptorControllerTest {
     @Test
     void serviceLevelNoVersionsReturns404() throws Exception {
         when(serviceService.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
 
         mockMvc.perform(get(SERVICE_PATH))
                 .andExpect(status().isNotFound())
@@ -173,10 +174,10 @@ class BrowseDescriptorControllerTest {
 
     @Test
     void serviceLevelSingleVersionWithoutDescriptorReturns404() throws Exception {
-        // Service layer returns null for both "no versions" and "1 version, no active descriptor"
-        // — both must surface as 404 from the controller.
+        // Service layer returns an empty Optional for both "no versions" and "1 version, no active
+        // descriptor" — both must surface as 404 from the controller.
         when(serviceService.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1,
-                "descRestOnlySvc")).thenReturn(null);
+                "descRestOnlySvc")).thenReturn(Optional.empty());
 
         mockMvc.perform(get(SERVICE_PATH.replace("/services/mixedSvc/", "/services/descRestOnlySvc/")))
                 .andExpect(status().isNotFound());

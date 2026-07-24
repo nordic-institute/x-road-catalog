@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
 import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
 import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
@@ -43,8 +42,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -73,8 +70,7 @@ class SubsystemServiceV2Test {
 
     @BeforeEach
     void setUp() {
-        service = new SubsystemServiceV2(subsystemRepository, memberRepository, new SubsystemConverter(),
-                sharedParamsCache, instanceContext);
+        service = new SubsystemServiceV2(subsystemRepository, memberRepository, sharedParamsCache, instanceContext);
     }
 
     @Test
@@ -86,9 +82,10 @@ class SubsystemServiceV2Test {
                 PUB.equals(memberClass) && CODE_14151328.equals(memberCode) && SUBSYSTEM_A1.equals(subsystemCode)
                         ? "Subsystem A1" : null);
 
-        SubsystemDto dto = service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1);
+        Optional<SubsystemDto> result = service.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1);
 
-        assertNotNull(dto);
+        assertTrue(result.isPresent());
+        SubsystemDto dto = result.get();
         assertEquals(SUBSYSTEM_A1, dto.getSubsystemCode());
         assertEquals("Subsystem A1", dto.getSubsystemName(),
                 "subsystemName must be resolved from the shared-params lookup");
@@ -96,21 +93,12 @@ class SubsystemServiceV2Test {
     }
 
     @Test
-    void testGetByNaturalKeyReturnsNullWhenAbsent() {
+    void testGetByNaturalKeyReturnsEmptyOptionalWhenAbsent() {
         when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
         when(subsystemRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, CODE_14151328, "does-not-exist"))
                 .thenReturn(Optional.empty());
 
-        assertNull(service.getByNaturalKey(PUB, CODE_14151328, "does-not-exist"));
-    }
-
-    @Test
-    void testExistsActiveDelegatesToRepository() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
-        when(subsystemRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1))
-                .thenReturn(true);
-
-        assertTrue(service.existsActive(PUB, CODE_14151328, SUBSYSTEM_A1));
+        assertTrue(service.getByNaturalKey(PUB, CODE_14151328, "does-not-exist").isEmpty());
     }
 
     @Test

@@ -31,6 +31,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.persistence.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
+import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -62,4 +65,35 @@ public class FullMemberDto {
     private final LocalDateTime removed;
 
     private final List<FullSubsystemDto> subsystems;
+
+    /**
+     * Builds the {@link FullMemberDto} for the {@code ?full=true} browse endpoint. {@code isProvider}
+     * comes straight from the denormalized {@link MemberV2#isProvider()} column maintained by the
+     * collector recompute; {@code subsystemCount}/{@code serviceCount} are computed from the
+     * {@code getActive*} helpers over the loaded entity graph. The caller supplies the
+     * already-assembled {@code subsystems} list so this factory does not depend on the subsystem
+     * factory or the service aggregation factory.
+     */
+    public static FullMemberDto from(MemberV2 member, List<FullSubsystemDto> subsystems) {
+        int subsystemCount = 0;
+        int serviceCount = 0;
+        for (SubsystemV2 sub : member.getActiveSubsystems()) {
+            subsystemCount++;
+            serviceCount += sub.getActiveServices().size();
+        }
+        StatusInfo info = member.getStatusInfo();
+        return FullMemberDto.builder()
+                .memberClass(member.getMemberClass())
+                .memberCode(member.getMemberCode())
+                .name(member.getName())
+                .isProvider(member.isProvider())
+                .subsystemCount(subsystemCount)
+                .serviceCount(serviceCount)
+                .created(info.getCreated())
+                .changed(info.getChanged())
+                .fetched(info.getFetched())
+                .removed(info.getRemoved())
+                .subsystems(subsystems)
+                .build();
+    }
 }

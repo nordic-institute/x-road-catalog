@@ -30,8 +30,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.persistence.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
+import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,6 +49,9 @@ import java.util.List;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public class ServiceVersionDto {
+    private static final String SOAP_SERVICE_TYPE = "SOAP";
+    private static final String OPENAPI_SERVICE_TYPE = "OPENAPI";
+
     private final String serviceVersion;
     private final String serviceType;
     private final boolean hasDescriptor;
@@ -57,4 +64,35 @@ public class ServiceVersionDto {
     private final LocalDateTime fetched;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime removed;
+
+    /**
+     * {@code serviceType} is read straight from the denormalized column maintained by the collector
+     * recompute (a descriptor fetched mid-collection-cycle surfaces after the next recompute — an
+     * accepted staleness window, during which the type reads {@code UNKNOWN}). {@code hasDescriptor}
+     * is asserted only for the two types that carry one: SOAP has a WSDL, OPENAPI has an OpenAPI
+     * document. REST is the settled descriptor-less type and UNKNOWN is not yet classified, so both
+     * report {@code false} rather than claiming a descriptor that may not exist.
+     */
+    public static ServiceVersionDto from(ServiceV2 service) {
+        String serviceType = service.getServiceType();
+        List<EndpointDto> endpoints = new ArrayList<>();
+        for (EndpointV2 e : service.getActiveEndpoints()) {
+            endpoints.add(EndpointDto.builder()
+                    .method(e.getMethod())
+                    .path(e.getPath())
+                    .removed(e.getStatusInfo().getRemoved())
+                    .build());
+        }
+        StatusInfo info = service.getStatusInfo();
+        return ServiceVersionDto.builder()
+                .serviceVersion(service.getServiceVersion())
+                .serviceType(serviceType)
+                .hasDescriptor(SOAP_SERVICE_TYPE.equals(serviceType) || OPENAPI_SERVICE_TYPE.equals(serviceType))
+                .endpoints(endpoints)
+                .created(info.getCreated())
+                .changed(info.getChanged())
+                .fetched(info.getFetched())
+                .removed(info.getRemoved())
+                .build();
+    }
 }

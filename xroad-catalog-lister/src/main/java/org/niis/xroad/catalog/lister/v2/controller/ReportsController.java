@@ -56,10 +56,11 @@ import java.util.List;
  *       including today.</li>
  * </ul>
  * Defaults are computed from an injected {@link Clock} so tests can pin "today". Resolved values
- * are passed to {@link ReportServiceV2#validateReportRange}, which still enforces
- * {@code since < until} and the 90-day cap (spec §4) and raises {@link IllegalArgumentException}
- * on violation — mapped to {@code 400 BadRequest} by {@link V2ExceptionHandler}. Both endpoints
- * declare {@code produces=application/json} so Spring rejects content negotiation for non-JSON
+ * are passed straight to {@link ReportServiceV2#serviceStatistics} / {@link ReportServiceV2#changeLog},
+ * which validate the range via {@code DateTimeUtil.validateDateRange} — {@code since == until} is
+ * allowed, {@code since} after {@code until} or a range over 90 days (spec §4) raises
+ * {@link IllegalArgumentException}, mapped to {@code 400 BadRequest} by {@link V2ExceptionHandler}.
+ * Both endpoints declare {@code produces=application/json} so Spring rejects content negotiation for non-JSON
  * {@code Accept} headers (spec §4: "JSON only — no CSV in V2"). Clients that opt into an
  * unsupported media type get a {@code 406 Not Acceptable} from the framework, which is the
  * correct HTTP-level response.

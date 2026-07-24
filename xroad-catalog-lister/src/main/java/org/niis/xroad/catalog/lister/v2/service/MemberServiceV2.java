@@ -24,9 +24,6 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import org.niis.xroad.catalog.lister.v2.converter.MemberConverter;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceAggregator;
-import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
 import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
@@ -45,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 /**
@@ -54,31 +52,23 @@ import java.util.TreeMap;
 public class MemberServiceV2 {
 
     private final MemberRepositoryV2 memberRepository;
-    private final MemberConverter converter;
-    private final SubsystemConverter subsystemConverter;
-    private final ServiceAggregator serviceAggregator;
     private final SharedParamsCache sharedParamsCache;
     private final InstanceContext instanceContext;
 
-    public MemberServiceV2(MemberRepositoryV2 memberRepository, MemberConverter converter,
-            SubsystemConverter subsystemConverter, ServiceAggregator serviceAggregator,
-            SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+    public MemberServiceV2(MemberRepositoryV2 memberRepository, SharedParamsCache sharedParamsCache,
+            InstanceContext instanceContext) {
         this.memberRepository = memberRepository;
-        this.converter = converter;
-        this.subsystemConverter = subsystemConverter;
-        this.serviceAggregator = serviceAggregator;
         this.sharedParamsCache = sharedParamsCache;
         this.instanceContext = instanceContext;
     }
 
     /**
-     * @return the member's flat DTO, or {@code null} if absent or removed (controller maps to 404)
+     * @return the member's flat DTO, or an empty {@link Optional} if absent or removed (controller maps to 404)
      */
-    public MemberDto getByNaturalKey(String memberClass, String memberCode) {
+    public Optional<MemberDto> getByNaturalKey(String memberClass, String memberCode) {
         return memberRepository.findActiveSummaryByNaturalKey(
                         instanceContext.getCurrentInstance(), memberClass, memberCode)
-                .map(converter::toDto)
-                .orElse(null);
+                .map(MemberDto::from);
     }
 
     public boolean existsActive(String memberClass, String memberCode) {
@@ -89,22 +79,22 @@ public class MemberServiceV2 {
     public Page<MemberDto> getForList(String memberClass, Boolean isProvider, Pageable pageable) {
         Page<MemberListRow> rows = memberRepository.findActiveForList(
                 instanceContext.getCurrentInstance(), memberClass, isProvider, pageable);
-        return rows.map(converter::toDto);
+        return rows.map(MemberDto::from);
     }
 
     /**
-     * Builds the full nested subtree for a single member ({@code ?full=true}). Returns {@code null}
-     * when the member is absent so the controller can map to 404. Subsystems are sorted by
-     * {@code subsystemCode} ascending and services within each subsystem by {@code serviceCode}
-     * ascending for deterministic output across restarts.
+     * Builds the full nested subtree for a single member ({@code ?full=true}). Returns an empty
+     * {@link Optional} when the member is absent so the controller can map to 404. Subsystems are
+     * sorted by {@code subsystemCode} ascending and services within each subsystem by
+     * {@code serviceCode} ascending for deterministic output across restarts.
      */
-    public FullMemberDto getFullTree(String memberClass, String memberCode) {
-        MemberV2 member = memberRepository.findActiveWithTreeByNaturalKey(
-                instanceContext.getCurrentInstance(), memberClass, memberCode).orElse(null);
-        if (member == null) {
-            return null;
-        }
-        SubsystemNameLookup nameLookup = sharedParamsCache.subsystemNames();
+    public Optional<FullMemberDto> getFullTree(String memberClass, String memberCode) {
+        return memberRepository.findActiveWithTreeByNaturalKey(
+                        instanceContext.getCurrentInstance(), memberClass, memberCode)
+                .map(member -> toFullDto(member, sharedParamsCache.subsystemNames()));
+    }
+
+    private FullMemberDto toFullDto(MemberV2 member, SubsystemNameLookup nameLookup) {
         List<FullSubsystemDto> subsystemDtos = new ArrayList<>();
         List<SubsystemV2> sorted = member.getActiveSubsystems().stream()
                 .sorted(Comparator.comparing(SubsystemV2::getSubsystemCode)).toList();
@@ -115,11 +105,11 @@ public class MemberServiceV2 {
             }
             List<ServiceDto> services = new ArrayList<>();
             for (List<ServiceV2> group : byCode.values()) {
-                services.add(serviceAggregator.fromEntities(member.getMemberClass(), member.getMemberCode(),
+                services.add(ServiceDto.fromEntities(member.getMemberClass(), member.getMemberCode(),
                         member.getName(), sub.getSubsystemCode(), group));
             }
-            subsystemDtos.add(subsystemConverter.toFullDto(sub, nameLookup, services));
+            subsystemDtos.add(FullSubsystemDto.from(sub, nameLookup, services));
         }
-        return converter.toFullDto(member, subsystemDtos);
+        return FullMemberDto.from(member, subsystemDtos);
     }
 }

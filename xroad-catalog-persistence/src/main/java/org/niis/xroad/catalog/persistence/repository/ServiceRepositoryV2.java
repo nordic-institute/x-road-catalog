@@ -150,22 +150,4 @@ public interface ServiceRepositoryV2 extends Repository<ServiceV2, Long>, V2Read
     Optional<ServiceV2> findActiveNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
             @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
             @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
-
-    @Query("SELECT COUNT(s) > 0 FROM ServiceV2 s WHERE " + NATURAL_KEY + " AND " + ACTIVE_CASCADE)
-    boolean existsActiveByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
-            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
-
-    @Query("SELECT COUNT(s) > 0 FROM ServiceV2 s WHERE " + NATURAL_KEY
-            + " AND s.serviceVersion = :serviceVersion AND " + ACTIVE_CASCADE)
-    boolean existsActiveVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
-            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode,
-            @Param("serviceVersion") String serviceVersion);
-
-    @Query("SELECT COUNT(s) > 0 FROM ServiceV2 s WHERE " + NATURAL_KEY
-            + " AND s.serviceVersion IS NULL AND " + ACTIVE_CASCADE)
-    boolean existsActiveNullVersionByNaturalKey(@Param("xRoadInstance") String xRoadInstance,
-            @Param("memberClass") String memberClass, @Param("memberCode") String memberCode,
-            @Param("subsystemCode") String subsystemCode, @Param("serviceCode") String serviceCode);
 }

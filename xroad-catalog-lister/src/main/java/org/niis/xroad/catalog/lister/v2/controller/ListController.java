@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.catalog.lister.v2.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
@@ -41,7 +42,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -94,12 +94,13 @@ public class ListController {
     @GetMapping("/members")
     public PagedCollectionResponse<MemberDto> listMembers(
             @RequestParam(value = "memberClass", required = false) String memberClass,
-            @RequestParam(value = "provider", required = false) String providerRaw,
+            @Parameter(description = "Filters by provider status. Accepts true/false/on/off/yes/no/1/0; "
+                    + "omitted or null applies no filter.")
+            @RequestParam(value = "provider", required = false) Boolean provider,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size,
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-        Boolean provider = parseTriState("provider", providerRaw);
         Pageable pageable = PaginationUtil.toPageable(page, size, sortBy, sortOrder, "name",
                 MEMBER_SORT_FIELDS, STATUS_TIMESTAMP_ALIASES);
         Page<MemberDto> result = memberService.getForList(memberClass, provider, pageable);
@@ -136,20 +137,5 @@ public class ListController {
         String resolvedType = (serviceType == null || serviceType.isBlank()) ? null : serviceType;
         Page<ServiceDto> result = serviceService.getForList(memberClass, resolvedType, pageable);
         return PagedCollectionResponse.fromPage(result);
-    }
-
-    private static Boolean parseTriState(String paramName, String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        String lower = raw.toLowerCase(Locale.ROOT);
-        if ("true".equals(lower)) {
-            return Boolean.TRUE;
-        }
-        if ("false".equals(lower)) {
-            return Boolean.FALSE;
-        }
-        throw new IllegalArgumentException(
-                "Invalid value for query parameter '" + paramName + "': '" + raw + "'. Allowed: 'true', 'false'");
     }
 }

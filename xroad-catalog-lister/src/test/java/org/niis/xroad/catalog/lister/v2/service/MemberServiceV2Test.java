@@ -29,10 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.catalog.lister.v2.converter.MemberConverter;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceAggregator;
-import org.niis.xroad.catalog.lister.v2.converter.ServiceVersionConverter;
-import org.niis.xroad.catalog.lister.v2.converter.SubsystemConverter;
 import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
@@ -56,8 +52,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -81,11 +75,7 @@ class MemberServiceV2Test {
 
     @BeforeEach
     void setUp() {
-        MemberConverter converter = new MemberConverter();
-        SubsystemConverter subsystemConverter = new SubsystemConverter();
-        ServiceAggregator serviceAggregator = new ServiceAggregator(new ServiceVersionConverter());
-        service = new MemberServiceV2(memberRepository, converter, subsystemConverter, serviceAggregator,
-                sharedParamsCache, instanceContext);
+        service = new MemberServiceV2(memberRepository, sharedParamsCache, instanceContext);
     }
 
     @Test
@@ -94,9 +84,10 @@ class MemberServiceV2Test {
         when(memberRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, MEMBER_CODE))
                 .thenReturn(Optional.of(memberListRow(PUB, MEMBER_CODE, "Nahka-Albert", true, 2, 3)));
 
-        MemberDto dto = service.getByNaturalKey(PUB, MEMBER_CODE);
+        Optional<MemberDto> result = service.getByNaturalKey(PUB, MEMBER_CODE);
 
-        assertNotNull(dto);
+        assertTrue(result.isPresent());
+        MemberDto dto = result.get();
         assertEquals("Nahka-Albert", dto.getName());
         assertTrue(dto.isProvider());
         assertEquals(2, dto.getSubsystemCount());
@@ -104,12 +95,12 @@ class MemberServiceV2Test {
     }
 
     @Test
-    void testGetByNaturalKeyReturnsNullWhenAbsent() {
+    void testGetByNaturalKeyReturnsEmptyOptionalWhenAbsent() {
         when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, "does-not-exist"))
                 .thenReturn(Optional.empty());
 
-        assertNull(service.getByNaturalKey(PUB, "does-not-exist"));
+        assertTrue(service.getByNaturalKey(PUB, "does-not-exist").isEmpty());
     }
 
     @Test
@@ -135,12 +126,12 @@ class MemberServiceV2Test {
     }
 
     @Test
-    void testGetFullTreeReturnsNullForMissing() {
+    void testGetFullTreeReturnsEmptyOptionalForMissing() {
         when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.findActiveWithTreeByNaturalKey(INSTANCE, PUB, "does-not-exist"))
                 .thenReturn(Optional.empty());
 
-        assertNull(service.getFullTree(PUB, "does-not-exist"));
+        assertTrue(service.getFullTree(PUB, "does-not-exist").isEmpty());
     }
 
     @Test
@@ -163,14 +154,15 @@ class MemberServiceV2Test {
         when(memberRepository.findActiveWithTreeByNaturalKey(INSTANCE, PUB, MEMBER_CODE))
                 .thenReturn(Optional.of(member));
 
-        FullMemberDto dto = service.getFullTree(PUB, MEMBER_CODE);
+        Optional<FullMemberDto> result = service.getFullTree(PUB, MEMBER_CODE);
 
-        assertNotNull(dto);
+        assertTrue(result.isPresent());
+        FullMemberDto dto = result.get();
         assertEquals(PUB, dto.getMemberClass());
         assertEquals(MEMBER_CODE, dto.getMemberCode());
         assertTrue(dto.isProvider());
         assertEquals(2, dto.getSubsystemCount());
-        // serviceCount is the raw active-row count (MemberConverter#toFullDto sums getActiveServices()
+        // serviceCount is the raw active-row count (FullMemberDto#from sums getActiveServices()
         // per subsystem), not the aggregated-DTO count: subsystem_a1 has 3 rows (mixedSvc v1, v2,
         // getRandom) and subsystem_b1 has 1 (onlyService) = 4.
         assertEquals(4, dto.getServiceCount());
@@ -206,9 +198,10 @@ class MemberServiceV2Test {
         when(memberRepository.findActiveWithTreeByNaturalKey(INSTANCE, PUB, MEMBER_CODE))
                 .thenReturn(Optional.of(member));
 
-        FullMemberDto dto = service.getFullTree(PUB, MEMBER_CODE);
+        Optional<FullMemberDto> result = service.getFullTree(PUB, MEMBER_CODE);
 
-        assertNotNull(dto);
+        assertTrue(result.isPresent());
+        FullMemberDto dto = result.get();
         assertEquals(1, dto.getSubsystems().size(), "removed subsystem must not appear in the active-only tree");
         assertEquals("active-sub", dto.getSubsystems().get(0).getSubsystemCode());
         assertFalse(dto.getSubsystems().get(0).getServices().isEmpty());

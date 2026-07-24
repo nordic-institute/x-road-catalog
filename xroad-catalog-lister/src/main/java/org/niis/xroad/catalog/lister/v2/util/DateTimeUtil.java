@@ -32,8 +32,6 @@ import java.time.temporal.ChronoUnit;
 
 public final class DateTimeUtil {
 
-    private static final String VERSION_SENTINEL = "null";
-
     private DateTimeUtil() {
     }
 
@@ -87,19 +85,5 @@ public final class DateTimeUtil {
      */
     public static LocalDate today(Clock clock) {
         return LocalDate.now(clock);
-    }
-
-    /**
-     * Resolves the URL-segment version sentinel. The literal {@code "null"} (case-sensitive) in a
-     * service-version path segment maps to a Java {@code null}, which the persistence layer treats
-     * as "service has no version label". Any other string is passed through unchanged. A real
-     * version literally named {@code "null"} is therefore unaddressable; this is documented in the
-     * V2 OpenAPI spec.
-     */
-    public static String resolveVersionSentinel(String serviceVersion) {
-        if (VERSION_SENTINEL.equals(serviceVersion)) {
-            return null;
-        }
-        return serviceVersion;
     }
 }

@@ -44,18 +44,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v2/browse")
 public class BrowseDescriptorController {
 
-    private static final String VERSION_DESCRIPTOR_PATH = "/member-classes/{memberClass}/members/{memberCode}"
-            + "/subsystems/{subsystemCode}/services/{serviceCode}/versions/{serviceVersion}/descriptor";
-    private static final String SERVICE_DESCRIPTOR_PATH = "/member-classes/{memberClass}/members/{memberCode}"
-            + "/subsystems/{subsystemCode}/services/{serviceCode}/descriptor";
-
     private final ServiceServiceV2 serviceService;
 
     public BrowseDescriptorController(ServiceServiceV2 serviceService) {
         this.serviceService = serviceService;
     }
 
-    @GetMapping(VERSION_DESCRIPTOR_PATH)
+    @GetMapping("/member-classes/{memberClass}/members/{memberCode}"
+            + "/subsystems/{subsystemCode}/services/{serviceCode}/versions/{serviceVersion}/descriptor")
     public ResponseEntity<byte[]> getVersionDescriptor(
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
@@ -69,33 +65,28 @@ public class BrowseDescriptorController {
             @PathVariable("serviceVersion") String serviceVersion) {
         // serviceVersion is the raw URL segment ("null" sentinel resolved inside the service layer).
         DescriptorPayload payload = serviceService.getVersionDescriptor(
-                memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
-        if (payload == null) {
-            throw new V2ResourceNotFoundException(
-                    "Descriptor for service version '" + memberClass + "/" + memberCode + "/"
-                            + subsystemCode + "/" + serviceCode + "/" + serviceVersion + "' not found");
-        }
+                        memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)
+                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                        "Descriptor for service version", memberClass, memberCode, subsystemCode, serviceCode, serviceVersion));
         return ResponseEntity.ok()
                 .contentType(payload.contentType())
                 .body(payload.content());
     }
 
-    @GetMapping(SERVICE_DESCRIPTOR_PATH)
+    @GetMapping("/member-classes/{memberClass}/members/{memberCode}"
+            + "/subsystems/{subsystemCode}/services/{serviceCode}/descriptor")
     public ResponseEntity<byte[]> getServiceDescriptor(
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode,
             @PathVariable("serviceCode") String serviceCode) {
         // The service layer throws MultipleVersionsException for 2+ visible versions; that maps to
-        // 409 in V2ExceptionHandler. A null result means "0 versions" or "1 version, no descriptor"
+        // 409 in V2ExceptionHandler. An empty Optional means "0 versions" or "1 version, no descriptor"
         // — both surface as 404 here without distinguishing them (spec §1.2 doesn't require it).
         DescriptorPayload payload = serviceService.getServiceLevelDescriptor(
-                memberClass, memberCode, subsystemCode, serviceCode);
-        if (payload == null) {
-            throw new V2ResourceNotFoundException(
-                    "Descriptor for service '" + memberClass + "/" + memberCode + "/"
-                            + subsystemCode + "/" + serviceCode + "' not found");
-        }
+                        memberClass, memberCode, subsystemCode, serviceCode)
+                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                        "Descriptor for service", memberClass, memberCode, subsystemCode, serviceCode));
         return ResponseEntity.ok()
                 .contentType(payload.contentType())
                 .body(payload.content());

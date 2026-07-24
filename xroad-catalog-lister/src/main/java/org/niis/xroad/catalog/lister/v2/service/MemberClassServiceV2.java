@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -60,23 +61,23 @@ public class MemberClassServiceV2 {
      * {@link MemberRepositoryV2#countActiveByMemberClass} rather than {@link #list()} so a lookup
      * for one code costs one grouped count query, not a full description parse plus a full grouped
      * count query. A code is considered to exist when it has either a shared-params description or
-     * at least one active member; an unknown code (neither) returns {@code null} (controller maps to
-     * 404).
+     * at least one active member; an unknown code (neither) returns an empty {@link Optional}
+     * (controller maps to 404).
      */
-    public MemberClassDto getByCode(String code) {
+    public Optional<MemberClassDto> getByCode(String code) {
         if (code == null) {
-            return null;
+            return Optional.empty();
         }
         String description = sharedParamsCache.memberClassDescriptions().get(code);
         long count = memberRepository.countActiveByMemberClass(instanceContext.getCurrentInstance(), code);
         if (description == null && count == 0) {
-            return null;
+            return Optional.empty();
         }
-        return MemberClassDto.builder()
+        return Optional.of(MemberClassDto.builder()
                 .code(code)
                 .description(description)
                 .memberCount(Math.toIntExact(count))
-                .build();
+                .build());
     }
 
     /**

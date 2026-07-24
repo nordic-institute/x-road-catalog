@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 import java.time.LocalDateTime;
 
@@ -47,4 +48,17 @@ public class ErrorLogDto {
     private final String serviceVersion;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime created;
+
+    public static ErrorLogDto from(ErrorLog e) {
+        return ErrorLogDto.builder()
+                .message(e.getMessage())
+                .code(e.getCode())
+                .memberClass(e.getMemberClass())
+                .memberCode(e.getMemberCode())
+                .subsystemCode(e.getSubsystemCode())
+                .serviceCode(e.getServiceCode())
+                .serviceVersion(e.getServiceVersion())
+                .created(e.getCreated())
+                .build();
+    }
 }

@@ -28,12 +28,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
-import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
 import org.niis.xroad.catalog.lister.v2.service.ErrorLogServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.MemberClassServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.MemberServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -98,7 +93,6 @@ class BrowseErrorsControllerTest {
     private static final String JSON_STATUS = "$.status";
     private static final String JSON_MESSAGE = "$.message";
     private static final String BAD_REQUEST = "BadRequest";
-    private static final String NOT_FOUND_ERROR = "NotFound";
     private static final String SAMPLE_MESSAGE = "boom";
     private static final String SAMPLE_CODE = "ERR_42";
 
@@ -109,18 +103,6 @@ class BrowseErrorsControllerTest {
 
     @MockBean
     private ErrorLogServiceV2 errorLogService;
-
-    @MockBean
-    private MemberClassServiceV2 memberClassService;
-
-    @MockBean
-    private MemberServiceV2 memberService;
-
-    @MockBean
-    private SubsystemServiceV2 subsystemService;
-
-    @MockBean
-    private ServiceServiceV2 serviceService;
 
     @Test
     void catalogErrorsHappyPathReturns200WithPaginatedShape() throws Exception {
@@ -208,6 +190,16 @@ class BrowseErrorsControllerTest {
 
     @Test
     void catalogErrorsSinceAfterUntilReturns400() throws Exception {
+        // Range validation now lives in ErrorLogServiceV2 (Task B4), not the controller. This test
+        // pins that the controller still parses since > until through to the service unchanged, and
+        // that the IllegalArgumentException the (real) service would raise maps to 400 through
+        // V2ExceptionHandler regardless of which layer threw it.
+        LocalDateTime sinceAfter = LocalDateTime.of(2024, 3, 1, 0, 0);
+        LocalDateTime untilBefore = LocalDateTime.of(2024, 2, 1, 0, 0);
+        when(errorLogService.get(eq(null), eq(null), eq(null), eq(null), eq(null),
+                eq(sinceAfter), eq(untilBefore), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException("'since' must not be after 'until'"));
+
         mockMvc.perform(get(CATALOG_ROUTE)
                         .param(SINCE_PARAM, "2024-03-01")
                         .param(UNTIL_PARAM, "2024-02-01"))
@@ -296,7 +288,6 @@ class BrowseErrorsControllerTest {
 
     @Test
     void memberClassErrorsHappyPathDispatchesWithMemberClassOnly() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
         when(errorLogService.get(eq(PUB), eq(null), eq(null), eq(null), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -308,21 +299,19 @@ class BrowseErrorsControllerTest {
     }
 
     @Test
-    void memberClassErrorsUnknownMemberClassReturns404() throws Exception {
-        when(memberClassService.getByCode(MISSING)).thenReturn(null);
+    void memberClassErrorsUnknownMemberClassReturns200WithEmptyPage() throws Exception {
+        when(errorLogService.get(eq(MISSING), eq(null), eq(null), eq(null), eq(null),
+                eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
+                .thenReturn(pageOf());
 
         mockMvc.perform(get(memberClassRoute(MISSING))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath(JSON_STATUS).value(404))
-                .andExpect(jsonPath(JSON_ERROR).value(NOT_FOUND_ERROR))
-                .andExpect(jsonPath(JSON_MESSAGE).value("Member class 'missing' not found"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_TOTAL_COUNT).value(0));
     }
 
     @Test
     void memberErrorsHappyPathDispatchesWithMemberClassAndCode() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(null), eq(null), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -334,31 +323,31 @@ class BrowseErrorsControllerTest {
     }
 
     @Test
-    void memberErrorsUnknownMemberClassReturns404BeforeMemberLookup() throws Exception {
-        when(memberClassService.getByCode(MISSING)).thenReturn(null);
+    void memberErrorsUnknownMemberClassReturns200WithEmptyPage() throws Exception {
+        when(errorLogService.get(eq(MISSING), eq(MEMBER_CODE), eq(null), eq(null), eq(null),
+                eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
+                .thenReturn(pageOf());
 
         mockMvc.perform(get(memberRoute(MISSING, MEMBER_CODE))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath(JSON_MESSAGE).value("Member class 'missing' not found"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_TOTAL_COUNT).value(0));
     }
 
     @Test
-    void memberErrorsRemovedMemberReturns404() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(false);
+    void memberErrorsUnknownMemberReturns200WithEmptyPage() throws Exception {
+        when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(null), eq(null), eq(null),
+                eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
+                .thenReturn(pageOf());
 
         mockMvc.perform(get(memberRoute(PUB, MEMBER_CODE))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath(JSON_MESSAGE).value("Member 'PUB/14151328' not found"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_TOTAL_COUNT).value(0));
     }
 
     @Test
     void subsystemErrorsHappyPath() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(null), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -370,25 +359,19 @@ class BrowseErrorsControllerTest {
     }
 
     @Test
-    void subsystemErrorsRemovedSubsystemReturns404() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(false);
+    void subsystemErrorsUnknownSubsystemReturns200WithEmptyPage() throws Exception {
+        when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(null), eq(null),
+                eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
+                .thenReturn(pageOf());
 
         mockMvc.perform(get(subsystemRoute(PUB, MEMBER_CODE, SUBSYSTEM_CODE))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath(JSON_MESSAGE)
-                        .value("Subsystem 'PUB/14151328/subsystem_a1' not found"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_TOTAL_COUNT).value(0));
     }
 
     @Test
     void serviceErrorsHappyPath() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
-        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
-                .thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq(null),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -400,28 +383,19 @@ class BrowseErrorsControllerTest {
     }
 
     @Test
-    void serviceErrorsUnknownServiceReturns404() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
-        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, MISSING)).thenReturn(false);
+    void serviceErrorsUnknownServiceReturns200WithEmptyPage() throws Exception {
+        when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(MISSING), eq(null),
+                eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
+                .thenReturn(pageOf());
 
         mockMvc.perform(get(serviceRoute(PUB, MEMBER_CODE, SUBSYSTEM_CODE, MISSING))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath(JSON_MESSAGE)
-                        .value("Service 'PUB/14151328/subsystem_a1/missing' not found"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_TOTAL_COUNT).value(0));
     }
 
     @Test
     void versionErrorsHappyPathDispatchesWithRawVersion() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
-        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
-                .thenReturn(true);
-        when(serviceService.existsActiveVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, VERSION))
-                .thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq(VERSION),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf(errorDto(SINCE_PARSED)));
@@ -434,13 +408,6 @@ class BrowseErrorsControllerTest {
 
     @Test
     void versionErrorsNullSentinelPassesRawLiteralToErrorService() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
-        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
-                .thenReturn(true);
-        when(serviceService.existsActiveVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, NULL_LITERAL))
-                .thenReturn(true);
         when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq(NULL_LITERAL),
                 eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
                 .thenReturn(pageOf());
@@ -454,27 +421,35 @@ class BrowseErrorsControllerTest {
     }
 
     @Test
-    void versionErrorsUnknownVersionReturns404() throws Exception {
-        when(memberClassService.getByCode(PUB)).thenReturn(memberClassDto());
-        when(memberService.existsActive(PUB, MEMBER_CODE)).thenReturn(true);
-        when(subsystemService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE)).thenReturn(true);
-        when(serviceService.existsActive(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE))
-                .thenReturn(true);
-        when(serviceService.existsActiveVersion(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, "v9")).thenReturn(false);
+    void versionErrorsUnknownVersionReturns200WithEmptyPage() throws Exception {
+        when(errorLogService.get(eq(PUB), eq(MEMBER_CODE), eq(SUBSYSTEM_CODE), eq(SERVICE_CODE), eq("v9"),
+                eq(SINCE_PARSED), eq(UNTIL_PARSED), any(Pageable.class)))
+                .thenReturn(pageOf());
 
         mockMvc.perform(get(versionRoute(PUB, MEMBER_CODE, SUBSYSTEM_CODE, SERVICE_CODE, "v9"))
                         .param(SINCE_PARAM, SINCE_VALUE).param(UNTIL_PARAM, UNTIL_VALUE))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath(JSON_MESSAGE)
-                        .value("Service version 'PUB/14151328/subsystem_a1/getRandom/v9' not found"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(JSON_TOTAL_COUNT).value(0));
     }
 
     @Test
     void errorsRangeOver90DaysIsRejectedWith400() throws Exception {
+        // See catalogErrorsSinceAfterUntilReturns400: the 90-day cap is enforced by
+        // ErrorLogServiceV2, not the controller — stub the (mocked) service to mimic the real
+        // rejection and verify it still reaches the client as 400 via V2ExceptionHandler.
+        LocalDateTime since = LocalDateTime.of(2025, 1, 1, 0, 0);
+        LocalDateTime until = LocalDateTime.of(2025, 6, 1, 0, 0);
+        when(errorLogService.get(eq(null), eq(null), eq(null), eq(null), eq(null),
+                eq(since), eq(until), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException("Date range must not exceed 90 days (was 151 days)"));
+
         mockMvc.perform(get("/api/v2/browse/errors")
                         .param("since", "2025-01-01")
                         .param("until", "2025-06-01"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath(JSON_STATUS).value(400))
+                .andExpect(jsonPath(JSON_ERROR).value(BAD_REQUEST))
+                .andExpect(jsonPath(JSON_MESSAGE).value(Matchers.containsString("90 days")));
     }
 
     @Test
@@ -524,9 +499,5 @@ class BrowseErrorsControllerTest {
                 .serviceVersion(VERSION)
                 .created(created)
                 .build();
-    }
-
-    private static MemberClassDto memberClassDto() {
-        return MemberClassDto.builder().code(PUB).description("Public").memberCount(1).build();
     }
 }

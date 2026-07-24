@@ -37,6 +37,8 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @TestPropertySource(properties = {"xroad-catalog.shared-params-file=src/test/resources/shared-params-dev-cs.xml"})
@@ -46,8 +48,11 @@ public class ErrorLogServiceV2Test {
     @Autowired
     private ErrorLogServiceV2 errorLogService;
 
-    private final LocalDateTime start = LocalDateTime.parse("2020-01-01T00:00:00");
-    private final LocalDateTime end = LocalDateTime.parse("2021-01-01T00:00:00");
+    // All fixture error_log rows are created on 2020-05-04; row 7 (2022-01-01) is deliberately
+    // outside this window to prove the instance-level query is bounded. Kept well under the
+    // 90-day cap that ErrorLogServiceV2.get now enforces (Task B4).
+    private final LocalDateTime start = LocalDateTime.parse("2020-04-01T00:00:00");
+    private final LocalDateTime end = LocalDateTime.parse("2020-06-01T00:00:00");
 
     @Test
     public void testGetByServiceMatchesVersionRows() {
@@ -117,10 +122,44 @@ public class ErrorLogServiceV2Test {
 
     @Test
     public void testGetAtInstanceLevel() {
-        // All rows whose created falls in 2020 (rows 1-6, 8-10); row 7 is 2022 and excluded
+        // All rows whose created falls inside [start, end) (rows 1-6, 8-10); row 7 is 2022 and excluded
         Page<ErrorLogDto> page = errorLogService.get(
                 null, null, null, null, null,
                 start, end, PageRequest.of(0, 100));
+        assertEquals(9, page.getTotalElements());
+    }
+
+    @Test
+    public void testGetAcceptsSinceEqualUntil() {
+        // Canonical DateTimeUtil semantics: since == until is an empty window, not an error.
+        Page<ErrorLogDto> page = errorLogService.get(
+                null, null, null, null, null,
+                start, start, PageRequest.of(0, 100));
+        assertTrue(page.isEmpty());
+    }
+
+    @Test
+    public void testGetRejectsSinceAfterUntil() {
+        assertThrows(IllegalArgumentException.class, () -> errorLogService.get(
+                null, null, null, null, null,
+                end, start, PageRequest.of(0, 100)));
+    }
+
+    @Test
+    public void testGetRejectsRangeOver90Days() {
+        LocalDateTime tooFar = start.plusDays(91);
+        assertThrows(IllegalArgumentException.class, () -> errorLogService.get(
+                null, null, null, null, null,
+                start, tooFar, PageRequest.of(0, 100)));
+    }
+
+    @Test
+    public void testGetAcceptsExactly90DaysRange() {
+        // Boundary: 90 days is allowed; only > 90 is rejected (DateTimeUtil.validateDateRange).
+        LocalDateTime exactlyMax = start.plusDays(90);
+        Page<ErrorLogDto> page = errorLogService.get(
+                null, null, null, null, null,
+                start, exactlyMax, PageRequest.of(0, 100));
         assertEquals(9, page.getTotalElements());
     }
 }

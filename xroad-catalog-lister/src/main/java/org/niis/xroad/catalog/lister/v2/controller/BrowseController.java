@@ -25,7 +25,6 @@
 package org.niis.xroad.catalog.lister.v2.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
@@ -83,11 +82,8 @@ public class BrowseController {
 
     @GetMapping("/member-classes/{memberClass}")
     public MemberClassDto getMemberClass(@PathVariable("memberClass") String memberClass) {
-        MemberClassDto dto = memberClassService.getByCode(memberClass);
-        if (dto == null) {
-            throw new V2ResourceNotFoundException("Member class '" + memberClass + "' not found");
-        }
-        return dto;
+        return memberClassService.getByCode(memberClass)
+                .orElseThrow(() -> V2ResourceNotFoundException.of("Member class", memberClass));
     }
 
     @GetMapping("/member-classes/{memberClass}/members")
@@ -97,9 +93,8 @@ public class BrowseController {
             @RequestParam(value = "size", required = false) Integer size,
             @RequestParam(value = "sortBy", required = false) String sortBy,
             @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-        if (memberClassService.getByCode(memberClass) == null) {
-            throw new V2ResourceNotFoundException("Member class '" + memberClass + "' not found");
-        }
+        memberClassService.getByCode(memberClass)
+                .orElseThrow(() -> V2ResourceNotFoundException.of("Member class", memberClass));
         Pageable pageable = PaginationUtil.toPageable(page, size, sortBy, sortOrder, "name",
                 MEMBER_SORT_FIELDS, MEMBER_SORT_ALIASES);
         Page<MemberDto> result = memberService.getForList(memberClass, null, pageable);
@@ -112,17 +107,11 @@ public class BrowseController {
             @PathVariable("memberCode") String memberCode,
             @RequestParam(value = "full", defaultValue = "false") boolean full) {
         if (full) {
-            FullMemberDto dto = memberService.getFullTree(memberClass, memberCode);
-            if (dto == null) {
-                throw memberNotFound(memberClass, memberCode);
-            }
-            return dto;
+            return memberService.getFullTree(memberClass, memberCode)
+                    .orElseThrow(() -> V2ResourceNotFoundException.of("Member", memberClass, memberCode));
         }
-        MemberDto dto = memberService.getByNaturalKey(memberClass, memberCode);
-        if (dto == null) {
-            throw memberNotFound(memberClass, memberCode);
-        }
-        return dto;
+        return memberService.getByNaturalKey(memberClass, memberCode)
+                .orElseThrow(() -> V2ResourceNotFoundException.of("Member", memberClass, memberCode));
     }
 
     @GetMapping("/member-classes/{memberClass}/members/{memberCode}/subsystems")
@@ -130,7 +119,7 @@ public class BrowseController {
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode) {
         List<SubsystemDto> items = subsystemService.getForMember(memberClass, memberCode)
-                .orElseThrow(() -> memberNotFound(memberClass, memberCode));
+                .orElseThrow(() -> V2ResourceNotFoundException.of("Member", memberClass, memberCode));
         return PagedCollectionResponse.fromList(items);
     }
 
@@ -139,7 +128,7 @@ public class BrowseController {
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode) {
         if (!memberService.existsActive(memberClass, memberCode)) {
-            throw memberNotFound(memberClass, memberCode);
+            throw V2ResourceNotFoundException.of("Member", memberClass, memberCode);
         }
         List<SecurityServerBrowseItemDto> items = securityServerService.getForMember(memberClass, memberCode);
         return PagedCollectionResponse.fromList(items);
@@ -150,11 +139,8 @@ public class BrowseController {
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode) {
-        SubsystemDto dto = subsystemService.getByNaturalKey(memberClass, memberCode, subsystemCode);
-        if (dto == null) {
-            throw subsystemNotFound(memberClass, memberCode, subsystemCode);
-        }
-        return dto;
+        return subsystemService.getByNaturalKey(memberClass, memberCode, subsystemCode)
+                .orElseThrow(() -> V2ResourceNotFoundException.of("Subsystem", memberClass, memberCode, subsystemCode));
     }
 
     @GetMapping("/member-classes/{memberClass}/members/{memberCode}/subsystems/{subsystemCode}/services")
@@ -163,7 +149,7 @@ public class BrowseController {
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode) {
         List<ServiceDto> items = serviceService.getForSubsystem(memberClass, memberCode, subsystemCode)
-                .orElseThrow(() -> subsystemNotFound(memberClass, memberCode, subsystemCode));
+                .orElseThrow(() -> V2ResourceNotFoundException.of("Subsystem", memberClass, memberCode, subsystemCode));
         return PagedCollectionResponse.fromList(items);
     }
 
@@ -173,11 +159,9 @@ public class BrowseController {
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode,
             @PathVariable("serviceCode") String serviceCode) {
-        ServiceDto dto = serviceService.getByNaturalKey(memberClass, memberCode, subsystemCode, serviceCode);
-        if (dto == null) {
-            throw serviceNotFound(memberClass, memberCode, subsystemCode, serviceCode);
-        }
-        return dto;
+        return serviceService.getByNaturalKey(memberClass, memberCode, subsystemCode, serviceCode)
+                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                        "Service", memberClass, memberCode, subsystemCode, serviceCode));
     }
 
     @GetMapping("/member-classes/{memberClass}/members/{memberCode}/subsystems/{subsystemCode}"
@@ -189,7 +173,8 @@ public class BrowseController {
             @PathVariable("serviceCode") String serviceCode) {
         List<ServiceVersionDto> items = serviceService.getVersions(
                         memberClass, memberCode, subsystemCode, serviceCode)
-                .orElseThrow(() -> serviceNotFound(memberClass, memberCode, subsystemCode, serviceCode));
+                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                        "Service", memberClass, memberCode, subsystemCode, serviceCode));
         return PagedCollectionResponse.fromList(items);
     }
 
@@ -207,29 +192,8 @@ public class BrowseController {
                     example = "v1")
             @PathVariable("serviceVersion") String serviceVersion) {
         // Pass the raw URL segment through; the service layer resolves the "null" sentinel to null.
-        ServiceVersionDto dto = serviceService.getVersion(
-                memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
-        if (dto == null) {
-            throw new V2ResourceNotFoundException(
-                    "Service version '" + memberClass + "/" + memberCode + "/" + subsystemCode + "/"
-                            + serviceCode + "/" + serviceVersion + "' not found");
-        }
-        return dto;
-    }
-
-    private V2ResourceNotFoundException memberNotFound(String memberClass, String memberCode) {
-        return new V2ResourceNotFoundException(
-                "Member '" + memberClass + "/" + memberCode + "' not found");
-    }
-
-    private V2ResourceNotFoundException subsystemNotFound(String memberClass, String memberCode, String subsystemCode) {
-        return new V2ResourceNotFoundException(
-                "Subsystem '" + memberClass + "/" + memberCode + "/" + subsystemCode + "' not found");
-    }
-
-    private V2ResourceNotFoundException serviceNotFound(String memberClass, String memberCode,
-                                                        String subsystemCode, String serviceCode) {
-        return new V2ResourceNotFoundException(
-                "Service '" + memberClass + "/" + memberCode + "/" + subsystemCode + "/" + serviceCode + "' not found");
+        return serviceService.getVersion(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)
+                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                        "Service version", memberClass, memberCode, subsystemCode, serviceCode, serviceVersion));
     }
 }

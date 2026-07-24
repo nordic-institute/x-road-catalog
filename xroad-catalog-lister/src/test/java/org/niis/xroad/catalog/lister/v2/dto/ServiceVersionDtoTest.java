@@ -22,13 +22,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.converter;
+package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
-import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionSummaryDto;
 import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
 import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
 import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -42,16 +39,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ServiceVersionConverterTest {
+class ServiceVersionDtoTest {
 
     private static final String SERVICE_CODE = "getTaxInfo";
-
-    private final ServiceVersionConverter converter = new ServiceVersionConverter();
 
     @Test
     void testSoapHasDescriptorTrue() {
         ServiceV2 svc = buildService(SERVICE_CODE, "v1", "SOAP");
-        ServiceVersionDto dto = converter.toDto(svc);
+        ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("SOAP", dto.getServiceType());
         assertTrue(dto.isHasDescriptor());
     }
@@ -59,7 +54,7 @@ class ServiceVersionConverterTest {
     @Test
     void testOpenApiHasDescriptorTrue() {
         ServiceV2 svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
-        ServiceVersionDto dto = converter.toDto(svc);
+        ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("OPENAPI", dto.getServiceType());
         assertTrue(dto.isHasDescriptor());
     }
@@ -67,7 +62,7 @@ class ServiceVersionConverterTest {
     @Test
     void testRestHasDescriptorFalse() {
         ServiceV2 svc = buildService(SERVICE_CODE, null, "REST");
-        ServiceVersionDto dto = converter.toDto(svc);
+        ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("REST", dto.getServiceType());
         assertFalse(dto.isHasDescriptor(), "REST is the descriptor-less service type");
         assertNull(dto.getServiceVersion(), "null version passes through");
@@ -76,7 +71,7 @@ class ServiceVersionConverterTest {
     @Test
     void testUnknownHasDescriptorFalse() {
         ServiceV2 svc = buildService(SERVICE_CODE, null, "UNKNOWN");
-        ServiceVersionDto dto = converter.toDto(svc);
+        ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("UNKNOWN", dto.getServiceType(), "the unclassified state surfaces as-is, not as a REST guess");
         assertFalse(dto.isHasDescriptor(), "a not-yet-classified service must not claim a descriptor");
     }
@@ -86,39 +81,9 @@ class ServiceVersionConverterTest {
         ServiceV2 svc = buildService(SERVICE_CODE, "v1", "REST");
         addEndpoint(svc, "GET", "/active", false);
         addEndpoint(svc, "GET", "/removed", true);
-        ServiceVersionDto dto = converter.toDto(svc);
+        ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals(1, dto.getEndpoints().size(), "getActiveEndpoints() already excludes removed rows");
         assertEquals("/active", dto.getEndpoints().get(0).getPath());
-    }
-
-    @Test
-    void testToSummaryFromEntityReadsServiceTypeColumn() {
-        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
-        ServiceVersionSummaryDto summary = converter.toSummary(svc);
-        assertEquals("v1", summary.getServiceVersion());
-        assertEquals("OPENAPI", summary.getServiceType());
-    }
-
-    @Test
-    void testToSummaryFromEntityPopulatesTimestamps() {
-        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "REST");
-        LocalDateTime removedAt = LocalDateTime.now();
-        ReflectionTestUtils.setField(svc, "statusInfo",
-                new StatusInfo(removedAt, removedAt, removedAt, removedAt));
-        ServiceVersionSummaryDto summary = converter.toSummary(svc);
-        assertEquals(removedAt, summary.getRemoved());
-    }
-
-    @Test
-    void testToSummaryFromRowMapsAllFields() {
-        LocalDateTime now = LocalDateTime.now();
-        ServiceVersionRow row = new FakeServiceVersionRow("PUB", "14151328", "Nahka-Albert", "sub1", 1L,
-                SERVICE_CODE, "v2", "SOAP", now, now, now, null);
-        ServiceVersionSummaryDto summary = converter.toSummary(row);
-        assertEquals("v2", summary.getServiceVersion());
-        assertEquals("SOAP", summary.getServiceType());
-        assertEquals(now, summary.getCreated());
-        assertNull(summary.getRemoved());
     }
 
     private ServiceV2 buildService(String code, String version, String serviceType) {
@@ -141,72 +106,5 @@ class ServiceVersionConverterTest {
         ReflectionTestUtils.setField(e, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
         Set<EndpointV2> endpoints = service.getEndpoints();
         endpoints.add(e);
-    }
-
-    @SuppressWarnings("PMD.DataClass")
-    private record FakeServiceVersionRow(String memberClass, String memberCode, String memberName,
-                                  String subsystemCode, long subsystemId, String serviceCode, String serviceVersion,
-                                  String serviceType, LocalDateTime created, LocalDateTime changed,
-                                  LocalDateTime fetched, LocalDateTime removed) implements ServiceVersionRow {
-
-        @Override
-        public String getMemberClass() {
-            return memberClass;
-        }
-
-        @Override
-        public String getMemberCode() {
-            return memberCode;
-        }
-
-        @Override
-        public String getMemberName() {
-            return memberName;
-        }
-
-        @Override
-        public String getSubsystemCode() {
-            return subsystemCode;
-        }
-
-        @Override
-        public long getSubsystemId() {
-            return subsystemId;
-        }
-
-        @Override
-        public String getServiceCode() {
-            return serviceCode;
-        }
-
-        @Override
-        public String getServiceVersion() {
-            return serviceVersion;
-        }
-
-        @Override
-        public String getServiceType() {
-            return serviceType;
-        }
-
-        @Override
-        public LocalDateTime getCreated() {
-            return created;
-        }
-
-        @Override
-        public LocalDateTime getChanged() {
-            return changed;
-        }
-
-        @Override
-        public LocalDateTime getFetched() {
-            return fetched;
-        }
-
-        @Override
-        public LocalDateTime getRemoved() {
-            return removed;
-        }
     }
 }

@@ -31,10 +31,6 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
 import org.niis.xroad.catalog.lister.v2.service.ErrorLogServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.MemberClassServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.MemberServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
 import org.springframework.data.domain.Page;
@@ -52,8 +48,8 @@ import java.util.Set;
 
 /**
  * Browse errors at every hierarchy level. Lives apart from {@link BrowseController} because the
- * error-log dispatch and parent-existence guard ladder don't share state with the structural
- * browse routes — keeping them separate avoids cross-bleed between the controller-slice tests.
+ * error-log dispatch doesn't share state with the structural browse routes — keeping them
+ * separate avoids cross-bleed between the controller-slice tests.
  *
  * <p>Pagination/sort query parameters ({@code page}, {@code size}, {@code sortBy}, {@code sortOrder})
  * are bundled into {@link PageOpts} so handlers stay under PMD's parameter-count threshold.</p>
@@ -64,6 +60,11 @@ import java.util.Set;
  * omitted). Because defaults always supply both bounds, missing-parameter 400s are no longer
  * possible — only malformed dates, {@code since > until}, and date ranges exceeding 90 days
  * still surface a 400.</p>
+ *
+ * <p>Path segments identifying a parent (member class, member, subsystem, service, version) are
+ * used only as WHERE-clause values for the error-log query — an unknown parent simply yields a
+ * 200 with an empty page, matching {@link BrowseController}'s list endpoints. There is no
+ * existence check against the parent hierarchy.</p>
  */
 @RestController
 @RequestMapping("/api/v2/browse")
@@ -72,24 +73,13 @@ public class BrowseErrorsController {
     private static final Set<String> ERROR_SORT_FIELDS = Set.of("created", "code");
     private static final String DEFAULT_SORT_FIELD = "created";
     private static final String DEFAULT_SORT_ORDER = "desc";
-    private static final long MAX_ERROR_BROWSE_DAYS = 90;
 
     private final Clock clock;
     private final ErrorLogServiceV2 errorLogService;
-    private final MemberClassServiceV2 memberClassService;
-    private final MemberServiceV2 memberService;
-    private final SubsystemServiceV2 subsystemService;
-    private final ServiceServiceV2 serviceService;
 
-    public BrowseErrorsController(Clock clock, ErrorLogServiceV2 errorLogService,
-            MemberClassServiceV2 memberClassService, MemberServiceV2 memberService,
-            SubsystemServiceV2 subsystemService, ServiceServiceV2 serviceService) {
+    public BrowseErrorsController(Clock clock, ErrorLogServiceV2 errorLogService) {
         this.clock = clock;
         this.errorLogService = errorLogService;
-        this.memberClassService = memberClassService;
-        this.memberService = memberService;
-        this.subsystemService = subsystemService;
-        this.serviceService = serviceService;
     }
 
     @GetMapping("/errors")
@@ -108,7 +98,6 @@ public class BrowseErrorsController {
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         TimeRange range = parseRange(sinceStr, untilStr);
-        guardMemberClass(memberClass);
         return dispatch(memberClass, null, null, null, null, range, pageOpts);
     }
 
@@ -120,8 +109,6 @@ public class BrowseErrorsController {
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         TimeRange range = parseRange(sinceStr, untilStr);
-        guardMemberClass(memberClass);
-        guardMember(memberClass, memberCode);
         return dispatch(memberClass, memberCode, null, null, null, range, pageOpts);
     }
 
@@ -134,9 +121,6 @@ public class BrowseErrorsController {
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         TimeRange range = parseRange(sinceStr, untilStr);
-        guardMemberClass(memberClass);
-        guardMember(memberClass, memberCode);
-        guardSubsystem(memberClass, memberCode, subsystemCode);
         return dispatch(memberClass, memberCode, subsystemCode, null, null, range, pageOpts);
     }
 
@@ -151,10 +135,6 @@ public class BrowseErrorsController {
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         TimeRange range = parseRange(sinceStr, untilStr);
-        guardMemberClass(memberClass);
-        guardMember(memberClass, memberCode);
-        guardSubsystem(memberClass, memberCode, subsystemCode);
-        guardService(memberClass, memberCode, subsystemCode, serviceCode);
         return dispatch(memberClass, memberCode, subsystemCode, serviceCode, null, range, pageOpts);
     }
 
@@ -175,26 +155,20 @@ public class BrowseErrorsController {
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         TimeRange range = parseRange(sinceStr, untilStr);
-        guardMemberClass(memberClass);
-        guardMember(memberClass, memberCode);
-        guardSubsystem(memberClass, memberCode, subsystemCode);
-        guardService(memberClass, memberCode, subsystemCode, serviceCode);
-        // serviceVersion is the raw URL segment; ServiceServiceV2.getVersion resolves the "null" sentinel internally.
-        guardVersion(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
+        // serviceVersion is the raw URL segment; ErrorLogServiceV2.get resolves the "null" sentinel internally.
         return dispatch(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion, range, pageOpts);
     }
 
     private TimeRange parseRange(String sinceStr, String untilStr) {
         // Defaults: until = tomorrow 00:00 (exclusive cutoff so today is included), since = today 00:00.
         // Window collapses to "today's errors only" when both are omitted.
+        // Range bounds (since <= until, <= 90 days) are enforced by ErrorLogServiceV2.get, not here —
+        // it owns the bounds contract regardless of caller.
         LocalDate today = DateTimeUtil.today(clock);
         LocalDate untilDate = DateTimeUtil.parseDateOrDefault(untilStr, today.plusDays(1));
         LocalDate sinceDate = DateTimeUtil.parseDateOrDefault(sinceStr, untilDate.minusDays(1));
         LocalDateTime since = sinceDate.atStartOfDay();
         LocalDateTime until = untilDate.atStartOfDay();
-        // Cap matches the reports endpoints and the collector's default error-log retention
-        // (xroad-catalog.log-storage.error-log-length-in-days: 90).
-        DateTimeUtil.validateDateRange(since, until, MAX_ERROR_BROWSE_DAYS);
         return new TimeRange(since, until);
     }
 
@@ -211,43 +185,6 @@ public class BrowseErrorsController {
         Page<ErrorLogDto> result = errorLogService.get(memberClass, memberCode, subsystemCode, serviceCode,
                 serviceVersion, range.since(), range.until(), pageable);
         return PagedCollectionResponse.fromPage(result);
-    }
-
-    private void guardMemberClass(String memberClass) {
-        if (memberClassService.getByCode(memberClass) == null) {
-            throw new V2ResourceNotFoundException("Member class '" + memberClass + "' not found");
-        }
-    }
-
-    private void guardMember(String memberClass, String memberCode) {
-        if (!memberService.existsActive(memberClass, memberCode)) {
-            throw new V2ResourceNotFoundException(
-                    "Member '" + memberClass + "/" + memberCode + "' not found");
-        }
-    }
-
-    private void guardSubsystem(String memberClass, String memberCode, String subsystemCode) {
-        if (!subsystemService.existsActive(memberClass, memberCode, subsystemCode)) {
-            throw new V2ResourceNotFoundException(
-                    "Subsystem '" + memberClass + "/" + memberCode + "/" + subsystemCode + "' not found");
-        }
-    }
-
-    private void guardService(String memberClass, String memberCode, String subsystemCode, String serviceCode) {
-        if (!serviceService.existsActive(memberClass, memberCode, subsystemCode, serviceCode)) {
-            throw new V2ResourceNotFoundException(
-                    "Service '" + memberClass + "/" + memberCode + "/" + subsystemCode + "/"
-                            + serviceCode + "' not found");
-        }
-    }
-
-    private void guardVersion(String memberClass, String memberCode, String subsystemCode,
-                              String serviceCode, String serviceVersion) {
-        if (!serviceService.existsActiveVersion(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)) {
-            throw new V2ResourceNotFoundException(
-                    "Service version '" + memberClass + "/" + memberCode + "/" + subsystemCode + "/"
-                            + serviceCode + "/" + serviceVersion + "' not found");
-        }
     }
 
     private record TimeRange(LocalDateTime since, LocalDateTime until) { }
