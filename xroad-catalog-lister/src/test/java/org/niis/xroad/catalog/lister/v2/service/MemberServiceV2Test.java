@@ -33,12 +33,12 @@ import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
-import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
-import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Member;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -51,7 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -63,24 +62,22 @@ class MemberServiceV2Test {
     private static final String MEMBER_CODE = "14151328";
 
     @Mock
-    private MemberRepositoryV2 memberRepository;
+    private MemberRepository memberRepository;
 
     @Mock
     private SharedParamsCache sharedParamsCache;
 
-    @Mock
-    private InstanceContext instanceContext;
 
     private MemberServiceV2 service;
 
     @BeforeEach
     void setUp() {
-        service = new MemberServiceV2(memberRepository, sharedParamsCache, instanceContext);
+        service = new MemberServiceV2(memberRepository, sharedParamsCache);
     }
 
     @Test
     void testGetByNaturalKeyReturnsDtoWhenPresent() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, MEMBER_CODE))
                 .thenReturn(Optional.of(memberListRow(PUB, MEMBER_CODE, "Nahka-Albert", true, 2, 3)));
 
@@ -96,7 +93,7 @@ class MemberServiceV2Test {
 
     @Test
     void testGetByNaturalKeyReturnsEmptyOptionalWhenAbsent() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, "does-not-exist"))
                 .thenReturn(Optional.empty());
 
@@ -105,7 +102,7 @@ class MemberServiceV2Test {
 
     @Test
     void testExistsActiveDelegatesToRepository() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, MEMBER_CODE)).thenReturn(true);
 
         assertTrue(service.existsActive(PUB, MEMBER_CODE));
@@ -113,7 +110,7 @@ class MemberServiceV2Test {
 
     @Test
     void testGetForListMapsPageOfRows() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         Page<MemberListRow> page = new PageImpl<>(
                 List.of(memberListRow(PUB, MEMBER_CODE, "Nahka-Albert", false, 0, 0)),
                 PageRequest.of(0, 20), 1);
@@ -127,7 +124,7 @@ class MemberServiceV2Test {
 
     @Test
     void testGetFullTreeReturnsEmptyOptionalForMissing() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.findActiveWithTreeByNaturalKey(INSTANCE, PUB, "does-not-exist"))
                 .thenReturn(Optional.empty());
 
@@ -136,14 +133,14 @@ class MemberServiceV2Test {
 
     @Test
     void testGetFullTreeSortsSubsystemsAndServicesAndAggregates() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) ->
                 PUB.equals(memberClass) && MEMBER_CODE.equals(memberCode) && "subsystem_a1".equals(subsystemCode)
                         ? "Subsystem A1" : null);
 
-        MemberV2 member = member(PUB, MEMBER_CODE, "Nahka-Albert", true);
-        SubsystemV2 subB = subsystem(member, "subsystem_b1");
-        SubsystemV2 subA = subsystem(member, "subsystem_a1");
+        Member member = member(PUB, MEMBER_CODE, "Nahka-Albert", true);
+        Subsystem subB = subsystem(member, "subsystem_b1");
+        Subsystem subA = subsystem(member, "subsystem_a1");
         // mixedSvc has two versions (v1 SOAP, v2 REST) that must aggregate into one ServiceDto.
         serviceEntity(subA, "mixedSvc", "v2", "REST");
         serviceEntity(subA, "mixedSvc", "v1", "SOAP");
@@ -162,9 +159,8 @@ class MemberServiceV2Test {
         assertEquals(MEMBER_CODE, dto.getMemberCode());
         assertTrue(dto.isProvider());
         assertEquals(2, dto.getSubsystemCount());
-        // serviceCount is the raw active-row count (FullMemberDto#from sums getActiveServices()
-        // per subsystem), not the aggregated-DTO count: subsystem_a1 has 3 rows (mixedSvc v1, v2,
-        // getRandom) and subsystem_b1 has 1 (onlyService) = 4.
+        // serviceCount is the raw active-row count (FullMemberDto#from sums getServices() per
+        // subsystem), not the aggregated-DTO count: 3 rows in subsystem_a1 + 1 in subsystem_b1 = 4.
         assertEquals(4, dto.getServiceCount());
 
         List<FullSubsystemDto> subs = dto.getSubsystems();
@@ -181,30 +177,6 @@ class MemberServiceV2Test {
                 .orElseThrow();
         assertEquals(2, mixed.getVersionCount(), "mixedSvc must aggregate both versions into one entry");
         assertTrue(mixed.getServiceTypes().containsAll(List.of("SOAP", "REST")));
-    }
-
-    @Test
-    void testGetFullTreeExcludesRemovedSubsystemsAndServices() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
-        when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) -> null);
-
-        MemberV2 member = member(PUB, MEMBER_CODE, "Nahka-Albert", false);
-        SubsystemV2 active = subsystem(member, "active-sub");
-        SubsystemV2 removed = subsystem(member, "removed-sub");
-        ReflectionTestUtils.setField(removed, "statusInfo", statusInfo(LocalDateTime.now()));
-        serviceEntity(active, "svc", null, "REST");
-        setSubsystems(member, active, removed);
-
-        when(memberRepository.findActiveWithTreeByNaturalKey(INSTANCE, PUB, MEMBER_CODE))
-                .thenReturn(Optional.of(member));
-
-        Optional<FullMemberDto> result = service.getFullTree(PUB, MEMBER_CODE);
-
-        assertTrue(result.isPresent());
-        FullMemberDto dto = result.get();
-        assertEquals(1, dto.getSubsystems().size(), "removed subsystem must not appear in the active-only tree");
-        assertEquals("active-sub", dto.getSubsystems().get(0).getSubsystemCode());
-        assertFalse(dto.getSubsystems().get(0).getServices().isEmpty());
     }
 
     private static MemberListRow memberListRow(String memberClass, String memberCode, String name,
@@ -255,59 +227,54 @@ class MemberServiceV2Test {
             public LocalDateTime getFetched() {
                 return now;
             }
-
-            @Override
-            public LocalDateTime getRemoved() {
-                return null;
-            }
         };
     }
 
-    private static MemberV2 member(String memberClass, String memberCode, String name, boolean provider) {
-        MemberV2 m = new MemberV2();
+    private static Member member(String memberClass, String memberCode, String name, boolean provider) {
+        Member m = new Member();
         ReflectionTestUtils.setField(m, "xRoadInstance", INSTANCE);
         ReflectionTestUtils.setField(m, "memberClass", memberClass);
         ReflectionTestUtils.setField(m, "memberCode", memberCode);
         ReflectionTestUtils.setField(m, "name", name);
         ReflectionTestUtils.setField(m, "isProvider", provider);
-        ReflectionTestUtils.setField(m, "statusInfo", statusInfo(null));
+        ReflectionTestUtils.setField(m, "statusInfo", statusInfo());
         return m;
     }
 
-    private static SubsystemV2 subsystem(MemberV2 member, String subsystemCode) {
-        SubsystemV2 s = new SubsystemV2();
+    private static Subsystem subsystem(Member member, String subsystemCode) {
+        Subsystem s = new Subsystem();
         ReflectionTestUtils.setField(s, "member", member);
         ReflectionTestUtils.setField(s, "subsystemCode", subsystemCode);
-        ReflectionTestUtils.setField(s, "statusInfo", statusInfo(null));
+        ReflectionTestUtils.setField(s, "statusInfo", statusInfo());
         return s;
     }
 
-    private static ServiceV2 serviceEntity(SubsystemV2 subsystem, String serviceCode, String serviceVersion,
+    private static Service serviceEntity(Subsystem subsystem, String serviceCode, String serviceVersion,
                                      String serviceType) {
-        ServiceV2 svc = new ServiceV2();
+        Service svc = new Service();
         ReflectionTestUtils.setField(svc, "subsystem", subsystem);
         ReflectionTestUtils.setField(svc, "serviceCode", serviceCode);
         ReflectionTestUtils.setField(svc, "serviceVersion", serviceVersion);
         ReflectionTestUtils.setField(svc, "serviceType", serviceType);
-        ReflectionTestUtils.setField(svc, "statusInfo", statusInfo(null));
-        Set<ServiceV2> services = new HashSet<>(subsystemServices(subsystem));
+        ReflectionTestUtils.setField(svc, "statusInfo", statusInfo());
+        Set<Service> services = new HashSet<>(subsystemServices(subsystem));
         services.add(svc);
         ReflectionTestUtils.setField(subsystem, "services", services);
         return svc;
     }
 
     @SuppressWarnings("unchecked")
-    private static Set<ServiceV2> subsystemServices(SubsystemV2 subsystem) {
+    private static Set<Service> subsystemServices(Subsystem subsystem) {
         Object current = ReflectionTestUtils.getField(subsystem, "services");
-        return current == null ? new HashSet<>() : (Set<ServiceV2>) current;
+        return current == null ? new HashSet<>() : (Set<Service>) current;
     }
 
-    private static void setSubsystems(MemberV2 member, SubsystemV2... subsystems) {
+    private static void setSubsystems(Member member, Subsystem... subsystems) {
         ReflectionTestUtils.setField(member, "subsystems", new HashSet<>(Set.of(subsystems)));
     }
 
-    private static StatusInfo statusInfo(LocalDateTime removed) {
+    private static StatusInfo statusInfo() {
         LocalDateTime now = LocalDateTime.now();
-        return new StatusInfo(now, now, now, removed);
+        return new StatusInfo(now, now, now);
     }
 }

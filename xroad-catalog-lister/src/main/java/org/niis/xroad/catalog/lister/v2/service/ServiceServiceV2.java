@@ -24,28 +24,24 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.niis.xroad.catalog.lister.v2.controller.MultipleVersionsException;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
 import org.niis.xroad.catalog.lister.v2.util.ServiceVersionUtil;
-import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceAggregateRow;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.repository.DescriptorRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ServiceRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SubsystemRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceAggregateRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,33 +51,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * V2 service service, backed by the {@link ServiceRepositoryV2} read model. Descriptor blobs are
- * fetched separately through {@link DescriptorRepositoryV2}; the list/lookup queries never carry
- * WSDL/OpenAPI {@code data} along.
+ * V2 service queries backed by the {@link ServiceRepository} read model. Descriptor blobs are
+ * fetched separately so list/lookup queries never carry WSDL/OpenAPI {@code data}.
  */
-@Service
+@org.springframework.stereotype.Service
 public class ServiceServiceV2 {
 
-    private final ServiceRepositoryV2 serviceRepository;
-    private final SubsystemRepositoryV2 subsystemRepository;
-    private final DescriptorRepositoryV2 descriptorRepository;
-    private final InstanceContext instanceContext;
-    private final ObjectMapper objectMapper;
+    // UNKNOWN is a transient not-yet-classified state, filterable so operators can find such services.
+    private static final Set<String> ALLOWED_SERVICE_TYPES = Set.of("SOAP", "REST", "OPENAPI", "UNKNOWN");
 
-    public ServiceServiceV2(ServiceRepositoryV2 serviceRepository, SubsystemRepositoryV2 subsystemRepository,
-            DescriptorRepositoryV2 descriptorRepository, InstanceContext instanceContext, ObjectMapper objectMapper) {
+    private final ServiceRepository serviceRepository;
+    private final SubsystemRepository subsystemRepository;
+    private final DescriptorRepository descriptorRepository;
+    private final SharedParamsCache sharedParamsCache;
+
+    public ServiceServiceV2(ServiceRepository serviceRepository, SubsystemRepository subsystemRepository,
+            DescriptorRepository descriptorRepository, SharedParamsCache sharedParamsCache) {
         this.serviceRepository = serviceRepository;
         this.subsystemRepository = subsystemRepository;
         this.descriptorRepository = descriptorRepository;
-        this.instanceContext = instanceContext;
-        this.objectMapper = objectMapper;
+        this.sharedParamsCache = sharedParamsCache;
     }
 
-    /**
-     * @return the service aggregate DTO, or an empty {@link Optional} if absent (controller maps to 404)
-     */
     public Optional<ServiceDto> getByNaturalKey(String memberClass, String memberCode, String subsystemCode, String serviceCode) {
-        String instance = instanceContext.getCurrentInstance();
+        String instance = sharedParamsCache.getCurrentInstance();
         List<ServiceVersionRow> versions = serviceRepository.findActiveVersionRowsForService(
                 instance, memberClass, memberCode, subsystemCode, serviceCode);
         if (versions.isEmpty()) {
@@ -91,20 +84,20 @@ public class ServiceServiceV2 {
     }
 
     /**
-     * Count-then-rows with a short-circuit on zero, and a batched version fetch keyed by
-     * {@code (subsystemId, serviceCode)}: 3 queries per page (count, aggregates, versions),
-     * regardless of page size. {@code findActiveVersionRowsForKeys} deliberately over-selects the
-     * cross product of the two IN-lists (JPQL has no portable row-value IN), so {@code byKey} is
-     * load-bearing here — it discards any row whose exact pair wasn't actually requested.
+     * Three queries per page (count, aggregates, versions) regardless of page size. The version
+     * fetch over-selects the cross product of the two IN-lists (JPQL has no portable row-value IN);
+     * the {@code byKey} lookup discards rows whose exact {@code (subsystemId, serviceCode)} pair
+     * was not requested.
      */
     public Page<ServiceDto> getForList(String memberClass, String serviceType, Pageable pageable) {
-        String instance = instanceContext.getCurrentInstance();
-        long totalCount = serviceRepository.countActiveAggregatesForList(instance, memberClass, serviceType);
+        String resolvedType = resolveServiceType(serviceType);
+        String instance = sharedParamsCache.getCurrentInstance();
+        long totalCount = serviceRepository.countActiveAggregatesForList(instance, memberClass, resolvedType);
         if (totalCount == 0) {
             return new PageImpl<>(List.of(), pageable, 0);
         }
         List<ServiceAggregateRow> aggregates =
-                serviceRepository.findActiveAggregatesForList(instance, memberClass, serviceType, pageable);
+                serviceRepository.findActiveAggregatesForList(instance, memberClass, resolvedType, pageable);
         if (aggregates.isEmpty()) {
             return new PageImpl<>(List.of(), pageable, totalCount);
         }
@@ -122,15 +115,26 @@ public class ServiceServiceV2 {
         return new PageImpl<>(dtos, pageable, totalCount);
     }
 
+    private static String resolveServiceType(String serviceType) {
+        if (serviceType == null || serviceType.isBlank()) {
+            return null;
+        }
+        if (!ALLOWED_SERVICE_TYPES.contains(serviceType)) {
+            throw new IllegalArgumentException(
+                    "Invalid value for query parameter 'serviceType': '" + serviceType
+                            + "'. Allowed: " + ALLOWED_SERVICE_TYPES);
+        }
+        return serviceType;
+    }
+
     /**
-     * Returns the service aggregates under a single subsystem, sorted by {@code serviceCode}
-     * ascending (the version-row query already orders by {@code serviceCode, serviceVersion}, so
-     * grouping into a {@link LinkedHashMap} preserves that order without a re-sort). An empty
-     * {@link Optional} means the subsystem itself is absent (404); a present-but-empty list means
-     * the subsystem exists but has no active services (200 {@code []}).
+     * Service aggregates under one subsystem, in {@code serviceCode} order (the version-row query
+     * orders by {@code serviceCode, serviceVersion}; the {@link LinkedHashMap} preserves it). Empty
+     * {@link Optional} means the subsystem is absent; a present-but-empty list means it has no
+     * active services.
      */
     public Optional<List<ServiceDto>> getForSubsystem(String memberClass, String memberCode, String subsystemCode) {
-        String instance = instanceContext.getCurrentInstance();
+        String instance = sharedParamsCache.getCurrentInstance();
         if (!subsystemRepository.existsActiveByNaturalKey(instance, memberClass, memberCode, subsystemCode)) {
             return Optional.empty();
         }
@@ -148,31 +152,24 @@ public class ServiceServiceV2 {
     }
 
     /**
-     * @return sorted (nulls-last) version DTOs, or an empty {@link Optional} if the service is
-     *         absent — an active aggregate always has at least one version, so an empty result set
-     *         means "no such service" (controller maps to 404), not "zero versions"
+     * @return version DTOs, or an empty {@link Optional} when the service is absent — an active
+     *         aggregate always has at least one version, so empty means "no such service"
      */
     public Optional<List<ServiceVersionDto>> getVersions(String memberClass, String memberCode,
                                                           String subsystemCode, String serviceCode) {
-        String instance = instanceContext.getCurrentInstance();
-        List<ServiceV2> versions = serviceRepository.findActiveVersionsByNaturalKey(
+        String instance = sharedParamsCache.getCurrentInstance();
+        List<Service> versions = serviceRepository.findActiveVersionsByNaturalKey(
                 instance, memberClass, memberCode, subsystemCode, serviceCode);
         if (versions.isEmpty()) {
             return Optional.empty();
         }
-        List<ServiceV2> sorted = versions.stream()
-                .sorted(Comparator.comparing(ServiceV2::getServiceVersion, Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
-        List<ServiceVersionDto> result = new ArrayList<>(sorted.size());
-        for (ServiceV2 s : sorted) {
+        List<ServiceVersionDto> result = new ArrayList<>(versions.size());
+        for (Service s : versions) {
             result.add(ServiceVersionDto.from(s));
         }
         return Optional.of(result);
     }
 
-    /**
-     * @return the version DTO, or an empty {@link Optional} if no such version exists (controller maps to 404)
-     */
     public Optional<ServiceVersionDto> getVersion(String memberClass, String memberCode, String subsystemCode,
                                         String serviceCode, String serviceVersion) {
         return findVersionEntity(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)
@@ -180,8 +177,8 @@ public class ServiceServiceV2 {
     }
 
     /**
-     * Returns the active descriptor bytes for a single service version, or an empty {@link Optional} if no such
-     * version exists or the version exists but has no active WSDL or OpenAPI row.
+     * Active descriptor bytes for a version; empty when the version is absent or has no active
+     * WSDL/OpenAPI row.
      */
     public Optional<DescriptorPayload> getVersionDescriptor(String memberClass, String memberCode, String subsystemCode,
                                                   String serviceCode, String serviceVersion) {
@@ -190,15 +187,15 @@ public class ServiceServiceV2 {
     }
 
     /**
-     * Returns the active descriptor bytes for a service that has exactly one active version. Throws
-     * {@link MultipleVersionsException} when 2+ active versions exist (caller must pick a specific
-     * version path). Returns an empty {@link Optional} when 0 active versions exist or when the only
-     * version has no active descriptor.
+     * Active descriptor bytes when the service has exactly one active version; empty when it has
+     * none or the sole version has no active descriptor.
+     *
+     * @throws MultipleVersionsException when 2+ active versions exist
      */
     public Optional<DescriptorPayload> getServiceLevelDescriptor(String memberClass, String memberCode, String subsystemCode,
                                                        String serviceCode) {
-        String instance = instanceContext.getCurrentInstance();
-        List<ServiceV2> versions = serviceRepository.findActiveVersionsByNaturalKey(
+        String instance = sharedParamsCache.getCurrentInstance();
+        List<Service> versions = serviceRepository.findActiveVersionsByNaturalKey(
                 instance, memberClass, memberCode, subsystemCode, serviceCode);
         if (versions.isEmpty()) {
             return Optional.empty();
@@ -207,7 +204,7 @@ public class ServiceServiceV2 {
             return Optional.ofNullable(payloadFor(versions.get(0).getId()));
         }
         List<String> versionLabels = new ArrayList<>();
-        for (ServiceV2 s : versions) {
+        for (Service s : versions) {
             versionLabels.add(s.getServiceVersion());
         }
         throw new MultipleVersionsException(
@@ -215,9 +212,9 @@ public class ServiceServiceV2 {
                 versionLabels);
     }
 
-    private Optional<ServiceV2> findVersionEntity(String memberClass, String memberCode, String subsystemCode,
+    private Optional<Service> findVersionEntity(String memberClass, String memberCode, String subsystemCode,
                                         String serviceCode, String serviceVersion) {
-        String instance = instanceContext.getCurrentInstance();
+        String instance = sharedParamsCache.getCurrentInstance();
         String resolvedVersion = ServiceVersionUtil.resolveVersionSentinel(serviceVersion);
         if (resolvedVersion == null) {
             return serviceRepository.findActiveNullVersionByNaturalKey(
@@ -227,10 +224,7 @@ public class ServiceServiceV2 {
                 instance, memberClass, memberCode, subsystemCode, serviceCode, resolvedVersion);
     }
 
-    /**
-     * WSDL-then-OpenAPI probing preserves the priority order established by the old
-     * {@code getActiveWsdl}/{@code getActiveOpenApi} tiebreak: first row = lowest id.
-     */
+    // WSDL takes priority over OpenAPI; first row wins (lowest id).
     private DescriptorPayload payloadFor(long serviceId) {
         List<String> wsdl = descriptorRepository.findActiveWsdlData(serviceId);
         if (!wsdl.isEmpty()) {
@@ -245,13 +239,12 @@ public class ServiceServiceV2 {
 
     private DescriptorPayload openApiPayload(String data) {
         byte[] body = data.getBytes(StandardCharsets.UTF_8);
-        try {
-            objectMapper.readTree(body);
+        // Stored OpenAPI content is JSON re-serialized by the collector (always starts with '{'),
+        // and since JSON has no comments, any other leading character means YAML.
+        String trimmed = data.stripLeading();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             return new DescriptorPayload(body, MediaType.APPLICATION_JSON);
-        } catch (IOException e) {
-            // Not valid JSON -> treat as YAML. Don't depend on a YAML parser being on classpath:
-            // the collector validated the content at write time, so we trust the raw bytes here.
-            return new DescriptorPayload(body, MediaType.parseMediaType("application/yaml"));
         }
+        return new DescriptorPayload(body, MediaType.parseMediaType("application/yaml"));
     }
 }

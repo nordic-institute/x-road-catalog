@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.persistence.repository;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.persistence.repository.projection.DescriptorAnomalyRow;
 import org.niis.xroad.catalog.persistence.testsupport.PostgresTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -75,9 +76,9 @@ class DenormalizationRepositoryTest extends PostgresTestBase {
 
     @Test
     void anomalyQueryFlagsMultipleActiveDescriptors() {
-        List<Object[]> anomalies = repository.findServicesWithMultipleActiveDescriptors();
+        List<DescriptorAnomalyRow> anomalies = repository.findServicesWithMultipleActiveDescriptors();
         assertEquals(1, anomalies.size());
-        assertEquals(27L, ((Number) anomalies.get(0)[0]).longValue());
+        assertEquals(27L, anomalies.get(0).getServiceId());
     }
 
     private Boolean flag(String memberCode) {

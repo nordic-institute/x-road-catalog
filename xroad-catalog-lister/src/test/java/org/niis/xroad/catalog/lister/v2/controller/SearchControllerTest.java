@@ -129,16 +129,24 @@ class SearchControllerTest {
 
     @Test
     void searchBlankQueryParamReturns400() throws Exception {
+        when(searchService.search(eq("   "), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException(
+                        "Query parameter 'q' must be at least 3 characters"));
+
         mockMvc.perform(get(SEARCH_PATH).param(Q, "   "))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath(JSON_MESSAGE).value("Query parameter 'q' is required"));
+                .andExpect(jsonPath(JSON_MESSAGE).value("Query parameter 'q' must be at least 3 characters"));
     }
 
     @Test
     void searchEmptyQueryParamReturns400() throws Exception {
+        when(searchService.search(eq(""), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException(
+                        "Query parameter 'q' must be at least 3 characters"));
+
         mockMvc.perform(get(SEARCH_PATH).param(Q, ""))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath(JSON_MESSAGE).value("Query parameter 'q' is required"));
+                .andExpect(jsonPath(JSON_MESSAGE).value("Query parameter 'q' must be at least 3 characters"));
     }
 
     @Test
@@ -221,7 +229,6 @@ class SearchControllerTest {
 
     @Test
     void searchRejectsOversizedPageSize() throws Exception {
-        // Task 1's MAX_PAGE_SIZE = 200 cap surfaces here through PaginationUtil.toPageableNoSort.
         mockMvc.perform(get(SEARCH_PATH).param(Q, QUERY_TEST).param("size", "201"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(JSON_ERROR).value(BAD_REQUEST_ERROR))
@@ -241,7 +248,7 @@ class SearchControllerTest {
 
     @Test
     void searchIgnoresUnsupportedSortByParam() throws Exception {
-        // Spec §3.3: sortBy/sortOrder are not supported. Sending them must not change the result;
+        // The search endpoint does not support sortBy/sortOrder. Sending them must not change the result;
         // the controller does not declare them, so Spring silently ignores them.
         when(searchService.search(eq(QUERY_TEST), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
@@ -257,7 +264,7 @@ class SearchControllerTest {
 
     @Test
     void searchIgnoresUnsupportedIncludeRemovedParam() throws Exception {
-        // Spec §8: search always returns active entities only and does not support includeRemoved.
+        // Search always returns active entities only and does not support includeRemoved.
         when(searchService.search(eq(QUERY_TEST), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
 

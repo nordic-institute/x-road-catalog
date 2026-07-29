@@ -119,7 +119,7 @@ class ReportsControllerTest {
                 .andExpect(jsonPath("$.items[0].openApiServices").value(43))
                 .andExpect(jsonPath("$.items[1].date").value("2026-04-02"))
                 .andExpect(jsonPath("$.totalCount").value(2))
-                // Spec §4: service-statistics responses do not include pagination metadata.
+                // Service-statistics responses do not include pagination metadata.
                 .andExpect(content().string(not(containsString("\"page\""))))
                 .andExpect(content().string(not(containsString("\"size\""))))
                 .andExpect(content().string(not(containsString("\"totalPages\""))));
@@ -232,9 +232,6 @@ class ReportsControllerTest {
 
     @Test
     void serviceStatisticsRejectsSinceAfterUntil() throws Exception {
-        // Unified DateTimeUtil wording (Task B4): the service layer now calls
-        // DateTimeUtil.validateDateRange directly, so a since-after-until rejection carries the
-        // "must not be after" wording instead of ReportServiceV2's former "strictly before" text.
         when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
                 .thenThrow(new IllegalArgumentException("'since' must not be after 'until'"));
 
@@ -246,8 +243,7 @@ class ReportsControllerTest {
 
     @Test
     void serviceStatisticsAcceptsSinceEqualsUntil() throws Exception {
-        // Behavioural change (Task B4): since == until is now an accepted empty window, not a 400 —
-        // matches DateTimeUtil.validateDateRange's canonical semantics.
+        // since == until is an accepted empty window.
         when(reportService.serviceStatistics(eq(SINCE_DATE), eq(SINCE_DATE)))
                 .thenReturn(List.of());
 
@@ -258,7 +254,6 @@ class ReportsControllerTest {
 
     @Test
     void serviceStatisticsRejectsRangeAbove90Days() throws Exception {
-        // Unified DateTimeUtil wording (Task B4).
         when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
                 .thenThrow(new IllegalArgumentException(
                         "Date range must not exceed 90 days (was 91 days)"));
@@ -271,8 +266,7 @@ class ReportsControllerTest {
 
     @Test
     void serviceStatisticsAcceptsExactly90DayRange() throws Exception {
-        // Boundary: 90 days is allowed; only > 90 is rejected. Mirrors the Phase 3 service-layer
-        // test testServiceStatisticsAcceptsExactlyMaxRange in ReportServiceV2Test.
+        // Exactly 90 days is allowed; only > 90 is rejected.
         LocalDate since = LocalDate.of(2026, 1, 1);
         LocalDate until = LocalDate.of(2026, 4, 1);
         when(reportService.serviceStatistics(eq(since), eq(until)))
@@ -288,7 +282,7 @@ class ReportsControllerTest {
 
     @Test
     void serviceStatisticsIgnoresUnsupportedParams() throws Exception {
-        // Spec §4 + issue §5: page/size/sortBy/sortOrder/includeRemoved have no defined effect
+        // page/size/sortBy/sortOrder/includeRemoved have no defined effect
         // on /service-statistics; the controller does not declare them and Spring ignores them.
         when(reportService.serviceStatistics(eq(SINCE_DATE), eq(UNTIL_DATE)))
                 .thenReturn(List.of());
@@ -503,7 +497,6 @@ class ReportsControllerTest {
 
     @Test
     void changesRejectsRangeAbove90Days() throws Exception {
-        // Unified DateTimeUtil wording (Task B4).
         when(reportService.changeLog(any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
                 .thenThrow(new IllegalArgumentException(
                         "Date range must not exceed 90 days (was 91 days)"));
@@ -587,7 +580,6 @@ class ReportsControllerTest {
 
     @Test
     void changesRejectsOversizedPageSize() throws Exception {
-        // MAX_PAGE_SIZE = 200 cap from PaginationUtil (Phase 6 Task 1) surfaces here.
         mockMvc.perform(get(CHANGES_PATH).param(SINCE, SINCE_2026_04_01).param(UNTIL, UNTIL_2026_04_03)
                         .param("size", "201"))
                 .andExpect(status().isBadRequest())
@@ -608,11 +600,8 @@ class ReportsControllerTest {
 
     @Test
     void changesPageBeyondLastReturnsEmptyItemsAndAccurateMetadata() throws Exception {
-        // Spec §8: pagination envelope includes totalCount/totalPages reflecting actual data.
         // Requesting a page past the last is not an error — it returns an empty `items` array
-        // with the requested page number and the actual totalCount/totalPages. ReportServiceV2's
-        // subList(min(offset, size), …) implementation already produces this; the controller
-        // test pins the wire-shape contract.
+        // with the requested page number and the actual totalCount/totalPages.
         when(reportService.changeLog(eq(SINCE_DATE), eq(UNTIL_DATE), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(9, 5), 5));
 
@@ -628,7 +617,7 @@ class ReportsControllerTest {
 
     @Test
     void changesIgnoresUnsupportedSortAndIncludeRemovedParams() throws Exception {
-        // Spec §4 + §8: chronological order is fixed; includeRemoved is implicit on /changes
+        // Chronological order is fixed; includeRemoved is implicit on /changes
         // (the "removed" bucket always exists). Extra params silently ignored.
         when(reportService.changeLog(eq(SINCE_DATE), eq(UNTIL_DATE), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));
@@ -645,7 +634,7 @@ class ReportsControllerTest {
 
     @Test
     void changesReturnsEmptyEnvelopeWhenNoChangesInRange() throws Exception {
-        // Spec §4: days with zero changes are omitted from items; totalCount reflects days
+        // Days with zero changes are omitted from items; totalCount reflects days
         // that had at least one change. An empty range therefore produces totalCount=0.
         when(reportService.changeLog(eq(SINCE_DATE), eq(UNTIL_DATE), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 20), 0));

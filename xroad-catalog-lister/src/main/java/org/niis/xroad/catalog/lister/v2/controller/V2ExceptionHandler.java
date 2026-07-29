@@ -63,9 +63,8 @@ public class V2ExceptionHandler {
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ErrorResponse> handleBindException(BindException ex) {
-        // Surface the first field error to the client; the full BindingResult stays in logs.
-        // Global-only errors collapse to the generic fallback for now — acceptable since no
-        // current V2 route raises object-level errors. Revisit when Phase 6/7 add validation.
+        // Surface the first field error; the full BindingResult stays in logs. Global-only errors
+        // collapse to the generic fallback — no V2 route raises object-level errors.
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(fe -> "Invalid value for parameter '" + fe.getField() + "': "

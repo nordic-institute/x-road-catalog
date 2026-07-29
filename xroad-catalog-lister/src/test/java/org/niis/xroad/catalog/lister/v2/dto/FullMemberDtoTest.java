@@ -25,10 +25,10 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
-import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.niis.xroad.catalog.persistence.v2.entity.Member;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -44,28 +44,25 @@ class FullMemberDtoTest {
 
     @Test
     void testFromComputesCountsFromActiveHelpersAndUsesEntityIsProvider() {
-        MemberV2 member = buildMember(true);
-        SubsystemV2 activeSub = buildSubsystem(member, "sub1", false);
-        addActiveService(activeSub, "svcA");
-        addActiveService(activeSub, "svcB");
-        SubsystemV2 removedSub = buildSubsystem(member, "sub2", true);
-        addActiveService(removedSub, "svcC");
-        member.getSubsystems().add(activeSub);
-        member.getSubsystems().add(removedSub);
+        Member member = buildMember(true);
+        Subsystem sub = buildSubsystem(member, "sub1");
+        addActiveService(sub, "svcA");
+        addActiveService(sub, "svcB");
+        member.getSubsystems().add(sub);
 
         FullMemberDto dto = FullMemberDto.from(member, List.of());
 
         assertEquals("PUB", dto.getMemberClass());
         assertEquals("14151328", dto.getMemberCode());
         assertTrue(dto.isProvider(), "isProvider must come from the entity column, not from walking children");
-        assertEquals(1, dto.getSubsystemCount(), "removed subsystem must not be counted");
-        assertEquals(2, dto.getServiceCount(), "services under the removed subsystem must not be counted");
+        assertEquals(1, dto.getSubsystemCount());
+        assertEquals(2, dto.getServiceCount());
     }
 
     @Test
     void testFromIsProviderFalseWhenColumnFalseDespiteActiveChildren() {
-        MemberV2 member = buildMember(false);
-        SubsystemV2 sub = buildSubsystem(member, "sub1", false);
+        Member member = buildMember(false);
+        Subsystem sub = buildSubsystem(member, "sub1");
         addActiveService(sub, "svcA");
         member.getSubsystems().add(sub);
 
@@ -76,7 +73,7 @@ class FullMemberDtoTest {
 
     @Test
     void testFromCarriesSuppliedSubsystems() {
-        MemberV2 member = buildMember(false);
+        Member member = buildMember(false);
         FullSubsystemDto sub = FullSubsystemDto.builder().subsystemCode("sub1").build();
 
         FullMemberDto dto = FullMemberDto.from(member, List.of(sub));
@@ -85,36 +82,36 @@ class FullMemberDtoTest {
         assertEquals("sub1", dto.getSubsystems().get(0).getSubsystemCode());
     }
 
-    private MemberV2 buildMember(boolean provider) {
-        MemberV2 m = new MemberV2();
+    private Member buildMember(boolean provider) {
+        Member m = new Member();
         ReflectionTestUtils.setField(m, "memberClass", "PUB");
         ReflectionTestUtils.setField(m, "memberCode", "14151328");
         ReflectionTestUtils.setField(m, "name", "Nahka-Albert");
         ReflectionTestUtils.setField(m, "isProvider", provider);
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(m, "statusInfo", new StatusInfo(now, now, now, null));
-        ReflectionTestUtils.setField(m, "subsystems", new HashSet<SubsystemV2>());
+        ReflectionTestUtils.setField(m, "statusInfo", new StatusInfo(now, now, now));
+        ReflectionTestUtils.setField(m, "subsystems", new HashSet<Subsystem>());
         return m;
     }
 
-    private SubsystemV2 buildSubsystem(MemberV2 parent, String code, boolean removed) {
-        SubsystemV2 s = new SubsystemV2();
+    private Subsystem buildSubsystem(Member parent, String code) {
+        Subsystem s = new Subsystem();
         ReflectionTestUtils.setField(s, "member", parent);
         ReflectionTestUtils.setField(s, "subsystemCode", code);
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
-        ReflectionTestUtils.setField(s, "services", new HashSet<ServiceV2>());
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now));
+        ReflectionTestUtils.setField(s, "services", new HashSet<Service>());
         return s;
     }
 
-    private void addActiveService(SubsystemV2 subsystem, String serviceCode) {
-        ServiceV2 svc = new ServiceV2();
+    private void addActiveService(Subsystem subsystem, String serviceCode) {
+        Service svc = new Service();
         ReflectionTestUtils.setField(svc, "subsystem", subsystem);
         ReflectionTestUtils.setField(svc, "serviceCode", serviceCode);
         ReflectionTestUtils.setField(svc, "serviceType", "REST");
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now, null));
-        Set<ServiceV2> services = subsystem.getServices();
+        ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now));
+        Set<Service> services = subsystem.getServices();
         services.add(svc);
     }
 }

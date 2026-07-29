@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,9 +36,8 @@ import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
 import java.time.LocalDateTime;
 
 /**
- * V2 heartbeat response. Adds {@code lastRunErrors} (count of errors since the earliest
- * successful collection run) on top of the V1 shape, and carries a V2-specific
- * {@link LastCollectionDataV2Dto} which includes {@code restsLastFetched}.
+ * V2 heartbeat response. {@code lastRunErrors} is the count of errors since the earliest
+ * successful collection run.
  */
 @Builder
 @NoArgsConstructor
@@ -61,5 +61,23 @@ public class HeartbeatV2Dto {
 
     private long lastRunErrors;
 
-    private CurrentRunV2Dto currentRun;
+    @Schema(description = "Number of active services that currently carry more than one active descriptor "
+            + "(WSDL/OpenAPI) — a data-integrity anomaly. When greater than 0, inspect the collector logs: "
+            + "the collector's recompute task logs a warning identifying each affected service.")
+    private long descriptorAnomalies;
+
+    @Schema(description = "True when the downloaded X-Road global configuration has passed its expiration date. "
+            + "Data derived from shared-params.xml (subsystem names, member classes, security servers) may be "
+            + "stale but is still served. When true, check the configuration client logs and verify the Central "
+            + "Server is reachable. False also when expiry cannot be determined (see globalConfExpiresAt).")
+    private boolean globalConfExpired;
+
+    @Schema(description = "Expiration timestamp of the downloaded X-Road global configuration, read from the "
+            + "configuration client's metadata sidecar file. Null when expiry is unknown — the metadata file is "
+            + "missing or unreadable, e.g. before the first configuration download — in which case "
+            + "globalConfExpired is false.")
+    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    private LocalDateTime globalConfExpiresAt;
+
+    private CurrentRunDto currentRun;
 }

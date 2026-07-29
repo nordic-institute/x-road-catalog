@@ -50,9 +50,6 @@ public class SearchController {
             @RequestParam("q") String q,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size) {
-        if (q.isBlank()) {
-            throw new IllegalArgumentException("Query parameter 'q' is required");
-        }
         Pageable pageable = PaginationUtil.toPageableNoSort(page, size);
         Page<SearchHit> result = searchService.search(q, pageable);
         return PagedCollectionResponse.fromPage(result);

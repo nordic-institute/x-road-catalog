@@ -34,11 +34,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Serves raw descriptor bytes (WSDL XML or OpenAPI JSON/YAML) for X-Road services. Lives apart
- * from {@link BrowseController} because the response body is a non-JSON byte stream — wiring this
- * route into the JSON controller would force every JSON endpoint to opt out of the default content
- * negotiation. The 409-on-multi-version shortcut at the service-level path returns a JSON
- * {@code ErrorResponse} via {@link V2ExceptionHandler}; that's the only JSON body emitted here.
+ * Serves raw descriptor bytes (WSDL XML or OpenAPI JSON/YAML), separate from
+ * {@link BrowseController} because the body is a non-JSON byte stream. The only JSON emitted here
+ * is the 409 {@code ErrorResponse} when the service-level path hits multiple versions.
  */
 @RestController
 @RequestMapping("/api/v2/browse")
@@ -80,9 +78,8 @@ public class BrowseDescriptorController {
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode,
             @PathVariable("serviceCode") String serviceCode) {
-        // The service layer throws MultipleVersionsException for 2+ visible versions; that maps to
-        // 409 in V2ExceptionHandler. An empty Optional means "0 versions" or "1 version, no descriptor"
-        // — both surface as 404 here without distinguishing them (spec §1.2 doesn't require it).
+        // MultipleVersionsException (2+ versions) maps to 409; an empty Optional covers both
+        // "0 versions" and "1 version, no descriptor" — the contract does not distinguish them, both 404.
         DescriptorPayload payload = serviceService.getServiceLevelDescriptor(
                         memberClass, memberCode, subsystemCode, serviceCode)
                 .orElseThrow(() -> V2ResourceNotFoundException.of(

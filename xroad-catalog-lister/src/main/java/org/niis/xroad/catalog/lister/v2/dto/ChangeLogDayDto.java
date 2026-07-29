@@ -32,10 +32,8 @@ import lombok.Getter;
 import java.time.LocalDate;
 
 /**
- * One day entry in the change log report. Contains three groups of per-entity-type buckets:
- * entities created, modified and removed during the day.
- *
- * Days with zero changes (all nine bucket lists empty) are never emitted.
+ * One day entry in the change log report. Days with zero changes (all nine bucket lists empty)
+ * are never emitted.
  */
 @Getter
 @Builder

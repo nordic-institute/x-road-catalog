@@ -40,9 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "xroad-catalog.shared-params-file=src/test/resources/shared-params-dev-cs.xml",
-        // The "test" profile disables SpringDoc by default
-        // (xroad-catalog-lister/src/test/resources/application-test.yaml). Force it on for this test
-        // so /v3/api-docs/v2 actually serves a document.
+        // The "test" profile disables SpringDoc by default; force it on so /v3/api-docs/v2
+        // actually serves a document.
         "springdoc.api-docs.enabled=true"
 })
 @ActiveProfiles({"test", "general-testdata"})
@@ -54,8 +53,7 @@ class SearchHitOpenApiSchemaTest {
     @Test
     void searchHitSchemaIsPolymorphicWithDiscriminator() throws Exception {
         // Canonical OpenAPI 3 polymorphism: a discriminator on the base + allOf-extending subtypes.
-        // A parallel `oneOf` on the same schema is redundant and creates a circular reference that
-        // breaks Swagger UI's resolver ("Elements in allOf must be objects"), so it must NOT be present.
+        // A parallel `oneOf` is redundant and creates a circular reference that breaks Swagger UI's resolver.
         mockMvc.perform(get("/v3/api-docs/v2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.components.schemas.SearchHit.oneOf").doesNotExist())
@@ -73,11 +71,8 @@ class SearchHitOpenApiSchemaTest {
 
     @Test
     void memberSearchHitProviderIsPrimitiveBoolean() throws Exception {
-        // SpringDoc emits the per-subtype schema as allOf[ ref(SearchHit), {type:object, properties:{...}} ].
-        // The field-level checks therefore live under allOf[1].properties — not at the top level.
-        // The plan-suggested $.required[?(@=='provider')] check is omitted because SpringDoc does not
-        // mark primitive booleans as "required" in this Jackson/SpringDoc combination; the absence of
-        // "nullable: true" plus "type: boolean" is what enforces the no-Boolean-wrapper invariant.
+        // Field checks live under allOf[1].properties, not the top level. SpringDoc does not mark
+        // primitive booleans as required; "type: boolean" without "nullable: true" is the invariant.
         mockMvc.perform(get("/v3/api-docs/v2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(

@@ -32,7 +32,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
-import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.DenormalizationRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ErrorLogRepository;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -40,6 +41,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,14 +58,18 @@ class HeartbeatServiceV2Test {
     private static final LocalDateTime NOW = LocalDateTime.now();
 
     @Mock private CollectionRunRepository collectionRunRepository;
-    @Mock private ErrorLogRepositoryV2 errorLogRepository;
+    @Mock private ErrorLogRepository errorLogRepository;
+    @Mock private DenormalizationRepository denormalizationRepository;
+    @Mock private SharedParamsCache sharedParamsCache;
 
     private HeartbeatServiceV2 service;
 
     @BeforeEach
     void setUp() {
         service = new HeartbeatServiceV2("X-Road Catalog Lister V2", "2.0.0", collectionRunRepository,
-                errorLogRepository, Clock.systemDefaultZone());
+                errorLogRepository, denormalizationRepository, sharedParamsCache, Clock.systemDefaultZone());
+        when(sharedParamsCache.globalConfExpiry())
+                .thenReturn(new SharedParamsCache.GlobalConfExpiry(false, null));
 
         CollectionRun run = new CollectionRun();
         run.setStarted(NOW);
@@ -98,6 +104,8 @@ class HeartbeatServiceV2Test {
         assertNotNull(hb.getLastCollectionData().getRestsLastFetched(),
                 "restsLastFetched must be wired to the latest finished CollectionRun");
         assertNull(hb.getCurrentRun(), "currentRun must be null when no cycle is in progress");
+        assertFalse(hb.isGlobalConfExpired(), "globalConfExpired must be false when expiry is unknown");
+        assertNull(hb.getGlobalConfExpiresAt(), "globalConfExpiresAt must be null when expiry is unknown");
     }
 
     @Test

@@ -136,8 +136,7 @@ public class ListMethodsTaskTest {
 
         assertEquals(0, openApiServices.size());
 
-        // worker completed its own registered item (-1) and registered one per enqueued SOAP service (+3);
-        // no REST services were enqueued so that registration was a no-op.
+        // -1 for the worker's own item, +1 per enqueued SOAP service; the empty REST registration is a no-op.
         Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> fetchWorkTracker.pending() == 3);
     }
 

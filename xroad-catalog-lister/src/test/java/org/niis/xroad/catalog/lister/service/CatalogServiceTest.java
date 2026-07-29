@@ -263,8 +263,7 @@ public class CatalogServiceTest {
 
     @Test
     public void testGetAllMembers() {
-        // Task 1.5 added invariant fixture members 20, 21, 22. Their IDs interleave with the
-        // original 1-8 because the Member natural-ordering uses ComparisonChain on the natural key.
+        // IDs interleave because Member ordering is by natural key, not id.
         Iterable<Member> members = catalogService.getAllMembers();
         assertEquals(Arrays.asList(1L, 2L, 3L, 4L, 20L, 5L, 21L, 6L, 22L, 7L, 8L),
                 new ArrayList<Long>(testUtil.getIds(members)));

@@ -29,14 +29,13 @@ import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
-import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
-import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Member;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -46,65 +45,57 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 /**
- * V2 member service, backed by the {@link MemberRepositoryV2} read model.
+ * V2 member service, backed by the {@link MemberRepository} read model.
  */
-@Service
+@org.springframework.stereotype.Service
 public class MemberServiceV2 {
 
-    private final MemberRepositoryV2 memberRepository;
+    private final MemberRepository memberRepository;
     private final SharedParamsCache sharedParamsCache;
-    private final InstanceContext instanceContext;
 
-    public MemberServiceV2(MemberRepositoryV2 memberRepository, SharedParamsCache sharedParamsCache,
-            InstanceContext instanceContext) {
+    public MemberServiceV2(MemberRepository memberRepository, SharedParamsCache sharedParamsCache) {
         this.memberRepository = memberRepository;
         this.sharedParamsCache = sharedParamsCache;
-        this.instanceContext = instanceContext;
     }
 
-    /**
-     * @return the member's flat DTO, or an empty {@link Optional} if absent or removed (controller maps to 404)
-     */
     public Optional<MemberDto> getByNaturalKey(String memberClass, String memberCode) {
         return memberRepository.findActiveSummaryByNaturalKey(
-                        instanceContext.getCurrentInstance(), memberClass, memberCode)
+                        sharedParamsCache.getCurrentInstance(), memberClass, memberCode)
                 .map(MemberDto::from);
     }
 
     public boolean existsActive(String memberClass, String memberCode) {
         return memberRepository.existsActiveByNaturalKey(
-                instanceContext.getCurrentInstance(), memberClass, memberCode);
+                sharedParamsCache.getCurrentInstance(), memberClass, memberCode);
     }
 
     public Page<MemberDto> getForList(String memberClass, Boolean isProvider, Pageable pageable) {
         Page<MemberListRow> rows = memberRepository.findActiveForList(
-                instanceContext.getCurrentInstance(), memberClass, isProvider, pageable);
+                sharedParamsCache.getCurrentInstance(), memberClass, isProvider, pageable);
         return rows.map(MemberDto::from);
     }
 
     /**
-     * Builds the full nested subtree for a single member ({@code ?full=true}). Returns an empty
-     * {@link Optional} when the member is absent so the controller can map to 404. Subsystems are
-     * sorted by {@code subsystemCode} ascending and services within each subsystem by
-     * {@code serviceCode} ascending for deterministic output across restarts.
+     * Full nested subtree for one member ({@code ?full=true}); empty {@link Optional} when absent.
+     * Subsystems and services are sorted by code for deterministic output.
      */
     public Optional<FullMemberDto> getFullTree(String memberClass, String memberCode) {
         return memberRepository.findActiveWithTreeByNaturalKey(
-                        instanceContext.getCurrentInstance(), memberClass, memberCode)
+                        sharedParamsCache.getCurrentInstance(), memberClass, memberCode)
                 .map(member -> toFullDto(member, sharedParamsCache.subsystemNames()));
     }
 
-    private FullMemberDto toFullDto(MemberV2 member, SubsystemNameLookup nameLookup) {
+    private FullMemberDto toFullDto(Member member, SubsystemNameLookup nameLookup) {
         List<FullSubsystemDto> subsystemDtos = new ArrayList<>();
-        List<SubsystemV2> sorted = member.getActiveSubsystems().stream()
-                .sorted(Comparator.comparing(SubsystemV2::getSubsystemCode)).toList();
-        for (SubsystemV2 sub : sorted) {
-            Map<String, List<ServiceV2>> byCode = new TreeMap<>();
-            for (ServiceV2 svc : sub.getActiveServices()) {
+        List<Subsystem> sorted = member.getSubsystems().stream()
+                .sorted(Comparator.comparing(Subsystem::getSubsystemCode)).toList();
+        for (Subsystem sub : sorted) {
+            Map<String, List<Service>> byCode = new TreeMap<>();
+            for (Service svc : sub.getServices()) {
                 byCode.computeIfAbsent(svc.getServiceCode(), k -> new ArrayList<>()).add(svc);
             }
             List<ServiceDto> services = new ArrayList<>();
-            for (List<ServiceV2> group : byCode.values()) {
+            for (List<Service> group : byCode.values()) {
                 services.add(ServiceDto.fromEntities(member.getMemberClass(), member.getMemberCode(),
                         member.getName(), sub.getSubsystemCode(), group));
             }

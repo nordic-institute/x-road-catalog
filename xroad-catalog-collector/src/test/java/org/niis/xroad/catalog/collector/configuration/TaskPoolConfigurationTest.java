@@ -37,8 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
- * Plain unit test (no Spring context) for the client I/O timeout wiring in {@link TaskPoolConfiguration}:
- * the {@link RestTemplate} bean and the SAAJ system property {@code @PostConstruct} method.
+ * Unit test (no Spring context) for the client I/O timeout wiring in {@link TaskPoolConfiguration}.
  */
 class TaskPoolConfigurationTest {
 
@@ -82,8 +81,7 @@ class TaskPoolConfigurationTest {
         assertInstanceOf(SimpleClientHttpRequestFactory.class, restTemplate.getRequestFactory());
         SimpleClientHttpRequestFactory requestFactory = (SimpleClientHttpRequestFactory) restTemplate.getRequestFactory();
 
-        // Spring's SimpleClientHttpRequestFactory does not expose the configured timeouts via getters, so the
-        // private int fields are read via reflection to verify they were built from the configured @Value's.
+        // SimpleClientHttpRequestFactory exposes no timeout getters; read the private fields via reflection.
         assertEquals((int) Duration.ofSeconds(CONNECT_TIMEOUT_SECONDS).toMillis(),
                 ReflectionTestUtils.getField(requestFactory, "connectTimeout"));
         assertEquals((int) Duration.ofSeconds(READ_TIMEOUT_SECONDS).toMillis(),

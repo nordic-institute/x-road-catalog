@@ -190,10 +190,8 @@ class BrowseErrorsControllerTest {
 
     @Test
     void catalogErrorsSinceAfterUntilReturns400() throws Exception {
-        // Range validation now lives in ErrorLogServiceV2 (Task B4), not the controller. This test
-        // pins that the controller still parses since > until through to the service unchanged, and
-        // that the IllegalArgumentException the (real) service would raise maps to 400 through
-        // V2ExceptionHandler regardless of which layer threw it.
+        // Range validation lives in ErrorLogServiceV2; the controller passes the range through
+        // and the service's IllegalArgumentException maps to 400 via V2ExceptionHandler.
         LocalDateTime sinceAfter = LocalDateTime.of(2024, 3, 1, 0, 0);
         LocalDateTime untilBefore = LocalDateTime.of(2024, 2, 1, 0, 0);
         when(errorLogService.get(eq(null), eq(null), eq(null), eq(null), eq(null),
@@ -434,9 +432,7 @@ class BrowseErrorsControllerTest {
 
     @Test
     void errorsRangeOver90DaysIsRejectedWith400() throws Exception {
-        // See catalogErrorsSinceAfterUntilReturns400: the 90-day cap is enforced by
-        // ErrorLogServiceV2, not the controller — stub the (mocked) service to mimic the real
-        // rejection and verify it still reaches the client as 400 via V2ExceptionHandler.
+        // The 90-day cap is enforced by ErrorLogServiceV2; its rejection maps to 400 via V2ExceptionHandler.
         LocalDateTime since = LocalDateTime.of(2025, 1, 1, 0, 0);
         LocalDateTime until = LocalDateTime.of(2025, 6, 1, 0, 0);
         when(errorLogService.get(eq(null), eq(null), eq(null), eq(null), eq(null),

@@ -13,4 +13,5 @@
     <include file="/db/changelog/collector/012-common-indexes.xml" />
     <include file="/db/changelog/collector/013-v2-denormalized-backfill.xml" />
     <include file="/db/changelog/collector/014-collection-run.xml" />
+    <include file="/db/changelog/collector/015-v2-active-views.xml" />
 </databaseChangeLog>

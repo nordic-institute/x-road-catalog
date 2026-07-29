@@ -25,13 +25,11 @@
 package org.niis.xroad.catalog.lister.configuration;
 
 import org.niis.xroad.catalog.lister.ListerApplication;
-import org.niis.xroad.catalog.persistence.entity.Member;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberListRow;
 import org.niis.xroad.catalog.persistence.testsupport.PostgresTestBase;
-import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
-import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -50,29 +48,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Boots the real production wiring (no {@code test} profile active, so {@link
- * V2ProductionConfiguration} fires exactly as it would in a real deployment) against a genuine
- * Liquibase-managed Postgres schema, and proves the
- * V2 read-model repositories actually resolve and execute a query against it.
+ * Boots the real production wiring (no {@code test} profile, so {@link V2ProductionConfiguration}
+ * fires) against a Liquibase-managed Postgres schema and proves the V2 read-model repositories
+ * resolve and execute a query against it. Every other lister test runs the {@code test} profile
+ * (H2, {@code create-drop}), where {@code v2.entity} is deliberately never scanned, so only this
+ * test catches a wrong scan package or a mapping conflict between the coexisting V1 and V2 entity
+ * packages.
  *
- * <p>Every other lister test activates the {@code test} profile (H2, {@code create-drop}), under
- * which {@code v2entity} is deliberately never scanned -- so until this test existed, no test
- * anywhere booted a context with {@code v2entity} scanned alongside the V1 {@code entity} package
- * with the V2 repositories resolving against it. A wrong scan package, or a mapping conflict that
- * only appears once both entity packages coexist in one persistence unit, would previously have
- * surfaced for the first time in a real deployment.
- *
- * <p>{@code xroad-catalog.configuration-client.enabled} is off: that flag gates {@link
- * ConfigClientInitializer}, unrelated to what this test checks, which would otherwise bind a real
- * Jetty admin port. {@code webEnvironment = NONE} suffices since this test only needs the
- * {@code ApplicationContext} and its repositories, not an HTTP listener.
- *
- * <p>{@code spring.main.allow-bean-definition-overriding} is on for a reason unrelated to the
- * V2/repository wiring under test: {@code ListerDefaultConfiguration}'s component scan sees nested
- * {@code @TestConfiguration} classes belonging to unrelated {@code @WebMvcTest}s that declare a
- * clashing {@code clock()} bean -- something that never happens in an actual deployed jar. Every
- * other full-context lister test tolerates this the same way via {@code application-test.yaml},
- * which this test deliberately does not activate.
+ * <p>{@code configuration-client.enabled} is off so {@link ConfigClientInitializer} does not bind
+ * a real Jetty admin port; {@code webEnvironment = NONE} because only the context and repositories
+ * are needed. {@code allow-bean-definition-overriding} is on because {@code
+ * ListerDefaultConfiguration}'s component scan picks up nested {@code @TestConfiguration} classes
+ * of unrelated {@code @WebMvcTest}s that declare a clashing {@code clock()} bean.
  */
 @SpringBootTest(classes = ListerApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -85,7 +72,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ProductionV2WiringIntegrationTest extends PostgresTestBase {
 
     @Autowired
-    private MemberRepositoryV2 memberRepositoryV2;
+    private MemberRepository memberRepositoryV2;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -96,13 +83,12 @@ class ProductionV2WiringIntegrationTest extends PostgresTestBase {
                 .map(ManagedType::getJavaType)
                 .collect(Collectors.toSet());
 
-        // The V2 read model is actually scanned in this context...
-        assertTrue(managedTypes.contains(MemberV2.class), "MemberV2 must be a managed JPA type in production wiring");
-        assertTrue(managedTypes.contains(SubsystemV2.class), "SubsystemV2 must be a managed JPA type in production wiring");
-        assertTrue(managedTypes.contains(ServiceV2.class), "ServiceV2 must be a managed JPA type in production wiring");
-        // ...alongside the V1 entity model, without the dual-mapping collision the v2entity
-        // package split exists to avoid.
-        assertTrue(managedTypes.contains(Member.class), "V1 Member must remain a managed JPA type alongside v2entity");
+        assertTrue(managedTypes.contains(org.niis.xroad.catalog.persistence.v2.entity.Member.class),
+                "Member must be a managed JPA type in production wiring");
+        assertTrue(managedTypes.contains(Subsystem.class), "Subsystem must be a managed JPA type in production wiring");
+        assertTrue(managedTypes.contains(Service.class), "Service must be a managed JPA type in production wiring");
+        assertTrue(managedTypes.contains(org.niis.xroad.catalog.persistence.entity.Member.class),
+                "V1 Member must remain a managed JPA type alongside v2.entity");
 
         Page<MemberListRow> page = memberRepositoryV2.findActiveForList(
                 "TEST-WIRING", null, null, PageRequest.of(0, 20));

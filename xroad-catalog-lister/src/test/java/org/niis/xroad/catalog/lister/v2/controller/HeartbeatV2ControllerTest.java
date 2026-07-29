@@ -26,7 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.lister.v2.dto.CurrentRunV2Dto;
+import org.niis.xroad.catalog.lister.v2.dto.CurrentRunDto;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.LastCollectionDataV2Dto;
 import org.niis.xroad.catalog.lister.v2.service.HeartbeatServiceV2;
@@ -69,6 +69,7 @@ class HeartbeatV2ControllerTest {
     private static final LocalDateTime SYSTEM_TIME = LocalDateTime.of(2026, 4, 10, 12, 0);
     private static final LocalDateTime STARTED = LocalDateTime.of(2026, 4, 10, 13, 0);
     private static final LocalDateTime PROGRESS_UPDATED = LocalDateTime.of(2026, 4, 10, 13, 25);
+    private static final LocalDateTime CONF_EXPIRES = LocalDateTime.of(2026, 4, 11, 12, 0);
 
     private static String expectedOffset(LocalDateTime ldt) {
         return ldt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
@@ -91,6 +92,7 @@ class HeartbeatV2ControllerTest {
                 .appWorking(Boolean.TRUE).dbWorking(Boolean.TRUE)
                 .appName("X-Road Catalog Lister").appVersion("3.0.0")
                 .systemTime(SYSTEM_TIME).lastCollectionData(last).lastRunErrors(3L)
+                .globalConfExpiresAt(CONF_EXPIRES)
                 .build();
     }
 
@@ -113,6 +115,8 @@ class HeartbeatV2ControllerTest {
                 .andExpect(jsonPath("$.lastCollectionData.openapisLastFetched").value(expectedOffset(FETCHED)))
                 .andExpect(jsonPath("$.lastCollectionData.restsLastFetched").value(expectedOffset(FETCHED)))
                 .andExpect(jsonPath("$.lastRunErrors").value(3))
+                .andExpect(jsonPath("$.globalConfExpired").value(false))
+                .andExpect(jsonPath("$.globalConfExpiresAt").value(expectedOffset(CONF_EXPIRES)))
                 .andExpect(jsonPath("$.currentRun").value(Matchers.nullValue()));
 
         verify(heartbeatService).heartbeat();
@@ -121,7 +125,7 @@ class HeartbeatV2ControllerTest {
 
     @Test
     void heartbeatIncludesCurrentRunWithOffsetTimestampsWhenCycleInProgress() throws Exception {
-        CurrentRunV2Dto currentRun = CurrentRunV2Dto.builder()
+        CurrentRunDto currentRun = CurrentRunDto.builder()
                 .started(STARTED).pendingItems(37).progressUpdated(PROGRESS_UPDATED)
                 .build();
         HeartbeatV2Dto hb = fullyPopulated();
@@ -144,6 +148,31 @@ class HeartbeatV2ControllerTest {
                 .andExpect(jsonPath("$.currentRun").value(Matchers.nullValue()))
                 // Pin "key present, value null" distinctly from the key being absent altogether.
                 .andExpect(content().string(Matchers.containsString("\"currentRun\":null")));
+    }
+
+    @Test
+    void expiredGlobalConfIsReportedButNeverCauses503() throws Exception {
+        HeartbeatV2Dto hb = fullyPopulated();
+        hb.setGlobalConfExpired(true);
+        when(heartbeatService.heartbeat()).thenReturn(hb);
+
+        mockMvc.perform(get(HEARTBEAT_PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.globalConfExpired").value(true))
+                .andExpect(jsonPath("$.globalConfExpiresAt").value(expectedOffset(CONF_EXPIRES)));
+    }
+
+    @Test
+    void unknownGlobalConfExpiryRendersFalseAndJsonNull() throws Exception {
+        HeartbeatV2Dto hb = fullyPopulated();
+        hb.setGlobalConfExpiresAt(null);
+        when(heartbeatService.heartbeat()).thenReturn(hb);
+
+        mockMvc.perform(get(HEARTBEAT_PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.globalConfExpired").value(false))
+                .andExpect(jsonPath("$.globalConfExpiresAt").value(Matchers.nullValue()))
+                .andExpect(content().string(Matchers.containsString("\"globalConfExpiresAt\":null")));
     }
 
     @Test
@@ -181,9 +210,8 @@ class HeartbeatV2ControllerTest {
 
     @Test
     void heartbeatExposesAllSixLastFetchedFieldsAsJsonNullBeforeFirstCollection() throws Exception {
-        // Spec §5.1: when any *LastFetched is null (first run) lastRunErrors is 0. The wire
-        // shape exposes ALL six LastCollectionData fields plus systemTime as JSON null so the
-        // client can render the empty state explicitly.
+        // When any *LastFetched is null (first run) lastRunErrors is 0; all six LastCollectionData
+        // fields plus systemTime render as JSON null so the client can show the empty state.
         HeartbeatV2Dto hb = HeartbeatV2Dto.builder()
                 .appWorking(Boolean.TRUE).dbWorking(Boolean.TRUE)
                 .appName("X-Road Catalog Lister").appVersion("3.0.0")
@@ -212,8 +240,8 @@ class HeartbeatV2ControllerTest {
 
     @Test
     void heartbeatIgnoresExtraQueryParams() throws Exception {
-        // Heartbeat takes no query parameters; extras are silently ignored (consistent with
-        // /api/v2/search and /api/v2/reports/*). Service is invoked exactly once regardless.
+        // Heartbeat takes no query parameters; extras are silently ignored and the service
+        // is invoked exactly once regardless.
         when(heartbeatService.heartbeat()).thenReturn(fullyPopulated());
 
         mockMvc.perform(get(HEARTBEAT_PATH)
@@ -256,9 +284,8 @@ class HeartbeatV2ControllerTest {
 
     @Test
     void postToHeartbeatUnderContextPathReturns405() throws Exception {
-        // Mirrors ReportsControllerTest.postToChangesUnderContextPathReturns405: the dispatch
-        // handler must path-discriminate /api/v2/* even when the app is deployed under a
-        // non-root context (e.g. /catalog/api/v2/heartbeat).
+        // The dispatch handler must path-discriminate /api/v2/* even when the app is deployed
+        // under a non-root context (e.g. /catalog/api/v2/heartbeat).
         mockMvc.perform(post("/catalog" + HEARTBEAT_PATH).contextPath("/catalog"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath(JSON_STATUS).value(405))
@@ -268,8 +295,7 @@ class HeartbeatV2ControllerTest {
 
     @Test
     void unsupportedAcceptHeaderReturns406WithV2ErrorEnvelope() throws Exception {
-        // Task 2 wires HttpMediaTypeNotAcceptableException -> V2 ErrorResponse on /api/v2/* paths.
-        // Verify the wire shape: status=406, error=NotAcceptable, message advertises JSON.
+        // HttpMediaTypeNotAcceptableException maps to a V2 ErrorResponse on /api/v2/* paths.
         when(heartbeatService.heartbeat()).thenReturn(fullyPopulated());
 
         mockMvc.perform(get(HEARTBEAT_PATH).accept(MediaType.TEXT_PLAIN))
@@ -281,11 +307,8 @@ class HeartbeatV2ControllerTest {
 
     @Test
     void postWithUnsupportedAcceptHeaderReturns405WithV2ErrorEnvelope() throws Exception {
-        // Regression: the V2DispatchExceptionHandler.handleMethodNotSupported response must
-        // carry the V2 envelope even when the client's Accept header excludes JSON. Without
-        // an explicit Content-Type the message converter would re-negotiate against
-        // Accept: text/plain, raise a second exception, and drop the body — leaving the
-        // client with an empty 405. Mirrors the 406 regression test above.
+        // The 405 response must carry the V2 envelope even when Accept excludes JSON; without an
+        // explicit Content-Type the converter re-negotiates against Accept: text/plain and drops the body.
         mockMvc.perform(post(HEARTBEAT_PATH).accept(MediaType.TEXT_PLAIN))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath(JSON_STATUS).value(405))

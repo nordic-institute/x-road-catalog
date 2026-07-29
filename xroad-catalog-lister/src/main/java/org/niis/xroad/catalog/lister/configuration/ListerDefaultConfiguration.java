@@ -31,15 +31,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
 /**
- * Does not {@code @Import(PersistenceDefaultConfiguration.class)} -- it reproduces that class's
- * component/entity scan directly and excludes {@code PersistenceDefaultConfiguration} itself from
- * the component scan so that class's own {@code @EnableJpaRepositories} (which knows nothing about
- * the lister's V1/V2 dual entity-scan split) never fires. Repository enabling is instead split
- * across mutually exclusive {@code @Profile}-gated classes -- {@link V2ProductionConfiguration} and
- * its {@code test}-profile siblings -- each contributing its own {@code @EnableJpaRepositories}
- * declaration (one per profile); see their javadoc. This
- * mirrors the same restructuring already applied to {@code CollectorDefaultConfiguration} for the
- * analogous problem of a V2 read-model repository not being resolvable against every context.
+ * Reproduces {@code PersistenceDefaultConfiguration}'s component/entity scan while excluding the class
+ * itself, so its unconditional {@code @EnableJpaRepositories} never fires; repository enabling lives in
+ * mutually exclusive {@code @Profile}-gated classes to support the V1/V2 entity-scan split.
  */
 @Configuration
 @ComponentScan(basePackages = {"org.niis.xroad.catalog.lister", "org.niis.xroad.catalog.persistence"},

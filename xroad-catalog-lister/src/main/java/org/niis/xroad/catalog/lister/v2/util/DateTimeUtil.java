@@ -36,13 +36,10 @@ public final class DateTimeUtil {
     }
 
     /**
-     * Parses {@code value} as an ISO-8601 calendar date ({@code yyyy-MM-dd}). V2 endpoints accept
-     * date-only inputs; sub-day precision and timezone offsets are rejected — V2 standardizes on
-     * day-resolution range queries (spec §8) regardless of the underlying collector cadence.
+     * Parses an ISO-8601 calendar date ({@code yyyy-MM-dd}). Sub-day precision and timezone
+     * offsets are rejected — V2 standardizes on day-resolution range queries.
      *
-     * @param value ISO-8601 calendar date
-     * @return parsed date
-     * @throws IllegalArgumentException if {@code value} is null/blank or doesn't match {@code yyyy-MM-dd}
+     * @throws IllegalArgumentException if {@code value} is null/blank or not {@code yyyy-MM-dd}
      */
     public static LocalDate parseDate(String value) {
         if (value == null || value.isBlank()) {
@@ -69,9 +66,8 @@ public final class DateTimeUtil {
     }
 
     /**
-     * Parse {@code value} as a {@code yyyy-MM-dd} date, or return {@code defaultIfMissing} when
-     * {@code value} is null or blank. Malformed non-blank values still raise {@link IllegalArgumentException}
-     * via {@link #parseDate(String)}.
+     * Like {@link #parseDate(String)}, but a null/blank {@code value} yields {@code defaultIfMissing};
+     * malformed non-blank values still raise {@link IllegalArgumentException}.
      */
     public static LocalDate parseDateOrDefault(String value, LocalDate defaultIfMissing) {
         if (value == null || value.isBlank()) {
@@ -81,7 +77,8 @@ public final class DateTimeUtil {
     }
 
     /**
-     * Today's date in UTC. The {@link Clock} is injected so tests can pin the value.
+     * Today in the {@link Clock}'s zone — server-local in production, matching the local-wall-clock
+     * convention stored timestamps use; the clock is injected so tests can pin the value.
      */
     public static LocalDate today(Clock clock) {
         return LocalDate.now(clock);

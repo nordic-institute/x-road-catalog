@@ -33,14 +33,15 @@ import org.niis.xroad.catalog.lister.v2.dto.ChangeLogDayDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
-import org.niis.xroad.catalog.persistence.repository.ReportsRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberChangeRow;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceChangeRow;
-import org.niis.xroad.catalog.persistence.repository.projection.SubsystemChangeRow;
+import org.niis.xroad.catalog.persistence.v2.repository.ReportsRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ChangeLogDayRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberChangeRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceChangeRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceCountRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SubsystemChangeRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,7 +60,7 @@ import static org.mockito.Mockito.when;
 class ReportServiceV2Test {
 
     @Mock
-    private ReportsRepositoryV2 reportsRepository;
+    private ReportsRepository reportsRepository;
 
     private ReportServiceV2 reportService;
 
@@ -157,9 +158,8 @@ class ReportServiceV2Test {
 
     @Test
     void testServiceStatisticsAcceptsExactlyMaxRange() {
-        // 90 days — right at the cap. The service layer pre-fills every requested day regardless
-        // of what the SQL query returns, so a mocked empty result still yields one zeroed DTO per
-        // day; the point of this test is that DateTimeUtil.validateDateRange does not reject the boundary.
+        // 90 days — right at the cap; DateTimeUtil.validateDateRange must not reject the boundary.
+        // The pre-fill still emits one zeroed DTO per day for the mocked empty result.
         when(reportsRepository.countServicesPerDay(any(), any())).thenReturn(List.of());
         LocalDate since = LocalDate.of(2025, 1, 1);
         LocalDate until = LocalDate.of(2025, 4, 1);
@@ -323,12 +323,22 @@ class ReportServiceV2Test {
         verifyNoMoreInteractions(reportsRepository);
     }
 
-    private void stubDayPage(Object[]... dayRows) {
+    private void stubDayPage(ChangeLogDayRow... dayRows) {
         when(reportsRepository.findChangeLogDayPage(any(), any(), anyInt(), anyLong())).thenReturn(List.of(dayRows));
     }
 
-    private static Object[] dayRow(LocalDate day, long totalDays) {
-        return new Object[] {Date.valueOf(day), totalDays};
+    private static ChangeLogDayRow dayRow(LocalDate day, long totalDays) {
+        return new ChangeLogDayRow() {
+            @Override
+            public LocalDate getDay() {
+                return day;
+            }
+
+            @Override
+            public long getTotalDays() {
+                return totalDays;
+            }
+        };
     }
 
     private void stubEmptyChangeWindows() {
@@ -343,11 +353,26 @@ class ReportServiceV2Test {
         when(reportsRepository.findServicesRemovedBetween(any(), any())).thenReturn(List.of());
     }
 
-    private static Object[] row(LocalDate day, String serviceType, long count) {
-        return new Object[] {Date.valueOf(day), serviceType, count};
+    private static ServiceCountRow row(LocalDate day, String serviceType, long count) {
+        return new ServiceCountRow() {
+            @Override
+            public LocalDate getDay() {
+                return day;
+            }
+
+            @Override
+            public String getServiceType() {
+                return serviceType;
+            }
+
+            @Override
+            public long getCount() {
+                return count;
+            }
+        };
     }
 
-    private static List<Object[]> statsRows(Object[]... rows) {
+    private static List<ServiceCountRow> statsRows(ServiceCountRow... rows) {
         return List.of(rows);
     }
 

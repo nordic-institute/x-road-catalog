@@ -62,10 +62,6 @@ public class ListController {
 
     private static final Set<String> SUBSYSTEM_SORT_FIELDS = Set.of("subsystemCode", CREATED, CHANGED);
 
-    // UNKNOWN is filterable so operators can find services collected but not yet classified by the
-    // collector recompute. It is a transient state, not a descriptor kind.
-    private static final Set<String> ALLOWED_SERVICE_TYPES = Set.of("SOAP", "REST", "OPENAPI", "UNKNOWN");
-
     private final MemberServiceV2 memberService;
     private final SubsystemServiceV2 subsystemService;
     private final ServiceServiceV2 serviceService;
@@ -94,8 +90,8 @@ public class ListController {
     @GetMapping("/members")
     public PagedCollectionResponse<MemberDto> listMembers(
             @RequestParam(value = "memberClass", required = false) String memberClass,
-            @Parameter(description = "Filters by provider status. Accepts true/false/on/off/yes/no/1/0; "
-                    + "omitted or null applies no filter.")
+            @Parameter(description = "Filters by provider status. Accepts true/false. "
+                    + "Omitted or null applies no filter.")
             @RequestParam(value = "provider", required = false) Boolean provider,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size,
@@ -126,16 +122,10 @@ public class ListController {
             @RequestParam(value = "serviceType", required = false) String serviceType,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size) {
-        if (serviceType != null && !serviceType.isBlank() && !ALLOWED_SERVICE_TYPES.contains(serviceType)) {
-            throw new IllegalArgumentException(
-                    "Invalid value for query parameter 'serviceType': '" + serviceType
-                            + "'. Allowed: " + ALLOWED_SERVICE_TYPES);
-        }
-        // The service list is an aggregate view ordered by serviceCode ascending in the repository
-        // (spec §8). sortBy/sortOrder are intentionally unsupported, mirroring /api/v2/search.
+        // The service list is an aggregate view with fixed serviceCode order; sortBy/sortOrder are
+        // intentionally unsupported, mirroring /api/v2/search.
         Pageable pageable = PaginationUtil.toPageableNoSort(page, size);
-        String resolvedType = (serviceType == null || serviceType.isBlank()) ? null : serviceType;
-        Page<ServiceDto> result = serviceService.getForList(memberClass, resolvedType, pageable);
+        Page<ServiceDto> result = serviceService.getForList(memberClass, serviceType, pageable);
         return PagedCollectionResponse.fromPage(result);
     }
 }

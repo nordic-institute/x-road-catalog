@@ -27,14 +27,12 @@ package org.niis.xroad.catalog.lister.v2.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Member row in {@code GET /api/v2/search}. Includes the member-level {@code provider}
- * predicate (spec §6.1).
+ * Member row in {@code GET /api/v2/search}.
  *
- * @param memberClass X-Road member class
- * @param memberCode  X-Road member code
- * @param name        member display name
- * @param isProvider  true if the member owns at least one subsystem that provides services
- *                    (serialized to JSON as {@code provider})
+ * @param memberClass member class
+ * @param memberCode member code
+ * @param name member display name
+ * @param isProvider serialized as {@code provider}; true if the member owns at least one subsystem that provides services
  */
 public record MemberSearchHit(
         String memberClass,

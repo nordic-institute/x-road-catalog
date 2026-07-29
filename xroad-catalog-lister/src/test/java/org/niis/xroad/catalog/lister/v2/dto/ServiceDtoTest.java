@@ -25,9 +25,9 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -90,8 +90,8 @@ class ServiceDtoTest {
 
     @Test
     void testFromEntitiesSortsAndAggregatesVersions() {
-        ServiceV2 v1 = service("mixedSvc", "v1", "SOAP");
-        ServiceV2 vNull = service("mixedSvc", null, "REST");
+        Service v1 = service("mixedSvc", "v1", "SOAP");
+        Service vNull = service("mixedSvc", null, "REST");
 
         ServiceDto dto = ServiceDto.fromEntities("PUB", "14151328", "Nahka-Albert", "sub1",
                 List.of(vNull, v1));
@@ -111,16 +111,16 @@ class ServiceDtoTest {
 
     private ServiceVersionRow row(String serviceCode, String version, String serviceType, LocalDateTime now) {
         return new FakeServiceVersionRow("PUB", "14151328", "Nahka-Albert", "sub1", 1L,
-                serviceCode, version, serviceType, now, now, now, null);
+                serviceCode, version, serviceType, now, now, now);
     }
 
-    private ServiceV2 service(String code, String version, String serviceType) {
-        ServiceV2 s = new ServiceV2();
+    private Service service(String code, String version, String serviceType) {
+        Service s = new Service();
         ReflectionTestUtils.setField(s, "serviceCode", code);
         ReflectionTestUtils.setField(s, "serviceVersion", version);
         ReflectionTestUtils.setField(s, "serviceType", serviceType);
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now));
         return s;
     }
 
@@ -128,7 +128,7 @@ class ServiceDtoTest {
     private record FakeServiceVersionRow(String memberClass, String memberCode, String memberName,
                                   String subsystemCode, long subsystemId, String serviceCode, String serviceVersion,
                                   String serviceType, LocalDateTime created, LocalDateTime changed,
-                                  LocalDateTime fetched, LocalDateTime removed) implements ServiceVersionRow {
+                                  LocalDateTime fetched) implements ServiceVersionRow {
 
         @Override
         public String getMemberClass() {
@@ -183,11 +183,6 @@ class ServiceDtoTest {
         @Override
         public LocalDateTime getFetched() {
             return fetched;
-        }
-
-        @Override
-        public LocalDateTime getRemoved() {
-            return removed;
         }
     }
 }

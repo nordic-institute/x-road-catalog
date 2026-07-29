@@ -29,15 +29,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * Service-aggregate row in {@code GET /api/v2/search}. {@code serviceTypes} aggregates all
- * descriptor kinds resolved across active versions (spec §3.2 example).
+ * Service-aggregate row in {@code GET /api/v2/search}.
  *
- * @param memberClass   X-Road member class of the service-owning member
- * @param memberCode    X-Road member code of the service-owning member
- * @param memberName    display name of the service-owning member
- * @param subsystemCode X-Road subsystem code under which the service is published
- * @param serviceCode   X-Road service code (aggregate across versions)
- * @param serviceTypes  descriptor kinds resolved across active versions (e.g. SOAP, OPENAPI, REST)
+ * @param memberClass parent member class
+ * @param memberCode parent member code
+ * @param memberName parent member's display name
+ * @param subsystemCode parent subsystem code
+ * @param serviceCode service code
+ * @param serviceTypes descriptor kinds resolved across active versions (e.g. SOAP, OPENAPI, REST)
  */
 public record ServiceSearchHit(
         String memberClass,

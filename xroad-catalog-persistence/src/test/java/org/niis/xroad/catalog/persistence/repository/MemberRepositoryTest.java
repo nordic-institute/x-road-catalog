@@ -87,8 +87,7 @@ public class MemberRepositoryTest {
 
     @Test
     public void testFindAll() {
-        // Task 1.5 invariant fixture added members 20, 21 (active) and 22 (removed) for provider
-        // semantics testing; adjust totals accordingly. Originally 8 total / 7 active.
+        // 11 = original members 1-8 plus fixture members 20-22 (22 is removed).
         Iterable<Member> members = memberRepository.findAll();
         assertEquals(11, Iterables.size(members));
 

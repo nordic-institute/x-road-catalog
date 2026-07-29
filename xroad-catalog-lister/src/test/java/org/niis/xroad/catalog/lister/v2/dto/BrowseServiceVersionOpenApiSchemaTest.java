@@ -40,8 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Verifies that every {@code @PathVariable("serviceVersion")} on V2 browse controllers ships an
  * {@code @Parameter} description documenting the {@code "null"} sentinel literal in the generated
- * OpenAPI document. Without this, third-party clients reading the spec have no way of knowing that
- * the literal {@code "null"} URL segment maps to a Java null on the server.
+ * OpenAPI document; without it, clients cannot know the literal segment maps to a Java null.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

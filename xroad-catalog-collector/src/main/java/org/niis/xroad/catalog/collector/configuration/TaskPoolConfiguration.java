@@ -128,12 +128,10 @@ public class TaskPoolConfiguration {
     }
 
     /**
-     * SAAJ-RI (saaj-impl 3.0.4) reads {@code saaj.connect.timeout} and {@code saaj.read.timeout} once, at
-     * class-load time of {@code com.sun.xml.messaging.saaj.client.p2p.HttpSOAPConnection}. That class is only
-     * loaded on the first SOAP send performed by xrd4j's {@code SOAPClientImpl}, which happens long after
-     * context initialization, so setting the properties here in a {@code @PostConstruct} method is early
-     * enough. The Jakarta SOAP 3 instance-level {@code setConnectTimeout}/{@code setReadTimeout} API would be
-     * the proper fix, but it requires an upstream xrd4j change and is deferred.
+     * SAAJ-RI reads {@code saaj.connect.timeout} and {@code saaj.read.timeout} once, when
+     * {@code HttpSOAPConnection} is class-loaded on the first SOAP send — well after context
+     * initialization, so setting them in {@code @PostConstruct} is early enough. The instance-level
+     * Jakarta SOAP 3 timeout API would be cleaner but requires an upstream xrd4j change.
      */
     @PostConstruct
     public void configureSaajTimeouts() {

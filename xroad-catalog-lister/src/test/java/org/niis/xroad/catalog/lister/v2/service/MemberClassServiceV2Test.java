@@ -30,8 +30,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberClassCountRow;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberClassCountRow;
 
 import java.util.List;
 import java.util.Map;
@@ -53,21 +53,19 @@ class MemberClassServiceV2Test {
     private SharedParamsCache sharedParamsCache;
 
     @Mock
-    private MemberRepositoryV2 memberRepository;
+    private MemberRepository memberRepository;
 
-    @Mock
-    private InstanceContext instanceContext;
 
     private MemberClassServiceV2 service;
 
     @BeforeEach
     void setUp() {
-        service = new MemberClassServiceV2(sharedParamsCache, memberRepository, instanceContext);
+        service = new MemberClassServiceV2(sharedParamsCache, memberRepository);
     }
 
     @Test
     void testListIncludesPubMemberCount() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(sharedParamsCache.memberClasses())
                 .thenReturn(new SharedParamsCache.MemberClasses(Map.of(PUB, "Public"), Set.of(PUB)));
         when(memberRepository.countActiveGroupedByMemberClass(INSTANCE)).thenReturn(List.of(
@@ -82,7 +80,7 @@ class MemberClassServiceV2Test {
 
     @Test
     void testListSortsByCode() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(sharedParamsCache.memberClasses())
                 .thenReturn(new SharedParamsCache.MemberClasses(Map.of(), Set.of()));
         when(memberRepository.countActiveGroupedByMemberClass(INSTANCE)).thenReturn(List.of(
@@ -95,7 +93,7 @@ class MemberClassServiceV2Test {
 
     @Test
     void testGetByCodeReturnsMatchingClass() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.countActiveByMemberClass(INSTANCE, PUB)).thenReturn(4L);
 
         Optional<MemberClassDto> result = service.getByCode(PUB);
@@ -107,7 +105,7 @@ class MemberClassServiceV2Test {
 
     @Test
     void testGetByCodeReturnsEmptyOptionalForUnknownCode() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.countActiveByMemberClass(INSTANCE, "DOES-NOT-EXIST")).thenReturn(0L);
 
         assertTrue(service.getByCode("DOES-NOT-EXIST").isEmpty());
@@ -122,7 +120,7 @@ class MemberClassServiceV2Test {
     void testGetByCodeToleratesParserFailure() {
         // The cache absorbs parser failures internally and serves an empty map for the TTL window;
         // the service must still surface a class backed by real members.
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(sharedParamsCache.memberClassDescriptions()).thenReturn(Map.of());
         when(memberRepository.countActiveByMemberClass(INSTANCE, PUB)).thenReturn(1L);
 

@@ -125,8 +125,7 @@ class BrowseDescriptorControllerTest {
 
     @Test
     void versionLevelOnlyRemovedWsdlReturns404() throws Exception {
-        // Regression for the active-row contract from Task 1.5: even when a service has a removed WSDL,
-        // the service layer returns an empty Optional (no active descriptor) so the controller emits 404.
+        // A removed WSDL yields an empty Optional (no active descriptor), hence 404.
         when(serviceService.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1,
                 "descRemovedWsdlSvc", "v1")).thenReturn(Optional.empty());
 
@@ -194,12 +193,12 @@ class BrowseDescriptorControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.error").value("Conflict"))
-                .andExpect(jsonPath("$.versions[0]").value("v1"))
-                .andExpect(jsonPath("$.versions[1]").value("v2"));
+                .andExpect(jsonPath("$.versions[0]").value("v2"))
+                .andExpect(jsonPath("$.versions[1]").value("v1"));
     }
 
     @Test
-    void serviceLevelMultipleVersionsWithNullSortsNullsLast() throws Exception {
+    void serviceLevelMultipleVersionsWithNullPassesVersionsThrough() throws Exception {
         when(serviceService.getServiceLevelDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED))
                 .thenThrow(new MultipleVersionsException(
                         "Service has multiple versions",
@@ -207,7 +206,7 @@ class BrowseDescriptorControllerTest {
 
         mockMvc.perform(get(SERVICE_PATH))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.versions[0]").value("v1"))
-                .andExpect(jsonPath("$.versions[1]").value(org.hamcrest.Matchers.nullValue()));
+                .andExpect(jsonPath("$.versions[0]").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.versions[1]").value("v1"));
     }
 }

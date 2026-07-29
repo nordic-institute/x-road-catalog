@@ -56,9 +56,8 @@ public abstract class PostgresTestBase {
     }
 
     /**
-     * Exposes the container's credentials so subclasses can point module-specific settings (e.g. a
-     * production {@code spring.liquibase.user}/{@code password} pinned in {@code application.yaml})
-     * back at the same Testcontainers instance.
+     * Container credentials for subclasses that point module-specific settings (e.g. a pinned
+     * production {@code spring.liquibase.user}/{@code password}) at the same container.
      */
     protected static String getDatasourceUsername() {
         return POSTGRES.getUsername();

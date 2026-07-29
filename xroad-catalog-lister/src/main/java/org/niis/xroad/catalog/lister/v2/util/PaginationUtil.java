@@ -45,9 +45,8 @@ public final class PaginationUtil {
     }
 
     /**
-     * Builds a {@link Pageable} whose sort appends a secondary {@code id ASC} order as a deterministic tie-break
-     * (spec §8). Use for entity queries whose selected row exposes an {@code id} field that JPQL/JPA can reference
-     * (e.g. {@code Member}, {@code Subsystem}, {@code Service}, {@code ErrorLog}).
+     * Builds a {@link Pageable} appending a secondary {@code id ASC} tie-break so page contents
+     * stay stable across requests. Requires the selected row to expose an {@code id} field.
      */
     public static Pageable toPageable(Integer page, Integer size, String sortBy, String sortOrder,
                                       String defaultSortField, Set<String> allowedSortFields) {
@@ -57,9 +56,8 @@ public final class PaginationUtil {
     }
 
     /**
-     * Builds a {@link Pageable} without appending an {@code id} tie-break. Use for grouped/projection queries whose
-     * {@code SELECT} does not expose an {@code id} column (e.g. aggregate queries with {@code GROUP BY}), or for
-     * callers that already provide a unique composite sort key. The caller is responsible for stable ordering.
+     * Builds a {@link Pageable} without the {@code id} tie-break, for queries whose {@code SELECT}
+     * exposes no {@code id} column. The caller is responsible for stable ordering.
      */
     public static Pageable toPageableNoTieBreak(Integer page, Integer size, String sortBy, String sortOrder,
                                                 String defaultSortField, Set<String> allowedSortFields) {
@@ -68,10 +66,9 @@ public final class PaginationUtil {
     }
 
     /**
-     * Same as {@link #toPageable(Integer, Integer, String, String, String, Set)} but supports a logical to JPQL
-     * field alias map. The {@code sortBy} value is validated against {@code allowedSortFields} (logical names),
-     * then translated through {@code aliases} before being passed to {@link Sort#by(Sort.Direction, String...)}.
-     * Logical names absent from the map fall through unchanged.
+     * Same as {@link #toPageable(Integer, Integer, String, String, String, Set)} but translates the
+     * validated logical {@code sortBy} through {@code aliases} to its JPQL field; logical names
+     * absent from the map fall through unchanged.
      *
      * @throws NullPointerException if {@code aliases} is null; use {@link Map#of()} for none.
      */
@@ -85,13 +82,9 @@ public final class PaginationUtil {
     }
 
     /**
-     * Builds a {@link Pageable} with no {@link Sort} attached. Use for endpoints whose ordering is
-     * fixed at the repository / SQL layer and where the public API surface intentionally does not
-     * expose {@code sortBy} / {@code sortOrder} (e.g., {@code GET /api/v2/search}). Page-index and
-     * page-size defaults match the other overloads ({@code page=1}, {@code size=20}); the resulting
-     * {@code Pageable} delegates to {@link PageRequest#of(int, int)} so an out-of-range {@code page}
-     * or {@code size} surfaces as {@link IllegalArgumentException} for the controller layer to map
-     * to {@code 400 BadRequest}.
+     * Builds a {@link Pageable} with no {@link Sort}, for endpoints whose ordering is fixed at the
+     * SQL layer and that expose no {@code sortBy}/{@code sortOrder} parameters. An out-of-range
+     * {@code page} or {@code size} surfaces as {@link IllegalArgumentException} (mapped to 400).
      */
     public static Pageable toPageableNoSort(Integer page, Integer size) {
         return PageRequest.of(resolvePageIndex(page), resolvePageSize(size));

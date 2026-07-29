@@ -37,25 +37,20 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.config.BootstrapMode;
 
 /**
- * Test-only bootstrap. This intentionally does not {@code @Import(PersistenceDefaultConfiguration.class)}
- * — it reproduces the same component/entity scan but declares {@code @EnableJpaRepositories} with
- * {@link BootstrapMode#LAZY}, and excludes {@code PersistenceDefaultConfiguration} itself from its
- * component scan so that class's own (eager) {@code @EnableJpaRepositories} never also fires.
- * Eager bootstrap would make every repository bean (including V2 read-model repositories bound to
- * a {@code v2entity}-package domain type such as {@code MemberRepositoryV2}) resolve its
- * {@code EntityInformation} at context-refresh time, which fails under the H2
- * {@code general-testdata} profile: that profile's {@code hibernate.ddl-auto: create-drop} can
- * only ever scan the {@code entity} package (adding {@code v2entity} there reintroduces the
- * dual-mapping schema-drop collision the V2 entity package split was designed to avoid). Lazy
- * bootstrap defers a repository's {@code EntityInformation} resolution to its first method call,
- * so H2 tests that never invoke a V2 repository never trigger it; Postgres-backed tests that add
- * {@code v2entity} to their own test-class-level {@code @EntityScan} (see
- * {@code ReadModelEntityTest}) resolve it successfully on first use.
+ * Test-only bootstrap. Deliberately does not import {@code PersistenceDefaultConfiguration}: it
+ * reproduces the same component/entity scan but declares {@code @EnableJpaRepositories} with
+ * {@link BootstrapMode#LAZY}, and excludes that class so its eager repository bootstrap never
+ * fires. Eager bootstrap would resolve every repository's {@code EntityInformation} at context
+ * refresh, which fails under the H2 {@code general-testdata} profile where only the {@code entity}
+ * package can be scanned. Lazy bootstrap defers resolution to the first method call, so H2 tests
+ * that never touch a V2 repository never trigger it, while Postgres-backed tests add
+ * {@code v2.entity} via their own {@code @EntityScan}.
  */
 @SpringBootApplication
 @ComponentScan(basePackages = "org.niis.xroad.catalog.persistence", basePackageClasses = Jsr310JpaConverters.class,
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PersistenceDefaultConfiguration.class))
-@EnableJpaRepositories(value = "org.niis.xroad.catalog.persistence.repository", bootstrapMode = BootstrapMode.LAZY)
+@EnableJpaRepositories(value = {"org.niis.xroad.catalog.persistence.repository",
+        "org.niis.xroad.catalog.persistence.v2.repository"}, bootstrapMode = BootstrapMode.LAZY)
 @EntityScan("org.niis.xroad.catalog.persistence.entity")
 @Import(ProcessedSqlLoader.class)
 public class PersistenceTestApplication {

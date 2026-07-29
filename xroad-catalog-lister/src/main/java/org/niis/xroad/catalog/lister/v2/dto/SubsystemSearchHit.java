@@ -27,13 +27,12 @@ package org.niis.xroad.catalog.lister.v2.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Subsystem row in {@code GET /api/v2/search}. Carries the parent member's display name in
- * {@code memberName} so clients can render the result without a follow-up lookup.
+ * Subsystem row in {@code GET /api/v2/search}.
  *
- * @param memberClass   X-Road member class of the parent member
- * @param memberCode    X-Road member code of the parent member
- * @param memberName    display name of the parent member
- * @param subsystemCode X-Road subsystem code
+ * @param memberClass parent member class
+ * @param memberCode parent member code
+ * @param memberName parent member's display name, so clients can render the result without a follow-up lookup
+ * @param subsystemCode subsystem code
  */
 public record SubsystemSearchHit(
         String memberClass,

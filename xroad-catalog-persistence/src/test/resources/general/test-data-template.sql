@@ -23,7 +23,7 @@ VALUES (8, 'dev-cs', 'PUB', '14151329', 'Removed item', '2016-01-01 00:00:00+02'
 
 -- Members 20-22 exist only to give MemberRepositoryTest#testFindAll a fixed total/active count
 -- (11 total, 9 active) distinct from the original 8/7. They originally also carried subsystem and
--- service children exercising the isProvider invariant (spec §6.1); that scenario now lives in the
+-- service children exercising the isProvider invariant; that scenario now lives in the
 -- Postgres fixture (see pg/v2-fixture.sql) so those child rows were removed here as orphaned.
 INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched, removed)
 VALUES (20, 'dev-cs', 'PUB', 'only-removed-service', 'Only removed service member',

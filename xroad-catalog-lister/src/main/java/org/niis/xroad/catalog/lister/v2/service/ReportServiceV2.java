@@ -32,16 +32,17 @@ import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
-import org.niis.xroad.catalog.persistence.repository.ReportsRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberChangeRow;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceChangeRow;
-import org.niis.xroad.catalog.persistence.repository.projection.SubsystemChangeRow;
+import org.niis.xroad.catalog.persistence.v2.repository.ReportsRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ChangeLogDayRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberChangeRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceChangeRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceCountRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SubsystemChangeRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,72 +51,63 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * V2 report service. Produces reports derived from the collected catalog, computed entirely via
- * SQL aggregates on {@link ReportsRepositoryV2} — no entity hydration, no per-day query loops.
+ * V2 reports computed entirely via SQL aggregates on {@link ReportsRepository} — no entity
+ * hydration, no per-day query loops.
  *
- * <p>{@link #serviceStatistics(LocalDate, LocalDate)} pre-fills every day in the requested window
- * with zero counts, then folds the single {@code countServicesPerDay} result set (one row per
- * {@code (day, service_type)} pair, computed by a delta-based window-function query rather than a
- * per-day join) on top of that scaffold, so the wire format has one row per day regardless of
- * whether the query returns any rows for a given day.
+ * <p>{@link #serviceStatistics(LocalDate, LocalDate)} pre-fills every day in the window with zero
+ * counts, then folds the single {@code countServicesPerDay} result set on top, so the wire format
+ * has one row per day even when the query returns none for it.
  *
- * <p>{@link #changeLog(LocalDate, LocalDate, Pageable)} first fetches the page's event days from
- * {@code findChangeLogDayPage} — a single DB-paginated query over the whole window — then narrows
- * the nine change-log item queries to that page's day span, so the cost of a page is proportional
- * to the page rather than to the whole requested window.
+ * <p>{@link #changeLog(LocalDate, LocalDate, Pageable)} fetches the page's event days with one
+ * DB-paginated query, then narrows the nine item queries to that page's day span, keeping the cost
+ * of a page proportional to the page rather than the whole window.
  */
 @Service
 public class ReportServiceV2 {
 
-    /** Hard cap on the range passed to any report method (spec §4). */
+    /** Hard cap on the date range accepted by any report method. */
     private static final long MAX_REPORT_DAYS = 90;
 
     private static final int SOAP_INDEX = 0;
     private static final int OPENAPI_INDEX = 1;
     private static final int REST_INDEX = 2;
     private static final int SERVICE_TYPE_COLUMN_COUNT = 3;
-    // UNKNOWN (not yet classified by the collector recompute) belongs to no descriptor bucket and
-    // is left out rather than inflating the REST count with a guess.
+    // UNKNOWN (not yet classified) fits no descriptor bucket and is left out rather than guessed as REST.
     private static final int UNCLASSIFIED_INDEX = -1;
 
-    private final ReportsRepositoryV2 reportsRepository;
+    private final ReportsRepository reportsRepository;
 
-    public ReportServiceV2(ReportsRepositoryV2 reportsRepository) {
+    public ReportServiceV2(ReportsRepository reportsRepository) {
         this.reportsRepository = reportsRepository;
     }
 
     /**
-     * Per-day snapshot of service counts by descriptor type over {@code [since, until)}.
-     * The result is not paginated (one row per day; at most {@value #MAX_REPORT_DAYS} rows).
+     * Per-day service counts by descriptor type over {@code [since, until)} — one row per day in
+     * chronological order, not paginated (at most {@value #MAX_REPORT_DAYS} rows).
      *
-     * @param since inclusive start date
-     * @param until exclusive end date
-     * @return one row per day in the range, in chronological order
      * @throws IllegalArgumentException if {@code since} is after {@code until} or the range exceeds
-     *         {@value #MAX_REPORT_DAYS} days; see {@link DateTimeUtil#validateDateRange}
+     *         {@value #MAX_REPORT_DAYS} days
      */
     public List<ServiceStatisticsRowDto> serviceStatistics(LocalDate since, LocalDate until) {
         DateTimeUtil.validateDateRange(since.atStartOfDay(), until.atStartOfDay(), MAX_REPORT_DAYS);
-        List<Object[]> rows = reportsRepository.countServicesPerDay(since, until);
+        List<ServiceCountRow> rows = reportsRepository.countServicesPerDay(since, until);
         Map<LocalDate, long[]> byDay = new TreeMap<>();
         for (LocalDate day = since; day.isBefore(until); day = day.plusDays(1)) {
             byDay.put(day, new long[SERVICE_TYPE_COLUMN_COUNT]);
         }
-        for (Object[] row : rows) {
-            LocalDate day = ((Date) row[0]).toLocalDate();
-            long[] counts = byDay.get(day);
-            if (counts == null || row[1] == null) {
+        for (ServiceCountRow row : rows) {
+            long[] counts = byDay.get(row.getDay());
+            if (counts == null) {
                 continue;
             }
-            long count = ((Number) row[2]).longValue();
-            int index = switch ((String) row[1]) {
+            int index = switch (row.getServiceType()) {
                 case "SOAP" -> SOAP_INDEX;
                 case "OPENAPI" -> OPENAPI_INDEX;
                 case "REST" -> REST_INDEX;
                 default -> UNCLASSIFIED_INDEX;
             };
             if (index != UNCLASSIFIED_INDEX) {
-                counts[index] += count;
+                counts[index] += row.getCount();
             }
         }
         List<ServiceStatisticsRowDto> out = new ArrayList<>(byDay.size());
@@ -129,38 +121,31 @@ public class ReportServiceV2 {
     }
 
     /**
-     * Paginated per-day change log over {@code [since, until)}. Each returned day contains
-     * three buckets (created / modified / removed) with members, subsystems and services.
+     * Paginated per-day change log over {@code [since, until)}; each day has created/modified/removed
+     * buckets of members, subsystems and services. Days without changes are omitted, so
+     * {@code totalElements} counts event days, not calendar days. Chronological, oldest first;
+     * the pageable's sort is ignored.
      *
-     * <p>Days with no changes are omitted so that {@code totalCount} reflects only the days
-     * that actually had at least one event. Days are ordered chronologically, oldest first.
-     *
-     * @param since inclusive start date
-     * @param until exclusive end date
-     * @param pageable Spring page request (offset + size; sort is ignored — always chronological)
-     * @return page of {@link ChangeLogDayDto}; {@code totalElements} is the number of
-     *         days with at least one change, not the number of calendar days in the range
      * @throws IllegalArgumentException if {@code since} is after {@code until} or the range exceeds
-     *         {@value #MAX_REPORT_DAYS} days; see {@link DateTimeUtil#validateDateRange}
+     *         {@value #MAX_REPORT_DAYS} days
      */
     public Page<ChangeLogDayDto> changeLog(LocalDate since, LocalDate until, Pageable pageable) {
         LocalDateTime start = since.atStartOfDay();
         LocalDateTime end = until.atStartOfDay();
         DateTimeUtil.validateDateRange(start, end, MAX_REPORT_DAYS);
 
-        List<Object[]> dayPage = reportsRepository.findChangeLogDayPage(
+        List<ChangeLogDayRow> dayPage = reportsRepository.findChangeLogDayPage(
                 start, end, pageable.getPageSize(), pageable.getOffset());
         if (dayPage.isEmpty()) {
             long total = pageable.getOffset() == 0 ? 0 : reportsRepository.countChangeLogDays(start, end);
             return new PageImpl<>(List.of(), pageable, total);
         }
-        long totalDays = ((Number) dayPage.get(0)[1]).longValue();
-        LocalDate firstDay = ((Date) dayPage.get(0)[0]).toLocalDate();
-        LocalDate lastDay = ((Date) dayPage.get(dayPage.size() - 1)[0]).toLocalDate();
+        long totalDays = dayPage.get(0).getTotalDays();
+        LocalDate firstDay = dayPage.get(0).getDay();
+        LocalDate lastDay = dayPage.get(dayPage.size() - 1).getDay();
 
         // The page's days are consecutive members of the sorted event-day list, so narrowing the
-        // nine item queries to [firstDay, lastDay+1) yields exactly the items of this page: any
-        // event day inside that span would itself have been on the page.
+        // nine item queries to [firstDay, lastDay+1) yields exactly this page's items.
         LocalDateTime pageStart = firstDay.atStartOfDay();
         LocalDateTime pageEnd = lastDay.plusDays(1).atStartOfDay();
         Map<LocalDate, DayBuckets> days = new TreeMap<>();

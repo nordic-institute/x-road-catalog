@@ -92,9 +92,8 @@ class PagedCollectionResponseTest {
 
     @Test
     void fromListSerializedJsonOmitsPaginationKeys() throws Exception {
-        // Spec §8: non-paginated collection responses include `items` and `totalCount` but
-        // omit `page`, `size`, and `totalPages`. Inspect the raw JSON to make the contract
-        // explicit (jsonPath().doesNotExist() also matches `null`, which was the buggy state).
+        // Non-paginated collection responses include `items` and `totalCount` but omit `page`,
+        // `size`, and `totalPages`. Inspect raw JSON because jsonPath().doesNotExist() also matches `null`.
         var response = PagedCollectionResponse.fromList(List.of("alpha", "beta"));
         String json = new ObjectMapper().writeValueAsString(response);
         assertThat(json).contains("\"items\"");

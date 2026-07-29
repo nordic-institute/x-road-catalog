@@ -38,6 +38,7 @@ class HeartbeatV2DtoTest {
 
     private static final LocalDateTime FETCHED = LocalDateTime.of(2026, 4, 10, 11, 30);
     private static final LocalDateTime SYSTEM_TIME = LocalDateTime.of(2026, 4, 10, 12, 0);
+    private static final LocalDateTime CONF_EXPIRES = LocalDateTime.of(2026, 4, 11, 12, 0);
 
     private static String expected(LocalDateTime ldt) {
         return ldt.atZone(ZoneId.systemDefault()).toOffsetDateTime()
@@ -55,6 +56,7 @@ class HeartbeatV2DtoTest {
                 .appWorking(Boolean.TRUE).dbWorking(Boolean.TRUE)
                 .appName("X-Road Catalog Lister").appVersion("3.0.0")
                 .systemTime(SYSTEM_TIME).lastCollectionData(last).lastRunErrors(3L)
+                .globalConfExpiresAt(CONF_EXPIRES)
                 .build();
 
         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -63,6 +65,7 @@ class HeartbeatV2DtoTest {
         // Each timestamp serializes to the exact ISO_OFFSET_DATE_TIME computed for the JVM
         // default zone — pins both the format and the per-field assignment.
         assertThat(json).contains("\"systemTime\":\"" + expected(SYSTEM_TIME) + "\"");
+        assertThat(json).contains("\"globalConfExpiresAt\":\"" + expected(CONF_EXPIRES) + "\"");
         assertThat(json).contains("\"membersLastFetched\":\"" + expected(FETCHED) + "\"");
         assertThat(json).contains("\"subsystemsLastFetched\":\"" + expected(FETCHED) + "\"");
         assertThat(json).contains("\"servicesLastFetched\":\"" + expected(FETCHED) + "\"");
@@ -90,6 +93,7 @@ class HeartbeatV2DtoTest {
         String json = mapper.writeValueAsString(hb);
 
         assertThat(json).contains("\"systemTime\":null");
+        assertThat(json).contains("\"globalConfExpiresAt\":null");
         assertThat(json).contains("\"membersLastFetched\":null");
         assertThat(json).contains("\"subsystemsLastFetched\":null");
         assertThat(json).contains("\"servicesLastFetched\":null");

@@ -26,13 +26,12 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
  * Thrown by the service-level descriptor lookup when the service has more than one visible version,
- * meaning the caller must pick a specific version path. The constructor sorts {@code versions} with
- * {@link Comparator#nullsLast(Comparator)} so the response body is stable across requests.
+ * meaning the caller must pick a specific version path. Version entries may be {@code null} for
+ * null-version services.
  */
 public class MultipleVersionsException extends RuntimeException {
 
@@ -40,9 +39,7 @@ public class MultipleVersionsException extends RuntimeException {
 
     public MultipleVersionsException(String message, List<String> versions) {
         super(message);
-        List<String> copy = versions == null ? new ArrayList<>() : new ArrayList<>(versions);
-        copy.sort(Comparator.nullsLast(Comparator.naturalOrder()));
-        this.versions = Collections.unmodifiableList(copy);
+        this.versions = versions == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(versions));
     }
 
     public List<String> getVersions() {

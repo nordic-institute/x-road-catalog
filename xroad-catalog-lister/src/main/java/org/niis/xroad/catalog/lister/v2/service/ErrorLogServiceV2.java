@@ -28,7 +28,7 @@ import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.ServiceVersionUtil;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
-import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
+import org.niis.xroad.catalog.persistence.v2.repository.ErrorLogRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,51 +39,57 @@ import java.time.LocalDateTime;
 public class ErrorLogServiceV2 {
 
     /**
-     * Hard cap on the range accepted by {@link #get}. Matches the reports endpoints' cap and the
-     * collector's default error-log retention (xroad-catalog.log-storage.error-log-length-in-days: 90).
+     * Hard cap on the range accepted by {@link #get}; matches the reports cap and the collector's
+     * default error-log retention (90 days).
      */
     private static final long MAX_ERROR_LOG_DAYS = 90;
 
-    private final ErrorLogRepositoryV2 errorLogRepository;
+    private final ErrorLogRepository errorLogRepository;
 
-    public ErrorLogServiceV2(ErrorLogRepositoryV2 errorLogRepository) {
+    public ErrorLogServiceV2(ErrorLogRepository errorLogRepository) {
         this.errorLogRepository = errorLogRepository;
     }
 
     /**
      * @throws IllegalArgumentException if {@code since} is after {@code until} or the range exceeds
-     *         {@value #MAX_ERROR_LOG_DAYS} days; see {@link DateTimeUtil#validateDateRange}
+     *         {@value #MAX_ERROR_LOG_DAYS} days
      */
     public Page<ErrorLogDto> get(String memberClass, String memberCode, String subsystemCode,
                                  String serviceCode, String serviceVersion,
                                  LocalDateTime since, LocalDateTime until, Pageable pageable) {
         DateTimeUtil.validateDateRange(since, until, MAX_ERROR_LOG_DAYS);
+        return findRows(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion,
+                since, until, pageable).map(ErrorLogDto::from);
+    }
+
+    private Page<ErrorLog> findRows(String memberClass, String memberCode, String subsystemCode,
+                                    String serviceCode, String serviceVersion,
+                                    LocalDateTime since, LocalDateTime until, Pageable pageable) {
         // Contract: serviceVersion is the raw URL segment. Java null means "no version-level query".
         // "null" sentinel means "null-version filter". Any other string is an explicit version.
-        Page<ErrorLog> rows;
         if (serviceCode != null && serviceVersion != null) {
             String resolvedVersion = ServiceVersionUtil.resolveVersionSentinel(serviceVersion);
             if (resolvedVersion == null) {
-                rows = errorLogRepository.findAnyByNullVersion(since, until,
+                return errorLogRepository.findAnyByNullVersion(since, until,
                         memberClass, memberCode, subsystemCode, serviceCode, pageable);
-            } else {
-                rows = errorLogRepository.findAnyByVersion(since, until,
-                        memberClass, memberCode, subsystemCode, serviceCode, resolvedVersion, pageable);
             }
-        } else if (serviceCode != null) {
-            // serviceVersion is Java null — caller is querying at service level (all versions).
-            rows = errorLogRepository.findAnyByService(since, until,
-                    memberClass, memberCode, subsystemCode, serviceCode, pageable);
-        } else if (subsystemCode != null) {
-            rows = errorLogRepository.findAnyBySubsystem(since, until,
-                    memberClass, memberCode, subsystemCode, pageable);
-        } else if (memberCode != null) {
-            rows = errorLogRepository.findAnyByMember(since, until, memberClass, memberCode, pageable);
-        } else if (memberClass != null) {
-            rows = errorLogRepository.findAnyByMemberClass(since, until, memberClass, pageable);
-        } else {
-            rows = errorLogRepository.findAnyInRange(since, until, pageable);
+            return errorLogRepository.findAnyByVersion(since, until,
+                    memberClass, memberCode, subsystemCode, serviceCode, resolvedVersion, pageable);
         }
-        return rows.map(ErrorLogDto::from);
+        if (serviceCode != null) {
+            return errorLogRepository.findAnyByService(since, until,
+                    memberClass, memberCode, subsystemCode, serviceCode, pageable);
+        }
+        if (subsystemCode != null) {
+            return errorLogRepository.findAnyBySubsystem(since, until,
+                    memberClass, memberCode, subsystemCode, pageable);
+        }
+        if (memberCode != null) {
+            return errorLogRepository.findAnyByMember(since, until, memberClass, memberCode, pageable);
+        }
+        if (memberClass != null) {
+            return errorLogRepository.findAnyByMemberClass(since, until, memberClass, pageable);
+        }
+        return errorLogRepository.findAnyInRange(since, until, pageable);
     }
 }

@@ -30,19 +30,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.entity.Endpoint;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One active version of a service. {@code serviceType} is {@code SOAP}, {@code OPENAPI},
- * {@code REST} or {@code UNKNOWN} — the latter meaning the service has been collected but not yet
- * classified, which resolves within one collector interval. {@code hasDescriptor} is {@code true}
- * only for SOAP and OPENAPI.
+ * One active version of a service. A {@code serviceType} of {@code UNKNOWN} means collected but not
+ * yet classified (resolves within one collector interval); {@code hasDescriptor} is {@code true}
+ * exactly for the two descriptor-carrying types, SOAP and OPENAPI.
  */
 @Getter
 @Builder
@@ -62,25 +61,18 @@ public class ServiceVersionDto {
     private final LocalDateTime changed;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
-    private final LocalDateTime removed;
 
     /**
-     * {@code serviceType} is read straight from the denormalized column maintained by the collector
-     * recompute (a descriptor fetched mid-collection-cycle surfaces after the next recompute — an
-     * accepted staleness window, during which the type reads {@code UNKNOWN}). {@code hasDescriptor}
-     * is asserted only for the two types that carry one: SOAP has a WSDL, OPENAPI has an OpenAPI
-     * document. REST is the settled descriptor-less type and UNKNOWN is not yet classified, so both
-     * report {@code false} rather than claiming a descriptor that may not exist.
+     * {@code serviceType} is read from the denormalized column maintained by the collector recompute,
+     * so a descriptor fetched mid-collection-cycle reads {@code UNKNOWN} until the next recompute.
      */
-    public static ServiceVersionDto from(ServiceV2 service) {
+    public static ServiceVersionDto from(Service service) {
         String serviceType = service.getServiceType();
         List<EndpointDto> endpoints = new ArrayList<>();
-        for (EndpointV2 e : service.getActiveEndpoints()) {
+        for (Endpoint e : service.getEndpoints()) {
             endpoints.add(EndpointDto.builder()
                     .method(e.getMethod())
                     .path(e.getPath())
-                    .removed(e.getStatusInfo().getRemoved())
                     .build());
         }
         StatusInfo info = service.getStatusInfo();
@@ -92,7 +84,6 @@ public class ServiceVersionDto {
                 .created(info.getCreated())
                 .changed(info.getChanged())
                 .fetched(info.getFetched())
-                .removed(info.getRemoved())
                 .build();
     }
 }

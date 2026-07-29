@@ -32,20 +32,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
-import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.DenormalizationRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ErrorLogRepository;
+import org.niis.xroad.catalog.persistence.repository.projection.DescriptorAnomalyRow;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -55,14 +62,18 @@ class HeartbeatServiceV2UnitTest {
     private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-04-10T13:30:00Z"), ZoneOffset.UTC);
 
     @Mock private CollectionRunRepository collectionRunRepository;
-    @Mock private ErrorLogRepositoryV2 errorLogRepository;
+    @Mock private ErrorLogRepository errorLogRepository;
+    @Mock private DenormalizationRepository denormalizationRepository;
+    @Mock private SharedParamsCache sharedParamsCache;
 
     private HeartbeatServiceV2 service;
 
     @BeforeEach
     void setUp() {
+        lenient().when(sharedParamsCache.globalConfExpiry())
+                .thenReturn(new SharedParamsCache.GlobalConfExpiry(false, null));
         service = new HeartbeatServiceV2("Test Lister", "9.9.9", collectionRunRepository, errorLogRepository,
-                FIXED_CLOCK);
+                denormalizationRepository, sharedParamsCache, FIXED_CLOCK);
     }
 
     @Test
@@ -98,6 +109,83 @@ class HeartbeatServiceV2UnitTest {
         assertNull(dto.getLastCollectionData().getMembersLastFetched());
         assertEquals(0L, dto.getLastRunErrors());
         verifyNoInteractions(errorLogRepository);
+    }
+
+    @Test
+    void heartbeatCountsDescriptorAnomalies() {
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+        when(denormalizationRepository.findServicesWithMultipleActiveDescriptors())
+                .thenReturn(List.of(mock(DescriptorAnomalyRow.class), mock(DescriptorAnomalyRow.class)));
+
+        assertEquals(2L, service.heartbeat().getDescriptorAnomalies());
+    }
+
+    @Test
+    void descriptorAnomalyLookupFailureDegradesToZeroRatherThanThrowing() {
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+        when(denormalizationRepository.findServicesWithMultipleActiveDescriptors())
+                .thenThrow(new DataAccessResourceFailureException("boom"));
+
+        assertEquals(0L, service.heartbeat().getDescriptorAnomalies());
+    }
+
+    @Test
+    void heartbeatReportsExpiredGlobalConf() {
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+        Instant expiresAt = Instant.parse("2026-04-09T12:00:00Z");
+        when(sharedParamsCache.globalConfExpiry())
+                .thenReturn(new SharedParamsCache.GlobalConfExpiry(true, expiresAt));
+
+        HeartbeatV2Dto dto = service.heartbeat();
+
+        assertTrue(dto.isGlobalConfExpired());
+        assertEquals(LocalDateTime.ofInstant(expiresAt, ZoneOffset.UTC), dto.getGlobalConfExpiresAt());
+    }
+
+    @Test
+    void heartbeatReportsFreshGlobalConfWithExpirationTimestamp() {
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+        Instant expiresAt = Instant.parse("2026-04-11T12:00:00Z");
+        when(sharedParamsCache.globalConfExpiry())
+                .thenReturn(new SharedParamsCache.GlobalConfExpiry(false, expiresAt));
+
+        HeartbeatV2Dto dto = service.heartbeat();
+
+        assertFalse(dto.isGlobalConfExpired());
+        assertEquals(LocalDateTime.ofInstant(expiresAt, ZoneOffset.UTC), dto.getGlobalConfExpiresAt());
+    }
+
+    @Test
+    void unknownGlobalConfExpiryReportsNotExpiredAndNullTimestamp() {
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+
+        HeartbeatV2Dto dto = service.heartbeat();
+
+        assertFalse(dto.isGlobalConfExpired());
+        assertNull(dto.getGlobalConfExpiresAt());
+    }
+
+    @Test
+    void globalConfExpiryLookupFailureDegradesToUnknownRatherThanThrowing() {
+        when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
+                .thenReturn(Optional.empty());
+        when(collectionRunRepository.checkConnection()).thenReturn(1);
+        when(sharedParamsCache.globalConfExpiry()).thenThrow(new IllegalStateException("boom"));
+
+        HeartbeatV2Dto dto = service.heartbeat();
+
+        assertFalse(dto.isGlobalConfExpired());
+        assertNull(dto.getGlobalConfExpiresAt());
     }
 
     @Test

@@ -70,7 +70,7 @@ class V2ExceptionHandlerTest {
     }
 
     @Test
-    void handleMultipleVersionsExceptionReturnsConflictWithSortedVersions() {
+    void handleMultipleVersionsExceptionReturnsConflictWithVersions() {
         MultipleVersionsException ex = new MultipleVersionsException(
                 "Service has multiple versions", Arrays.asList("v2", null, "v1"));
 
@@ -81,8 +81,8 @@ class V2ExceptionHandlerTest {
         assertEquals(HttpStatus.CONFLICT.value(), response.getBody().getStatus());
         assertEquals("Conflict", response.getBody().getError());
         assertEquals("Service has multiple versions", response.getBody().getMessage());
-        assertEquals(Arrays.asList("v1", "v2", null), response.getBody().getVersions(),
-                "versions must be sorted with nullsLast");
+        assertEquals(Arrays.asList("v2", null, "v1"), response.getBody().getVersions(),
+                "versions must be passed through in the order given");
     }
 
     @Test

@@ -26,9 +26,9 @@ package org.niis.xroad.catalog.lister.v2.service;
 
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SubsystemRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SubsystemListRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,49 +38,43 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * V2 subsystem service, backed by the {@link SubsystemRepositoryV2} read model.
+ * V2 subsystem service, backed by the {@link SubsystemRepository} read model.
  */
 @Service
 public class SubsystemServiceV2 {
 
-    private final SubsystemRepositoryV2 subsystemRepository;
-    private final MemberRepositoryV2 memberRepository;
+    private final SubsystemRepository subsystemRepository;
+    private final MemberRepository memberRepository;
     private final SharedParamsCache sharedParamsCache;
-    private final InstanceContext instanceContext;
 
-    public SubsystemServiceV2(SubsystemRepositoryV2 subsystemRepository, MemberRepositoryV2 memberRepository,
-            SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+    public SubsystemServiceV2(SubsystemRepository subsystemRepository, MemberRepository memberRepository,
+            SharedParamsCache sharedParamsCache) {
         this.subsystemRepository = subsystemRepository;
         this.memberRepository = memberRepository;
         this.sharedParamsCache = sharedParamsCache;
-        this.instanceContext = instanceContext;
     }
 
-    /**
-     * @return the subsystem's DTO, or an empty {@link Optional} if absent (controller maps to 404)
-     */
     public Optional<SubsystemDto> getByNaturalKey(String memberClass, String memberCode, String subsystemCode) {
         SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
         return subsystemRepository.findActiveSummaryByNaturalKey(
-                        instanceContext.getCurrentInstance(), memberClass, memberCode, subsystemCode)
+                        sharedParamsCache.getCurrentInstance(), memberClass, memberCode, subsystemCode)
                 .map(row -> SubsystemDto.from(row, lookup));
     }
 
     public Page<SubsystemDto> getForList(String memberClass, Pageable pageable) {
         Page<SubsystemListRow> rows = subsystemRepository.findActiveForList(
-                instanceContext.getCurrentInstance(), memberClass, pageable);
+                sharedParamsCache.getCurrentInstance(), memberClass, pageable);
         SubsystemNameLookup lookup = sharedParamsCache.subsystemNames();
         return rows.map(row -> SubsystemDto.from(row, lookup));
     }
 
     /**
-     * Returns the subsystems under a single member, sorted by {@code subsystemCode} ascending (the
-     * repository query already orders the rows, so no re-sort is needed here). An empty
-     * {@link Optional} means the member itself is absent (404); a present-but-empty list means the
-     * member exists but has no active subsystems (200 {@code []}).
+     * Subsystems under one member, in repository {@code subsystemCode} order. Empty
+     * {@link Optional} means the member is absent; a present-but-empty list means it has no active
+     * subsystems.
      */
     public Optional<List<SubsystemDto>> getForMember(String memberClass, String memberCode) {
-        String instance = instanceContext.getCurrentInstance();
+        String instance = sharedParamsCache.getCurrentInstance();
         if (!memberRepository.existsActiveByNaturalKey(instance, memberClass, memberCode)) {
             return Optional.empty();
         }

@@ -34,7 +34,8 @@ import org.niis.xroad.catalog.lister.v2.dto.MemberSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemSearchHit;
-import org.niis.xroad.catalog.persistence.repository.SearchRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SearchRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SearchHitRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -75,6 +76,11 @@ class SearchServiceV2Test {
     }
 
     @Test
+    void testSearchBlankQueryRejected() {
+        assertThrows(IllegalArgumentException.class, () -> service.search("   ", PageRequest.of(0, 50)));
+    }
+
+    @Test
     void testSearchReturnsEmptyPageWithZeroTotalWhenNoRowsMatchAtOffsetZero() {
         when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.of());
 
@@ -98,8 +104,9 @@ class SearchServiceV2Test {
 
     @Test
     void testSearchMapsMemberRowWithIsProviderFromColumn8() {
-        Object[] row = {"member", 1L, "nahka", "PUB", "14151328", "Nahka-Albert", null, null, Boolean.TRUE, null, 1L};
-        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.<Object[]>of(row));
+        SearchHitRow row = hitRow("member", 1L, "nahka", "PUB", "14151328", "Nahka-Albert", null, null,
+                Boolean.TRUE, null, 1L);
+        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.of(row));
 
         Page<SearchHit> page = service.search("nahka", PageRequest.of(0, 50));
 
@@ -113,8 +120,9 @@ class SearchServiceV2Test {
 
     @Test
     void testSearchMapsMemberRowIsProviderFalseWhenColumnNull() {
-        Object[] row = {"member", 1L, "nahka", "PUB", "14151328", "Nahka-Albert", null, null, null, null, 1L};
-        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.<Object[]>of(row));
+        SearchHitRow row = hitRow("member", 1L, "nahka", "PUB", "14151328", "Nahka-Albert", null, null,
+                null, null, 1L);
+        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.of(row));
 
         Page<SearchHit> page = service.search("nahka", PageRequest.of(0, 50));
 
@@ -124,9 +132,9 @@ class SearchServiceV2Test {
 
     @Test
     void testSearchMapsSubsystemRow() {
-        Object[] row = {"subsystem", 2L, "subsystem_a1", "PUB", "14151328", "Nahka-Albert", "subsystem_a1", null,
-                null, null, 1L};
-        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.<Object[]>of(row));
+        SearchHitRow row = hitRow("subsystem", 2L, "subsystem_a1", "PUB", "14151328", "Nahka-Albert",
+                "subsystem_a1", null, null, null, 1L);
+        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.of(row));
 
         Page<SearchHit> page = service.search("subsystem", PageRequest.of(0, 50));
 
@@ -137,9 +145,9 @@ class SearchServiceV2Test {
 
     @Test
     void testSearchMapsServiceRowSplittingServiceTypesColumn() {
-        Object[] row = {"service", 3L, "mixedsvc", "PUB", "14151328", "Nahka-Albert", "subsystem_a1", "mixedSvc",
-                null, "REST,SOAP", 1L};
-        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.<Object[]>of(row));
+        SearchHitRow row = hitRow("service", 3L, "mixedsvc", "PUB", "14151328", "Nahka-Albert",
+                "subsystem_a1", "mixedSvc", null, "REST,SOAP", 1L);
+        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.of(row));
 
         Page<SearchHit> page = service.search("mixedSvc", PageRequest.of(0, 50));
 
@@ -149,11 +157,18 @@ class SearchServiceV2Test {
     }
 
     @Test
-    void testSearchThrowsForUnknownEntityType() {
-        Object[] row = {"bogus", 1L, "xyz", "PUB", "14151328", "Nahka-Albert", null, null, null, null, 1L};
-        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.<Object[]>of(row));
+    void testSearchSkipsRowsWithUnknownEntityType() {
+        SearchHitRow bogus = hitRow("bogus", 1L, "xyz", "PUB", "14151328", "Nahka-Albert", null, null,
+                null, null, 2L);
+        SearchHitRow member = hitRow("member", 2L, "xyz", "PUB", "14151328", "Nahka-Albert", null, null,
+                Boolean.TRUE, null, 2L);
+        when(searchRepository.searchUnion(anyString(), anyInt(), anyLong())).thenReturn(List.of(bogus, member));
 
-        assertThrows(IllegalStateException.class, () -> service.search("xyz", PageRequest.of(0, 50)));
+        Page<SearchHit> page = service.search("xyz", PageRequest.of(0, 50));
+
+        assertEquals(1, page.getContent().size());
+        MemberSearchHit hit = (MemberSearchHit) page.getContent().get(0);
+        assertEquals("14151328", hit.memberCode());
     }
 
     @Test
@@ -177,5 +192,67 @@ class SearchServiceV2Test {
 
         verify(searchRepository).searchUnion(anyString(), org.mockito.ArgumentMatchers.eq(2),
                 org.mockito.ArgumentMatchers.eq(2L));
+    }
+
+    @SuppressWarnings("PMD.ExcessiveParameterList")
+    private static SearchHitRow hitRow(String entityType, long entityId, String sortKey, String memberClass,
+            String memberCode, String memberName, String subsystemCode, String serviceCode, Boolean isProvider,
+            String serviceTypes, long totalCount) {
+        return new SearchHitRow() {
+            @Override
+            public String getEntityType() {
+                return entityType;
+            }
+
+            @Override
+            public long getEntityId() {
+                return entityId;
+            }
+
+            @Override
+            public String getSortKey() {
+                return sortKey;
+            }
+
+            @Override
+            public String getMemberClass() {
+                return memberClass;
+            }
+
+            @Override
+            public String getMemberCode() {
+                return memberCode;
+            }
+
+            @Override
+            public String getMemberName() {
+                return memberName;
+            }
+
+            @Override
+            public String getSubsystemCode() {
+                return subsystemCode;
+            }
+
+            @Override
+            public String getServiceCode() {
+                return serviceCode;
+            }
+
+            @Override
+            public Boolean getIsProvider() {
+                return isProvider;
+            }
+
+            @Override
+            public String getServiceTypes() {
+                return serviceTypes;
+            }
+
+            @Override
+            public long getTotalCount() {
+                return totalCount;
+            }
+        };
     }
 }

@@ -31,6 +31,7 @@ import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.niis.xroad.catalog.persistence.repository.DenormalizationRepository;
+import org.niis.xroad.catalog.persistence.repository.projection.DescriptorAnomalyRow;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -63,8 +64,48 @@ class RecomputeDenormalizedColumnsTaskTest {
 
     @Test
     void logsWarningForServiceWithMultipleActiveDescriptors() {
-        Object[] anomalyRow = {99L, "GOV", "1234", "SUBSYS1", "getData", "v2", 1L, 2L};
-        when(repository.findServicesWithMultipleActiveDescriptors()).thenReturn(List.<Object[]>of(anomalyRow));
+        DescriptorAnomalyRow anomalyRow = new DescriptorAnomalyRow() {
+            @Override
+            public long getServiceId() {
+                return 99L;
+            }
+
+            @Override
+            public String getMemberClass() {
+                return "GOV";
+            }
+
+            @Override
+            public String getMemberCode() {
+                return "1234";
+            }
+
+            @Override
+            public String getSubsystemCode() {
+                return "SUBSYS1";
+            }
+
+            @Override
+            public String getServiceCode() {
+                return "getData";
+            }
+
+            @Override
+            public String getServiceVersion() {
+                return "v2";
+            }
+
+            @Override
+            public long getWsdlCount() {
+                return 1L;
+            }
+
+            @Override
+            public long getOpenapiCount() {
+                return 2L;
+            }
+        };
+        when(repository.findServicesWithMultipleActiveDescriptors()).thenReturn(List.of(anomalyRow));
 
         Logger taskLogger = (Logger) LoggerFactory.getLogger(RecomputeDenormalizedColumnsTask.class);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();

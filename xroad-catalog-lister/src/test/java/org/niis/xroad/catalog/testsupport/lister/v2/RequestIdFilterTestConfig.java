@@ -32,13 +32,11 @@ import org.springframework.context.annotation.Bean;
  * Pins the {@link RequestIdFilter}'s id generator to a known value for {@code @WebMvcTest}
  * controller slices that exercise correlation header behaviour.
  * <p>
- * Lives outside the {@code org.niis.xroad.catalog.lister} package on purpose. The lister's
- * {@code ListerDefaultConfiguration} declares an explicit {@code @ComponentScan(basePackages =
- * "org.niis.xroad.catalog.lister")} that does not inherit the boot-test {@code TypeExcludeFilter}
- * customisation. Anything {@code @TestConfiguration}-annotated under that scan root would be
- * eagerly auto-loaded into every {@code @SpringBootTest} context, causing the {@code
- * RequestIdFilter} bean to be filter-registered with the default {@code /*} URL pattern and
- * leaking the {@code X-Request-Id} header onto V1 endpoints.
+ * Lives outside the {@code org.niis.xroad.catalog.lister} package on purpose: the lister's
+ * explicit {@code @ComponentScan} does not inherit the boot-test {@code TypeExcludeFilter}
+ * customisation, so a {@code @TestConfiguration} under that root would be auto-loaded into every
+ * {@code @SpringBootTest} context, registering the filter on {@code /*} and leaking the
+ * {@code X-Request-Id} header onto V1 endpoints.
  */
 @TestConfiguration
 public class RequestIdFilterTestConfig {

@@ -25,13 +25,9 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -40,6 +36,4 @@ import java.time.LocalDateTime;
 public class EndpointDto {
     private final String method;
     private final String path;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
-    private final LocalDateTime removed;
 }

@@ -28,8 +28,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,18 +39,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Aggregates one bare {@code serviceCode} within one subsystem into a single {@link ServiceDto}.
- * Versions are sorted by {@code serviceVersion} with nulls last; {@code serviceTypes} is the
- * distinct set of types in that sorted version order rather than a single scalar, because a bare
- * service code can legitimately be multi-typed: the asymmetric REST-then-versioned-WSDL path lets a
- * descriptor-less first version and a WSDL-backed later version coexist under the same aggregate.
- * Collapsing that to one type would silently drop information the API contract needs.
- *
- * <p>Both entry points require a non-empty input: every real caller only ever builds an aggregate
- * from a {@code serviceCode} that is already known to have at least one active version row (the
- * aggregate query and the entity-graph subtree traversal both only produce groups that exist), so an
- * empty collection here means a caller-side bug, not a legitimate "no versions" case. Rather than
- * silently returning {@code null} into a page of DTOs, both methods fail loudly.
+ * Aggregates all versions of one bare {@code serviceCode} within a subsystem. Versions are sorted
+ * by {@code serviceVersion} with nulls last; {@code serviceTypes} is the distinct set across
+ * versions rather than a scalar, because one service code can legitimately mix types (e.g. a
+ * descriptor-less version and a WSDL-backed one). Both factories reject null/empty input — callers
+ * only build from groups known to have at least one active version, so an empty group is a caller
+ * bug and fails loudly.
  */
 @Getter
 @Builder
@@ -100,17 +94,17 @@ public class ServiceDto {
      * @throws IllegalArgumentException if {@code versions} is null or empty
      */
     public static ServiceDto fromEntities(String memberClass, String memberCode, String memberName,
-                                   String subsystemCode, Collection<ServiceV2> versions) {
+                                   String subsystemCode, Collection<Service> versions) {
         if (versions == null || versions.isEmpty()) {
             throw new IllegalArgumentException("versions must not be null or empty");
         }
-        List<ServiceV2> sorted = versions.stream()
-                .sorted(Comparator.comparing(ServiceV2::getServiceVersion, Comparator.nullsLast(Comparator.naturalOrder())))
+        List<Service> sorted = versions.stream()
+                .sorted(Comparator.comparing(Service::getServiceVersion, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
-        ServiceV2 first = sorted.get(0);
+        Service first = sorted.get(0);
         List<ServiceVersionSummaryDto> summaries = new ArrayList<>();
         Set<String> types = new LinkedHashSet<>();
-        for (ServiceV2 service : sorted) {
+        for (Service service : sorted) {
             ServiceVersionSummaryDto v = ServiceVersionSummaryDto.from(service);
             summaries.add(v);
             types.add(v.getServiceType());

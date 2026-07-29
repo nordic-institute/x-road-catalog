@@ -32,11 +32,9 @@ public final class ServiceVersionUtil {
     }
 
     /**
-     * Resolves the URL-segment version sentinel. The literal {@code "null"} (case-sensitive) in a
-     * service-version path segment maps to a Java {@code null}, which the persistence layer treats
-     * as "service has no version label". Any other string is passed through unchanged. A real
-     * version literally named {@code "null"} is therefore unaddressable; this is documented in the
-     * V2 OpenAPI spec.
+     * Maps the literal URL segment {@code "null"} (case-sensitive) to Java {@code null}, meaning
+     * "service has no version label"; any other string passes through. A real version literally
+     * named {@code "null"} is therefore unaddressable.
      */
     public static String resolveVersionSentinel(String serviceVersion) {
         if (VERSION_SENTINEL.equals(serviceVersion)) {

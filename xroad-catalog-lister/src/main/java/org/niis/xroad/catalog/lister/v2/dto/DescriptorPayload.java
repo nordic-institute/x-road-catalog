@@ -27,12 +27,11 @@ package org.niis.xroad.catalog.lister.v2.dto;
 import org.springframework.http.MediaType;
 
 /**
- * Raw descriptor bytes plus their content type. Returned by the descriptor service methods so the
- * controller can echo the bytes verbatim with the correct {@code Content-Type} header. This is not
- * a JSON DTO — the controller writes {@link #content()} directly into the HTTP body.
+ * Raw descriptor bytes (WSDL XML or OpenAPI JSON/YAML) plus the {@code Content-Type} to advertise.
+ * Not a JSON DTO — the controller writes {@link #content()} verbatim into the HTTP body.
  *
- * @param content     UTF-8 descriptor bytes (WSDL XML or OpenAPI JSON/YAML)
- * @param contentType the media type the controller should advertise on the response
+ * @param content raw descriptor bytes
+ * @param contentType the {@code Content-Type} to advertise
  */
 public record DescriptorPayload(byte[] content, MediaType contentType) {
 }

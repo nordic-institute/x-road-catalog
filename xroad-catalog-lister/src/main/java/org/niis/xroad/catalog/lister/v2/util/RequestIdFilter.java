@@ -35,15 +35,12 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 /**
- * Per-request correlation filter for V2 endpoints. The server unconditionally mints its own ID
- * for every request, publishes it in MDC under {@code requestId} for the duration of the request,
- * and emits it on the response under {@code X-Request-Id}. Inbound {@code X-Request-Id} headers
- * supplied by the client are deliberately ignored — echoing client-controlled bytes into server
- * logs is a log-injection vector even with character-set validation, since attackers can still
- * pollute log search/SIEM tooling with arbitrary plausible-looking tokens. Clients that need
- * end-to-end correlation should record the value the server returned in the response header,
- * not assume their inbound value survived. MDC is always cleared in a {@code finally} block so
- * worker threads inherit no stale value.
+ * Per-request correlation filter for V2 endpoints: mints an ID, publishes it in MDC under
+ * {@code requestId}, and returns it as {@code X-Request-Id}. Inbound {@code X-Request-Id} headers
+ * are deliberately ignored — echoing client-controlled bytes into logs is a log-injection vector
+ * even with character-set validation. Clients needing end-to-end correlation should record the
+ * value from the response header. MDC is cleared in {@code finally} so worker threads inherit no
+ * stale value.
  */
 public class RequestIdFilter extends OncePerRequestFilter {
 

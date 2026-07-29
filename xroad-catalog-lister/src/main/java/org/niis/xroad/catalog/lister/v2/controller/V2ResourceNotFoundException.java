@@ -35,9 +35,8 @@ public final class V2ResourceNotFoundException extends RuntimeException {
     }
 
     /**
-     * Builds a {@code "<label> '<id>' not found"} message, where {@code id} is the non-null
-     * {@code idParts} joined with {@code "/"}. Null parts are skipped so an absent segment
-     * (e.g. no service version) does not render as a literal {@code "null"} in the message.
+     * Builds a {@code "<label> '<id>' not found"} message from the non-null {@code idParts} joined
+     * with {@code "/"}; null parts are skipped so an absent segment does not render as "null".
      */
     @SuppressWarnings("PMD.ShortMethodName")
     public static V2ResourceNotFoundException of(String label, String... idParts) {

@@ -32,9 +32,9 @@ import lombok.Getter;
 import java.util.List;
 
 /**
- * Per-entity-type bucket inside a change log day entry. Holds a count and the list of items.
+ * Per-entity-type bucket inside a change log day entry.
  *
- * @param <T> item DTO type (member, subsystem or service)
+ * @param <T> the item type
  */
 @Getter
 @Builder

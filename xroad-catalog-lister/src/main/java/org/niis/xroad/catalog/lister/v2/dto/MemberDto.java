@@ -31,7 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberListRow;
 
 import java.time.LocalDateTime;
 
@@ -54,8 +54,6 @@ public class MemberDto {
     private final LocalDateTime changed;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
-    private final LocalDateTime removed;
 
     public static MemberDto from(MemberListRow row) {
         return MemberDto.builder()
@@ -68,7 +66,6 @@ public class MemberDto {
                 .created(row.getCreated())
                 .changed(row.getChanged())
                 .fetched(row.getFetched())
-                .removed(row.getRemoved())
                 .build();
     }
 }

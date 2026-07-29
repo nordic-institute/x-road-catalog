@@ -25,9 +25,9 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.v2entity.EndpointV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.entity.Endpoint;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ class ServiceVersionDtoTest {
 
     @Test
     void testSoapHasDescriptorTrue() {
-        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "SOAP");
+        Service svc = buildService(SERVICE_CODE, "v1", "SOAP");
         ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("SOAP", dto.getServiceType());
         assertTrue(dto.isHasDescriptor());
@@ -53,7 +53,7 @@ class ServiceVersionDtoTest {
 
     @Test
     void testOpenApiHasDescriptorTrue() {
-        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
+        Service svc = buildService(SERVICE_CODE, "v1", "OPENAPI");
         ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("OPENAPI", dto.getServiceType());
         assertTrue(dto.isHasDescriptor());
@@ -61,7 +61,7 @@ class ServiceVersionDtoTest {
 
     @Test
     void testRestHasDescriptorFalse() {
-        ServiceV2 svc = buildService(SERVICE_CODE, null, "REST");
+        Service svc = buildService(SERVICE_CODE, null, "REST");
         ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("REST", dto.getServiceType());
         assertFalse(dto.isHasDescriptor(), "REST is the descriptor-less service type");
@@ -70,7 +70,7 @@ class ServiceVersionDtoTest {
 
     @Test
     void testUnknownHasDescriptorFalse() {
-        ServiceV2 svc = buildService(SERVICE_CODE, null, "UNKNOWN");
+        Service svc = buildService(SERVICE_CODE, null, "UNKNOWN");
         ServiceVersionDto dto = ServiceVersionDto.from(svc);
         assertEquals("UNKNOWN", dto.getServiceType(), "the unclassified state surfaces as-is, not as a REST guess");
         assertFalse(dto.isHasDescriptor(), "a not-yet-classified service must not claim a descriptor");
@@ -78,33 +78,32 @@ class ServiceVersionDtoTest {
 
     @Test
     void testEndpointsComeFromActiveEndpointsHelper() {
-        ServiceV2 svc = buildService(SERVICE_CODE, "v1", "REST");
-        addEndpoint(svc, "GET", "/active", false);
-        addEndpoint(svc, "GET", "/removed", true);
+        Service svc = buildService(SERVICE_CODE, "v1", "REST");
+        addEndpoint(svc, "GET", "/active");
         ServiceVersionDto dto = ServiceVersionDto.from(svc);
-        assertEquals(1, dto.getEndpoints().size(), "getActiveEndpoints() already excludes removed rows");
+        assertEquals(1, dto.getEndpoints().size());
         assertEquals("/active", dto.getEndpoints().get(0).getPath());
     }
 
-    private ServiceV2 buildService(String code, String version, String serviceType) {
-        ServiceV2 s = new ServiceV2();
+    private Service buildService(String code, String version, String serviceType) {
+        Service s = new Service();
         ReflectionTestUtils.setField(s, "serviceCode", code);
         ReflectionTestUtils.setField(s, "serviceVersion", version);
         ReflectionTestUtils.setField(s, "serviceType", serviceType);
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
-        ReflectionTestUtils.setField(s, "endpoints", new HashSet<EndpointV2>());
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now));
+        ReflectionTestUtils.setField(s, "endpoints", new HashSet<Endpoint>());
         return s;
     }
 
-    private void addEndpoint(ServiceV2 service, String method, String path, boolean removed) {
-        EndpointV2 e = new EndpointV2();
+    private void addEndpoint(Service service, String method, String path) {
+        Endpoint e = new Endpoint();
         ReflectionTestUtils.setField(e, "service", service);
         ReflectionTestUtils.setField(e, "method", method);
         ReflectionTestUtils.setField(e, "path", path);
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(e, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
-        Set<EndpointV2> endpoints = service.getEndpoints();
+        ReflectionTestUtils.setField(e, "statusInfo", new StatusInfo(now, now, now));
+        Set<Endpoint> endpoints = service.getEndpoints();
         endpoints.add(e);
     }
 }

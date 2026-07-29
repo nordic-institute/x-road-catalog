@@ -24,40 +24,33 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.dto.MemberSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemSearchHit;
-import org.niis.xroad.catalog.persistence.repository.SearchRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SearchRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SearchHitRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Cross-type search over members, subsystems and service aggregates. Uses the native UNION query in
- * {@link SearchRepository} for DB-level pagination; the exact total across every page rides along on
- * every returned row (column 10, via {@code COUNT(*) OVER ()}), so a matching page is served by a
- * single statement. {@code is_provider} and {@code service_types} ride along the same way (columns 8
- * and 9), so this is pure row mapping — no per-row repository calls, no N+1. {@link
- * SearchRepository#countSearchUnion} is only consulted when a page is empty at a non-zero offset,
- * since {@code searchUnion} then returns no rows to carry a total.
+ * Cross-type search over members, subsystems and service aggregates via the native UNION query in
+ * {@link SearchRepository}. The exact total rides along on every row ({@code COUNT(*) OVER ()}),
+ * so a matching page is served by a single statement with pure row mapping — no N+1.
+ * {@link SearchRepository#countSearchUnion} is consulted only when a page is empty at a non-zero
+ * offset, since no returned rows then carry a total.
  */
+@Slf4j
 @Service
 public class SearchServiceV2 {
 
     private static final int MIN_QUERY_LENGTH = 3;
-    private static final int COL_TYPE = 0;
-    private static final int COL_MEMBER_CLASS = 3;
-    private static final int COL_MEMBER_CODE = 4;
-    private static final int COL_MEMBER_NAME = 5;
-    private static final int COL_SUBSYSTEM_CODE = 6;
-    private static final int COL_SERVICE_CODE = 7;
-    private static final int COL_IS_PROVIDER = 8;
-    private static final int COL_SERVICE_TYPES = 9;
-    private static final int COL_TOTAL_COUNT = 10;
 
     private final SearchRepository searchRepository;
 
@@ -66,58 +59,44 @@ public class SearchServiceV2 {
     }
 
     public Page<SearchHit> search(String query, Pageable pageable) {
-        if (query == null || query.length() < MIN_QUERY_LENGTH) {
+        if (query == null || query.isBlank() || query.length() < MIN_QUERY_LENGTH) {
             throw new IllegalArgumentException(
                     "Query parameter 'q' must be at least " + MIN_QUERY_LENGTH + " characters");
         }
 
         String like = "%" + escapeLike(query) + "%";
-        List<Object[]> rows = searchRepository.searchUnion(like, pageable.getPageSize(), pageable.getOffset());
+        List<SearchHitRow> rows = searchRepository.searchUnion(like, pageable.getPageSize(), pageable.getOffset());
         long totalCount;
         if (rows.isEmpty()) {
             totalCount = pageable.getOffset() == 0 ? 0 : searchRepository.countSearchUnion(like);
             return new PageImpl<>(List.of(), pageable, totalCount);
         }
-        totalCount = ((Number) rows.get(0)[COL_TOTAL_COUNT]).longValue();
-        return new PageImpl<>(rows.stream().map(this::toResult).toList(), pageable, totalCount);
+        totalCount = rows.get(0).getTotalCount();
+        List<SearchHit> hits = rows.stream().map(this::toResult).filter(Objects::nonNull).toList();
+        return new PageImpl<>(hits, pageable, totalCount);
     }
 
-    private SearchHit toResult(Object[] row) {
-        String type = (String) row[COL_TYPE];
-        String memberClass = (String) row[COL_MEMBER_CLASS];
-        String memberCode = (String) row[COL_MEMBER_CODE];
-        String memberName = (String) row[COL_MEMBER_NAME];
-        String subsystemCode = (String) row[COL_SUBSYSTEM_CODE];
-        String serviceCode = (String) row[COL_SERVICE_CODE];
-        return switch (type) {
+    private SearchHit toResult(SearchHitRow row) {
+        return switch (row.getEntityType()) {
             case "member" -> new MemberSearchHit(
-                    memberClass,
-                    memberCode,
-                    memberName,
-                    Boolean.TRUE.equals(row[COL_IS_PROVIDER]));
+                    row.getMemberClass(), row.getMemberCode(), row.getMemberName(),
+                    Boolean.TRUE.equals(row.getIsProvider()));
             case "subsystem" -> new SubsystemSearchHit(
-                    memberClass,
-                    memberCode,
-                    memberName,
-                    subsystemCode);
+                    row.getMemberClass(), row.getMemberCode(), row.getMemberName(), row.getSubsystemCode());
             case "service" -> new ServiceSearchHit(
-                    memberClass,
-                    memberCode,
-                    memberName,
-                    subsystemCode,
-                    serviceCode,
-                    List.of(((String) row[COL_SERVICE_TYPES]).split(",")));
-            default -> throw new IllegalStateException("Unknown entity_type: " + type);
+                    row.getMemberClass(), row.getMemberCode(), row.getMemberName(), row.getSubsystemCode(),
+                    row.getServiceCode(), List.of(row.getServiceTypes().split(",")));
+            default -> {
+                log.warn("Skipping search index row with unknown entity_type '{}'", row.getEntityType());
+                yield null;
+            }
         };
     }
 
     /**
-     * Escapes the SQL LIKE metacharacters {@code \}, {@code %} and {@code _} in {@code input} so
-     * that user-typed text in the {@code q} parameter is matched as a literal substring rather than
-     * a pattern. The escape character is {@code \}, declared via {@code ESCAPE '\\'} on every
-     * {@code LIKE} clause in {@link SearchRepository}. Order matters: {@code \} is escaped first;
-     * the second and third replacements then prepend {@code \} to {@code %} and {@code _} without
-     * being double-escaped.
+     * Escapes {@code \}, {@code %} and {@code _} so user text matches as a literal substring; the
+     * escape character is declared via {@code ESCAPE '\\'} on every {@code LIKE} clause. Order
+     * matters: {@code \} first, so the later replacements are not double-escaped.
      */
     private static String escapeLike(String input) {
         return input

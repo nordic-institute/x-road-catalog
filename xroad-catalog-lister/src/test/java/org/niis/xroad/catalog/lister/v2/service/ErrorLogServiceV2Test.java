@@ -48,9 +48,8 @@ public class ErrorLogServiceV2Test {
     @Autowired
     private ErrorLogServiceV2 errorLogService;
 
-    // All fixture error_log rows are created on 2020-05-04; row 7 (2022-01-01) is deliberately
-    // outside this window to prove the instance-level query is bounded. Kept well under the
-    // 90-day cap that ErrorLogServiceV2.get now enforces (Task B4).
+    // Row 7 (2022-01-01) is outside this window to prove the query is bounded;
+    // the window stays under the 90-day cap.
     private final LocalDateTime start = LocalDateTime.parse("2020-04-01T00:00:00");
     private final LocalDateTime end = LocalDateTime.parse("2020-06-01T00:00:00");
 

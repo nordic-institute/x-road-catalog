@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.persistence.repository;
 
 import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.repository.projection.DescriptorAnomalyRow;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -34,11 +35,10 @@ import java.util.List;
 
 /**
  * Set-based maintenance of the V2 denormalized columns. Runs after each collection cycle;
- * idempotent and self-healing — the recompute IS the reconciliation mechanism, so the flags can
- * never be staler than one collector interval. Extends Repository&lt;Member, Long&gt; only so
- * Spring Data recognises it; all queries are native.
+ * idempotent, so the flags can never be staler than one collector interval. Extends
+ * {@code Repository<Member, Long>} only so Spring Data registers it; all queries are native.
  *
- * <p>{@code service_type} classification uses priority SOAP &gt; OPENAPI &gt; REST, each requiring
+ * <p>{@code service_type} classification priority is SOAP &gt; OPENAPI &gt; REST, each requiring
  * an active descriptor/rest row; a service with none stays {@code UNKNOWN}.
  */
 public interface DenormalizationRepository extends Repository<Member, Long> {
@@ -59,9 +59,10 @@ public interface DenormalizationRepository extends Repository<Member, Long> {
             + " FROM service s2) calc"
             + " WHERE calc.id = s.id AND s.service_type IS DISTINCT FROM calc.value";
 
-    String DESCRIPTOR_ANOMALIES_SQL = "SELECT s.id, m.member_class, m.member_code, ss.subsystem_code,"
-            + " s.service_code, s.service_version,"
-            + " COALESCE(w.cnt, 0) AS wsdl_count, COALESCE(o.cnt, 0) AS openapi_count"
+    String DESCRIPTOR_ANOMALIES_SQL = "SELECT s.id AS serviceId, m.member_class AS memberClass,"
+            + " m.member_code AS memberCode, ss.subsystem_code AS subsystemCode,"
+            + " s.service_code AS serviceCode, s.service_version AS serviceVersion,"
+            + " COALESCE(w.cnt, 0) AS wsdlCount, COALESCE(o.cnt, 0) AS openapiCount"
             + " FROM service s"
             + " JOIN subsystem ss ON s.subsystem_id = ss.id"
             + " JOIN member m ON ss.member_id = m.id"
@@ -83,5 +84,5 @@ public interface DenormalizationRepository extends Repository<Member, Long> {
     int recomputeServiceType();
 
     @Query(value = DESCRIPTOR_ANOMALIES_SQL, nativeQuery = true)
-    List<Object[]> findServicesWithMultipleActiveDescriptors();
+    List<DescriptorAnomalyRow> findServicesWithMultipleActiveDescriptors();
 }

@@ -32,12 +32,11 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Tracks the number of fetch-work items that have been enqueued but not yet completed, so that collection
- * completion can be detected via an explicit counter reaching zero instead of by polling task idleness.
+ * Counts fetch-work items that are enqueued but not yet completed; the collection cycle is done when
+ * the count reaches zero.
  *
- * <p>Discipline: {@link #register(int)} MUST be called BEFORE the corresponding items are enqueued for
- * processing, not after. If the increment happened after enqueueing, a consumer could dequeue and complete
- * the item before the producer registers it, letting the pending count observe zero while work still exists.
+ * <p>{@link #register(int)} MUST be called before the items are enqueued: otherwise a consumer could
+ * complete an item before it is registered, letting the count read zero while work still exists.
  */
 @Slf4j
 @Component
@@ -50,10 +49,9 @@ public class FetchWorkTracker {
     private long pendingCount;
 
     /**
-     * Adds {@code n} to the pending work count. Must be called before the {@code n} items it covers are
-     * enqueued; see the class javadoc for the reason.
+     * Adds {@code n} to the pending count; must be called before the covered items are enqueued.
      *
-     * @param n number of work items to register; values less than or equal to zero are a no-op
+     * @param n number of work items; zero or negative values are a no-op
      */
     public void register(final int n) {
         if (n <= 0) {
@@ -68,9 +66,8 @@ public class FetchWorkTracker {
     }
 
     /**
-     * Marks one previously registered work item as complete, decrementing the pending count. Signals all
-     * waiters once the count reaches zero. If the count is already zero, logs an error and clamps to zero
-     * instead of going negative or throwing, so a bookkeeping bug does not kill a worker mid-{@code finally}.
+     * Decrements the pending count, signalling waiters at zero. A call with no pending work logs an
+     * error and clamps to zero, so a bookkeeping bug does not kill a worker mid-{@code finally}.
      */
     public void complete() {
         lock.lock();
@@ -90,12 +87,11 @@ public class FetchWorkTracker {
     }
 
     /**
-     * Waits for the pending count to reach zero.
+     * Waits for the pending count to reach zero; a completion that drives it to zero wakes the wait immediately.
      *
-     * @param waitMillis maximum time to wait, in milliseconds; this is a reporting tick, not a polling
-     *                    interval, since a completion that drives pending to zero wakes the wait immediately
+     * @param waitMillis maximum time to wait, in milliseconds
      * @return true if the pending count is (or became) zero, false if {@code waitMillis} elapsed first
-     * @throws InterruptedException if the current thread is interrupted while waiting
+     * @throws InterruptedException if interrupted while waiting
      */
     public boolean awaitAllDone(final long waitMillis) throws InterruptedException {
         lock.lock();
@@ -114,9 +110,7 @@ public class FetchWorkTracker {
     }
 
     /**
-     * Returns the current pending work count, for progress reporting.
-     *
-     * @return the current pending count
+     * Returns the current pending work count.
      */
     public long pending() {
         lock.lock();

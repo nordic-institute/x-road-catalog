@@ -32,8 +32,7 @@ import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
- * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
- *             V1 is kept for compatibility and is scheduled for removal.
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
 @Deprecated
 public class GetServiceTypeRequestDeserializer extends AbstractCustomRequestDeserializer<GetServiceTypeRequest> {

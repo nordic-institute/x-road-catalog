@@ -25,12 +25,8 @@
 package org.niis.xroad.catalog.lister.v2.converter;
 
 /**
- * Resolves the shared-params <code>subsystemName</code> for a given subsystem natural key.
- *
- * Used by {@link org.niis.xroad.catalog.lister.v2.dto.SubsystemDto#from} and
- * {@link org.niis.xroad.catalog.lister.v2.dto.FullSubsystemDto#from} to enrich those DTOs with
- * display names sourced from the shared-params XML. Implementations must tolerate missing entries
- * and return {@code null} when no name is available — name enrichment is best-effort.
+ * Resolves the shared-params {@code subsystemName} for a subsystem natural key. Implementations
+ * must tolerate missing entries and return {@code null} — name enrichment is best-effort.
  */
 @FunctionalInterface
 public interface SubsystemNameLookup {

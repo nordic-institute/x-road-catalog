@@ -30,30 +30,17 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * Adds the {@code v2entity} read-model package to the lister's entity scan (on top of the
- * {@code entity} package {@code ListerDefaultConfiguration} already registers -- {@link EntityScan}
- * packages accumulate across every {@code @EntityScan}-annotated class in a context) and enables
- * every repository in {@code org.niis.xroad.catalog.persistence.repository} -- V1 and V2 alike --
- * for every profile except {@code test}. Both declarations share that single {@code !test} gate and
- * don't otherwise interact, so they live in one class rather than two.
- *
- * <p>The gate matters: the V1 H2 {@code create-drop} {@code test}-profile contexts boot the same
- * {@link org.niis.xroad.catalog.lister.ListerApplication} as production, so scanning {@code
- * v2entity} there too would map two {@code @Entity} classes to the same table (e.g. {@code member})
- * and fail schema generation -- exactly the collision the {@code v2entity} split avoids. Production
- * never activates {@code test}, so real deployments scan {@code v2entity} and resolve the V2
- * read-model repositories eagerly like any other repository, no lazy bootstrap needed.
- *
- * <p>This and {@link V2RepositoryTestBootstrapConfiguration} / {@link
- * V2ReadModelLazyRepositoryConfiguration} are mutually exclusive via {@code @Profile("!test")} /
- * {@code @Profile("test")}, so there is no bean-definition overriding between them.
- * {@code ListerDefaultConfiguration} deliberately skips importing {@code
- * PersistenceDefaultConfiguration} so that class's unconditional {@code @EnableJpaRepositories}
- * never also fires.
+ * Adds the {@code persistence.v2.entity} read-model package to the entity scan ({@link EntityScan}
+ * packages accumulate across configuration classes) and enables the V1 and V2 repositories for every
+ * profile except {@code test}. The gate matters: {@code test}-profile contexts generate an H2 schema
+ * from the scanned entities, and V1 and V2 entity classes map to the same tables (e.g. {@code member}),
+ * so scanning both would fail schema generation; the {@code test} profile supplies its own
+ * repository configuration.
  */
 @Configuration
 @Profile("!test")
-@EntityScan("org.niis.xroad.catalog.persistence.v2entity")
-@EnableJpaRepositories("org.niis.xroad.catalog.persistence.repository")
+@EntityScan("org.niis.xroad.catalog.persistence.v2.entity")
+@EnableJpaRepositories({"org.niis.xroad.catalog.persistence.repository",
+        "org.niis.xroad.catalog.persistence.v2.repository"})
 public class V2ProductionConfiguration {
 }

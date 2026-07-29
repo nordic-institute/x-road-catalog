@@ -78,4 +78,38 @@ class PostgresSchemaTest extends PostgresTestBase {
         assertEquals("UNKNOWN", serviceType, "a service inserted before its descriptor is fetched must "
                 + "read as unclassified, not as a REST guess");
     }
+
+    @Test
+    void liquibaseCreatesActiveViews() {
+        Integer views = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.views WHERE table_schema = 'public' AND table_name IN "
+                        + "('active_member','active_subsystem','active_service','active_wsdl','active_open_api',"
+                        + "'active_rest','active_endpoint','active_search_index')",
+                Integer.class);
+        assertEquals(8, views);
+    }
+
+    @Test
+    void activeViewsCascadeParentRemoval() {
+        jdbcTemplate.update("INSERT INTO member (x_road_instance, member_class, member_code, name, created, changed, fetched) "
+                + "VALUES ('TC', 'GOV', 'view-probe', 'View probe', now(), now(), now())");
+        jdbcTemplate.update("INSERT INTO subsystem (member_id, subsystem_code, created, changed, fetched) "
+                + "SELECT id, 'view-ss', now(), now(), now() FROM member WHERE member_code = 'view-probe'");
+        jdbcTemplate.update("INSERT INTO service (subsystem_id, service_code, created, changed, fetched) "
+                + "SELECT id, 'view-svc', now(), now(), now() FROM subsystem WHERE subsystem_code = 'view-ss'");
+        jdbcTemplate.update("INSERT INTO wsdl (service_id, data, external_id, created, changed, fetched) "
+                + "SELECT id, 'wsdl-data', 'view-wsdl', now(), now(), now() FROM service WHERE service_code = 'view-svc'");
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM active_service WHERE service_code = 'view-svc'", Integer.class));
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM active_wsdl WHERE external_id = 'view-wsdl'", Integer.class));
+
+        jdbcTemplate.update("UPDATE member SET removed = now() WHERE member_code = 'view-probe'");
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM active_service WHERE service_code = 'view-svc'", Integer.class),
+                "soft-deleting the member must hide its whole subtree from the active views");
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM active_wsdl WHERE external_id = 'view-wsdl'", Integer.class),
+                "soft-deleting the member must cascade through active_service and hide its wsdl rows too");
+    }
 }

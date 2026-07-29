@@ -34,8 +34,7 @@ import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.OpenApi;
 
 /**
- * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2});
- *             V1 is kept for compatibility and is scheduled for removal.
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
 @Deprecated
 public class GetOpenAPIService implements ListerService<GetOpenAPIRequest, String> {

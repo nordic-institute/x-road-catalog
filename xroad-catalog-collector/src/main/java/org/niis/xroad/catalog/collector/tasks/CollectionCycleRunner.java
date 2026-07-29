@@ -33,16 +33,13 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 /**
- * One collection cycle: list clients, block until the pending-work counter tracked by
- * {@link FetchWorkTracker} reaches zero (every fetch item registered during the cycle has
- * completed), recompute the denormalized columns, then finalize the {@link CollectionRun} row with
- * the per-type MAX(fetched) snapshot the heartbeat serves.
+ * One collection cycle: list clients, block until the {@link FetchWorkTracker} pending counter
+ * reaches zero, recompute the denormalized columns, then finalize the {@link CollectionRun} row.
  *
- * <p>The wait is unbounded by design: all collector I/O is given explicit client timeouts, so every
- * fetch worker provably terminates and the counter is guaranteed to reach zero. The tick passed to
- * {@link FetchWorkTracker#awaitAllDone(long)} is a reporting interval, not a correctness poll — on
- * each tick the current pending count is written to the run row for heartbeat visibility, not
- * checked against a deadline.
+ * <p>The wait is unbounded by design: all collector I/O has explicit client timeouts, so every
+ * fetch worker terminates and the counter reaches zero. The tick passed to
+ * {@link FetchWorkTracker#awaitAllDone(long)} is a reporting interval, not a deadline — each tick
+ * writes the pending count to the run row for heartbeat visibility.
  *
  * <p>{@link #run()} never throws: it is the fixed-delay scheduler body, and an uncaught exception
  * would permanently kill the schedule.
@@ -95,9 +92,12 @@ public class CollectionCycleRunner {
             log.warn("Interrupted while waiting for fetch tasks to finish", e);
         } catch (Exception e) {
             log.error("Collection cycle failed", e);
+        } finally {
+            // Runs even on failure: partial fetch results still need recomputing and the run row
+            // must be closed (success=false). Both catch internally, so run() never throws.
+            recomputeTask.run();
+            finalizeRun(run, listClientsOk && allWorkDone);
         }
-        recomputeTask.run();
-        finalizeRun(run, listClientsOk && allWorkDone);
     }
 
     private CollectionRun startRun() {

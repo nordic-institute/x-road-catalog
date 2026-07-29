@@ -27,33 +27,31 @@ package org.niis.xroad.catalog.lister.v2.dto;
 import java.util.List;
 
 /**
- * A security server parsed from the shared-params XML, with its owner and clients resolved
- * against the member/subsystem {@code id} attributes referenced by the security server element.
+ * A security server parsed from the shared-params XML, with owner and clients resolved against
+ * the member/subsystem {@code id} attributes it references.
  *
- * @param serverCode X-Road security server code
- * @param address    security server network address
- * @param owner      the member that owns this security server
- * @param clients    members/subsystems registered as clients on this security server
+ * @param serverCode security server code
+ * @param address security server address
+ * @param owner the owning member
+ * @param clients clients registered on the server
  */
 public record SecurityServerInfoV2(String serverCode, String address, MemberRef owner, List<ClientRef> clients) {
 
     /**
-     * The member that owns a security server. Never refers to a subsystem — ownership in
-     * shared-params is always a member-level reference.
+     * The owning member — ownership in shared-params is always a member-level reference, never a subsystem.
      *
-     * @param memberClass X-Road member class
-     * @param memberCode  X-Road member code
-     * @param name        member display name
+     * @param memberClass member class
+     * @param memberCode member code
+     * @param name member display name
      */
     public record MemberRef(String memberClass, String memberCode, String name) { }
 
     /**
-     * A client registered on a security server. {@code subsystemCode} is {@code null} when the
-     * client reference resolves to a member rather than one of its subsystems.
+     * A client registered on a security server.
      *
-     * @param memberClass   X-Road member class
-     * @param memberCode    X-Road member code
-     * @param subsystemCode X-Road subsystem code, or {@code null} for a member-level client
+     * @param memberClass member class
+     * @param memberCode member code
+     * @param subsystemCode subsystem code, {@code null} for a member-level client
      */
     public record ClientRef(String memberClass, String memberCode, String subsystemCode) { }
 }

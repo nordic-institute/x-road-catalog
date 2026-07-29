@@ -35,12 +35,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Global advice for framework exceptions raised before handler-method selection (where
- * {@link V2ExceptionHandler}'s basePackages-scoped advice cannot apply). Path-discriminates
- * by application-relative request URI so V1 routes keep Spring's default behavior; only
- * {@code /api/v2/} paths receive the V2 {@link ErrorResponse} shape. The discriminator
- * strips the servlet context path so the check still works when the app is deployed under
- * a non-root context (e.g., {@code /catalog/api/v2/...}).
+ * Advice for framework exceptions raised before handler-method selection, where
+ * {@link V2ExceptionHandler}'s basePackages-scoped advice cannot apply. Only {@code /api/v2/}
+ * paths receive the V2 {@link ErrorResponse} shape; V1 routes keep Spring's default behavior.
+ * The path check strips the servlet context path so it works under a non-root context.
  */
 @RestControllerAdvice
 public class V2DispatchExceptionHandler {
@@ -52,7 +50,6 @@ public class V2DispatchExceptionHandler {
             HttpRequestMethodNotSupportedException ex,
             HttpServletRequest request) throws HttpRequestMethodNotSupportedException {
         if (!isV2Path(request)) {
-            // V1 (or unrelated) path — let Spring's default handling produce its own response.
             throw ex;
         }
         String message = "HTTP method '" + ex.getMethod() + "' is not supported on this resource";
@@ -72,13 +69,11 @@ public class V2DispatchExceptionHandler {
             HttpMediaTypeNotAcceptableException ex,
             HttpServletRequest request) throws HttpMediaTypeNotAcceptableException {
         if (!isV2Path(request)) {
-            // V1 (or unrelated) path — let Spring's default handling produce its own response.
             throw ex;
         }
-        // Force Content-Type: application/json on the error body to bypass content negotiation
-        // against the rejected client Accept header — without this the message converter would
-        // raise a second HttpMediaTypeNotAcceptableException while writing the error envelope
-        // and the client would receive an empty 406 body.
+        // Force Content-Type: application/json so the error body bypasses content negotiation against
+        // the rejected Accept header — otherwise the message converter raises a second
+        // HttpMediaTypeNotAcceptableException and the client gets an empty 406 body.
         return ResponseEntity
                 .status(HttpStatus.NOT_ACCEPTABLE)
                 .headers(ex.getHeaders())

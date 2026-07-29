@@ -25,10 +25,10 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
-import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.niis.xroad.catalog.persistence.v2.entity.Member;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -41,10 +41,9 @@ class FullSubsystemDtoTest {
 
     @Test
     void testFromUsesActiveServiceHelperAndCarriesSuppliedServices() {
-        SubsystemV2 subsystem = buildSubsystem();
-        addService(subsystem, false);
-        addService(subsystem, false);
-        addService(subsystem, true);
+        Subsystem subsystem = buildSubsystem();
+        addService(subsystem);
+        addService(subsystem);
         ServiceDto service = ServiceDto.builder().serviceCode("svcA").build();
 
         FullSubsystemDto dto = FullSubsystemDto.from(subsystem, (mc, mcode, sc) -> "Tax Services", List.of(service));
@@ -54,33 +53,33 @@ class FullSubsystemDtoTest {
         assertEquals("Nahka-Albert", dto.getMemberName());
         assertEquals("TaxServices", dto.getSubsystemCode());
         assertEquals("Tax Services", dto.getSubsystemName());
-        assertEquals(2, dto.getServiceCount(), "removed service must not be counted");
+        assertEquals(2, dto.getServiceCount());
         assertEquals(1, dto.getServices().size());
         assertEquals("svcA", dto.getServices().get(0).getServiceCode());
     }
 
-    private SubsystemV2 buildSubsystem() {
-        MemberV2 member = new MemberV2();
+    private Subsystem buildSubsystem() {
+        Member member = new Member();
         ReflectionTestUtils.setField(member, "memberClass", "PUB");
         ReflectionTestUtils.setField(member, "memberCode", "14151328");
         ReflectionTestUtils.setField(member, "name", "Nahka-Albert");
 
-        SubsystemV2 s = new SubsystemV2();
+        Subsystem s = new Subsystem();
         ReflectionTestUtils.setField(s, "member", member);
         ReflectionTestUtils.setField(s, "subsystemCode", "TaxServices");
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
-        ReflectionTestUtils.setField(s, "services", new HashSet<ServiceV2>());
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now));
+        ReflectionTestUtils.setField(s, "services", new HashSet<Service>());
         return s;
     }
 
-    private void addService(SubsystemV2 subsystem, boolean removed) {
-        ServiceV2 svc = new ServiceV2();
+    private void addService(Subsystem subsystem) {
+        Service svc = new Service();
         ReflectionTestUtils.setField(svc, "subsystem", subsystem);
         ReflectionTestUtils.setField(svc, "serviceCode", "svc");
         ReflectionTestUtils.setField(svc, "serviceType", "REST");
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now, removed ? now : null));
+        ReflectionTestUtils.setField(svc, "statusInfo", new StatusInfo(now, now, now));
         subsystem.getServices().add(svc);
     }
 }

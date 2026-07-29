@@ -43,11 +43,9 @@ import java.util.List;
 public class SecurityServerServiceV2 {
 
     private final SharedParamsCache sharedParamsCache;
-    private final InstanceContext instanceContext;
 
-    public SecurityServerServiceV2(SharedParamsCache sharedParamsCache, InstanceContext instanceContext) {
+    public SecurityServerServiceV2(SharedParamsCache sharedParamsCache) {
         this.sharedParamsCache = sharedParamsCache;
-        this.instanceContext = instanceContext;
     }
 
     public Page<SecurityServerListItemDto> list(Pageable pageable) {
@@ -72,21 +70,14 @@ public class SecurityServerServiceV2 {
                 result.add(toBrowseItem(s));
             }
         }
-        result.sort(Comparator.comparing(SecurityServerBrowseItemDto::getServerCode,
-                Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
         return result;
     }
 
-    // SharedParamsCache caches a parse failure (missing/unreadable shared-params.xml) as an empty
-    // snapshot for the full TTL, so an empty securityServers() list is ambiguous between "not ready
-    // yet" and "genuinely zero security servers". InstanceContext already distinguishes those two
-    // cases for every other V2 endpoint (it raises 503 until shared-params.xml first becomes
-    // readable, then caches success for the process lifetime); routing through it here keeps this
-    // endpoint's not-ready signalling identical to its siblings without adding another failure-mode
-    // cache to SharedParamsCache itself. The returned instance id is intentionally unused -- only
-    // the readiness check matters here.
+    // An empty securityServers() list is ambiguous: the TTL snapshot caches a parse failure as empty.
+    // getCurrentInstance() raises 503 until shared-params.xml first becomes readable, giving this
+    // endpoint the same not-ready signalling as its siblings; the returned instance id is unused.
     private void assertReady() {
-        instanceContext.getCurrentInstance();
+        sharedParamsCache.getCurrentInstance();
     }
 
     private Comparator<SecurityServerListItemDto> buildComparator(Pageable pageable) {

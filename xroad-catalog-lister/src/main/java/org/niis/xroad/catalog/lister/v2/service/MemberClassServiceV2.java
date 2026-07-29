@@ -25,8 +25,8 @@
 package org.niis.xroad.catalog.lister.v2.service;
 
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberClassCountRow;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberClassCountRow;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -39,37 +39,30 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * V2 member-class service. Member counts come straight from the database (denormalized nowhere);
- * descriptions come from the shared-params XML global settings.
+ * V2 member-class service. Member counts come from the database; descriptions from the
+ * shared-params XML global settings.
  */
 @Service
 public class MemberClassServiceV2 {
 
     private final SharedParamsCache sharedParamsCache;
-    private final MemberRepositoryV2 memberRepository;
-    private final InstanceContext instanceContext;
+    private final MemberRepository memberRepository;
 
-    public MemberClassServiceV2(SharedParamsCache sharedParamsCache, MemberRepositoryV2 memberRepository,
-            InstanceContext instanceContext) {
+    public MemberClassServiceV2(SharedParamsCache sharedParamsCache, MemberRepository memberRepository) {
         this.sharedParamsCache = sharedParamsCache;
         this.memberRepository = memberRepository;
-        this.instanceContext = instanceContext;
     }
 
     /**
-     * Looks up a single member class by code. {@code memberCount} is resolved via
-     * {@link MemberRepositoryV2#countActiveByMemberClass} rather than {@link #list()} so a lookup
-     * for one code costs one grouped count query, not a full description parse plus a full grouped
-     * count query. A code is considered to exist when it has either a shared-params description or
-     * at least one active member; an unknown code (neither) returns an empty {@link Optional}
-     * (controller maps to 404).
+     * A code exists when it has either a shared-params description or at least one active member;
+     * anything else returns an empty {@link Optional}.
      */
     public Optional<MemberClassDto> getByCode(String code) {
         if (code == null) {
             return Optional.empty();
         }
         String description = sharedParamsCache.memberClassDescriptions().get(code);
-        long count = memberRepository.countActiveByMemberClass(instanceContext.getCurrentInstance(), code);
+        long count = memberRepository.countActiveByMemberClass(sharedParamsCache.getCurrentInstance(), code);
         if (description == null && count == 0) {
             return Optional.empty();
         }
@@ -82,16 +75,14 @@ public class MemberClassServiceV2 {
 
     /**
      * Lists every known member class: the union of codes declared in the shared-params global
-     * settings and codes with at least one active member. Member counts come from
-     * {@link MemberRepositoryV2#countActiveGroupedByMemberClass} (one grouped query) instead of the
-     * old per-member counting loop.
+     * settings and codes with at least one active member, counted with a single grouped query.
      */
     public List<MemberClassDto> list() {
         SharedParamsCache.MemberClasses memberClasses = sharedParamsCache.memberClasses();
         Map<String, String> descriptions = memberClasses.descriptions();
 
         Map<String, Long> counts = new HashMap<>();
-        for (MemberClassCountRow row : memberRepository.countActiveGroupedByMemberClass(instanceContext.getCurrentInstance())) {
+        for (MemberClassCountRow row : memberRepository.countActiveGroupedByMemberClass(sharedParamsCache.getCurrentInstance())) {
             counts.put(row.getCode(), row.getMemberCount());
         }
 

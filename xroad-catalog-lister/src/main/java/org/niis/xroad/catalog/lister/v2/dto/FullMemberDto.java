@@ -31,9 +31,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.v2entity.MemberV2;
-import org.niis.xroad.catalog.persistence.v2entity.SubsystemV2;
+import org.niis.xroad.catalog.persistence.v2.entity.Member;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
+import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,25 +61,19 @@ public class FullMemberDto {
     private final LocalDateTime changed;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
-    private final LocalDateTime removed;
 
     private final List<FullSubsystemDto> subsystems;
 
     /**
-     * Builds the {@link FullMemberDto} for the {@code ?full=true} browse endpoint. {@code isProvider}
-     * comes straight from the denormalized {@link MemberV2#isProvider()} column maintained by the
-     * collector recompute; {@code subsystemCount}/{@code serviceCount} are computed from the
-     * {@code getActive*} helpers over the loaded entity graph. The caller supplies the
-     * already-assembled {@code subsystems} list so this factory does not depend on the subsystem
-     * factory or the service aggregation factory.
+     * Counts are computed over the loaded entity graph (view-backed, so every row is active);
+     * {@code isProvider} comes from the denormalized column maintained by the collector recompute.
      */
-    public static FullMemberDto from(MemberV2 member, List<FullSubsystemDto> subsystems) {
+    public static FullMemberDto from(Member member, List<FullSubsystemDto> subsystems) {
         int subsystemCount = 0;
         int serviceCount = 0;
-        for (SubsystemV2 sub : member.getActiveSubsystems()) {
+        for (Subsystem sub : member.getSubsystems()) {
             subsystemCount++;
-            serviceCount += sub.getActiveServices().size();
+            serviceCount += sub.getServices().size();
         }
         StatusInfo info = member.getStatusInfo();
         return FullMemberDto.builder()
@@ -92,7 +86,6 @@ public class FullMemberDto {
                 .created(info.getCreated())
                 .changed(info.getChanged())
                 .fetched(info.getFetched())
-                .removed(info.getRemoved())
                 .subsystems(subsystems)
                 .build();
     }

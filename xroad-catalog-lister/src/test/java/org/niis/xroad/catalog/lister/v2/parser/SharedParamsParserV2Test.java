@@ -87,12 +87,8 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseThrowsWhenDocumentMatchesNoSupportedSchemaVersion() {
-        // shared-params-unsupported.xml is well-formed XML but doesn't conform to any of the
-        // V2-V5 shared-parameters schemas; the parser must fail loudly rather than silently
-        // returning empty/partial data, so SharedParamsCache can tell "not parseable" apart from
-        // "genuinely empty". Assert the specific exception thrown once the newest-first V5->V2
-        // fallback is exhausted, not just "some exception", so an incidental failure (e.g. a
-        // missing fixture file) can't slip past this test.
+        // shared-params-unsupported.xml is well-formed but matches no V2-V5 schema; the parser must
+        // fail loudly so SharedParamsCache can tell "not parseable" apart from "genuinely empty".
         IOException exception = assertThrows(IOException.class,
                 () -> parser.parseMemberClasses("src/test/resources/shared-params-unsupported.xml"));
         assertTrue(exception.getMessage().contains("did not validate against any supported shared-parameters schema version"));
@@ -100,11 +96,8 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseRejectsDoctypeBearingDocumentBeforeReachingTheLibraryUnmarshaller() {
-        // shared-params-xxe.xml declares a DOCTYPE with an external entity; the pre-flight,
-        // disallow-doctype-decl gate must reject it before configuration-client's own (unhardened)
-        // unmarshalling path ever sees the bytes. Assert the specific SAXParseException/message the
-        // gate produces, proving the rejection came from the gate and not, say, one of the library's
-        // own schema unmarshallers rejecting the DOCTYPE for an unrelated reason.
+        // shared-params-xxe.xml declares a DOCTYPE with an external entity; the disallow-doctype-decl
+        // pre-flight gate must reject it before the unhardened library unmarshaller sees the bytes.
         SAXParseException exception = assertThrows(SAXParseException.class,
                 () -> parser.parseMemberClasses("src/test/resources/shared-params-xxe.xml"));
         assertTrue(exception.getMessage().contains("DOCTYPE is disallowed"));
@@ -132,9 +125,8 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseSecurityServersResolvesMemberAndSubsystemClientsFromLargerFixture() throws Exception {
-        // shared-params-2.xml has 4 security servers; niisss01 is owned by member id0
-        // (ORG/2908758-4/NIIS) with clients id3 (Management subsystem) and id2 (MonitoringClient
-        // subsystem); testagess01 is owned by id10 with a single member-level client id6 (COM/1234567-8).
+        // shared-params-2.xml has 4 security servers; niisss01 (owner ORG/2908758-4/NIIS) has two
+        // subsystem clients, testagess01 has a single member-level client (COM/1234567-8).
         List<SecurityServerInfoV2> servers = parser.parseSecurityServers("src/test/resources/shared-params-2.xml");
 
         assertEquals(4, servers.size());

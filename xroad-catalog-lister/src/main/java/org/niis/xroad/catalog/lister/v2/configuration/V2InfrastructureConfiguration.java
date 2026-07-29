@@ -35,26 +35,18 @@ import java.time.Clock;
 import java.util.UUID;
 
 /**
- * V2-only cross-cutting infrastructure beans (clock, request-id filter, …). Lives apart from
- * {@link JacksonV2Configuration} because that class is intentionally a non-configuration utility
- * holder for the V2 date-time serializer. Lives apart from {@link OpenApiConfiguration} because
- * SpringDoc-grouping concerns are unrelated to runtime infrastructure.
+ * V2-only cross-cutting infrastructure beans (clock, request-id filter).
  */
 @Configuration
 public class V2InfrastructureConfiguration {
 
     /**
-     * System-default-zone clock, not UTC. Every persisted timestamp is written with a zero-arg
-     * {@code LocalDateTime.now()} — both in the collector and in entity lifecycle hooks — which
-     * captures the JVM host's local wall-clock time, not UTC. V1 reads that same system-default
-     * time back unchanged, and the V2 JSON serializer ({@link JacksonV2Configuration}) stamps an
-     * offset onto it using {@code ZoneId.systemDefault()}. This bean must agree with all of that,
-     * or day-boundary defaults derived from {@code today()} (e.g. the {@code /api/v2/reports/*}
-     * and {@code /errors} endpoints) end up anchored a day off whenever the query runs near
-     * midnight. Deployment invariant: the collector, the lister, and the Postgres session must all
-     * share one timezone. Tests override with a fixed clock via their own
-     * {@code @TestConfiguration}; {@link ConditionalOnMissingBean} keeps this production bean from
-     * clashing with those overrides.
+     * System-default-zone clock, not UTC: persisted timestamps are written with zero-arg
+     * {@code LocalDateTime.now()} (host-local wall clock) and the V2 JSON serializer stamps the
+     * offset from {@code ZoneId.systemDefault()}. This bean must agree, or day-boundary defaults
+     * derived from {@code today()} anchor a day off near midnight. Deployment invariant: the
+     * collector, the lister and the Postgres session must share one timezone.
+     * {@link ConditionalOnMissingBean} lets tests override with a fixed clock.
      */
     @Bean
     @ConditionalOnMissingBean(Clock.class)

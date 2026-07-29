@@ -25,38 +25,35 @@
 package org.niis.xroad.catalog.lister.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.lister.v2.dto.CurrentRunV2Dto;
+import org.niis.xroad.catalog.lister.v2.dto.CurrentRunDto;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatV2Dto;
 import org.niis.xroad.catalog.lister.v2.dto.LastCollectionDataV2Dto;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
-import org.niis.xroad.catalog.persistence.repository.ErrorLogRepositoryV2;
+import org.niis.xroad.catalog.persistence.repository.DenormalizationRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ErrorLogRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
- * V2 heartbeat service. Produces the JSON response returned by {@code GET /api/v2/heartbeat}.
+ * Produces the {@code GET /api/v2/heartbeat} response.
  *
- * <p>V2 heartbeat is a superset of V1: it adds {@code restsLastFetched} to the collection
- * timestamps and an aggregate {@code lastRunErrors} counter. Freshness now comes from the
- * collector's run metadata rather than per-poll {@code MAX(fetched)} scans: the six
- * {@code lastCollectionData} timestamps are the snapshot columns on the latest finished
- * {@link CollectionRun} row, and {@code lastRunErrors} counts error-log rows recorded since that
- * run's {@code started} timestamp. If no run has finished yet, the timestamps are null and
- * {@code lastRunErrors} is 0.
+ * <p>The six {@code lastCollectionData} timestamps are the snapshot columns of the latest finished
+ * {@link CollectionRun}, and {@code lastRunErrors} counts error-log rows since that run's
+ * {@code started} timestamp. With no finished run, the timestamps are null and the counter 0.
  *
- * <p>Error-log queries go through {@link ErrorLogRepositoryV2} so half-open range semantics match
- * the rest of the V2 API.
+ * <p>{@code currentRun} is present only while a collection cycle is in progress (a
+ * {@link CollectionRun} with a null {@code finished} timestamp). {@code pendingItems} not
+ * decreasing while {@code progressUpdated} keeps advancing means the collector is alive but hung;
+ * a stale {@code progressUpdated} on an old unfinished run means it died mid-cycle.
  *
- * <p>{@code currentRun} is nullable and present only while a collection cycle is in progress
- * (the {@link CollectionRun} row with a {@code null} {@code finished} timestamp). Operators can
- * use it to distinguish a stuck run from a healthy one: {@code pendingItems} not decreasing while
- * {@code progressUpdated} keeps advancing means the collector is alive but its work is hung,
- * whereas a stale {@code progressUpdated} on an old unfinished run means the collector died
- * mid-cycle.
+ * <p>{@code globalConfExpired}/{@code globalConfExpiresAt} surface global-configuration staleness
+ * from {@link SharedParamsCache#globalConfExpiry()}: expired conf is flagged, not refused, and an
+ * unknown expiry reports {@code false}/null.
  */
 @Slf4j
 @Service
@@ -65,21 +62,27 @@ public class HeartbeatServiceV2 {
     private final String appName;
     private final String appVersion;
     private final CollectionRunRepository collectionRunRepository;
-    private final ErrorLogRepositoryV2 errorLogRepository;
+    private final ErrorLogRepository errorLogRepository;
+    private final DenormalizationRepository denormalizationRepository;
+    private final SharedParamsCache sharedParamsCache;
     private final Clock clock;
 
     public HeartbeatServiceV2(@Value("${xroad-catalog.app-name}") String appName,
             @Value("${xroad-catalog.app-version}") String appVersion,
-            CollectionRunRepository collectionRunRepository, ErrorLogRepositoryV2 errorLogRepository, Clock clock) {
+            CollectionRunRepository collectionRunRepository, ErrorLogRepository errorLogRepository,
+            DenormalizationRepository denormalizationRepository, SharedParamsCache sharedParamsCache, Clock clock) {
         this.appName = appName;
         this.appVersion = appVersion;
         this.collectionRunRepository = collectionRunRepository;
         this.errorLogRepository = errorLogRepository;
+        this.denormalizationRepository = denormalizationRepository;
+        this.sharedParamsCache = sharedParamsCache;
         this.clock = clock;
     }
 
     public HeartbeatV2Dto heartbeat() {
         CollectionRun lastRun = tryFetchLastFinishedRun();
+        SharedParamsCache.GlobalConfExpiry confExpiry = tryGetGlobalConfExpiry();
         return HeartbeatV2Dto.builder()
                 .appWorking(Boolean.TRUE)
                 .dbWorking(tryCheckDatabase())
@@ -88,8 +91,24 @@ public class HeartbeatServiceV2 {
                 .systemTime(LocalDateTime.now(clock))
                 .lastCollectionData(toLastCollectionData(lastRun))
                 .lastRunErrors(computeLastRunErrors(lastRun))
+                .descriptorAnomalies(tryCountDescriptorAnomalies())
+                .globalConfExpired(confExpiry.expired())
+                .globalConfExpiresAt(toLocalDateTime(confExpiry.expiresAt()))
                 .currentRun(toCurrentRun(tryFetchCurrentRun()))
                 .build();
+    }
+
+    private SharedParamsCache.GlobalConfExpiry tryGetGlobalConfExpiry() {
+        try {
+            return sharedParamsCache.globalConfExpiry();
+        } catch (Exception e) {
+            log.warn("Failed to determine global configuration expiry; reporting unknown", e);
+            return new SharedParamsCache.GlobalConfExpiry(false, null);
+        }
+    }
+
+    private LocalDateTime toLocalDateTime(Instant instant) {
+        return instant == null ? null : LocalDateTime.ofInstant(instant, clock.getZone());
     }
 
     private CollectionRun tryFetchLastFinishedRun() {
@@ -110,11 +129,11 @@ public class HeartbeatServiceV2 {
         }
     }
 
-    private CurrentRunV2Dto toCurrentRun(CollectionRun currentRun) {
+    private CurrentRunDto toCurrentRun(CollectionRun currentRun) {
         if (currentRun == null) {
             return null;
         }
-        return CurrentRunV2Dto.builder()
+        return CurrentRunDto.builder()
                 .started(currentRun.getStarted())
                 .pendingItems(currentRun.getPendingItems())
                 .progressUpdated(currentRun.getProgressUpdated())
@@ -143,6 +162,15 @@ public class HeartbeatServiceV2 {
             return errorLogRepository.countInRange(lastRun.getStarted(), LocalDateTime.now(clock));
         } catch (Exception e) {
             log.warn("Failed to count errors since last collection run", e);
+            return 0L;
+        }
+    }
+
+    private long tryCountDescriptorAnomalies() {
+        try {
+            return denormalizationRepository.findServicesWithMultipleActiveDescriptors().size();
+        } catch (Exception e) {
+            log.warn("Failed to count descriptor anomalies; reporting 0", e);
             return 0L;
         }
     }

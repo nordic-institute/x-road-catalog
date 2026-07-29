@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +33,13 @@ import org.niis.xroad.catalog.lister.v2.controller.MultipleVersionsException;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.repository.DescriptorRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.ServiceRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceAggregateRow;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.repository.DescriptorRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ServiceRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SubsystemRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceAggregateRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -73,24 +72,24 @@ class ServiceServiceV2Test {
     private static final String REST = "REST";
 
     @Mock
-    private ServiceRepositoryV2 serviceRepository;
+    private ServiceRepository serviceRepository;
 
     @Mock
-    private SubsystemRepositoryV2 subsystemRepository;
+    private SubsystemRepository subsystemRepository;
 
     @Mock
-    private DescriptorRepositoryV2 descriptorRepository;
+    private DescriptorRepository descriptorRepository;
 
     @Mock
-    private InstanceContext instanceContext;
+    private SharedParamsCache sharedParamsCache;
 
     private ServiceServiceV2 service;
 
     @BeforeEach
     void setUp() {
         service = new ServiceServiceV2(serviceRepository, subsystemRepository, descriptorRepository,
-                instanceContext, new ObjectMapper());
-        org.mockito.Mockito.lenient().when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+                sharedParamsCache);
+        org.mockito.Mockito.lenient().when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
     }
 
     @Test
@@ -129,11 +128,26 @@ class ServiceServiceV2Test {
     }
 
     @Test
+    void testGetForListRejectsUnknownServiceType() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.getForList(PUB, "GRAPHQL", PageRequest.of(0, 50)));
+    }
+
+    @Test
+    void testGetForListNormalizesBlankServiceTypeToNoFilter() {
+        when(serviceRepository.countActiveAggregatesForList(INSTANCE, PUB, null)).thenReturn(0L);
+
+        Page<ServiceDto> page = service.getForList(PUB, "  ", PageRequest.of(0, 50));
+
+        assertTrue(page.isEmpty());
+        verify(serviceRepository, times(1)).countActiveAggregatesForList(INSTANCE, PUB, null);
+    }
+
+    @Test
     void testGetForListUses3QueriesAndFiltersExactPairs() {
-        // Two subsystems (10, 20) both have a serviceCode "svc" aggregate. The over-selected version
-        // batch (findActiveVersionRowsForKeys) returns rows for BOTH cross-product pairs plus the
-        // real ones; byKey must discard the (10,"other") ghost pair and keep each aggregate's exact
-        // (subsystemId, serviceCode) versions separate.
+        // Two subsystems (10, 20) both have a serviceCode "svc" aggregate; the over-selected version
+        // batch returns rows for both cross-product pairs, and byKey must discard the (10, "other")
+        // ghost pair while keeping each aggregate's (subsystemId, serviceCode) versions separate.
         when(serviceRepository.countActiveAggregatesForList(INSTANCE, PUB, null)).thenReturn(2L);
         ServiceAggregateRow agg1 = aggregateRow(10L, "svc");
         ServiceAggregateRow agg2 = aggregateRow(20L, "svc");
@@ -184,9 +198,9 @@ class ServiceServiceV2Test {
     }
 
     @Test
-    void testGetVersionsReturnsSortedNullsLastOrEmptyWhenAbsent() {
-        ServiceV2 v1 = serviceEntity(MIXED_SVC, "v2", REST);
-        ServiceV2 v2 = serviceEntity(MIXED_SVC, "v1", "SOAP");
+    void testGetVersionsReturnsRepositoryOrderOrEmptyWhenAbsent() {
+        Service v1 = serviceEntity(MIXED_SVC, "v2", REST);
+        Service v2 = serviceEntity(MIXED_SVC, "v1", "SOAP");
         when(serviceRepository.findActiveVersionsByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC))
                 .thenReturn(List.of(v1, v2));
 
@@ -194,8 +208,8 @@ class ServiceServiceV2Test {
 
         assertTrue(versions.isPresent());
         assertEquals(2, versions.get().size());
-        assertEquals("v1", versions.get().get(0).getServiceVersion());
-        assertEquals("v2", versions.get().get(1).getServiceVersion());
+        assertEquals("v2", versions.get().get(0).getServiceVersion());
+        assertEquals("v1", versions.get().get(1).getServiceVersion());
     }
 
     @Test
@@ -208,7 +222,7 @@ class ServiceServiceV2Test {
 
     @Test
     void testGetVersionResolvesNullSentinel() {
-        ServiceV2 svc = serviceEntity("service-with-null-version", null, REST);
+        Service svc = serviceEntity("service-with-null-version", null, REST);
         when(serviceRepository.findActiveNullVersionByNaturalKey(INSTANCE, PUB, "15", "subsystem_7-1",
                 "service-with-null-version")).thenReturn(Optional.of(svc));
 
@@ -229,7 +243,7 @@ class ServiceServiceV2Test {
 
     @Test
     void testGetVersionDescriptorReturnsWsdlAsXml() {
-        ServiceV2 svc = serviceEntityWithId(101L, MIXED_SVC, "v1", "SOAP");
+        Service svc = serviceEntityWithId(101L, MIXED_SVC, "v1", "SOAP");
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC, "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(101L)).thenReturn(List.of("<wsdl>wsdl-mixedSvc-v1</wsdl>"));
@@ -244,7 +258,7 @@ class ServiceServiceV2Test {
 
     @Test
     void testGetVersionDescriptorReturnsOpenApiJson() {
-        ServiceV2 svc = serviceEntityWithId(102L, "descJsonSvc", "v1", "OPENAPI");
+        Service svc = serviceEntityWithId(102L, "descJsonSvc", "v1", "OPENAPI");
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonSvc", "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(102L)).thenReturn(List.of());
@@ -259,7 +273,7 @@ class ServiceServiceV2Test {
 
     @Test
     void testGetVersionDescriptorReturnsOpenApiYaml() {
-        ServiceV2 svc = serviceEntityWithId(103L, "descYamlSvc", "v1", "OPENAPI");
+        Service svc = serviceEntityWithId(103L, "descYamlSvc", "v1", "OPENAPI");
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(103L)).thenReturn(List.of());
@@ -275,8 +289,55 @@ class ServiceServiceV2Test {
     }
 
     @Test
+    void testGetVersionDescriptorReturnsOpenApiJsonForArrayContent() {
+        Service svc = serviceEntityWithId(106L, "descJsonArraySvc", "v1", "OPENAPI");
+        when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1,
+                "descJsonArraySvc", "v1")).thenReturn(Optional.of(svc));
+        when(descriptorRepository.findActiveWsdlData(106L)).thenReturn(List.of());
+        when(descriptorRepository.findActiveOpenApiData(106L)).thenReturn(List.of("[{\"openapi\":\"3.0.0\"}]"));
+
+        Optional<DescriptorPayload> result =
+                service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonArraySvc", "v1");
+
+        assertTrue(result.isPresent());
+        assertEquals(MediaType.APPLICATION_JSON, result.get().contentType());
+    }
+
+    @Test
+    void testGetVersionDescriptorReturnsOpenApiJsonForLeadingWhitespaceContent() {
+        Service svc = serviceEntityWithId(107L, "descPaddedJsonSvc", "v1", "OPENAPI");
+        when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1,
+                "descPaddedJsonSvc", "v1")).thenReturn(Optional.of(svc));
+        when(descriptorRepository.findActiveWsdlData(107L)).thenReturn(List.of());
+        when(descriptorRepository.findActiveOpenApiData(107L)).thenReturn(List.of("\n  \t{\"openapi\":\"3.0.0\"}"));
+
+        Optional<DescriptorPayload> result =
+                service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descPaddedJsonSvc", "v1");
+
+        assertTrue(result.isPresent());
+        DescriptorPayload payload = result.get();
+        assertEquals(MediaType.APPLICATION_JSON, payload.contentType());
+        assertEquals("\n  \t{\"openapi\":\"3.0.0\"}", new String(payload.content(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void testGetVersionDescriptorReturnsYamlForEmptyContent() {
+        Service svc = serviceEntityWithId(108L, "descEmptySvc", "v1", "OPENAPI");
+        when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1,
+                "descEmptySvc", "v1")).thenReturn(Optional.of(svc));
+        when(descriptorRepository.findActiveWsdlData(108L)).thenReturn(List.of());
+        when(descriptorRepository.findActiveOpenApiData(108L)).thenReturn(List.of(""));
+
+        Optional<DescriptorPayload> result =
+                service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descEmptySvc", "v1");
+
+        assertTrue(result.isPresent());
+        assertEquals(MediaType.parseMediaType("application/yaml"), result.get().contentType());
+    }
+
+    @Test
     void testGetVersionDescriptorReturnsEmptyOptionalForNoDescriptor() {
-        ServiceV2 svc = serviceEntityWithId(104L, "descRestOnlySvc", "v1", REST);
+        Service svc = serviceEntityWithId(104L, "descRestOnlySvc", "v1", REST);
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descRestOnlySvc", "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(104L)).thenReturn(List.of());
@@ -295,7 +356,7 @@ class ServiceServiceV2Test {
 
     @Test
     void testGetServiceLevelDescriptorReturnsForSingleVersion() {
-        ServiceV2 svc = serviceEntityWithId(105L, "descJsonSvc", "v1", "OPENAPI");
+        Service svc = serviceEntityWithId(105L, "descJsonSvc", "v1", "OPENAPI");
         when(serviceRepository.findActiveVersionsByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descJsonSvc"))
                 .thenReturn(List.of(svc));
         when(descriptorRepository.findActiveWsdlData(105L)).thenReturn(List.of());
@@ -318,8 +379,8 @@ class ServiceServiceV2Test {
 
     @Test
     void testGetServiceLevelDescriptorThrowsOnMultipleVersions() {
-        ServiceV2 v1 = serviceEntity(MIXED_SVC, "v1", "SOAP");
-        ServiceV2 v2 = serviceEntity(MIXED_SVC, "v2", REST);
+        Service v1 = serviceEntity(MIXED_SVC, "v1", "SOAP");
+        Service v2 = serviceEntity(MIXED_SVC, "v2", REST);
         when(serviceRepository.findActiveVersionsByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, MIXED_SVC))
                 .thenReturn(List.of(v1, v2));
 
@@ -329,18 +390,18 @@ class ServiceServiceV2Test {
         assertEquals(List.of("v1", "v2"), ex.getVersions());
     }
 
-    private static ServiceV2 serviceEntity(String code, String version, String type) {
+    private static Service serviceEntity(String code, String version, String type) {
         return serviceEntityWithId(1L, code, version, type);
     }
 
-    private static ServiceV2 serviceEntityWithId(long id, String code, String version, String type) {
-        ServiceV2 s = new ServiceV2();
+    private static Service serviceEntityWithId(long id, String code, String version, String type) {
+        Service s = new Service();
         ReflectionTestUtils.setField(s, "id", id);
         ReflectionTestUtils.setField(s, "serviceCode", code);
         ReflectionTestUtils.setField(s, "serviceVersion", version);
         ReflectionTestUtils.setField(s, "serviceType", type);
         LocalDateTime now = LocalDateTime.now();
-        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now, null));
+        ReflectionTestUtils.setField(s, "statusInfo", new StatusInfo(now, now, now));
         ReflectionTestUtils.setField(s, "endpoints", Set.of());
         return s;
     }
@@ -353,7 +414,7 @@ class ServiceServiceV2Test {
                                                             String type) {
         LocalDateTime now = LocalDateTime.now();
         return new FakeServiceVersionRow(PUB, CODE_14151328, "Nahka-Albert", SUBSYSTEM_A1, subsystemId,
-                serviceCode, version, type, now, now, now, null);
+                serviceCode, version, type, now, now, now);
     }
 
     private static ServiceAggregateRow aggregateRow(long subsystemId, String serviceCode) {
@@ -389,7 +450,7 @@ class ServiceServiceV2Test {
     private record FakeServiceVersionRow(String memberClass, String memberCode, String memberName,
                                   String subsystemCode, long subsystemId, String serviceCode, String serviceVersion,
                                   String serviceType, LocalDateTime created, LocalDateTime changed,
-                                  LocalDateTime fetched, LocalDateTime removed) implements ServiceVersionRow {
+                                  LocalDateTime fetched) implements ServiceVersionRow {
 
         @Override
         public String getMemberClass() {
@@ -444,11 +505,6 @@ class ServiceServiceV2Test {
         @Override
         public LocalDateTime getFetched() {
             return fetched;
-        }
-
-        @Override
-        public LocalDateTime getRemoved() {
-            return removed;
         }
     }
 }

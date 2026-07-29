@@ -32,21 +32,15 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * Does not {@code @Import(PersistenceDefaultConfiguration.class)} — it reproduces that class's
- * component/entity scan directly and excludes {@code PersistenceDefaultConfiguration} itself from
- * the component scan so its own (unfiltered) {@code @EnableJpaRepositories} never also fires.
- * {@code @EnableJpaRepositories} here excludes every {@code *RepositoryV2} interface: those are V2
- * read-model repositories bound to {@code v2entity}-package domain types (e.g. {@code MemberV2}
- * for {@code MemberRepositoryV2}), which this application's {@code @EntityScan} never registers
- * (the collector writes only through the V1 entities). Without the exclusion, Spring would try to
- * resolve a V2 repository's {@code EntityInformation} against a domain type that isn't a managed
- * type in this context and fail at startup, even though the collector never uses that repository.
+ * Reproduces {@code PersistenceDefaultConfiguration}'s scans directly, excluding that class itself
+ * so its unfiltered {@code @EnableJpaRepositories} never also fires. Repository scanning covers only
+ * the V1 packages: the collector writes only through the V1 entities, which keeps the V2 read-model
+ * repositories out of scope without an exclude filter.
  */
 @Configuration
 @ComponentScan(basePackages = {"org.niis.xroad.catalog.collector", "org.niis.xroad.catalog.persistence"},
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PersistenceDefaultConfiguration.class))
-@EnableJpaRepositories(value = "org.niis.xroad.catalog.persistence.repository",
-        excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*RepositoryV2"))
+@EnableJpaRepositories("org.niis.xroad.catalog.persistence.repository")
 @EntityScan("org.niis.xroad.catalog.persistence.entity")
 public class CollectorDefaultConfiguration {
 }

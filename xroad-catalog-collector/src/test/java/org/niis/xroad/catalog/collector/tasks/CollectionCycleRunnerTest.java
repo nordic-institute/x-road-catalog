@@ -113,7 +113,6 @@ class CollectionCycleRunnerTest {
             interruptedFlagRestored.set(Thread.currentThread().isInterrupted());
         });
         runnerThread.start();
-        // Give the thread a moment to reach the blocking wait before interrupting it.
         await().atMost(Duration.ofSeconds(2))
                 .until(() -> runnerThread.getState() == Thread.State.TIMED_WAITING
                         || runnerThread.getState() == Thread.State.WAITING);
@@ -138,7 +137,7 @@ class CollectionCycleRunnerTest {
         Thread runnerThread = new Thread(runner::run);
         runnerThread.start();
 
-        // Wait for the start-run write, the initial progress write, and at least one tick write to have happened.
+        // >= 3: the start-run write, the initial progress write, and at least one tick write.
         await().atMost(Duration.ofSeconds(5)).until(() -> mockingDetails(collectionRunRepository)
                 .getInvocations().size() >= 3);
 

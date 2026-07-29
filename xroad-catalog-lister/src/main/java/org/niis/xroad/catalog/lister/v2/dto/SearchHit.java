@@ -30,22 +30,15 @@ import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Sealed search-hit hierarchy. Each row in {@code GET /api/v2/search} is one of three
- * concrete subtypes, distinguished by the {@code type} discriminator. Splitting the old flat
- * {@code SearchResultDto} into per-row records eliminates the {@code Boolean} wrapper that
- * was previously needed for nullability — every field on every subtype is intentional, so no
- * {@code @JsonInclude(NON_NULL)} suppression is required.
+ * Sealed hierarchy of {@code GET /api/v2/search} rows, discriminated by {@code type}.
  *
- * <p>Wire shape is unchanged: each subtype exposes a literal {@code type()} accessor so the
- * discriminator is always serialized regardless of the declared static element type (the
- * {@code List<T>} inside {@code PagedCollectionResponse} erases to {@code List<Object>},
- * which prevents Jackson from finding the {@link JsonTypeInfo} on this interface during
- * serialization). {@link JsonTypeInfo} with {@link JsonTypeInfo.As#EXISTING_PROPERTY} keeps
- * Jackson deserialization working by reading the same {@code type} property without writing
- * a duplicate. The {@link Schema} annotation declares the OpenAPI discriminator only —
- * subtypes already extend this base via SpringDoc's {@code allOf} inheritance, so adding
- * a parallel {@code oneOf} would create a circular reference that breaks Swagger UI's
- * resolver ({@code Elements in allOf must be objects}).
+ * <p>Each subtype exposes a literal {@code type()} accessor because the {@code List<T>} inside
+ * {@code PagedCollectionResponse} erases to {@code List<Object>}, hiding this interface's
+ * {@link JsonTypeInfo} from Jackson during serialization; {@link JsonTypeInfo.As#EXISTING_PROPERTY}
+ * lets deserialization read that same property without writing a duplicate. The {@link Schema}
+ * annotation declares only the discriminator — subtypes already extend this base via SpringDoc's
+ * {@code allOf} inheritance, and a parallel {@code oneOf} creates a circular reference that breaks
+ * Swagger UI's resolver ({@code Elements in allOf must be objects}).
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
 @JsonSubTypes({

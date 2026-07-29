@@ -285,11 +285,9 @@ class BrowseControllerTest {
 
     @Test
     void listSubsystemsReturnsItemsWithoutPaginationMetadata() throws Exception {
-        // Task 14: SubsystemServiceV2#getForMember now encodes parent-existence itself via
-        // Optional (empty = 404, present = the active subsystem list), so the controller no longer
-        // makes a separate memberService.getByNaturalKey guard call for this route.
-        SubsystemDto a1 = subsystemDto(SUBSYSTEM_A1, null);
-        SubsystemDto a2 = subsystemDto("subsystem_a2", null);
+        // SubsystemServiceV2#getForMember encodes parent existence via Optional, so there is no separate member guard call.
+        SubsystemDto a1 = subsystemDto(SUBSYSTEM_A1);
+        SubsystemDto a2 = subsystemDto("subsystem_a2");
         when(subsystemService.getForMember(PUB, CODE_14151328)).thenReturn(Optional.of(List.of(a1, a2)));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328/subsystems"))
@@ -324,7 +322,7 @@ class BrowseControllerTest {
 
     @Test
     void getSubsystemReturnsDto() throws Exception {
-        SubsystemDto dto = subsystemDto(SUBSYSTEM_A1, null);
+        SubsystemDto dto = subsystemDto(SUBSYSTEM_A1);
         when(subsystemService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1)).thenReturn(Optional.of(dto));
 
         mockMvc.perform(get("/api/v2/browse/member-classes/PUB/members/14151328/subsystems/subsystem_a1"))
@@ -357,13 +355,11 @@ class BrowseControllerTest {
 
     @Test
     void listServicesReturnsAggregatesWithoutPaginationMetadata() throws Exception {
-        // Task 14: ServiceServiceV2#getForSubsystem now encodes parent-existence itself via
-        // Optional, so the controller no longer makes a separate subsystemService.getByNaturalKey
-        // guard call for this route.
-        ServiceDto getRandom = serviceDto(SERVICE_GET_RANDOM, List.of(versionSummary("v1", SOAP, null)));
+        // ServiceServiceV2#getForSubsystem encodes parent existence via Optional, so there is no separate subsystem guard call.
+        ServiceDto getRandom = serviceDto(SERVICE_GET_RANDOM, List.of(versionSummary("v1", SOAP)));
         ServiceDto mixed = serviceDto(SERVICE_MIXED, List.of(
-                versionSummary("v1", SOAP, null),
-                versionSummary("v2", REST, null)));
+                versionSummary("v1", SOAP),
+                versionSummary("v2", REST)));
         when(serviceService.getForSubsystem(PUB, CODE_14151328, SUBSYSTEM_A1))
                 .thenReturn(Optional.of(List.of(getRandom, mixed)));
 
@@ -402,8 +398,8 @@ class BrowseControllerTest {
     @Test
     void getServiceReturnsAggregateWithSummaryVersions() throws Exception {
         ServiceDto dto = serviceDto(SERVICE_MIXED, List.of(
-                versionSummary("v1", SOAP, null),
-                versionSummary("v2", REST, null)));
+                versionSummary("v1", SOAP),
+                versionSummary("v2", REST)));
         when(serviceService.getByNaturalKey(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED)).thenReturn(Optional.of(dto));
 
         mockMvc.perform(get(servicePath(SUBSYSTEM_A1, SERVICE_MIXED)))
@@ -436,7 +432,7 @@ class BrowseControllerTest {
     @Test
     void listServiceVersionsReturnsFullShape() throws Exception {
         ServiceVersionDto v1 = versionFull("v1", SOAP, true, List.of(
-                EndpointDto.builder().method("GET").path("/getRandom").removed(null).build()));
+                EndpointDto.builder().method("GET").path("/getRandom").build()));
         ServiceVersionDto v2 = versionFull("v2", REST, true, List.of());
         when(serviceService.getVersions(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED))
                 .thenReturn(Optional.of(List.of(v1, v2)));
@@ -476,9 +472,8 @@ class BrowseControllerTest {
 
     @Test
     void getServiceVersionNullSentinelPassesRawLiteralToService() throws Exception {
-        // Spec: literal "null" in URL maps to null version. Verify raw "null" reaches the service
-        // layer; the layer resolves the sentinel internally. We mock against the literal "null" to
-        // assert that contract.
+        // Literal "null" in the URL maps to a null version; the raw "null" must reach the
+        // service layer, which resolves the sentinel internally.
         ServiceVersionDto nullVersion = versionFull(null, REST, false, List.of());
         when(serviceService.getVersion(PUB, CODE_14151328, SUBSYSTEM_A1, SERVICE_MIXED, "null"))
                 .thenReturn(Optional.of(nullVersion));
@@ -594,7 +589,7 @@ class BrowseControllerTest {
                 .build();
     }
 
-    private ServiceVersionSummaryDto versionSummary(String serviceVersion, String serviceType, LocalDateTime removed) {
+    private ServiceVersionSummaryDto versionSummary(String serviceVersion, String serviceType) {
         LocalDateTime now = LocalDateTime.of(2016, 1, 1, 0, 0);
         return ServiceVersionSummaryDto.builder()
                 .serviceVersion(serviceVersion)
@@ -602,7 +597,6 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(removed)
                 .build();
     }
 
@@ -617,11 +611,10 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(null)
                 .build();
     }
 
-    private SubsystemDto subsystemDto(String subsystemCode, LocalDateTime removed) {
+    private SubsystemDto subsystemDto(String subsystemCode) {
         LocalDateTime now = LocalDateTime.of(2016, 1, 1, 0, 0);
         return SubsystemDto.builder()
                 .memberClass(PUB)
@@ -633,7 +626,6 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(removed)
                 .build();
     }
 
@@ -649,7 +641,6 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(null)
                 .build();
     }
 
@@ -661,7 +652,6 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(null)
                 .build();
         ServiceDto service = ServiceDto.builder()
                 .memberClass(PUB)
@@ -683,7 +673,6 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(null)
                 .services(List.of(service))
                 .build();
         return FullMemberDto.builder()
@@ -696,7 +685,6 @@ class BrowseControllerTest {
                 .created(now)
                 .changed(now)
                 .fetched(now)
-                .removed(null)
                 .subsystems(List.of(sub))
                 .build();
     }

@@ -89,7 +89,7 @@ public class SecurityServerServiceV2Test {
     }
 
     @Test
-    public void testGetForMemberSortsByServerCodeAscending() {
+    public void testGetForMemberPreservesSharedParamsDocumentOrder() {
         // Build a cache stub returning servers in non-alphabetical order under a single owner.
         SharedParamsCache stubCache = Mockito.mock(SharedParamsCache.class);
         SecurityServerInfoV2.MemberRef owner = new SecurityServerInfoV2.MemberRef(ORG, NIIS_CODE, "NIIS");
@@ -97,17 +97,17 @@ public class SecurityServerServiceV2Test {
         SecurityServerInfoV2 mSrv = new SecurityServerInfoV2("mmm-server", "10.0.0.5", owner, List.of());
         SecurityServerInfoV2 aSrv = new SecurityServerInfoV2("aaa-server", "10.0.0.1", owner, List.of());
         Mockito.when(stubCache.securityServers()).thenReturn(List.of(zSrv, mSrv, aSrv));
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, Mockito.mock(InstanceContext.class));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache);
 
         List<SecurityServerBrowseItemDto> servers = isolated.getForMember(ORG, NIIS_CODE);
         assertEquals(3, servers.size());
-        assertEquals("aaa-server", servers.get(0).getServerCode());
+        assertEquals("zzz-server", servers.get(0).getServerCode());
         assertEquals("mmm-server", servers.get(1).getServerCode());
-        assertEquals("zzz-server", servers.get(2).getServerCode());
+        assertEquals("aaa-server", servers.get(2).getServerCode());
     }
 
     @Test
-    public void testGetForMemberFromFixtureIsAlphabeticallyOrdered() {
+    public void testGetForMemberFromFixtureKeepsDocumentOrder() {
         List<SecurityServerBrowseItemDto> servers = service.getForMember(ORG, NIIS_CODE);
         assertEquals(2, servers.size());
         assertEquals(NIISSS01, servers.get(0).getServerCode());
@@ -121,7 +121,7 @@ public class SecurityServerServiceV2Test {
         SecurityServerInfoV2 ssB = new SecurityServerInfoV2("B-01", "10.0.0.1", owner, List.of());
         SecurityServerInfoV2 ssA = new SecurityServerInfoV2("A-02", "10.0.0.1", owner, List.of());
         Mockito.when(stubCache.securityServers()).thenReturn(List.of(ssB, ssA));
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, Mockito.mock(InstanceContext.class));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache);
 
         Page<SecurityServerListItemDto> page = isolated.list(PageRequest.of(0, 20,
                 org.springframework.data.domain.Sort.by(
@@ -139,7 +139,7 @@ public class SecurityServerServiceV2Test {
         SecurityServerInfoV2 ssB = new SecurityServerInfoV2("B-01", "10.0.0.1", owner, List.of());
         SecurityServerInfoV2 ssA = new SecurityServerInfoV2("A-02", "10.0.0.1", owner, List.of());
         Mockito.when(stubCache.securityServers()).thenReturn(List.of(ssB, ssA));
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, Mockito.mock(InstanceContext.class));
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache);
 
         Page<SecurityServerListItemDto> page = isolated.list(PageRequest.of(0, 20,
                 org.springframework.data.domain.Sort.by(
@@ -152,18 +152,16 @@ public class SecurityServerServiceV2Test {
 
     @Test
     public void testListPropagates503WhileInstanceNotYetReady() {
-        // SharedParamsCache caches a missing/unparseable shared-params.xml as an empty snapshot for
-        // its whole TTL, which is indistinguishable from "genuinely zero security servers". Routing
-        // through InstanceContext -- the same readiness gate every other V2 endpoint uses -- means
-        // this not-ready window surfaces as 503, not as an authoritative empty page.
+        // The TTL snapshot caches a missing/unparseable shared-params.xml as an empty result,
+        // indistinguishable from genuinely zero servers; routing through getCurrentInstance()
+        // surfaces this not-ready window as 503 rather than an authoritative empty page.
         SharedParamsCache stubCache = Mockito.mock(SharedParamsCache.class);
-        InstanceContext notReady = Mockito.mock(InstanceContext.class);
-        Mockito.when(notReady.getCurrentInstance()).thenThrow(
+        Mockito.when(stubCache.getCurrentInstance()).thenThrow(
                 new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "not ready"));
-        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache, notReady);
+        SecurityServerServiceV2 isolated = new SecurityServerServiceV2(stubCache);
 
         assertThrows(ResponseStatusException.class, () -> isolated.list(PageRequest.of(0, 20)));
         assertThrows(ResponseStatusException.class, () -> isolated.getForMember(ORG, NIIS_CODE));
-        Mockito.verifyNoInteractions(stubCache);
+        Mockito.verify(stubCache, Mockito.never()).securityServers();
     }
 }

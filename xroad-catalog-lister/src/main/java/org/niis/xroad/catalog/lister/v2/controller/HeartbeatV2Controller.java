@@ -37,19 +37,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * V2 heartbeat endpoint (spec §5). Reports app health, database reachability, last-collection
- * timestamps for each entity type (members, subsystems, services, WSDLs, OpenAPIs, RESTs), and
- * the count of error-log rows recorded since the most recent collection run. The HTTP status
- * reflects health (RFC 7231 explicitly permits non-2xx responses with full bodies): a fully
- * healthy instance ({@code appWorking == TRUE && dbWorking == TRUE}) responds {@code 200 OK};
- * any other combination — DB unreachable, app self-check failure, or both — responds
- * {@code 503 Service Unavailable} with the same body shape so clients can inspect
- * {@code appWorking} and {@code dbWorking} to identify the failing dependency. This is a
- * deliberate departure from V1, which always returned 200 and forced clients to parse the body
- * to detect outages. The {@code @PropertySource} declaration loads {@code version.properties}
- * into the V2-owned scope so {@link HeartbeatServiceV2}'s {@code @Value}-injected
- * {@code app-name}/{@code app-version} fields are resolvable without depending on V1's
- * controller.
+ * V2 heartbeat endpoint. The HTTP status reflects health: a fully healthy instance
+ * ({@code appWorking && dbWorking}) responds 200, anything else 503 with the same body shape so
+ * clients can inspect {@code appWorking}/{@code dbWorking} to identify the failing dependency
+ * (V1 always returns 200). {@code @PropertySource} loads {@code version.properties} so
+ * {@link HeartbeatServiceV2}'s {@code @Value}-injected app-name/app-version resolve without
+ * depending on V1's controller.
  */
 @RestController
 @RequestMapping("/api/v2")

@@ -30,9 +30,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
-import org.niis.xroad.catalog.persistence.entity.StatusInfo;
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceVersionRow;
-import org.niis.xroad.catalog.persistence.v2entity.ServiceV2;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceVersionRow;
+import org.niis.xroad.catalog.persistence.v2.entity.Service;
+import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
 
 import java.time.LocalDateTime;
 
@@ -53,10 +53,8 @@ public class ServiceVersionSummaryDto {
     private final LocalDateTime changed;
     @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
-    private final LocalDateTime removed;
 
-    public static ServiceVersionSummaryDto from(ServiceV2 service) {
+    public static ServiceVersionSummaryDto from(Service service) {
         StatusInfo info = service.getStatusInfo();
         return ServiceVersionSummaryDto.builder()
                 .serviceVersion(service.getServiceVersion())
@@ -64,7 +62,6 @@ public class ServiceVersionSummaryDto {
                 .created(info.getCreated())
                 .changed(info.getChanged())
                 .fetched(info.getFetched())
-                .removed(info.getRemoved())
                 .build();
     }
 
@@ -75,7 +72,6 @@ public class ServiceVersionSummaryDto {
                 .created(row.getCreated())
                 .changed(row.getChanged())
                 .fetched(row.getFetched())
-                .removed(row.getRemoved())
                 .build();
     }
 }

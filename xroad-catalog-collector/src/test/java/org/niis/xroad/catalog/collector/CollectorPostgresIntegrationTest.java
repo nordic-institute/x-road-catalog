@@ -52,19 +52,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Exercises the real collector write path (
  * {@code ListClientsTask} &rarr; {@code CatalogService.saveAllMembersAndSubsystems}) against the
- * genuine Liquibase-managed Postgres schema for the first time, then verifies
+ * genuine Liquibase-managed Postgres schema, then verifies
  * {@link RecomputeDenormalizedColumnsTask} produces well-formed flags on top of it.
  *
- * <p>The brief this test was written from assumed the collector's {@code MockRestTemplate}
- * bean (declared in {@link TestingConfiguration}) was already wired up to serve {@code
- * /listClients}. It is not: {@code ClientListUtil.clientListFromResponse} calls its own
- * hardcoded {@code RestTemplate} directly and never consumes that Spring bean, and no classpath
- * fixture for a {@code /listClients} response exists anywhere in the repository. Per project
- * invariant, collector production code must stay observably unchanged versus develop outside of
- * this task's two approved additions ({@link RecomputeDenormalizedColumnsTask} and the {@code
- * DefaultTasksInitializer} wiring), so {@code ClientListUtil} is not touched. Instead this test
- * stands up its own minimal, ephemeral-port {@code /listClients} HTTP stub and points {@code
- * xroad-catalog.urls.list-clients-host} at it via {@code @DynamicPropertySource}.
+ * <p>{@code MockRestTemplate} (the test-profile bean from {@link TestingConfiguration}) only intercepts
+ * {@code getForObject}, while {@code ClientListUtil.clientListFromResponse} uses {@code exchange}, which
+ * performs a real HTTP call. This test therefore runs its own ephemeral-port {@code /listClients} HTTP stub
+ * and points {@code xroad-catalog.urls.list-clients-host} at it via {@code @DynamicPropertySource}.
  */
 @SpringBootTest(classes = {TestingConfiguration.class, CollectorApplication.class, TaskPoolConfiguration.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -104,13 +98,11 @@ class CollectorPostgresIntegrationTest extends PostgresTestBase {
         registry.add("xroad-catalog.urls.list-clients-host",
                 () -> "http://localhost:" + LIST_CLIENTS_SERVER.getAddress().getPort());
         registry.add("xroad-catalog.tasks.fetch-run-unlimited", () -> "true");
-        // application-test.yaml sets this true for the H2 profile (data.sql runs after Hibernate's
-        // create-drop). Combined with PostgresTestBase's real Liquibase, it creates a circular
-        // entityManagerFactory/liquibase depends-on, so it must be turned back off here.
+        // application-test.yaml enables this for the H2 profile; combined with real Liquibase it
+        // creates a circular entityManagerFactory/liquibase depends-on, so it must be off here.
         registry.add("spring.jpa.defer-datasource-initialization", () -> "false");
-        // application.yaml (production) pins spring.liquibase.user/password to the real deployment
-        // account with an empty password, which takes precedence over spring.datasource.* for the
-        // Liquibase connection. Point Liquibase at the same Testcontainers credentials as the datasource.
+        // application.yaml pins spring.liquibase.user/password to the deployment account, which takes
+        // precedence over spring.datasource.*; point Liquibase at the Testcontainers credentials.
         registry.add("spring.liquibase.user", CollectorPostgresIntegrationTest::getDatasourceUsername);
         registry.add("spring.liquibase.password", CollectorPostgresIntegrationTest::getDatasourcePassword);
     }

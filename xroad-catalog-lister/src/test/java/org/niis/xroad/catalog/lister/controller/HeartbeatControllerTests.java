@@ -99,10 +99,8 @@ public class HeartbeatControllerTests {
     }
 
     /**
-     * Regression test: the V2 {@code RequestIdFilter} is registered with URL pattern
-     * {@code /api/v2/*} only (see {@code V2InfrastructureConfiguration}). V1 endpoints must not
-     * carry the {@code X-Request-Id} response header. If a future change widens the filter's URL
-     * pattern, this test fails.
+     * The V2 {@code RequestIdFilter} is registered on {@code /api/v2/*} only
+     * ({@code V2InfrastructureConfiguration}); V1 endpoints must not carry {@code X-Request-Id}.
      */
     @Test
     public void v1HeartbeatResponseHasNoRequestIdHeader() {

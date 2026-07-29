@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Active-rows views for the V2 read model: a row is visible only when neither it nor any
+         ancestor is soft-deleted. The removed column is deliberately not exposed. -->
+
+    <changeSet id="015-v2-active-view-member" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_member exists">
+            <not>
+                <viewExists viewName="active_member"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_member AS
+            SELECT id, x_road_instance, member_class, member_code, name, is_provider, created, changed, fetched
+            FROM member
+            WHERE removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-view-subsystem" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_subsystem exists">
+            <not>
+                <viewExists viewName="active_subsystem"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_subsystem AS
+            SELECT ss.id, ss.member_id, ss.subsystem_code, ss.created, ss.changed, ss.fetched
+            FROM subsystem ss
+            JOIN member m ON ss.member_id = m.id
+            WHERE ss.removed IS NULL AND m.removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-view-service" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_service exists">
+            <not>
+                <viewExists viewName="active_service"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_service AS
+            SELECT s.id, s.subsystem_id, s.service_code, s.service_version, s.service_type,
+                   s.created, s.changed, s.fetched
+            FROM service s
+            JOIN subsystem ss ON s.subsystem_id = ss.id
+            JOIN member m ON ss.member_id = m.id
+            WHERE s.removed IS NULL AND ss.removed IS NULL AND m.removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-view-wsdl" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_wsdl exists">
+            <not>
+                <viewExists viewName="active_wsdl"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_wsdl AS
+            SELECT w.id, w.service_id, w.data, w.external_id, w.created, w.changed, w.fetched
+            FROM wsdl w
+            JOIN active_service s ON w.service_id = s.id
+            WHERE w.removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-view-open-api" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_open_api exists">
+            <not>
+                <viewExists viewName="active_open_api"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_open_api AS
+            SELECT o.id, o.service_id, o.data, o.external_id, o.created, o.changed, o.fetched
+            FROM open_api o
+            JOIN active_service s ON o.service_id = s.id
+            WHERE o.removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-view-rest" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_rest exists">
+            <not>
+                <viewExists viewName="active_rest"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_rest AS
+            SELECT r.id, r.service_id, r.data, r.external_id, r.created, r.changed, r.fetched
+            FROM rest r
+            JOIN active_service s ON r.service_id = s.id
+            WHERE r.removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-view-endpoint" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_endpoint exists">
+            <not>
+                <viewExists viewName="active_endpoint"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE VIEW active_endpoint AS
+            SELECT e.id, e.service_id, e.method, e.path, e.created, e.changed, e.fetched
+            FROM endpoint e
+            JOIN active_service s ON e.service_id = s.id
+            WHERE e.removed IS NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-search-index" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_search_index exists">
+            <not>
+                <viewExists viewName="active_search_index"/>
+            </not>
+        </preConditions>
+        <comment>Unified search surface: members, subsystems and per-subsystem service aggregates.
+            Column semantics match the former SearchRepository union; the LIKE filter, pagination and
+            total_count stay in the repository query.</comment>
+        <sql>
+            CREATE VIEW active_search_index AS
+            SELECT 'member' AS entity_type, m.id AS entity_id,
+                   LOWER(m.name) AS sort_key,
+                   m.member_class, m.member_code, m.name AS member_name,
+                   CAST(NULL AS VARCHAR) AS subsystem_code, CAST(NULL AS VARCHAR) AS service_code,
+                   m.is_provider, CAST(NULL AS VARCHAR) AS service_types
+            FROM active_member m
+            UNION ALL
+            SELECT 'subsystem', sub.id, LOWER(sub.subsystem_code),
+                   m.member_class, m.member_code, m.name,
+                   sub.subsystem_code, CAST(NULL AS VARCHAR),
+                   CAST(NULL AS BOOLEAN), CAST(NULL AS VARCHAR)
+            FROM active_subsystem sub
+            JOIN active_member m ON sub.member_id = m.id
+            UNION ALL
+            SELECT 'service', MIN(s.id), LOWER(s.service_code),
+                   m.member_class, m.member_code, m.name,
+                   sub.subsystem_code, s.service_code,
+                   CAST(NULL AS BOOLEAN), string_agg(DISTINCT s.service_type, ',' ORDER BY s.service_type)
+            FROM active_service s
+            JOIN active_subsystem sub ON s.subsystem_id = sub.id
+            JOIN active_member m ON sub.member_id = m.id
+            GROUP BY s.service_code, m.member_class, m.member_code, m.name, sub.subsystem_code;
+        </sql>
+    </changeSet>
+
+    <changeSet id="015-v2-active-views-grants" author="niis" dbms="postgresql" context="@users">
+        <comment>The lister's read-only role reads the V2 API through these views. The collector never
+            reads them, so it gets no grant.</comment>
+        <sql>
+            GRANT SELECT ON active_member, active_subsystem, active_service, active_wsdl, active_open_api,
+                active_rest, active_endpoint, active_search_index TO ${users.lister.username};
+        </sql>
+    </changeSet>
+</databaseChangeLog>

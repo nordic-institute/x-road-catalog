@@ -30,9 +30,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.persistence.repository.MemberRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.SubsystemRepositoryV2;
-import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SubsystemRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SubsystemListRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -55,27 +55,25 @@ class SubsystemServiceV2Test {
     private static final String SUBSYSTEM_A2 = "subsystem_a2";
 
     @Mock
-    private SubsystemRepositoryV2 subsystemRepository;
+    private SubsystemRepository subsystemRepository;
 
     @Mock
-    private MemberRepositoryV2 memberRepository;
+    private MemberRepository memberRepository;
 
     @Mock
     private SharedParamsCache sharedParamsCache;
 
-    @Mock
-    private InstanceContext instanceContext;
 
     private SubsystemServiceV2 service;
 
     @BeforeEach
     void setUp() {
-        service = new SubsystemServiceV2(subsystemRepository, memberRepository, sharedParamsCache, instanceContext);
+        service = new SubsystemServiceV2(subsystemRepository, memberRepository, sharedParamsCache);
     }
 
     @Test
     void testGetByNaturalKeyReturnsDtoWithNameFromSharedParams() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(subsystemRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1))
                 .thenReturn(Optional.of(subsystemListRow(SUBSYSTEM_A1, 3)));
         when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) ->
@@ -94,7 +92,7 @@ class SubsystemServiceV2Test {
 
     @Test
     void testGetByNaturalKeyReturnsEmptyOptionalWhenAbsent() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(subsystemRepository.findActiveSummaryByNaturalKey(INSTANCE, PUB, CODE_14151328, "does-not-exist"))
                 .thenReturn(Optional.empty());
 
@@ -103,7 +101,7 @@ class SubsystemServiceV2Test {
 
     @Test
     void testGetForListMapsPageOfRows() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) -> null);
         Page<SubsystemListRow> page = new PageImpl<>(List.of(subsystemListRow(SUBSYSTEM_A1, 1)),
                 PageRequest.of(0, 20), 1);
@@ -117,7 +115,7 @@ class SubsystemServiceV2Test {
 
     @Test
     void testGetForMemberReturnsEmptyOptionalWhenMemberAbsent() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, "no-such-member")).thenReturn(false);
 
         assertTrue(service.getForMember(PUB, "no-such-member").isEmpty(),
@@ -126,7 +124,7 @@ class SubsystemServiceV2Test {
 
     @Test
     void testGetForMemberReturnsSortedSubsystemsWhenMemberExists() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328)).thenReturn(true);
         when(sharedParamsCache.subsystemNames()).thenReturn((memberClass, memberCode, subsystemCode) -> null);
         when(subsystemRepository.findActiveForMember(INSTANCE, PUB, CODE_14151328)).thenReturn(List.of(
@@ -142,7 +140,7 @@ class SubsystemServiceV2Test {
 
     @Test
     void testGetForMemberReturnsPresentButEmptyListWhenMemberHasNoSubsystems() {
-        when(instanceContext.getCurrentInstance()).thenReturn(INSTANCE);
+        when(sharedParamsCache.getCurrentInstance()).thenReturn(INSTANCE);
         when(memberRepository.existsActiveByNaturalKey(INSTANCE, PUB, CODE_14151328)).thenReturn(true);
         when(subsystemRepository.findActiveForMember(INSTANCE, PUB, CODE_14151328)).thenReturn(List.of());
 
@@ -193,11 +191,6 @@ class SubsystemServiceV2Test {
             @Override
             public LocalDateTime getFetched() {
                 return now;
-            }
-
-            @Override
-            public LocalDateTime getRemoved() {
-                return null;
             }
         };
     }

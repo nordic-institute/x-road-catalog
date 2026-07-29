@@ -24,7 +24,15 @@
  */
 package org.niis.xroad.catalog.persistence.repository;
 
-import org.niis.xroad.catalog.persistence.repository.projection.ServiceAggregateRow;
+import org.niis.xroad.catalog.persistence.v2.repository.ErrorLogRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.MemberRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ReportsRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SearchRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.ServiceRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.SubsystemRepository;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SearchHitRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceAggregateRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.ServiceCountRow;
 import org.niis.xroad.catalog.persistence.testsupport.PostgresTestBase;
 
 import jakarta.persistence.EntityManager;
@@ -48,52 +56,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
- * Pins the exact Hibernate prepared-statement count of the V2 read-model's list/search entry
- * points against {@code pg/v2-fixture.sql}, and proves each count is invariant to page size /
- * result-set size. This is the regression gate for the projection rewrite: the whole point of
- * replacing entity-graph traversals with flat projection queries was to collapse each list request
- * into a small, fixed number of statements (rows + count, never one query per returned row). A
- * pinned count that silently grows signals a reintroduced N+1 or a lazy-loaded association being
- * walked outside the query itself.
- *
- * <p>Ground truth: under active GOV member M1's only active subsystem SS1 (id 11), four services
- * are active (svcA ids 21/22, svcB id 23, svcF id 27); svcC (id 24) is removed. svcD/svcE hang off
- * a removed member / removed subsystem respectively and are excluded by the parent cascade — see
- * {@code MemberRepositoryV2PgTest} / {@code SubsystemRepositoryV2PgTest} / {@code
- * ServiceRepositoryV2PgTest} for the full per-repository derivations this test reuses.
- *
- * <p>Statement counts are isolated per measured block by clearing the persistence context
- * ({@code entityManager.clear()}) and the Hibernate {@link Statistics} snapshot ({@code
- * stats.clear()}) immediately before the call under test; fixture loading (the {@code @Sql}
- * script) and the {@code @BeforeEach} denormalization recompute both run before that reset, so
- * neither can leak into a measured delta.
+ * Pins the exact Hibernate prepared-statement count of each V2 list/search entry point and proves
+ * it is invariant to page/result-set size, so a reintroduced N+1 or a lazily walked association
+ * fails fast. Each measured block clears the persistence context and the {@link Statistics}
+ * snapshot first, so fixture loading and the denormalization recompute cannot leak into a delta.
  */
 @SpringBootTest
 @EntityScan(basePackages = {
         "org.niis.xroad.catalog.persistence.entity",
-        "org.niis.xroad.catalog.persistence.v2entity"
+        "org.niis.xroad.catalog.persistence.v2.entity"
 })
 @Sql(scripts = {"classpath:pg/v2-fixture.sql", "classpath:pg/query-count-padding.sql", "classpath:pg/error-log-padding.sql"},
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class PgQueryCountTest extends PostgresTestBase {
 
     @Autowired
-    private MemberRepositoryV2 memberRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
-    private SubsystemRepositoryV2 subsystemRepository;
+    private SubsystemRepository subsystemRepository;
 
     @Autowired
-    private ServiceRepositoryV2 serviceRepository;
+    private ServiceRepository serviceRepository;
 
     @Autowired
     private SearchRepository searchRepository;
 
     @Autowired
-    private ReportsRepositoryV2 reportsRepository;
+    private ReportsRepository reportsRepository;
 
     @Autowired
-    private ErrorLogRepositoryV2 errorLogRepository;
+    private ErrorLogRepository errorLogRepository;
 
     @Autowired
     private DenormalizationRepository denormalizationRepository;
@@ -114,15 +107,9 @@ class PgQueryCountTest extends PostgresTestBase {
     }
 
     /**
-     * {@code findActiveForList} issues exactly one row query (the two per-member subquery
-     * expressions in the select list are correlated subqueries compiled into that single SQL
-     * statement, not separate round-trips) plus one {@code COUNT} query — 2 statements — at every
-     * page size. Proven at page sizes 1 and 20: {@code pg/query-count-padding.sql} adds 21 extra
-     * active members on top of the canonical fixture's 3 (24 total), so a page size of 20 can
-     * never hold the full result set and {@link org.springframework.data.support.PageableExecutionUtils}
-     * can never short-circuit the count by deriving it from {@code content.size()}. Without that
-     * padding, page size 20 would fall into that skip-count branch and this invariant could not be
-     * asserted at that page size.
+     * Rows + count = 2 statements at every page size; the correlated select-list subqueries compile
+     * into the single row statement. {@code pg/query-count-padding.sql} keeps the result set (24)
+     * larger than page size 20 so {@code PageableExecutionUtils} cannot short-circuit the count.
      */
     @Test
     void findActiveForListMemberQueryCountIsExactlyTwoAtBothPageSizes() {
@@ -142,17 +129,12 @@ class PgQueryCountTest extends PostgresTestBase {
         assertEquals(24, page20.getTotalElements());
         assertEquals(2, queriesAtPageSize1, "findActiveForList must be exactly rows + count");
         assertEquals(queriesAtPageSize1, queriesAtPageSize20,
-                "MemberRepositoryV2.findActiveForList query count must not grow with page size");
+                "MemberRepository.findActiveForList query count must not grow with page size");
     }
 
     /**
-     * Same shape as the member list: one row query (with a correlated {@code serviceCount}
-     * subquery) plus one {@code COUNT} query, 2 statements total, at every page size. Proven at
-     * page sizes 1 and 20: {@code pg/query-count-padding.sql} adds 21 extra active subsystems on
-     * top of the canonical fixture's 1 active subsystem (SS1), 22 total, so a page size of 20 can
-     * never hold the full result set and {@link org.springframework.data.support.PageableExecutionUtils}
-     * can never short-circuit the count. Without that padding, page size 20 would fall into that
-     * skip-count branch and this invariant could not be asserted at that page size.
+     * Rows + count = 2 statements at every page size; padding keeps the result set (22) larger
+     * than page size 20 so the count query cannot be short-circuited.
      */
     @Test
     void findActiveForListSubsystemQueryCountIsExactlyTwoAtBothPageSizes() {
@@ -172,15 +154,12 @@ class PgQueryCountTest extends PostgresTestBase {
         assertEquals(22, page20.getTotalElements());
         assertEquals(2, queriesAtPageSize1, "findActiveForList must be exactly rows + count");
         assertEquals(queriesAtPageSize1, queriesAtPageSize20,
-                "SubsystemRepositoryV2.findActiveForList query count must not grow with page size");
+                "SubsystemRepository.findActiveForList query count must not grow with page size");
     }
 
     /**
-     * The V2 service list is served by three calls: a count, a page of service-code aggregates,
-     * and a single batch fetch of every active version row keyed by {@code (subsystemId,
-     * serviceCode)} for that page. All three are single SQL statements regardless of how many
-     * aggregate rows the page holds, so the total is exactly 3 at any page size — the design's
-     * replacement for what would otherwise be one version query per aggregate row (N+1).
+     * The service list sequence is count + aggregate page + one batch version fetch for the page's
+     * keys — 3 statements at any page size, never one version query per aggregate row.
      */
     @Test
     void servicesListSequenceQueryCountIsExactlyThreeAndInvariantWithPageSize() {
@@ -218,26 +197,24 @@ class PgQueryCountTest extends PostgresTestBase {
     }
 
     /**
-     * {@code searchUnion} carries its exact total via {@code COUNT(*) OVER ()} on every row, so a
-     * single native statement serves both the page and the total — 1 statement, regardless of
-     * result-set size (proved here by pinning the same count at a 1-row and a 10-row page over a
-     * query matching all three active service aggregates).
+     * {@code searchUnion} carries its total via {@code COUNT(*) OVER ()}, so one native statement
+     * serves both page and total regardless of result-set size.
      */
     @Test
     void searchQueryCountIsExactlyOneAndInvariantWithResultSetSize() {
         entityManager.clear();
         stats.clear();
-        List<Object[]> smallPage = searchRepository.searchUnion("%svc%", 1, 0);
+        List<SearchHitRow> smallPage = searchRepository.searchUnion("%svc%", 1, 0);
         long queriesSmallPage = stats.getPrepareStatementCount();
 
         entityManager.clear();
         stats.clear();
-        List<Object[]> largePage = searchRepository.searchUnion("%svc%", 10, 0);
+        List<SearchHitRow> largePage = searchRepository.searchUnion("%svc%", 10, 0);
         long queriesLargePage = stats.getPrepareStatementCount();
 
         assertEquals(1, smallPage.size());
         assertEquals(3, largePage.size(), "svcA, svcB, svcF all match %svc%");
-        assertEquals(3L, ((Number) smallPage.get(0)[10]).longValue(),
+        assertEquals(3L, smallPage.get(0).getTotalCount(),
                 "total_count must be the full match count even on a 1-row page");
         assertEquals(1, queriesSmallPage, "searchUnion must be a single statement carrying its own total");
         assertEquals(queriesSmallPage, queriesLargePage,
@@ -248,7 +225,7 @@ class PgQueryCountTest extends PostgresTestBase {
     void statisticsQueryIsExactlyOneStatement() {
         entityManager.clear();
         stats.clear();
-        List<Object[]> rows = reportsRepository.countServicesPerDay(
+        List<ServiceCountRow> rows = reportsRepository.countServicesPerDay(
                 java.time.LocalDate.of(2025, 1, 1), java.time.LocalDate.of(2025, 3, 31));
         assertEquals(1, stats.getPrepareStatementCount(), "statistics must be a single SQL statement");
         assertFalse(rows.isEmpty());
@@ -265,10 +242,8 @@ class PgQueryCountTest extends PostgresTestBase {
     }
 
     /**
-     * The errors browse endpoints are rows + count — 2 statements — at every page size. Pinned
-     * against pg/error-log-padding.sql (25 rows) so PageableExecutionUtils can never derive the
-     * count from content size. Requires @Sql to also load error-log-padding for this class; add
-     * "classpath:pg/error-log-padding.sql" to the class-level @Sql script list.
+     * Rows + count = 2 statements at every page size; {@code pg/error-log-padding.sql} (25 rows)
+     * keeps the result set larger than page size 20 so the count cannot be short-circuited.
      */
     @Test
     void errorsRangeQueryCountIsExactlyTwoAtBothPageSizes() {

@@ -212,8 +212,8 @@ in the same time zone**. If they don't, day-boundary defaults used by the `/api/
 requests made near midnight.
 
 Container images default to UTC, so when running X-Road Catalog in containers make sure all three
-services use the host's time zone, e.g. by bind-mounting `/etc/localtime:/etc/localtime:ro` as done
-in `docker/compose.yml`, or by setting the same explicit `TZ` environment variable on all three
+services use the host's time zone, e.g. by bind-mounting `/etc/localtime:/etc/localtime:ro`,
+or by setting the same explicit `TZ` environment variable on all three
 services. Verify that the host's configured time zone (`timedatectl`) is the same on the
 collector host, the lister host, and the PostgreSQL host.
 

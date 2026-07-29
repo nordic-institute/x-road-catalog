@@ -73,9 +73,8 @@ public class ListClientsTaskTest {
     @MockitoBean
     NewMembersEventPublisher newMembersEventPublisher;
 
-    // DefaultTasksInitializer schedules CollectionCycleRunner::run on ApplicationStartedEvent, which
-    // would otherwise call the real, Spring-managed ListClientsTask bean (sharing this test's mocked
-    // catalogService) from a background thread and race with the manually constructed instances below.
+    // Mocked so the ApplicationStartedEvent schedule does not run the real ListClientsTask on a
+    // background thread and race with the manually constructed instances below.
     @MockitoBean
     CollectionCycleRunner collectionCycleRunner;
 

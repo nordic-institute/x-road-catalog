@@ -43,27 +43,15 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * V2 reports endpoints (spec §4). Both {@code since} and {@code until} are optional query
- * parameters in {@code yyyy-MM-dd} form (spec §8) — sub-day precision and timezone offsets are
- * rejected by {@link DateTimeUtil#parseDate}. When omitted, defaults are applied so callers can
- * hit the routes with no parameters and get a useful trailing-week window:
- * <ul>
- *   <li>{@code until} defaults to {@code today + 1 day} (UTC). The half-open
- *       {@code [since, until)} contract of {@link ReportServiceV2#serviceStatistics} and
- *       {@link ReportServiceV2#changeLog} means an exclusive cutoff of tomorrow includes all of
- *       today's data.</li>
- *   <li>{@code since} defaults to {@code until - 7 days}, yielding the trailing 7 calendar days
- *       including today.</li>
- * </ul>
- * Defaults are computed from an injected {@link Clock} so tests can pin "today". Resolved values
- * are passed straight to {@link ReportServiceV2#serviceStatistics} / {@link ReportServiceV2#changeLog},
- * which validate the range via {@code DateTimeUtil.validateDateRange} — {@code since == until} is
- * allowed, {@code since} after {@code until} or a range over 90 days (spec §4) raises
- * {@link IllegalArgumentException}, mapped to {@code 400 BadRequest} by {@link V2ExceptionHandler}.
- * Both endpoints declare {@code produces=application/json} so Spring rejects content negotiation for non-JSON
- * {@code Accept} headers (spec §4: "JSON only — no CSV in V2"). Clients that opt into an
- * unsupported media type get a {@code 406 Not Acceptable} from the framework, which is the
- * correct HTTP-level response.
+ * V2 reports endpoints. {@code since}/{@code until} are optional {@code yyyy-MM-dd} query
+ * parameters; sub-day precision and timezone offsets are rejected. {@code until} defaults to
+ * {@code today + 1 day} (server-local; the exclusive cutoff of the half-open {@code [since, until)}
+ * window includes all of today) and {@code since} to {@code until - 7 days} — the trailing week.
+ *
+ * <p>Range validation happens in {@link ReportServiceV2}: {@code since == until} is allowed;
+ * {@code since} after {@code until} or a range over 90 days maps to 400. Both endpoints declare
+ * {@code produces=application/json}, so an {@code Accept} header excluding JSON gets a framework
+ * 406 — the V2 reports are JSON only.
  */
 @RestController
 @RequestMapping("/api/v2/reports")
@@ -83,8 +71,7 @@ public class ReportsController {
     public PagedCollectionResponse<ServiceStatisticsRowDto> serviceStatistics(
             @RequestParam(value = "since", required = false) String sinceStr,
             @RequestParam(value = "until", required = false) String untilStr) {
-        // Defaults: until = tomorrow (exclusive cutoff so today is included in the half-open
-        // [since, until) range; see ReportServiceV2 contract). since = until - 7 days.
+        // Defaults: until = tomorrow (exclusive cutoff includes today), since = until - 7 days.
         LocalDate defaultUntil = DateTimeUtil.today(clock).plusDays(1);
         LocalDate until = DateTimeUtil.parseDateOrDefault(untilStr, defaultUntil);
         LocalDate since = DateTimeUtil.parseDateOrDefault(sinceStr, until.minusDays(DEFAULT_REPORT_WINDOW_DAYS));

@@ -25,7 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.persistence.repository.projection.SubsystemListRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.SubsystemListRow;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +38,7 @@ class SubsystemDtoTest {
     void testFromMapsRowFieldsAndResolvesName() {
         LocalDateTime now = LocalDateTime.now();
         SubsystemListRow row = new FakeSubsystemListRow("PUB", "14151328", "Nahka-Albert",
-                "TaxServices", 3, now, now, now, null);
+                "TaxServices", 3, now, now, now);
 
         SubsystemDto dto = SubsystemDto.from(row, (mc, mcode, sc) -> "Tax Services");
 
@@ -49,14 +49,13 @@ class SubsystemDtoTest {
         assertEquals("Tax Services", dto.getSubsystemName());
         assertEquals(3, dto.getServiceCount());
         assertEquals(now, dto.getCreated());
-        assertNull(dto.getRemoved());
     }
 
     @Test
     void testFromNameLookupMayReturnNull() {
         LocalDateTime now = LocalDateTime.now();
         SubsystemListRow row = new FakeSubsystemListRow("PUB", "14151328", "Nahka-Albert",
-                "PlainSub", 0, now, now, now, null);
+                "PlainSub", 0, now, now, now);
 
         SubsystemDto dto = SubsystemDto.from(row, (mc, mcode, sc) -> null);
 
@@ -66,8 +65,7 @@ class SubsystemDtoTest {
     @SuppressWarnings("PMD.DataClass")
     private record FakeSubsystemListRow(String memberClass, String memberCode, String memberName,
                                          String subsystemCode, long serviceCount, LocalDateTime created,
-                                         LocalDateTime changed, LocalDateTime fetched,
-                                         LocalDateTime removed) implements SubsystemListRow {
+                                         LocalDateTime changed, LocalDateTime fetched) implements SubsystemListRow {
 
         @Override
         public String getMemberClass() {
@@ -107,11 +105,6 @@ class SubsystemDtoTest {
         @Override
         public LocalDateTime getFetched() {
             return fetched;
-        }
-
-        @Override
-        public LocalDateTime getRemoved() {
-            return removed;
         }
     }
 }

@@ -25,13 +25,12 @@
 package org.niis.xroad.catalog.lister.v2.dto;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.catalog.persistence.repository.projection.MemberListRow;
+import org.niis.xroad.catalog.persistence.v2.repository.projection.MemberListRow;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MemberDtoTest {
@@ -40,7 +39,7 @@ class MemberDtoTest {
     void testFromMapsRowFieldsDirectly() {
         LocalDateTime now = LocalDateTime.now();
         MemberListRow row = new FakeMemberListRow("PUB", "14151328", "Nahka-Albert", true, 2, 5,
-                now, now, now, null);
+                now, now, now);
 
         MemberDto dto = MemberDto.from(row);
 
@@ -53,26 +52,23 @@ class MemberDtoTest {
         assertEquals(now, dto.getCreated());
         assertEquals(now, dto.getChanged());
         assertEquals(now, dto.getFetched());
-        assertNull(dto.getRemoved());
     }
 
     @Test
-    void testFromNonProviderRemovedRow() {
+    void testFromNonProviderRow() {
         LocalDateTime now = LocalDateTime.now();
         MemberListRow row = new FakeMemberListRow("PUB", "14151329", "Plain member", false, 0, 0,
-                now, now, now, now);
+                now, now, now);
 
         MemberDto dto = MemberDto.from(row);
 
         assertFalse(dto.isProvider());
-        assertEquals(now, dto.getRemoved());
     }
 
     @SuppressWarnings("PMD.DataClass")
     private record FakeMemberListRow(String memberClass, String memberCode, String name, boolean provider,
                                       long subsystemCount, long serviceCount, LocalDateTime created,
-                                      LocalDateTime changed, LocalDateTime fetched,
-                                      LocalDateTime removed) implements MemberListRow {
+                                      LocalDateTime changed, LocalDateTime fetched) implements MemberListRow {
 
         @Override
         public String getMemberClass() {
@@ -117,11 +113,6 @@ class MemberDtoTest {
         @Override
         public LocalDateTime getFetched() {
             return fetched;
-        }
-
-        @Override
-        public LocalDateTime getRemoved() {
-            return removed;
         }
     }
 }

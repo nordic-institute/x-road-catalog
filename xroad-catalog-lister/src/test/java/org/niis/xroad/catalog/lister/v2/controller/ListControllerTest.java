@@ -237,8 +237,6 @@ class ListControllerTest {
 
     @Test
     void listMembersRejectsInvalidProvider() throws Exception {
-        // provider is now bound directly as Boolean (Task B4); an unparsable value falls through to
-        // the generic type-mismatch 400 from V2ExceptionHandler instead of a custom tristate message.
         // "yes"/"no"/"on"/"off"/"1"/"0" are valid Spring boolean aliases, so use a value outside that set.
         mockMvc.perform(get(LIST_MEMBERS_PATH).param("provider", "banana"))
                 .andExpect(status().isBadRequest())
@@ -325,6 +323,10 @@ class ListControllerTest {
 
     @Test
     void listServicesRejectsInvalidServiceType() throws Exception {
+        when(serviceService.getForList(eq(null), eq("GRAPHQL"), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException(
+                        "Invalid value for query parameter 'serviceType': 'GRAPHQL'"));
+
         mockMvc.perform(get(LIST_SERVICES_PATH).param(SERVICE_TYPE, "GRAPHQL"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(JSON_MESSAGE).value(

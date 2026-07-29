@@ -36,7 +36,6 @@ import java.time.LocalDateTime;
 
 /**
  * Timestamps of the last successful fetch for each collected entity type.
- * V2 adds {@code restsLastFetched} which V1 omitted.
  */
 @Builder
 @NoArgsConstructor

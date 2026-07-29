@@ -34,10 +34,10 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 /**
- * One row per collector cycle. The collector writes a row at cycle start, then finalizes it after
- * all fetch work completes + recompute with the per-type MAX(fetched) snapshot; the lister heartbeat reads the
- * latest finished row instead of scanning the big tables per poll. The MAX queries live here (not
- * on the V2 read-model repositories) because the collector's repository scan excludes *RepositoryV2.
+ * One row per collector cycle: written at cycle start and finalized, after all fetch work and the
+ * recompute, with the per-type MAX(fetched) snapshot, so the lister heartbeat need not scan the
+ * big tables per poll. The MAX queries live here because the collector's repository scan covers
+ * only this package, not {@code ...persistence.v2.repository}.
  */
 public interface CollectionRunRepository extends CrudRepository<CollectionRun, Long> {
 
