@@ -163,4 +163,100 @@ class FetchWorkTrackerTest {
 
         assertEquals(0, tracker.pending());
     }
+
+    @Test
+    void completeWithCountReconcilesWholeBatch() throws InterruptedException {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+        tracker.register(5);
+
+        tracker.complete(2);
+        assertEquals(3, tracker.pending());
+
+        tracker.complete(3);
+        assertEquals(0, tracker.pending());
+        assertTrue(tracker.awaitAllDone(1000));
+    }
+
+    @Test
+    void completeWithNonPositiveCountIsNoOp() {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+        tracker.register(2);
+
+        tracker.complete(0);
+        tracker.complete(-1);
+
+        assertEquals(2, tracker.pending());
+    }
+
+    @Test
+    void completeWithCountLargerThanPendingClampsToZero() throws InterruptedException {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+        tracker.register(2);
+
+        tracker.complete(5);
+
+        assertEquals(0, tracker.pending());
+        assertTrue(tracker.awaitAllDone(1000));
+    }
+
+    @Test
+    void resetDiscardsPendingWorkAndReturnsDiscardedCount() throws InterruptedException {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+        tracker.register(4);
+        tracker.complete();
+
+        assertEquals(3, tracker.reset());
+
+        assertEquals(0, tracker.pending());
+        assertTrue(tracker.awaitAllDone(1000));
+    }
+
+    @Test
+    void resetWithoutPendingWorkReturnsZero() {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+
+        assertEquals(0, tracker.reset());
+        assertEquals(0, tracker.pending());
+    }
+
+    @Test
+    void resetWakesWaitingThreadPromptly() throws Exception {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+        tracker.register(2);
+
+        AtomicBoolean waiterResult = new AtomicBoolean(false);
+        AtomicReference<Throwable> waiterFailure = new AtomicReference<>();
+        Thread waiter = new Thread(() -> {
+            try {
+                waiterResult.set(tracker.awaitAllDone(60_000));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                waiterFailure.set(e);
+            }
+        });
+        waiter.start();
+
+        Awaitility.await().atMost(Duration.ofSeconds(5))
+                .until(() -> waiter.getState() == Thread.State.TIMED_WAITING);
+
+        tracker.reset();
+
+        waiter.join(5_000);
+        assertFalse(waiter.isAlive());
+        assertNull(waiterFailure.get());
+        assertTrue(waiterResult.get());
+    }
+
+    @Test
+    void registerAfterResetStartsFromZero() throws InterruptedException {
+        FetchWorkTracker tracker = new FetchWorkTracker();
+        tracker.register(7);
+
+        tracker.reset();
+        tracker.register(1);
+        assertEquals(1, tracker.pending());
+
+        tracker.complete();
+        assertTrue(tracker.awaitAllDone(1000));
+    }
 }

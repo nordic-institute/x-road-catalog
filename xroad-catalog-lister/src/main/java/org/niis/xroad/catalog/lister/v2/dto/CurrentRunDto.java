@@ -30,7 +30,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.configuration.JacksonSerializers;
 
 import java.time.LocalDateTime;
 
@@ -45,11 +45,11 @@ import java.time.LocalDateTime;
 @Setter
 public class CurrentRunDto {
 
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private LocalDateTime started;
 
     private Integer pendingItems;
 
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private LocalDateTime progressUpdated;
 }

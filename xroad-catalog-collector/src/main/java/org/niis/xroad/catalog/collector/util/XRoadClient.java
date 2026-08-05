@@ -126,6 +126,9 @@ public class XRoadClient {
         }
     }
 
+    /**
+     * @return the OpenAPI descriptor, or {@code null} when the fetch failed
+     */
     public String getOpenApi(XRoadIdentifier service,
                              String host,
                              ConsumerMember clientIdentifier,

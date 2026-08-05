@@ -88,6 +88,9 @@ public interface CatalogService {
      * Updates "changed" field based on whether data is different compared to last
      * time.
      * 
+     * A blank WSDL is ignored and recorded in the error log, so a failed fetch cannot
+     * destroy previously collected content.
+     *
      * @param subsystemId identifier of the subsystem
      * @param serviceId   identifier of the service
      * @param wsdl        the actual wsdl
@@ -100,6 +103,9 @@ public interface CatalogService {
      * Updates "changed" field based on whether data is different compared to last
      * time.
      * 
+     * A blank OpenApi descriptor is ignored and recorded in the error log, so a failed fetch cannot
+     * destroy previously collected content.
+     *
      * @param subsystemId identifier of the subsystem
      * @param serviceId   identifier of the service
      * @param openApi     the actual openApi
@@ -111,10 +117,13 @@ public interface CatalogService {
      * existing one.
      * Updates "changed" field based on whether data is different compared to last
      * time.
-     * 
+     *
+     * The rest parameter is the endpoint metadata JSON the collector serializes for
+     * the service, not a descriptor fetched from the service itself.
+     *
      * @param subsystemId identifier of the subsystem
      * @param serviceId   identifier of the service
-     * @param rest        the actual rest
+     * @param rest        collector-serialized endpoint metadata JSON for the service
      */
     void saveRest(SubsystemId subsystemId, ServiceId serviceId, String rest);
 

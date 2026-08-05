@@ -38,11 +38,11 @@ import org.niis.xroad.catalog.lister.v2.dto.SecurityServerBrowseItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerClientDto;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerOwnerDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.lister.v2.service.MemberClassServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.MemberServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SecurityServerServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.MemberClassService;
+import org.niis.xroad.catalog.lister.v2.service.MemberService;
+import org.niis.xroad.catalog.lister.v2.service.SecurityServerService;
+import org.niis.xroad.catalog.lister.v2.service.ServiceService;
+import org.niis.xroad.catalog.lister.v2.service.SubsystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -72,7 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BrowseController.class)
-@Import(V2ExceptionHandler.class)
+@Import(ApiExceptionHandler.class)
 class BrowseControllerTest {
 
     private static final String PUB = "PUB";
@@ -95,19 +95,19 @@ class BrowseControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private MemberClassServiceV2 memberClassService;
+    private MemberClassService memberClassService;
 
     @MockBean
-    private MemberServiceV2 memberService;
+    private MemberService memberService;
 
     @MockBean
-    private SubsystemServiceV2 subsystemService;
+    private SubsystemService subsystemService;
 
     @MockBean
-    private ServiceServiceV2 serviceService;
+    private ServiceService serviceService;
 
     @MockBean
-    private SecurityServerServiceV2 securityServerService;
+    private SecurityServerService securityServerService;
 
     @Test
     void listMemberClassesReturnsFromListShape() throws Exception {
@@ -285,7 +285,7 @@ class BrowseControllerTest {
 
     @Test
     void listSubsystemsReturnsItemsWithoutPaginationMetadata() throws Exception {
-        // SubsystemServiceV2#getForMember encodes parent existence via Optional, so there is no separate member guard call.
+        // SubsystemService#getForMember encodes parent existence via Optional, so there is no separate member guard call.
         SubsystemDto a1 = subsystemDto(SUBSYSTEM_A1);
         SubsystemDto a2 = subsystemDto("subsystem_a2");
         when(subsystemService.getForMember(PUB, CODE_14151328)).thenReturn(Optional.of(List.of(a1, a2)));
@@ -355,7 +355,7 @@ class BrowseControllerTest {
 
     @Test
     void listServicesReturnsAggregatesWithoutPaginationMetadata() throws Exception {
-        // ServiceServiceV2#getForSubsystem encodes parent existence via Optional, so there is no separate subsystem guard call.
+        // ServiceService#getForSubsystem encodes parent existence via Optional, so there is no separate subsystem guard call.
         ServiceDto getRandom = serviceDto(SERVICE_GET_RANDOM, List.of(versionSummary("v1", SOAP)));
         ServiceDto mixed = serviceDto(SERVICE_MIXED, List.of(
                 versionSummary("v1", SOAP),

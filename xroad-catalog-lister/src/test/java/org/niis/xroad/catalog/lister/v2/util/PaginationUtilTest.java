@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.util;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -223,19 +224,44 @@ class PaginationUtilTest {
     @Test
     void toPageableNoSortRejectsZeroPage() {
         assertThatThrownBy(() -> PaginationUtil.toPageableNoSort(0, 20))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("page");
     }
 
     @Test
     void toPageableNoSortRejectsNegativeSize() {
         assertThatThrownBy(() -> PaginationUtil.toPageableNoSort(1, -1))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("size");
     }
 
     @Test
     void toPageableNoSortRejectsZeroSize() {
         assertThatThrownBy(() -> PaginationUtil.toPageableNoSort(1, 0))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("size");
+    }
+
+    @Test
+    void toPageableRejectsNegativePage() {
+        assertThatThrownBy(() -> PaginationUtil.toPageable(-3, 20, null, null,
+                DEFAULT_SORT_FIELD, ALLOWED_SORT_FIELDS))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("page");
+    }
+
+    @Test
+    void invalidPaginationInputIsReportedAsClientError() {
+        // Client-correctable input must stay a 400; only BadRequestException maps there.
+        assertThatThrownBy(() -> PaginationUtil.toPageable(1, 201, null, null,
+                DEFAULT_SORT_FIELD, ALLOWED_SORT_FIELDS))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> PaginationUtil.toPageable(1, 20, "nope", null,
+                DEFAULT_SORT_FIELD, ALLOWED_SORT_FIELDS))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> PaginationUtil.toPageable(1, 20, null, "sideways",
+                DEFAULT_SORT_FIELD, ALLOWED_SORT_FIELDS))
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test

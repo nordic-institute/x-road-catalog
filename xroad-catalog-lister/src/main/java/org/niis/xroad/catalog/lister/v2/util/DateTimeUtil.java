@@ -24,6 +24,8 @@
  */
 package org.niis.xroad.catalog.lister.v2.util;
 
+import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
+
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,16 +41,16 @@ public final class DateTimeUtil {
      * Parses an ISO-8601 calendar date ({@code yyyy-MM-dd}). Sub-day precision and timezone
      * offsets are rejected — V2 standardizes on day-resolution range queries.
      *
-     * @throws IllegalArgumentException if {@code value} is null/blank or not {@code yyyy-MM-dd}
+     * @throws BadRequestException if {@code value} is null/blank or not {@code yyyy-MM-dd}
      */
     public static LocalDate parseDate(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Date value must not be null or blank");
+            throw new BadRequestException("Date value must not be null or blank");
         }
         try {
             return LocalDate.parse(value);
         } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Unable to parse date value '" + value + "'. Expected format: yyyy-MM-dd",
                     ex);
         }
@@ -56,18 +58,18 @@ public final class DateTimeUtil {
 
     public static void validateDateRange(LocalDateTime since, LocalDateTime until, long maxDays) {
         if (since.isAfter(until)) {
-            throw new IllegalArgumentException("'since' must not be after 'until'");
+            throw new BadRequestException("'since' must not be after 'until'");
         }
         long daysBetween = ChronoUnit.DAYS.between(since, until);
         if (daysBetween > maxDays) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Date range must not exceed " + maxDays + " days (was " + daysBetween + " days)");
         }
     }
 
     /**
      * Like {@link #parseDate(String)}, but a null/blank {@code value} yields {@code defaultIfMissing};
-     * malformed non-blank values still raise {@link IllegalArgumentException}.
+     * malformed non-blank values still raise {@link BadRequestException}.
      */
     public static LocalDate parseDateOrDefault(String value, LocalDate defaultIfMissing) {
         if (value == null || value.isBlank()) {

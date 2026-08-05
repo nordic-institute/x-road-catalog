@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.configuration.JacksonSerializers;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
 import org.niis.xroad.catalog.persistence.v2.repository.projection.SubsystemListRow;
 
@@ -47,11 +47,11 @@ public class SubsystemDto {
     private final String subsystemName;
     private final int serviceCount;
 
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime created;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime changed;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
 
     public static SubsystemDto from(SubsystemListRow row, SubsystemNameLookup nameLookup) {

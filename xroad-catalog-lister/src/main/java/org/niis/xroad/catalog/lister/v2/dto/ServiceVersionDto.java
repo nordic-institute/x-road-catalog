@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.configuration.JacksonSerializers;
 import org.niis.xroad.catalog.persistence.v2.entity.Endpoint;
 import org.niis.xroad.catalog.persistence.v2.entity.Service;
 import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
@@ -55,11 +55,11 @@ public class ServiceVersionDto {
     private final String serviceType;
     private final boolean hasDescriptor;
     private final List<EndpointDto> endpoints;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime created;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime changed;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
 
     /**

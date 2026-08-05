@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.util;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -108,6 +109,21 @@ class DateTimeUtilTest {
         assertThatThrownBy(() -> DateTimeUtil.validateDateRange(since, until, 30))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("must not exceed 30 days");
+    }
+
+    @Test
+    void invalidDateInputIsReportedAsClientError() {
+        // Client-correctable input must stay a 400; only BadRequestException maps there.
+        LocalDateTime since = LocalDateTime.of(2026, 4, 10, 0, 0);
+        LocalDateTime until = LocalDateTime.of(2026, 4, 1, 0, 0);
+        assertThatThrownBy(() -> DateTimeUtil.validateDateRange(since, until, 30))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> DateTimeUtil.validateDateRange(until, since, 3))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> DateTimeUtil.parseDate("not-a-date"))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> DateTimeUtil.parseDate(null))
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test

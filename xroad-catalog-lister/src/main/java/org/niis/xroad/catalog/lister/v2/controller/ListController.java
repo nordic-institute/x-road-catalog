@@ -30,10 +30,10 @@ import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.lister.v2.service.MemberServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SecurityServerServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.MemberService;
+import org.niis.xroad.catalog.lister.v2.service.SecurityServerService;
+import org.niis.xroad.catalog.lister.v2.service.ServiceService;
+import org.niis.xroad.catalog.lister.v2.service.SubsystemService;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,13 +62,13 @@ public class ListController {
 
     private static final Set<String> SUBSYSTEM_SORT_FIELDS = Set.of("subsystemCode", CREATED, CHANGED);
 
-    private final MemberServiceV2 memberService;
-    private final SubsystemServiceV2 subsystemService;
-    private final ServiceServiceV2 serviceService;
-    private final SecurityServerServiceV2 securityServerService;
+    private final MemberService memberService;
+    private final SubsystemService subsystemService;
+    private final ServiceService serviceService;
+    private final SecurityServerService securityServerService;
 
-    public ListController(MemberServiceV2 memberService, SubsystemServiceV2 subsystemService,
-            ServiceServiceV2 serviceService, SecurityServerServiceV2 securityServerService) {
+    public ListController(MemberService memberService, SubsystemService subsystemService,
+            ServiceService serviceService, SecurityServerService securityServerService) {
         this.memberService = memberService;
         this.subsystemService = subsystemService;
         this.serviceService = serviceService;

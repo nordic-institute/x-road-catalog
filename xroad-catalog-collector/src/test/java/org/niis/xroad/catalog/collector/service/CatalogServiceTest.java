@@ -82,6 +82,9 @@ public class CatalogServiceTest {
     public static final int TEST_DATA_ACTIVE_MEMBERS = 7;
     public static final int TEST_DATA_SUBSYSTEMS = 12;
     public static final int TEST_DATA_ACTIVE_SUBSYSTEMS = 10;
+
+    private static final String BLANK_DATA = "   ";
+
     @Autowired
     CatalogService catalogService;
 
@@ -751,6 +754,60 @@ public class CatalogServiceTest {
         testUtil.assertEqualities(originalRest.getStatusInfo(), checkedRest.getStatusInfo(),
                 true, false, false, false);
         assertNull(checkedRest.getStatusInfo().getRemoved());
+    }
+
+    @Test
+    public void testBlankOpenApiDoesNotOverwriteStoredDataAndPersistsErrorLog() {
+        OpenApi originalOpenApi = openApiRepository.findById(2L).get();
+        ServiceId originalServiceId = originalOpenApi.getService().createKey();
+        SubsystemId originalSubsystemId = originalOpenApi.getService().getSubsystem().createKey();
+        // detach, so we don't modify those objects in the next steps
+        testUtil.entityManagerClear();
+
+        catalogService.saveOpenApi(originalSubsystemId, originalServiceId, BLANK_DATA);
+        testUtil.entityManagerFlush();
+        testUtil.entityManagerClear();
+
+        OpenApi checkedOpenApi = openApiRepository.findById(2L).get();
+        assertEquals(originalOpenApi.getData(), checkedOpenApi.getData());
+        assertFalse(checkedOpenApi.getStatusInfo().isRemoved());
+        testUtil.assertAllSame(originalOpenApi.getStatusInfo(), checkedOpenApi.getStatusInfo());
+        assertBlankDescriptorErrorLogged("OpenAPI", originalSubsystemId, originalServiceId);
+    }
+
+    @Test
+    public void testBlankWsdlDoesNotOverwriteStoredDataAndPersistsErrorLog() {
+        Wsdl originalWsdl = wsdlRepository.findById(4L).get();
+        ServiceId originalServiceId = originalWsdl.getService().createKey();
+        SubsystemId originalSubsystemId = originalWsdl.getService().getSubsystem().createKey();
+        // detach, so we don't modify those objects in the next steps
+        testUtil.entityManagerClear();
+
+        catalogService.saveWsdl(originalSubsystemId, originalServiceId, BLANK_DATA);
+        testUtil.entityManagerFlush();
+        testUtil.entityManagerClear();
+
+        Wsdl checkedWsdl = wsdlRepository.findById(4L).get();
+        assertEquals(originalWsdl.getData(), checkedWsdl.getData());
+        assertFalse(checkedWsdl.getStatusInfo().isRemoved());
+        testUtil.assertAllSame(originalWsdl.getStatusInfo(), checkedWsdl.getStatusInfo());
+        assertBlankDescriptorErrorLogged("WSDL", originalSubsystemId, originalServiceId);
+    }
+
+    private void assertBlankDescriptorErrorLogged(String descriptorType, SubsystemId subsystemId, ServiceId serviceId) {
+        ErrorLog errorLog = StreamSupport.stream(errorLogRepository.findAll().spliterator(), false)
+                .filter(entry -> entry.getMessage() != null
+                        && entry.getMessage().startsWith("Blank " + descriptorType + " descriptor fetched"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No error log entry for blank " + descriptorType));
+        assertEquals("500", errorLog.getCode());
+        assertNotNull(errorLog.getCreated());
+        assertEquals(subsystemId.getXRoadInstance(), errorLog.getXRoadInstance());
+        assertEquals(subsystemId.getMemberClass(), errorLog.getMemberClass());
+        assertEquals(subsystemId.getMemberCode(), errorLog.getMemberCode());
+        assertEquals(subsystemId.getSubsystemCode(), errorLog.getSubsystemCode());
+        assertEquals(serviceId.getServiceCode(), errorLog.getServiceCode());
+        assertEquals(serviceId.getServiceVersion(), errorLog.getServiceVersion());
     }
 
     @Test

@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.configuration.JacksonSerializers;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 import java.time.LocalDateTime;
@@ -46,7 +46,7 @@ public class ErrorLogDto {
     private final String subsystemCode;
     private final String serviceCode;
     private final String serviceVersion;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime created;
 
     public static ErrorLogDto from(ErrorLog e) {

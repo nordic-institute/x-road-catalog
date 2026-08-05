@@ -57,7 +57,7 @@ public class TaskPoolConfiguration {
     @Autowired
     private IgnoredSubsystemIdsProperties ignoredSubsystemIdsProperties;
 
-    // Security server URLs
+    // Security Server URLs
 
     @Value("${xroad-catalog.urls.security-server-host}")
     private String securityServerHost;
@@ -130,8 +130,7 @@ public class TaskPoolConfiguration {
     /**
      * SAAJ-RI reads {@code saaj.connect.timeout} and {@code saaj.read.timeout} once, when
      * {@code HttpSOAPConnection} is class-loaded on the first SOAP send — well after context
-     * initialization, so setting them in {@code @PostConstruct} is early enough. The instance-level
-     * Jakarta SOAP 3 timeout API would be cleaner but requires an upstream xrd4j change.
+     * initialization, so setting them in {@code @PostConstruct} is early enough.
      */
     @PostConstruct
     public void configureSaajTimeouts() {

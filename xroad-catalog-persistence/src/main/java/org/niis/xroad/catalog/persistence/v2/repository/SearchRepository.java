@@ -34,13 +34,15 @@ import java.util.List;
 
 /**
  * V2 unified search over members, subsystems, and service aggregates, read from the
- * {@code active_search_index} view. The backing UNION executes at the database level so pagination
- * stays correct and totalCount exact. Extends {@code Repository<Member, Long>} only so Spring Data
- * registers it; queries are native and not tied to the Member entity.
+ * {@code active_search_index} view. Every query is instance-scoped. The backing UNION executes at
+ * the database level so pagination stays correct and totalCount exact. Extends
+ * {@code Repository<Member, Long>} only so Spring Data registers it; queries are native and not
+ * tied to the Member entity.
  */
 public interface SearchRepository extends Repository<Member, Long> {
 
-    String SEARCH_MATCH = "(u.sort_key LIKE LOWER(:qLike) ESCAPE '\\' "
+    String SEARCH_MATCH = "u.x_road_instance = :xRoadInstance "
+            + "AND (u.sort_key LIKE LOWER(:qLike) ESCAPE '\\' "
             + "OR (u.entity_type = 'member' AND LOWER(u.member_code) LIKE LOWER(:qLike) ESCAPE '\\'))";
 
     String SEARCH_UNION_SQL = "SELECT u.entity_type AS entityType, u.entity_id AS entityId, "
@@ -54,7 +56,8 @@ public interface SearchRepository extends Repository<Member, Long> {
     String SEARCH_COUNT_SQL = "SELECT COUNT(*) FROM active_search_index u WHERE " + SEARCH_MATCH;
 
     @Query(value = SEARCH_UNION_SQL, nativeQuery = true)
-    List<SearchHitRow> searchUnion(@Param("qLike") String qLike,
+    List<SearchHitRow> searchUnion(@Param("xRoadInstance") String xRoadInstance,
+                                   @Param("qLike") String qLike,
                                    @Param("pageSize") int pageSize,
                                    @Param("offset") long offset);
 
@@ -63,5 +66,5 @@ public interface SearchRepository extends Repository<Member, Long> {
      * returns no rows and cannot carry {@code totalCount}.
      */
     @Query(value = SEARCH_COUNT_SQL, nativeQuery = true)
-    long countSearchUnion(@Param("qLike") String qLike);
+    long countSearchUnion(@Param("xRoadInstance") String xRoadInstance, @Param("qLike") String qLike);
 }

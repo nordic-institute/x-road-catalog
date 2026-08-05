@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.catalog.lister.v2.util;
 
+import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -84,7 +85,7 @@ public final class PaginationUtil {
     /**
      * Builds a {@link Pageable} with no {@link Sort}, for endpoints whose ordering is fixed at the
      * SQL layer and that expose no {@code sortBy}/{@code sortOrder} parameters. An out-of-range
-     * {@code page} or {@code size} surfaces as {@link IllegalArgumentException} (mapped to 400).
+     * {@code page} or {@code size} surfaces as {@link BadRequestException} (mapped to 400).
      */
     public static Pageable toPageableNoSort(Integer page, Integer size) {
         return PageRequest.of(resolvePageIndex(page), resolvePageSize(size));
@@ -103,15 +104,23 @@ public final class PaginationUtil {
         return Sort.by(direction, physical);
     }
 
+    // Validated here rather than left to PageRequest.of, whose messages describe the internal
+    // zero-based index instead of the 'page' parameter the client sent.
     private static int resolvePageIndex(Integer page) {
         int pageNumber = page != null ? page : DEFAULT_PAGE;
+        if (pageNumber < 1) {
+            throw new BadRequestException("Query parameter 'page' must be 1 or greater");
+        }
         return pageNumber - 1;
     }
 
     private static int resolvePageSize(Integer size) {
         int resolved = size != null ? size : DEFAULT_SIZE;
+        if (resolved < 1) {
+            throw new BadRequestException("Query parameter 'size' must be 1 or greater");
+        }
         if (resolved > MAX_PAGE_SIZE) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Query parameter 'size' must not exceed " + MAX_PAGE_SIZE);
         }
         return resolved;
@@ -122,7 +131,7 @@ public final class PaginationUtil {
             return defaultSortField;
         }
         if (!allowedSortFields.contains(sortBy)) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Invalid sort field: '%s'. Allowed fields: %s".formatted(sortBy, allowedSortFields));
         }
         return sortBy;
@@ -135,7 +144,7 @@ public final class PaginationUtil {
         return switch (sortOrder.toLowerCase(Locale.ROOT)) {
             case "asc" -> Sort.Direction.ASC;
             case "desc" -> Sort.Direction.DESC;
-            default -> throw new IllegalArgumentException(
+            default -> throw new BadRequestException(
                     "Invalid sort order: '%s'. Allowed values: 'asc', 'desc'".formatted(sortOrder));
         };
     }

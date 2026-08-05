@@ -100,7 +100,7 @@ public class HeartbeatControllerTests {
 
     /**
      * The V2 {@code RequestIdFilter} is registered on {@code /api/v2/*} only
-     * ({@code V2InfrastructureConfiguration}); V1 endpoints must not carry {@code X-Request-Id}.
+     * ({@code InfrastructureConfiguration}); V1 endpoints must not carry {@code X-Request-Id}.
      */
     @Test
     public void v1HeartbeatResponseHasNoRequestIdHeader() {

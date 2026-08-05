@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.niis.xroad.catalog.lister.v2.configuration.JacksonV2Configuration;
+import org.niis.xroad.catalog.lister.v2.configuration.JacksonSerializers;
 import org.niis.xroad.catalog.persistence.v2.entity.Member;
 import org.niis.xroad.catalog.persistence.v2.entity.StatusInfo;
 import org.niis.xroad.catalog.persistence.v2.entity.Subsystem;
@@ -55,11 +55,11 @@ public class FullMemberDto {
     private final int subsystemCount;
     private final int serviceCount;
 
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime created;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime changed;
-    @JsonSerialize(using = JacksonV2Configuration.OffsetLocalDateTimeSerializer.class)
+    @JsonSerialize(using = JacksonSerializers.OffsetLocalDateTimeSerializer.class)
     private final LocalDateTime fetched;
 
     private final List<FullSubsystemDto> subsystems;

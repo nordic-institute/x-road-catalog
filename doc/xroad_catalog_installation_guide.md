@@ -36,6 +36,7 @@ Doc. ID: IG-XRDCAT
     * [2.5.3 services](#253-services)
     * [2.5.4 Time zone configuration](#254-time-zone-configuration)
     * [2.5.5 Search performance](#255-search-performance)
+    * [2.5.6 Collector timeouts](#256-collector-timeouts)
   * [2.6 SSL (optional)](#26-ssl-optional)
   * [2.7 Post-Installation Checks](#27-post-installation-checks)
   * [2.8 Logs](#28-logs)
@@ -238,6 +239,28 @@ CREATE INDEX idx_member_code_trgm ON member USING gin (LOWER(member_code) gin_tr
 CREATE INDEX idx_subsystem_code_trgm ON subsystem USING gin (LOWER(subsystem_code) gin_trgm_ops);
 CREATE INDEX idx_service_code_trgm ON service USING gin (LOWER(service_code) gin_trgm_ops);
 ```
+
+### 2.5.6 Collector timeouts
+
+A collection cycle waits for all fetch work started by it to finish, so every operation a fetch
+worker performs must be time-bounded. The outbound HTTP and SOAP calls to the Security Server are
+bounded by `xroad-catalog.tasks.client-connect-timeout-seconds` (default `10`) and
+`xroad-catalog.tasks.client-read-timeout-seconds` (default `60`).
+
+Database writes are **not** bounded by those settings. The PostgreSQL JDBC driver has no read timeout
+by default, so a stalled connection (for example a silently dropped TCP connection) blocks a fetch
+worker indefinitely. Set the driver's `socketTimeout` parameter (in seconds) on the collector's
+datasource URL, and use a value larger than the slowest expected write:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://<host>:<port>/xroad_catalog?socketTimeout=60
+```
+
+For the lister the parameter is recommended rather than required, since a stalled read only affects
+the request that hit it. The packaged `application.yaml` files leave `spring.datasource.url` empty
+because the value is installation-specific, so add the parameter when configuring each URL.
 
 ## 2.6 SSL (optional)
 

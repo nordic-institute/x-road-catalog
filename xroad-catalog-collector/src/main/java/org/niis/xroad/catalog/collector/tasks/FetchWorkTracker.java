@@ -37,6 +37,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * <p>{@link #register(int)} MUST be called before the items are enqueued: otherwise a consumer could
  * complete an item before it is registered, letting the count read zero while work still exists.
+ * A registered item must therefore always be completed, also when the enqueue never happens because
+ * of an exception — see {@link #complete(int)}.
  */
 @Slf4j
 @Component
@@ -66,21 +68,55 @@ public class FetchWorkTracker {
     }
 
     /**
-     * Decrements the pending count, signalling waiters at zero. A call with no pending work logs an
-     * error and clamps to zero, so a bookkeeping bug does not kill a worker mid-{@code finally}.
+     * Decrements the pending count by one, signalling waiters at zero.
      */
     public void complete() {
+        complete(1);
+    }
+
+    /**
+     * Decrements the pending count by {@code n}, signalling waiters at zero. Used with {@code n > 1} to
+     * reconcile a registered batch whose items were never enqueued. A call for more items than are
+     * pending logs an error and clamps to zero, so a bookkeeping bug does not kill a worker
+     * mid-{@code finally}.
+     *
+     * @param n number of completed work items; zero or negative values are a no-op
+     */
+    public void complete(final int n) {
+        if (n <= 0) {
+            return;
+        }
         lock.lock();
         try {
-            if (pendingCount <= 0) {
-                log.error("FetchWorkTracker.complete() called with no pending work; clamping to zero");
+            if (pendingCount <= n) {
+                if (pendingCount < n) {
+                    log.error("FetchWorkTracker.complete({}) called with only {} pending; clamping to zero", n, pendingCount);
+                }
                 pendingCount = 0;
+                allDone.signalAll();
                 return;
             }
-            pendingCount--;
-            if (pendingCount == 0) {
-                allDone.signalAll();
-            }
+            pendingCount -= n;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Clears the pending count and wakes any waiter, returning the number of discarded items. Called at
+     * the start of a cycle and when a cycle is abandoned, so leaked bookkeeping cannot make every later
+     * cycle wait forever. Items still in flight from a discarded batch end up in the clamp above.
+     *
+     * <p>Resetting does not stop fetch tasks from previous runs that are still executing; in edge cases
+     * they can still complete and decrement the counter, which self-resolves with the next run.
+     */
+    public long reset() {
+        lock.lock();
+        try {
+            long discarded = pendingCount;
+            pendingCount = 0;
+            allDone.signalAll();
+            return discarded;
         } finally {
             lock.unlock();
         }

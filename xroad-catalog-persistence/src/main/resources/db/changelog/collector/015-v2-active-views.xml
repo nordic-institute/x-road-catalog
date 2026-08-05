@@ -113,39 +113,36 @@
         </sql>
     </changeSet>
 
-    <changeSet id="015-v2-active-search-index" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="active_search_index exists">
-            <not>
-                <viewExists viewName="active_search_index"/>
-            </not>
-        </preConditions>
-        <comment>Unified search surface: members, subsystems and per-subsystem service aggregates.
-            Column semantics match the former SearchRepository union; the LIKE filter, pagination and
-            total_count stay in the repository query.</comment>
+    <changeSet id="015-v2-active-search-index" author="niis" dbms="postgresql" runOnChange="true">
+        <comment>Unified search surface: members, subsystems and per-subsystem service aggregates.</comment>
         <sql>
-            CREATE VIEW active_search_index AS
+            CREATE OR REPLACE VIEW active_search_index AS
             SELECT 'member' AS entity_type, m.id AS entity_id,
                    LOWER(m.name) AS sort_key,
                    m.member_class, m.member_code, m.name AS member_name,
                    CAST(NULL AS VARCHAR) AS subsystem_code, CAST(NULL AS VARCHAR) AS service_code,
-                   m.is_provider, CAST(NULL AS VARCHAR) AS service_types
+                   m.is_provider, CAST(NULL AS VARCHAR) AS service_types,
+                   m.x_road_instance
             FROM active_member m
             UNION ALL
             SELECT 'subsystem', sub.id, LOWER(sub.subsystem_code),
                    m.member_class, m.member_code, m.name,
                    sub.subsystem_code, CAST(NULL AS VARCHAR),
-                   CAST(NULL AS BOOLEAN), CAST(NULL AS VARCHAR)
+                   CAST(NULL AS BOOLEAN), CAST(NULL AS VARCHAR),
+                   m.x_road_instance
             FROM active_subsystem sub
             JOIN active_member m ON sub.member_id = m.id
             UNION ALL
             SELECT 'service', MIN(s.id), LOWER(s.service_code),
                    m.member_class, m.member_code, m.name,
                    sub.subsystem_code, s.service_code,
-                   CAST(NULL AS BOOLEAN), string_agg(DISTINCT s.service_type, ',' ORDER BY s.service_type)
+                   CAST(NULL AS BOOLEAN), string_agg(DISTINCT s.service_type, ',' ORDER BY s.service_type),
+                   m.x_road_instance
             FROM active_service s
             JOIN active_subsystem sub ON s.subsystem_id = sub.id
             JOIN active_member m ON sub.member_id = m.id
-            GROUP BY s.service_code, m.member_class, m.member_code, m.name, sub.subsystem_code;
+            GROUP BY s.service_code, m.member_class, m.member_code, m.name, sub.subsystem_code,
+                     m.x_road_instance;
         </sql>
     </changeSet>
 

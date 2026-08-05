@@ -24,10 +24,11 @@
  */
 package org.niis.xroad.catalog.lister.v2.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogDayDto;
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
-import org.niis.xroad.catalog.lister.v2.service.ReportServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.ReportService;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
 import org.springframework.data.domain.Page;
@@ -48,7 +49,7 @@ import java.util.List;
  * {@code today + 1 day} (server-local; the exclusive cutoff of the half-open {@code [since, until)}
  * window includes all of today) and {@code since} to {@code until - 7 days} — the trailing week.
  *
- * <p>Range validation happens in {@link ReportServiceV2}: {@code since == until} is allowed;
+ * <p>Range validation happens in {@link ReportService}: {@code since == until} is allowed;
  * {@code since} after {@code until} or a range over 90 days maps to 400. Both endpoints declare
  * {@code produces=application/json}, so an {@code Accept} header excluding JSON gets a framework
  * 406 — the V2 reports are JSON only.
@@ -59,17 +60,30 @@ public class ReportsController {
 
     private static final int DEFAULT_REPORT_WINDOW_DAYS = 7;
 
-    private final ReportServiceV2 reportService;
+    private static final String SINCE_DESCRIPTION =
+            "Start of the date window, inclusive (yyyy-MM-dd; sub-day precision and timezone offsets are "
+                    + "rejected), taken as 00:00 server-local time. Defaults to 'until' minus 7 days. Must not be "
+                    + "after 'until'; equal values are accepted and select an empty window. The window must not "
+                    + "exceed 90 days.";
+    private static final String UNTIL_DESCRIPTION =
+            "End of the date window, exclusive (yyyy-MM-dd; sub-day precision and timezone offsets are "
+                    + "rejected). The cutoff is 00:00 server-local time on this day, so the named day itself is not "
+                    + "included: pass until=2026-01-02 to cover everything up to and including 2026-01-01. Defaults "
+                    + "to tomorrow, which includes all of today.";
+
+    private final ReportService reportService;
     private final Clock clock;
 
-    public ReportsController(ReportServiceV2 reportService, Clock clock) {
+    public ReportsController(ReportService reportService, Clock clock) {
         this.reportService = reportService;
         this.clock = clock;
     }
 
     @GetMapping(path = "/service-statistics", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedCollectionResponse<ServiceStatisticsRowDto> serviceStatistics(
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr) {
         // Defaults: until = tomorrow (exclusive cutoff includes today), since = until - 7 days.
         LocalDate defaultUntil = DateTimeUtil.today(clock).plusDays(1);
@@ -81,7 +95,9 @@ public class ReportsController {
 
     @GetMapping(path = "/changes", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedCollectionResponse<ChangeLogDayDto> changes(
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", required = false) Integer size) {

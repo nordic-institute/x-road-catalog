@@ -34,7 +34,7 @@ import org.niis.xroad.catalog.lister.v2.dto.ChangeLogMemberItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
-import org.niis.xroad.catalog.lister.v2.service.ReportServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -67,7 +67,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReportsController.class)
-@Import({V2ExceptionHandler.class, V2DispatchExceptionHandler.class, ReportsControllerTest.FixedClockConfig.class})
+@Import({ApiExceptionHandler.class, DispatchExceptionHandler.class, ReportsControllerTest.FixedClockConfig.class})
 class ReportsControllerTest {
 
     private static final String STATS_PATH = "/api/v2/reports/service-statistics";
@@ -97,7 +97,7 @@ class ReportsControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private ReportServiceV2 reportService;
+    private ReportService reportService;
 
     @Test
     void serviceStatisticsReturnsItemsWithoutPaginationMetadata() throws Exception {
@@ -233,7 +233,7 @@ class ReportsControllerTest {
     @Test
     void serviceStatisticsRejectsSinceAfterUntil() throws Exception {
         when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
-                .thenThrow(new IllegalArgumentException("'since' must not be after 'until'"));
+                .thenThrow(new BadRequestException("'since' must not be after 'until'"));
 
         mockMvc.perform(get(STATS_PATH).param(SINCE, "2026-04-05").param(UNTIL, SINCE_2026_04_01))
                 .andExpect(status().isBadRequest())
@@ -255,7 +255,7 @@ class ReportsControllerTest {
     @Test
     void serviceStatisticsRejectsRangeAbove90Days() throws Exception {
         when(reportService.serviceStatistics(any(LocalDate.class), any(LocalDate.class)))
-                .thenThrow(new IllegalArgumentException(
+                .thenThrow(new BadRequestException(
                         "Date range must not exceed 90 days (was 91 days)"));
 
         mockMvc.perform(get(STATS_PATH).param(SINCE, "2026-01-01").param(UNTIL, "2026-04-02"))
@@ -498,7 +498,7 @@ class ReportsControllerTest {
     @Test
     void changesRejectsRangeAbove90Days() throws Exception {
         when(reportService.changeLog(any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException(
+                .thenThrow(new BadRequestException(
                         "Date range must not exceed 90 days (was 91 days)"));
 
         mockMvc.perform(get(CHANGES_PATH).param(SINCE, "2026-01-01").param(UNTIL, "2026-04-02"))
@@ -563,7 +563,7 @@ class ReportsControllerTest {
 
     @Test
     void changesRejectsZeroPage() throws Exception {
-        // PageRequest.of(-1, 20) throws IllegalArgumentException via PaginationUtil → 400.
+        // PaginationUtil rejects a page below 1 → 400.
         mockMvc.perform(get(CHANGES_PATH).param(SINCE, SINCE_2026_04_01).param(UNTIL, UNTIL_2026_04_03)
                         .param("page", "0"))
                 .andExpect(status().isBadRequest())
@@ -664,5 +664,22 @@ class ReportsControllerTest {
                 .andExpect(jsonPath(JSON_STATUS).value(405))
                 .andExpect(jsonPath(JSON_ERROR).value(METHOD_NOT_ALLOWED_ERROR))
                 .andExpect(header().string("Allow", "GET"));
+    }
+
+    @Test
+    void unknownV2PathReturnsTheV2NotFoundShape() throws Exception {
+        mockMvc.perform(get("/api/v2/nonexistent"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath(JSON_STATUS).value(404))
+                .andExpect(jsonPath(JSON_ERROR).value("NotFound"))
+                .andExpect(jsonPath(JSON_MESSAGE).value(containsString("/api/v2/nonexistent")));
+    }
+
+    @Test
+    void unknownV1PathKeepsSpringDefaultHandling() throws Exception {
+        // V1 must keep falling through to Boot's default error handling — no V2 ErrorResponse body.
+        mockMvc.perform(get("/api/default/nonexistent"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(not(containsString("\"NotFound\""))));
     }
 }

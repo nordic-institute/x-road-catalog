@@ -27,18 +27,16 @@ package org.niis.xroad.catalog.lister.v2.service;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.converter.SubsystemNameLookup;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
-import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfo;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
 import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2;
+import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2.ParsedSharedParams;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,20 +49,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * TTL cache over shared-params.xml parse results used for per-request enrichment (subsystem names,
- * member class descriptions, security servers). The 60s TTL matches the global-conf refresh cadence.
+ * member class descriptions, Security Servers). The 60s TTL matches the global-conf refresh cadence.
  *
- * <p>A single immutable {@link Snapshot} is published via a {@code volatile} field; refresh swaps in
- * a new snapshot under a {@code synchronized} double-checked expiry test, so readers never see a
- * partially-built result and concurrent callers past the TTL trigger at most one re-parse. A parse
- * failure is cached as an empty snapshot for the TTL window, degrading enrichment without failing
- * the endpoints that use it.
+ * <p>A single immutable {@link Snapshot} built from one document parse is published via an
+ * {@link AtomicReference}, so readers never see a partially-built result. Refresh runs under a
+ * {@code tryLock} with a double-checked expiry test: one thread re-parses while the others keep
+ * being served the expired snapshot, so a re-parse never queues up in-flight requests. The very
+ * first load has no snapshot to serve and therefore does wait. A parse failure is cached as an
+ * empty snapshot for the TTL window, degrading enrichment without failing the endpoints that use it.
  *
- * <p>The instance identifier is cached separately for the process lifetime:
- * {@link #getCurrentInstance()} raises 503 until shared-params.xml first becomes readable (the gap
- * between startup and the first configuration-client sync); a published instance ID never changes.
+ * <p>The instance identifier is cached separately for the process lifetime in its own
+ * {@link AtomicReference}, keeping it off the refresh lock: {@link #getCurrentInstance()} raises 503
+ * until shared-params.xml first becomes readable (the gap between startup and the first
+ * configuration-client sync); a published instance ID never changes.
  *
  * <p>Each refresh also reads the configuration client's {@code .metadata} sidecar for the
  * global-conf expiry, surfaced via {@link #globalConfExpiry()} — staleness is flagged, data is
@@ -82,11 +85,19 @@ public class SharedParamsCache {
     private final Clock clock;
     private final String sharedParamsFile;
 
-    // Publishes fully-built immutable snapshots to readers without requiring the refresh() lock.
-    @SuppressWarnings("PMD.AvoidUsingVolatile")
-    private volatile Snapshot snapshot = Snapshot.empty(Instant.MIN, null);
+    // Publishes fully-built immutable snapshots to readers without requiring the refresh lock.
+    // Maintenance contract: ALL TTL-cached state must live inside the immutable Snapshot record —
+    // never add a sibling field that has to stay consistent with it. Readers must take exactly one
+    // snapshot reference per logical operation (memberClasses() shows the pattern); a second get()
+    // may observe a different parse. Writes are serialized by refreshLock, so plain get()/set() are
+    // sufficient — do not introduce CAS here.
+    private final AtomicReference<Snapshot> snapshot = new AtomicReference<>(Snapshot.notLoaded());
 
-    private String cachedInstance;
+    // Read on nearly every V2 request, written at most once; deliberately not behind refreshLock.
+    // First-writer-wins via compareAndSet; a duplicate load during a startup race is benign.
+    private final AtomicReference<String> cachedInstance = new AtomicReference<>();
+
+    private final Lock refreshLock = new ReentrantLock();
 
     public SharedParamsCache(SharedParamsParserV2 parser, Clock clock,
             @Value("${xroad-catalog.shared-params-file}") String sharedParamsFile) {
@@ -97,16 +108,23 @@ public class SharedParamsCache {
 
     /**
      * Resolves the X-Road instance identifier from shared-params.xml, cached for the process
-     * lifetime after the first successful load.
+     * lifetime after the first successful load. Lock-free once loaded; a startup race can load twice,
+     * which is harmless because the value never changes and the first writer wins.
+     *
+     * <p>Contract: only a SUCCESSFUL load is ever cached. A failed load (config not yet synced)
+     * throws before the compareAndSet, so the next call retries — do not replace this with a
+     * memoizing supplier, which would cache the failure and leave the endpoint permanently broken.
      *
      * @throws ResponseStatusException 503 while the file does not exist yet
      * @throws IllegalStateException   when the file exists but cannot be parsed
      */
-    public synchronized String getCurrentInstance() {
-        if (cachedInstance == null) {
-            cachedInstance = loadInstance();
+    public String getCurrentInstance() {
+        String instance = cachedInstance.get();
+        if (instance == null) {
+            cachedInstance.compareAndSet(null, loadInstance());
+            instance = cachedInstance.get();
         }
-        return cachedInstance;
+        return instance;
     }
 
     private String loadInstance() {
@@ -153,7 +171,7 @@ public class SharedParamsCache {
         return new MemberClasses(s.memberClassDescriptions(), s.memberClassCodes());
     }
 
-    public List<SecurityServerInfoV2> securityServers() {
+    public List<SecurityServerInfo> securityServers() {
         return current().securityServers();
     }
 
@@ -169,27 +187,41 @@ public class SharedParamsCache {
     }
 
     private Snapshot current() {
-        Snapshot existing = snapshot;
+        Snapshot existing = snapshot.get();
         if (clock.instant().isAfter(existing.expiresAt())) {
-            return refresh();
+            return refresh(existing);
         }
         return existing;
     }
 
     /**
-     * Stampede guard: {@code synchronized} plus the double-checked expiry test ensure concurrent
-     * callers hitting an expired TTL trigger at most one re-parse.
+     * Stampede guard: the lock plus the double-checked expiry test ensure concurrent callers hitting
+     * an expired TTL trigger at most one re-parse. A caller that loses the race is served the
+     * expired snapshot instead of waiting, since data one TTL window old beats a blocked request.
+     * There is nothing to serve before the first load, so that one call does wait — an empty
+     * snapshot is indistinguishable from a genuinely empty configuration.
      */
-    private synchronized Snapshot refresh() {
-        Instant now = clock.instant();
-        Snapshot existing = snapshot;
-        if (!now.isAfter(existing.expiresAt())) {
-            // another thread refreshed while this one waited for the lock
-            return existing;
+    private Snapshot refresh(Snapshot expired) {
+        if (expired.loaded()) {
+            if (!refreshLock.tryLock()) {
+                return expired;
+            }
+        } else {
+            refreshLock.lock();
         }
-        Snapshot next = parseSnapshot(now.plus(TTL), readGlobalConfExpiration(now));
-        snapshot = next;
-        return next;
+        try {
+            Instant now = clock.instant();
+            Snapshot existing = snapshot.get();
+            if (!now.isAfter(existing.expiresAt())) {
+                // another thread refreshed while this one waited for the lock
+                return existing;
+            }
+            Snapshot next = parseSnapshot(now.plus(TTL), readGlobalConfExpiration(now));
+            snapshot.set(next);
+            return next;
+        } finally {
+            refreshLock.unlock();
+        }
     }
 
     /**
@@ -223,15 +255,15 @@ public class SharedParamsCache {
 
     private Snapshot parseSnapshot(Instant expiresAt, Instant globalConfExpiresAt) {
         try {
-            SubsystemNameLookup names = parseSubsystemNames();
+            ParsedSharedParams parsed = parser.parse(sharedParamsFile);
             Map<String, String> descriptions = new HashMap<>();
             Set<String> codes = new HashSet<>();
-            for (MemberClassInfo info : parser.parseMemberClasses(sharedParamsFile)) {
+            for (MemberClassInfo info : parsed.memberClasses()) {
                 descriptions.put(info.getCode(), info.getDescription());
                 codes.add(info.getCode());
             }
-            List<SecurityServerInfoV2> servers = parser.parseSecurityServers(sharedParamsFile);
-            return new Snapshot(expiresAt, names, Map.copyOf(descriptions), Set.copyOf(codes), List.copyOf(servers),
+            return new Snapshot(true, expiresAt, subsystemNameLookup(parsed.subsystemNames()),
+                    Map.copyOf(descriptions), Set.copyOf(codes), List.copyOf(parsed.securityServers()),
                     globalConfExpiresAt);
         } catch (Exception e) {
             log.warn("Failed to parse shared-params file {}; caching empty result for {}s", sharedParamsFile,
@@ -240,9 +272,9 @@ public class SharedParamsCache {
         }
     }
 
-    private SubsystemNameLookup parseSubsystemNames() throws ParserConfigurationException, IOException, SAXException {
+    private static SubsystemNameLookup subsystemNameLookup(List<SubsystemNameInfo> names) {
         Map<String, String> byKey = new HashMap<>();
-        for (SubsystemNameInfo info : parser.parseSubsystemNames(sharedParamsFile)) {
+        for (SubsystemNameInfo info : names) {
             byKey.put(keyOf(info.getMemberClass(), info.getMemberCode(), info.getSubsystemCode()),
                     info.getSubsystemName());
         }
@@ -269,13 +301,22 @@ public class SharedParamsCache {
      */
     public record GlobalConfExpiry(boolean expired, Instant expiresAt) { }
 
-    private record Snapshot(Instant expiresAt, SubsystemNameLookup subsystemNames,
+    /**
+     * {@code loaded} tells a snapshot that is empty because a parse produced nothing (or failed, and
+     * is cached as such for the TTL) apart from the startup placeholder that was never parsed at all.
+     */
+    private record Snapshot(boolean loaded, Instant expiresAt, SubsystemNameLookup subsystemNames,
             Map<String, String> memberClassDescriptions, Set<String> memberClassCodes,
-            List<SecurityServerInfoV2> securityServers, Instant globalConfExpiresAt) {
+            List<SecurityServerInfo> securityServers, Instant globalConfExpiresAt) {
 
         static Snapshot empty(Instant expiresAt, Instant globalConfExpiresAt) {
-            return new Snapshot(expiresAt, (memberClass, memberCode, subsystemCode) -> null,
+            return new Snapshot(true, expiresAt, (memberClass, memberCode, subsystemCode) -> null,
                     Map.of(), Set.of(), List.of(), globalConfExpiresAt);
+        }
+
+        static Snapshot notLoaded() {
+            return new Snapshot(false, Instant.MIN, (memberClass, memberCode, subsystemCode) -> null,
+                    Map.of(), Set.of(), List.of(), null);
         }
     }
 }

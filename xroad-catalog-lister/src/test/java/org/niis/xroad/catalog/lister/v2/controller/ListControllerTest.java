@@ -24,6 +24,10 @@
  */
 package org.niis.xroad.catalog.lister.v2.controller;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,10 +36,11 @@ import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerOwnerDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
-import org.niis.xroad.catalog.lister.v2.service.MemberServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SecurityServerServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
-import org.niis.xroad.catalog.lister.v2.service.SubsystemServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.MemberService;
+import org.niis.xroad.catalog.lister.v2.service.SecurityServerService;
+import org.niis.xroad.catalog.lister.v2.service.ServiceService;
+import org.niis.xroad.catalog.lister.v2.service.SubsystemService;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -44,7 +49,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -61,7 +68,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ListController.class)
-@Import({V2ExceptionHandler.class, V2DispatchExceptionHandler.class})
+@Import({ApiExceptionHandler.class, DispatchExceptionHandler.class})
 class ListControllerTest {
 
     private static final String LIST_SECURITY_SERVERS_PATH = "/api/v2/list/security-servers";
@@ -78,21 +85,23 @@ class ListControllerTest {
     private static final String JSON_STATUS = "$.status";
     private static final String BAD_REQUEST_ERROR = "BadRequest";
     private static final String METHOD_NOT_ALLOWED_ERROR = "MethodNotAllowed";
+    private static final String NOT_READY_REASON =
+            "X-Road instance identifier not yet available; configuration-client may still be initializing";
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private MemberServiceV2 memberService;
+    private MemberService memberService;
 
     @MockBean
-    private SubsystemServiceV2 subsystemService;
+    private SubsystemService subsystemService;
 
     @MockBean
-    private ServiceServiceV2 serviceService;
+    private ServiceService serviceService;
 
     @MockBean
-    private SecurityServerServiceV2 securityServerService;
+    private SecurityServerService securityServerService;
 
     @Test
     void listSecurityServersReturnsPagedShape() throws Exception {
@@ -150,6 +159,52 @@ class ListControllerTest {
         Sort.Order primary = captor.getValue().getSort().stream().findFirst().orElseThrow();
         assertThat(primary.getProperty()).isEqualTo("address");
         assertThat(primary.getDirection()).isEqualTo(Sort.Direction.DESC);
+    }
+
+    @Test
+    void listSecurityServersReturns503WhileInstanceNotYetReady() throws Exception {
+        // The startup gap before the first configuration-client sync must surface as 503 on the
+        // wire, not as a 500 produced by the catch-all handler.
+        when(securityServerService.list(any(Pageable.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, NOT_READY_REASON));
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ApiExceptionHandler.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            mockMvc.perform(get(LIST_SECURITY_SERVERS_PATH))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath(JSON_STATUS).value(503))
+                    .andExpect(jsonPath(JSON_ERROR).value("ServiceUnavailable"))
+                    .andExpect(jsonPath(JSON_MESSAGE).value(Matchers.containsString("not yet available")));
+
+            assertThat(appender.list).noneMatch(event -> event.getLevel() == Level.ERROR);
+        } finally {
+            logger.detachAppender(appender);
+        }
+    }
+
+    @Test
+    void listSecurityServersReturns500WithoutInternalDetailOnUnexpectedFailure() throws Exception {
+        when(securityServerService.list(any(Pageable.class)))
+                .thenThrow(new IllegalStateException("/etc/xroad/globalconf/DEV/shared-params.xml"));
+
+        Logger logger = (Logger) LoggerFactory.getLogger(ApiExceptionHandler.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            mockMvc.perform(get(LIST_SECURITY_SERVERS_PATH))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath(JSON_STATUS).value(500))
+                    .andExpect(jsonPath(JSON_ERROR).value("InternalServerError"))
+                    .andExpect(jsonPath(JSON_MESSAGE).value("Internal server error"));
+
+            assertThat(appender.list).anyMatch(event -> event.getLevel() == Level.ERROR);
+        } finally {
+            logger.detachAppender(appender);
+        }
     }
 
     @Test
@@ -324,13 +379,24 @@ class ListControllerTest {
     @Test
     void listServicesRejectsInvalidServiceType() throws Exception {
         when(serviceService.getForList(eq(null), eq("GRAPHQL"), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException(
+                .thenThrow(new BadRequestException(
                         "Invalid value for query parameter 'serviceType': 'GRAPHQL'"));
 
         mockMvc.perform(get(LIST_SERVICES_PATH).param(SERVICE_TYPE, "GRAPHQL"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(JSON_MESSAGE).value(
                         Matchers.containsString(SERVICE_TYPE)));
+    }
+
+    @Test
+    void listServicesInternalIllegalArgumentIsNotReportedAsAClientError() throws Exception {
+        when(serviceService.getForList(eq(null), eq(null), any(Pageable.class)))
+                .thenThrow(new IllegalArgumentException("versionRows must not be null or empty"));
+
+        mockMvc.perform(get(LIST_SERVICES_PATH))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath(JSON_ERROR).value("InternalServerError"))
+                .andExpect(jsonPath(JSON_MESSAGE).value("Internal server error"));
     }
 
     @Test

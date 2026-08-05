@@ -31,7 +31,7 @@ import org.niis.xroad.catalog.lister.v2.dto.MemberSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemSearchHit;
-import org.niis.xroad.catalog.lister.v2.service.SearchServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -55,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SearchController.class)
-@Import({V2ExceptionHandler.class, V2DispatchExceptionHandler.class})
+@Import({ApiExceptionHandler.class, DispatchExceptionHandler.class})
 class SearchControllerTest {
 
     private static final String SEARCH_PATH = "/api/v2/search";
@@ -71,7 +71,7 @@ class SearchControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private SearchServiceV2 searchService;
+    private SearchService searchService;
 
     @Test
     void searchReturnsMixedTypePagedShape() throws Exception {
@@ -130,7 +130,7 @@ class SearchControllerTest {
     @Test
     void searchBlankQueryParamReturns400() throws Exception {
         when(searchService.search(eq("   "), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException(
+                .thenThrow(new BadRequestException(
                         "Query parameter 'q' must be at least 3 characters"));
 
         mockMvc.perform(get(SEARCH_PATH).param(Q, "   "))
@@ -141,7 +141,7 @@ class SearchControllerTest {
     @Test
     void searchEmptyQueryParamReturns400() throws Exception {
         when(searchService.search(eq(""), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException(
+                .thenThrow(new BadRequestException(
                         "Query parameter 'q' must be at least 3 characters"));
 
         mockMvc.perform(get(SEARCH_PATH).param(Q, ""))
@@ -152,7 +152,7 @@ class SearchControllerTest {
     @Test
     void searchTooShortQueryReturns400FromService() throws Exception {
         when(searchService.search(eq("ab"), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException(
+                .thenThrow(new BadRequestException(
                         "Query parameter 'q' must be at least 3 characters"));
 
         mockMvc.perform(get(SEARCH_PATH).param(Q, "ab"))
@@ -214,7 +214,7 @@ class SearchControllerTest {
 
     @Test
     void searchRejectsZeroPage() throws Exception {
-        // PageRequest.of(-1, 20) throws IllegalArgumentException → V2ExceptionHandler maps to 400.
+        // PaginationUtil rejects a page below 1 → ApiExceptionHandler maps to 400.
         mockMvc.perform(get(SEARCH_PATH).param(Q, QUERY_TEST).param("page", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath(JSON_ERROR).value(BAD_REQUEST_ERROR));

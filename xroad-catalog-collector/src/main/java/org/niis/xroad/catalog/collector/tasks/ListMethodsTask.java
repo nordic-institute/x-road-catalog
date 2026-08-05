@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
@@ -113,8 +114,7 @@ public class ListMethodsTask implements Runnable {
 
                 // take() blocks until an element becomes available or it gets interrupted
                 MemberWithName client = clientsQueue.take();
-                semaphore.acquire();
-                Thread.ofVirtual().start(() -> saveSubsystemsAndServices(client));
+                FetchHandOff.handOff(semaphore, fetchWorkTracker, () -> saveSubsystemsAndServices(client));
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for clients, stopping ListMethodsTask", e);
@@ -155,17 +155,8 @@ public class ListMethodsTask implements Runnable {
 
             catalogService.saveServices(subsystem.createKey(), services);
 
-            fetchWorkTracker.register(soapServices.size());
-            this.wsdlQueue.addAll(soapServices);
-
-            fetchWorkTracker.register(restServices.size());
-            for (XRoadIdentifier service : restServices) {
-                if (service.getServiceType().equalsIgnoreCase(SERVICE_TYPE_REST)) {
-                    this.restQueue.add(service);
-                } else {
-                    this.openApiQueue.add(service);
-                }
-            }
+            registerAndEnqueue(soapServices, this.wsdlQueue::add);
+            registerAndEnqueue(restServices, this::enqueueByServiceType);
 
             log.debug("Subsystem {} handled", subsystem);
         } catch (Exception e) {
@@ -173,6 +164,36 @@ public class ListMethodsTask implements Runnable {
         } finally {
             semaphore.release();
             fetchWorkTracker.complete();
+        }
+    }
+
+    /**
+     * Registers the whole batch before enqueueing any of it, so a consumer cannot drive the pending count
+     * to zero mid-batch, and reconciles whatever the loop did not hand over, so a failing enqueue cannot
+     * leave the collection cycle waiting for items that never reached a queue.
+     */
+    private <T> void registerAndEnqueue(final List<T> items, final Consumer<T> enqueue) {
+        fetchWorkTracker.register(items.size());
+        int notEnqueued = items.size();
+        try {
+            for (T item : items) {
+                enqueue.accept(item);
+                notEnqueued--;
+            }
+        } finally {
+            if (notEnqueued > 0) {
+                log.warn("{} of {} fetch-work items could not be enqueued, completing them as failed", notEnqueued, items.size());
+                fetchWorkTracker.complete(notEnqueued);
+            }
+        }
+    }
+
+    private void enqueueByServiceType(final XRoadIdentifier service) {
+        // service_type is optional in the listMethods response
+        if (SERVICE_TYPE_REST.equalsIgnoreCase(service.getServiceType())) {
+            this.restQueue.add(service);
+        } else {
+            this.openApiQueue.add(service);
         }
     }
 

@@ -26,7 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BrowseDescriptorController.class)
-@Import(V2ExceptionHandler.class)
+@Import(ApiExceptionHandler.class)
 class BrowseDescriptorControllerTest {
 
     private static final String PUB = "PUB";
@@ -64,7 +64,7 @@ class BrowseDescriptorControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private ServiceServiceV2 serviceService;
+    private ServiceService serviceService;
 
     @Test
     void versionLevelWsdlReturnsXml() throws Exception {

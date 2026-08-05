@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 
@@ -39,9 +40,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mockingDetails;
@@ -59,16 +62,39 @@ class CollectionCycleRunnerTest {
     private RecomputeDenormalizedColumnsTask recomputeTask;
     @Mock
     private CollectionRunRepository collectionRunRepository;
+    @Mock
+    private TaskPoolConfiguration taskPoolConfiguration;
 
     private final FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
 
+    private CollectionCycleRunner newRunner() {
+        return new CollectionCycleRunner(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker,
+                taskPoolConfiguration, TICK_MILLIS);
+    }
+
+    private void unlimitedFetchWindow() {
+        when(taskPoolConfiguration.isFetchRunUnlimited()).thenReturn(true);
+    }
+
+    private void fetchWindowEndedEarlierToday() {
+        when(taskPoolConfiguration.isFetchRunUnlimited()).thenReturn(false);
+        when(taskPoolConfiguration.getFetchTimeBeforeHour()).thenReturn(LocalDateTime.now().getHour());
+    }
+
+    private void registerWorkWhenListingClients(int items) {
+        doAnswer(invocation -> {
+            fetchWorkTracker.register(items);
+            return null;
+        }).when(listClientsTask).run();
+    }
+
     @Test
     void successfulCycleFinalizesRunWithZeroPendingItems() {
+        unlimitedFetchWindow();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
         when(collectionRunRepository.findLatestMemberFetched()).thenReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
-        CollectionCycleRunner runner = new CollectionCycleRunner(listClientsTask, recomputeTask,
-                collectionRunRepository, fetchWorkTracker, TICK_MILLIS);
+        CollectionCycleRunner runner = newRunner();
         runner.run();
 
         var order = inOrder(listClientsTask, recomputeTask);
@@ -86,11 +112,11 @@ class CollectionCycleRunnerTest {
 
     @Test
     void listClientsFailureIsContainedAndRunIsFinalizedUnsuccessful() {
+        unlimitedFetchWindow();
         doThrow(new IllegalStateException("boom")).when(listClientsTask).run();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CollectionCycleRunner runner = new CollectionCycleRunner(listClientsTask, recomputeTask,
-                collectionRunRepository, fetchWorkTracker, TICK_MILLIS);
+        CollectionCycleRunner runner = newRunner();
         runner.run();
 
         verify(recomputeTask).run();
@@ -101,11 +127,11 @@ class CollectionCycleRunnerTest {
 
     @Test
     void interruptDuringWaitReturnsWithoutThrowingAndMarksRunUnsuccessful() throws InterruptedException {
-        fetchWorkTracker.register(1);
+        unlimitedFetchWindow();
+        registerWorkWhenListingClients(1);
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CollectionCycleRunner runner = new CollectionCycleRunner(listClientsTask, recomputeTask,
-                collectionRunRepository, fetchWorkTracker, TICK_MILLIS);
+        CollectionCycleRunner runner = newRunner();
 
         AtomicBoolean interruptedFlagRestored = new AtomicBoolean();
         Thread runnerThread = new Thread(() -> {
@@ -128,11 +154,11 @@ class CollectionCycleRunnerTest {
 
     @Test
     void progressIsWrittenAfterListClientsAndOnEachTickWhilePending() {
-        fetchWorkTracker.register(1);
+        unlimitedFetchWindow();
+        registerWorkWhenListingClients(1);
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CollectionCycleRunner runner = new CollectionCycleRunner(listClientsTask, recomputeTask,
-                collectionRunRepository, fetchWorkTracker, TICK_MILLIS);
+        CollectionCycleRunner runner = newRunner();
 
         Thread runnerThread = new Thread(runner::run);
         runnerThread.start();
@@ -156,18 +182,75 @@ class CollectionCycleRunnerTest {
 
     @Test
     void progressWriteFailureDoesNotAbortCycle() {
+        unlimitedFetchWindow();
         when(collectionRunRepository.save(any(CollectionRun.class)))
                 .thenReturn(new CollectionRun())
                 .thenThrow(new IllegalStateException("db down"))
                 .thenAnswer(inv -> inv.getArgument(0));
 
-        CollectionCycleRunner runner = new CollectionCycleRunner(listClientsTask, recomputeTask,
-                collectionRunRepository, fetchWorkTracker, TICK_MILLIS);
+        CollectionCycleRunner runner = newRunner();
         runner.run();
 
         verify(recomputeTask).run();
         ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
         verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
         assertNotNull(saved.getValue().getFinished());
+    }
+
+    @Test
+    void leftoverPendingWorkFromPreviousCycleIsDiscardedAndCycleCompletes() {
+        unlimitedFetchWindow();
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+        fetchWorkTracker.register(3);
+
+        CollectionCycleRunner runner = newRunner();
+        assertTimeoutPreemptively(Duration.ofSeconds(10), runner::run);
+
+        assertEquals(0, fetchWorkTracker.pending());
+        verify(listClientsTask).run();
+        verify(recomputeTask).run();
+        ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
+        verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
+        assertEquals(Boolean.TRUE, saved.getValue().getSuccess());
+    }
+
+    @Test
+    void boundedFetchWindowEndsTheWaitAndFinalizesTheRunUnsuccessful() {
+        fetchWindowEndedEarlierToday();
+        registerWorkWhenListingClients(2);
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CollectionCycleRunner runner = newRunner();
+        assertTimeoutPreemptively(Duration.ofSeconds(10), runner::run);
+
+        assertEquals(0, fetchWorkTracker.pending());
+        verify(recomputeTask).run();
+        ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
+        verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
+        assertEquals(Boolean.FALSE, saved.getValue().getSuccess());
+    }
+
+    @Test
+    void unlimitedFetchWindowKeepsWaitingWithoutDeadline() {
+        unlimitedFetchWindow();
+        registerWorkWhenListingClients(1);
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CollectionCycleRunner runner = newRunner();
+        Thread runnerThread = new Thread(runner::run);
+        runnerThread.start();
+
+        // many ticks pass without a deadline cutting the wait short
+        await().atMost(Duration.ofSeconds(5)).until(() -> mockingDetails(collectionRunRepository)
+                .getInvocations().size() >= 10);
+        assertTrue(runnerThread.isAlive());
+        assertEquals(1, fetchWorkTracker.pending());
+
+        fetchWorkTracker.complete();
+        await().atMost(Duration.ofSeconds(5)).until(() -> !runnerThread.isAlive());
+
+        ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
+        verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
+        assertEquals(Boolean.TRUE, saved.getValue().getSuccess());
     }
 }

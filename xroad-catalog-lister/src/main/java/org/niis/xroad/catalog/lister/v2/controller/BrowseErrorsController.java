@@ -30,7 +30,7 @@ import lombok.Setter;
 import org.springdoc.core.annotations.ParameterObject;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
-import org.niis.xroad.catalog.lister.v2.service.ErrorLogServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.ErrorLogService;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
 import org.springframework.data.domain.Page;
@@ -66,17 +66,30 @@ public class BrowseErrorsController {
     private static final String DEFAULT_SORT_FIELD = "created";
     private static final String DEFAULT_SORT_ORDER = "desc";
 
-    private final Clock clock;
-    private final ErrorLogServiceV2 errorLogService;
+    private static final String SINCE_DESCRIPTION =
+            "Start of the date window, inclusive (yyyy-MM-dd; sub-day precision and timezone offsets are "
+                    + "rejected), taken as 00:00 server-local time. Defaults to 'until' minus 1 day. Must not be "
+                    + "after 'until'; equal values are accepted and select an empty window. The window must not "
+                    + "exceed 90 days.";
+    private static final String UNTIL_DESCRIPTION =
+            "End of the date window, exclusive (yyyy-MM-dd; sub-day precision and timezone offsets are "
+                    + "rejected). The cutoff is 00:00 server-local time on this day, so the named day itself is not "
+                    + "included: pass until=2026-01-02 to cover everything up to and including 2026-01-01. Defaults "
+                    + "to tomorrow, which includes all of today.";
 
-    public BrowseErrorsController(Clock clock, ErrorLogServiceV2 errorLogService) {
+    private final Clock clock;
+    private final ErrorLogService errorLogService;
+
+    public BrowseErrorsController(Clock clock, ErrorLogService errorLogService) {
         this.clock = clock;
         this.errorLogService = errorLogService;
     }
 
     @GetMapping("/errors")
     public PagedCollectionResponse<ErrorLogDto> catalogErrors(
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         return dispatch(null, null, null, null, null, sinceStr, untilStr, pageOpts);
@@ -85,7 +98,9 @@ public class BrowseErrorsController {
     @GetMapping("/member-classes/{memberClass}/errors")
     public PagedCollectionResponse<ErrorLogDto> memberClassErrors(
             @PathVariable("memberClass") String memberClass,
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         return dispatch(memberClass, null, null, null, null, sinceStr, untilStr, pageOpts);
@@ -95,7 +110,9 @@ public class BrowseErrorsController {
     public PagedCollectionResponse<ErrorLogDto> memberErrors(
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         return dispatch(memberClass, memberCode, null, null, null, sinceStr, untilStr, pageOpts);
@@ -106,7 +123,9 @@ public class BrowseErrorsController {
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode,
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         return dispatch(memberClass, memberCode, subsystemCode, null, null, sinceStr, untilStr, pageOpts);
@@ -119,7 +138,9 @@ public class BrowseErrorsController {
             @PathVariable("memberCode") String memberCode,
             @PathVariable("subsystemCode") String subsystemCode,
             @PathVariable("serviceCode") String serviceCode,
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
         return dispatch(memberClass, memberCode, subsystemCode, serviceCode, null, sinceStr, untilStr, pageOpts);
@@ -138,10 +159,12 @@ public class BrowseErrorsController {
                             + "named \"null\" is therefore unaddressable.",
                     example = "v1")
             @PathVariable("serviceVersion") String serviceVersion,
+            @Parameter(description = SINCE_DESCRIPTION, example = "2026-01-01")
             @RequestParam(value = "since", required = false) String sinceStr,
+            @Parameter(description = UNTIL_DESCRIPTION, example = "2026-01-08")
             @RequestParam(value = "until", required = false) String untilStr,
             @ParameterObject PageOpts pageOpts) {
-        // serviceVersion is the raw URL segment; ErrorLogServiceV2.get resolves the "null" sentinel internally.
+        // serviceVersion is the raw URL segment; ErrorLogService.get resolves the "null" sentinel internally.
         return dispatch(memberClass, memberCode, subsystemCode, serviceCode, serviceVersion, sinceStr, untilStr, pageOpts);
     }
 
@@ -149,7 +172,7 @@ public class BrowseErrorsController {
                                                           String serviceCode, String serviceVersion,
                                                           String sinceStr, String untilStr, PageOpts pageOpts) {
         // Defaults: until = tomorrow 00:00 (exclusive so today is included), since = until - 1 day.
-        // Range bounds (since <= until, <= 90 days) are enforced in ErrorLogServiceV2.get.
+        // Range bounds (since <= until, <= 90 days) are enforced in ErrorLogService.get.
         LocalDate today = DateTimeUtil.today(clock);
         LocalDate untilDate = DateTimeUtil.parseDateOrDefault(untilStr, today.plusDays(1));
         LocalDate sinceDate = DateTimeUtil.parseDateOrDefault(sinceStr, untilDate.minusDays(1));

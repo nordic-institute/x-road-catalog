@@ -26,7 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
-import org.niis.xroad.catalog.lister.v2.service.SearchServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.SearchService;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,9 +39,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v2/search")
 public class SearchController {
 
-    private final SearchServiceV2 searchService;
+    private final SearchService searchService;
 
-    public SearchController(SearchServiceV2 searchService) {
+    public SearchController(SearchService searchService) {
         this.searchService = searchService;
     }
 

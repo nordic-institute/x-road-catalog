@@ -24,20 +24,18 @@
  */
 package org.niis.xroad.catalog.lister.configuration;
 
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 
 /**
- * Reproduces {@code PersistenceDefaultConfiguration}'s component/entity scan while excluding the class
- * itself, so its unconditional {@code @EnableJpaRepositories} never fires; repository enabling lives in
- * mutually exclusive {@code @Profile}-gated classes to support the V1/V2 entity-scan split.
+ * Scans the lister and persistence packages and deliberately declares no {@code @EnableJpaRepositories};
+ * repository enabling lives in mutually exclusive {@code @Profile}-gated configuration classes
+ * ({@link ProductionConfigurationV2} and the test-profile classes) so each context gets exactly one
+ * repository declaration for these packages.
  */
 @Configuration
-@ComponentScan(basePackages = {"org.niis.xroad.catalog.lister", "org.niis.xroad.catalog.persistence"},
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = PersistenceDefaultConfiguration.class))
+@ComponentScan(basePackages = {"org.niis.xroad.catalog.lister", "org.niis.xroad.catalog.persistence"})
 @EntityScan("org.niis.xroad.catalog.persistence.entity")
 public class ListerDefaultConfiguration {
 }

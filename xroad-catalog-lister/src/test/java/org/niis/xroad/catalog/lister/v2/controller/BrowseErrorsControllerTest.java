@@ -28,7 +28,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
-import org.niis.xroad.catalog.lister.v2.service.ErrorLogServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.ErrorLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -59,7 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(BrowseErrorsController.class)
-@Import({V2ExceptionHandler.class, BrowseErrorsControllerTest.FixedClockConfig.class})
+@Import({ApiExceptionHandler.class, BrowseErrorsControllerTest.FixedClockConfig.class})
 class BrowseErrorsControllerTest {
 
     @TestConfiguration
@@ -102,7 +102,7 @@ class BrowseErrorsControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private ErrorLogServiceV2 errorLogService;
+    private ErrorLogService errorLogService;
 
     @Test
     void catalogErrorsHappyPathReturns200WithPaginatedShape() throws Exception {
@@ -190,13 +190,13 @@ class BrowseErrorsControllerTest {
 
     @Test
     void catalogErrorsSinceAfterUntilReturns400() throws Exception {
-        // Range validation lives in ErrorLogServiceV2; the controller passes the range through
-        // and the service's IllegalArgumentException maps to 400 via V2ExceptionHandler.
+        // Range validation lives in ErrorLogService; the controller passes the range through
+        // and the service's IllegalArgumentException maps to 400 via ApiExceptionHandler.
         LocalDateTime sinceAfter = LocalDateTime.of(2024, 3, 1, 0, 0);
         LocalDateTime untilBefore = LocalDateTime.of(2024, 2, 1, 0, 0);
         when(errorLogService.get(eq(null), eq(null), eq(null), eq(null), eq(null),
                 eq(sinceAfter), eq(untilBefore), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException("'since' must not be after 'until'"));
+                .thenThrow(new BadRequestException("'since' must not be after 'until'"));
 
         mockMvc.perform(get(CATALOG_ROUTE)
                         .param(SINCE_PARAM, "2024-03-01")
@@ -432,12 +432,12 @@ class BrowseErrorsControllerTest {
 
     @Test
     void errorsRangeOver90DaysIsRejectedWith400() throws Exception {
-        // The 90-day cap is enforced by ErrorLogServiceV2; its rejection maps to 400 via V2ExceptionHandler.
+        // The 90-day cap is enforced by ErrorLogService; its rejection maps to 400 via ApiExceptionHandler.
         LocalDateTime since = LocalDateTime.of(2025, 1, 1, 0, 0);
         LocalDateTime until = LocalDateTime.of(2025, 6, 1, 0, 0);
         when(errorLogService.get(eq(null), eq(null), eq(null), eq(null), eq(null),
                 eq(since), eq(until), any(Pageable.class)))
-                .thenThrow(new IllegalArgumentException("Date range must not exceed 90 days (was 151 days)"));
+                .thenThrow(new BadRequestException("Date range must not exceed 90 days (was 151 days)"));
 
         mockMvc.perform(get("/api/v2/browse/errors")
                         .param("since", "2025-01-01")

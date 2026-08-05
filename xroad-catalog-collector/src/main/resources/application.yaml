@@ -1,6 +1,8 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
+    # Include the driver's socketTimeout (in seconds) so a stalled connection cannot block a fetch
+    # worker forever, e.g. jdbc:postgresql://host:port/xroad_catalog?socketTimeout=60
     url: ''
     username: xroad_catalog_collector
     password: ''

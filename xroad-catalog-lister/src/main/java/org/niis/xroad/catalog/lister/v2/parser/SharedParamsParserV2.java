@@ -26,8 +26,9 @@ package org.niis.xroad.catalog.lister.v2.parser;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
-import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
+import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfo;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersV2;
@@ -48,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Parses X-Road global configuration shared-params XML via the {@code configuration-client}
@@ -57,36 +59,82 @@ import java.util.Map;
  * unmarshaller class per schema version, each performing mandatory XSD validation on construction.
  * This parser tries the newest version first (V5) and falls back to V4, V3, V2; the strict
  * per-version validation guarantees a document for an unsupported schema throws rather than being
- * silently mis-parsed.
+ * silently mis-parsed. The version that matched is remembered and tried first on the next parse, so
+ * the fallback ladder is walked once rather than on every call; a remembered version that stops
+ * matching (a Central Server upgrade) falls back to the full ladder again.
  *
  * <p><b>XXE hardening:</b> the library unmarshals through a plain, unhardened stream with no
  * DOCTYPE ban and no caller seam to inject a hardened {@code Source}, so every file is first run
  * through a disallow-doctype-decl parse purely to reject a DOCTYPE (the XXE vector) before the
  * library sees the bytes; that pre-flight parse result is discarded.
  */
+@Slf4j
 @Component
 public class SharedParamsParserV2 {
 
     @FunctionalInterface
-    private interface VersionUnmarshaller {
+    interface VersionUnmarshaller {
         SharedParameters unmarshal(Path sharedParamsFile) throws CertificateEncodingException, IOException;
     }
 
+    /**
+     * One supported shared-parameters schema version.
+     *
+     * @param name         version label used in logs
+     * @param unmarshaller library unmarshaller performing that version's XSD validation
+     */
+    record SchemaVersion(String name, VersionUnmarshaller unmarshaller) { }
+
     // Newest supported schema version first.
-    private static final List<VersionUnmarshaller> VERSION_UNMARSHALLERS = List.of(
-            file -> new SharedParametersV5(file, OffsetDateTime.MAX).getSharedParameters(),
-            file -> new SharedParametersV4(file, OffsetDateTime.MAX).getSharedParameters(),
-            file -> new SharedParametersV3(file, OffsetDateTime.MAX).getSharedParameters(),
-            file -> new SharedParametersV2(file, OffsetDateTime.MAX).getSharedParameters());
+    private static final List<SchemaVersion> SUPPORTED_VERSIONS = List.of(
+            new SchemaVersion("V5", file -> new SharedParametersV5(file, OffsetDateTime.MAX).getSharedParameters()),
+            new SchemaVersion("V4", file -> new SharedParametersV4(file, OffsetDateTime.MAX).getSharedParameters()),
+            new SchemaVersion("V3", file -> new SharedParametersV3(file, OffsetDateTime.MAX).getSharedParameters()),
+            new SchemaVersion("V2", file -> new SharedParametersV2(file, OffsetDateTime.MAX).getSharedParameters()));
+
+    /**
+     * Everything the V2 read path derives from one shared-params document, all of it from a single
+     * unmarshal.
+     *
+     * @param memberClasses   member classes from {@code globalSettings}
+     * @param subsystemNames  subsystem display names, empty for schema versions without them
+     * @param securityServers Security Servers with resolved owner and clients
+     */
+    public record ParsedSharedParams(List<MemberClassInfo> memberClasses, List<SubsystemNameInfo> subsystemNames,
+            List<SecurityServerInfo> securityServers) { }
+
+    private final List<SchemaVersion> supportedVersions;
+
+    // Read on every parse, written when the matching version changes
+    private final AtomicReference<SchemaVersion> rememberedVersion = new AtomicReference<>();
+
+    public SharedParamsParserV2() {
+        this(SUPPORTED_VERSIONS);
+    }
+
+    SharedParamsParserV2(List<SchemaVersion> supportedVersions) {
+        this.supportedVersions = List.copyOf(supportedVersions);
+    }
 
     public String parseInstanceIdentifier(String sharedParamsFile)
             throws ParserConfigurationException, IOException, SAXException {
         return unmarshal(sharedParamsFile).getInstanceIdentifier();
     }
 
-    public List<MemberClassInfo> parseMemberClasses(String sharedParamsFile)
+    /**
+     * Unmarshals the document once and derives every result set the caller needs from it.
+     *
+     * @throws IOException when the file cannot be read or does not validate against any supported
+     *         schema version
+     */
+    public ParsedSharedParams parse(String sharedParamsFile)
             throws ParserConfigurationException, IOException, SAXException {
-        SharedParameters.GlobalSettings settings = unmarshal(sharedParamsFile).getGlobalSettings();
+        SharedParameters params = unmarshal(sharedParamsFile);
+        return new ParsedSharedParams(memberClasses(params), subsystemNames(params), securityServers(params));
+    }
+
+    private List<MemberClassInfo> memberClasses(SharedParameters params) {
+        SharedParameters.GlobalSettings settings = params.getGlobalSettings();
         if (settings == null || settings.getMemberClasses() == null) {
             return List.of();
         }
@@ -97,10 +145,9 @@ public class SharedParamsParserV2 {
         return classes;
     }
 
-    public List<SubsystemNameInfo> parseSubsystemNames(String sharedParamsFile)
-            throws ParserConfigurationException, IOException, SAXException {
+    private List<SubsystemNameInfo> subsystemNames(SharedParameters params) {
         List<SubsystemNameInfo> names = new ArrayList<>();
-        for (SharedParameters.Member member : nullToEmpty(unmarshal(sharedParamsFile).getMembers())) {
+        for (SharedParameters.Member member : nullToEmpty(params.getMembers())) {
             String memberClass = member.getMemberClass() != null ? member.getMemberClass().getCode() : null;
             for (SharedParameters.Subsystem subsystem : nullToEmpty(member.getSubsystems())) {
                 String subsystemName = subsystem.getSubsystemName();
@@ -118,46 +165,41 @@ public class SharedParamsParserV2 {
     }
 
     /**
-     * Parses security server information, one {@link SecurityServerInfoV2} per {@code securityServer}
-     * element. Owner and clients are already-resolved {@link ClientId}s in the library model; only
-     * the owner's display name needs a lookup against the member list.
-     *
-     * @throws IOException when the file cannot be read or does not validate against any supported
-     *         schema version
+     * One {@link SecurityServerInfo} per {@code securityServer} element. Owner and clients are
+     * already-resolved {@link ClientId}s in the library model; only the owner's display name needs a
+     * lookup against the member list.
      */
-    public List<SecurityServerInfoV2> parseSecurityServers(String sharedParamsFile)
-            throws ParserConfigurationException, IOException, SAXException {
-        SharedParameters params = unmarshal(sharedParamsFile);
+    private List<SecurityServerInfo> securityServers(SharedParameters params) {
         Map<String, SharedParameters.Member> membersByKey = new HashMap<>();
         for (SharedParameters.Member member : nullToEmpty(params.getMembers())) {
             if (member.getId() != null) {
                 membersByKey.put(keyOf(member.getId()), member);
             }
         }
-        List<SecurityServerInfoV2> result = new ArrayList<>();
+        List<SecurityServerInfo> result = new ArrayList<>();
         for (SharedParameters.SecurityServer server : nullToEmpty(params.getSecurityServers())) {
             result.add(toSecurityServerInfo(server, membersByKey));
         }
         return result;
     }
 
-    private SecurityServerInfoV2 toSecurityServerInfo(SharedParameters.SecurityServer server,
+    private SecurityServerInfo toSecurityServerInfo(SharedParameters.SecurityServer server,
             Map<String, SharedParameters.Member> membersByKey) {
-        SecurityServerInfoV2.MemberRef owner = ownerRef(server.getOwner(), membersByKey);
-        List<SecurityServerInfoV2.ClientRef> clients = new ArrayList<>();
+        SecurityServerInfo.MemberRef owner = ownerRef(server.getOwner(), membersByKey);
+        List<SecurityServerInfo.ClientRef> clients = new ArrayList<>();
         for (ClientId clientId : nullToEmpty(server.getClients())) {
-            clients.add(new SecurityServerInfoV2.ClientRef(clientId.getMemberClass(), clientId.getMemberCode(),
+            clients.add(new SecurityServerInfo.ClientRef(clientId.getMemberClass(), clientId.getMemberCode(),
                     clientId.getSubsystemCode()));
         }
-        return new SecurityServerInfoV2(server.getServerCode(), server.getAddress(), owner, clients);
+        return new SecurityServerInfo(server.getServerCode(), server.getAddress(), owner, clients);
     }
 
-    private SecurityServerInfoV2.MemberRef ownerRef(ClientId owner, Map<String, SharedParameters.Member> membersByKey) {
+    private SecurityServerInfo.MemberRef ownerRef(ClientId owner, Map<String, SharedParameters.Member> membersByKey) {
         if (owner == null) {
-            return new SecurityServerInfoV2.MemberRef(null, null, null);
+            return new SecurityServerInfo.MemberRef(null, null, null);
         }
         SharedParameters.Member member = membersByKey.get(keyOf(owner));
-        return new SecurityServerInfoV2.MemberRef(owner.getMemberClass(), owner.getMemberCode(),
+        return new SecurityServerInfo.MemberRef(owner.getMemberClass(), owner.getMemberCode(),
                 member != null ? member.getName() : null);
     }
 
@@ -170,17 +212,32 @@ public class SharedParamsParserV2 {
     }
 
     /**
-     * Each public parse method unmarshals independently, repeating the newest-first fallback and
-     * possibly several schema validations per refresh; callers are expected to cache results.
+     * Runs the security gate, then the remembered version and, only if that no longer matches, the
+     * rest of the newest-first ladder. Each XSD-validating attempt reads the whole file, so the
+     * remembered version keeps a steady-state parse at one attempt.
      */
     private SharedParameters unmarshal(String sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
         Path path = Path.of(sharedParamsFile);
         rejectUnsafeXml(path);
 
+        SchemaVersion remembered = rememberedVersion.get();
         Exception lastFailure = null;
-        for (VersionUnmarshaller attempt : VERSION_UNMARSHALLERS) {
+        if (remembered != null) {
             try {
-                return attempt.unmarshal(path);
+                return remembered.unmarshaller().unmarshal(path);
+            } catch (CertificateEncodingException | IOException | RuntimeException e) {
+                lastFailure = e;
+            }
+        }
+        for (SchemaVersion candidate : supportedVersions) {
+            if (candidate.equals(remembered)) {
+                continue;
+            }
+            try {
+                SharedParameters params = candidate.unmarshaller().unmarshal(path);
+                log.info("Shared-params file {} matched schema version {}", sharedParamsFile, candidate.name());
+                rememberedVersion.set(candidate);
+                return params;
             } catch (CertificateEncodingException | IOException | RuntimeException e) {
                 lastFailure = e;
             }

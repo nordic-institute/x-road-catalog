@@ -26,7 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
-import org.niis.xroad.catalog.lister.v2.service.ServiceServiceV2;
+import org.niis.xroad.catalog.lister.v2.service.ServiceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,9 +42,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v2/browse")
 public class BrowseDescriptorController {
 
-    private final ServiceServiceV2 serviceService;
+    private final ServiceService serviceService;
 
-    public BrowseDescriptorController(ServiceServiceV2 serviceService) {
+    public BrowseDescriptorController(ServiceService serviceService) {
         this.serviceService = serviceService;
     }
 
@@ -64,7 +64,7 @@ public class BrowseDescriptorController {
         // serviceVersion is the raw URL segment ("null" sentinel resolved inside the service layer).
         DescriptorPayload payload = serviceService.getVersionDescriptor(
                         memberClass, memberCode, subsystemCode, serviceCode, serviceVersion)
-                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                .orElseThrow(() -> ResourceNotFoundException.of(
                         "Descriptor for service version", memberClass, memberCode, subsystemCode, serviceCode, serviceVersion));
         return ResponseEntity.ok()
                 .contentType(payload.contentType())
@@ -82,7 +82,7 @@ public class BrowseDescriptorController {
         // "0 versions" and "1 version, no descriptor" — the contract does not distinguish them, both 404.
         DescriptorPayload payload = serviceService.getServiceLevelDescriptor(
                         memberClass, memberCode, subsystemCode, serviceCode)
-                .orElseThrow(() -> V2ResourceNotFoundException.of(
+                .orElseThrow(() -> ResourceNotFoundException.of(
                         "Descriptor for service", memberClass, memberCode, subsystemCode, serviceCode));
         return ResponseEntity.ok()
                 .contentType(payload.contentType())

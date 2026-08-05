@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.List;
@@ -52,8 +53,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Sql(scripts = "classpath:pg/v2-fixture.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class SearchRepositoryPgTest extends PostgresTestBase {
 
+    private static final String INSTANCE = "TEST";
+    private static final String FOREIGN_INSTANCE = "OTHER";
+    private static final String MEMBER_QUERY = "%Member%";
+
     @Autowired
     private SearchRepository searchRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private DenormalizationRepository denormalizationRepository;
@@ -66,7 +74,7 @@ class SearchRepositoryPgTest extends PostgresTestBase {
 
     @Test
     void searchUnionAggregatesServiceTypesForServiceRows() {
-        List<SearchHitRow> rows = searchRepository.searchUnion("%svc%", 10, 0);
+        List<SearchHitRow> rows = searchRepository.searchUnion(INSTANCE, "%svc%", 10, 0);
 
         assertEquals(3, rows.size(), "only svcA, svcB, svcF are active and match; svcC/D/E must be excluded");
         assertEquals("OPENAPI,SOAP", serviceTypesOf(rows, "svcA"), "svcA aggregates ids 21 (SOAP) and 22 (OPENAPI)");
@@ -77,7 +85,7 @@ class SearchRepositoryPgTest extends PostgresTestBase {
 
     @Test
     void searchUnionReturnsIsProviderTrueForMemberRowMatchingProvider() {
-        List<SearchHitRow> rows = searchRepository.searchUnion("%Provider%", 10, 0);
+        List<SearchHitRow> rows = searchRepository.searchUnion(INSTANCE, "%Provider%", 10, 0);
 
         assertEquals(1, rows.size(), "only M1's name \"Provider Member\" contains \"Provider\"");
         SearchHitRow m1 = rows.get(0);
@@ -89,7 +97,7 @@ class SearchRepositoryPgTest extends PostgresTestBase {
     @Test
     void searchUnionExcludesRemovedMemberEvenWhenNameMatches() {
         // All four members' names contain "Member", but M3 ("Removed Member") is removed.
-        List<SearchHitRow> rows = searchRepository.searchUnion("%Member%", 10, 0);
+        List<SearchHitRow> rows = searchRepository.searchUnion(INSTANCE, MEMBER_QUERY, 10, 0);
 
         assertEquals(3, rows.size(), "M3 must be excluded despite its name matching");
         assertTrue(rows.stream().noneMatch(r -> "M3".equals(r.getMemberCode())), "member_code M3 must not appear");
@@ -101,7 +109,7 @@ class SearchRepositoryPgTest extends PostgresTestBase {
     @Test
     void searchUnionReturnsOnlySs1ForSubsystemQuery() {
         // SS1-SS4 all match "%SS%"; only SS1 survives the removed/parent-cascade filters.
-        List<SearchHitRow> rows = searchRepository.searchUnion("%SS%", 10, 0);
+        List<SearchHitRow> rows = searchRepository.searchUnion(INSTANCE, "%SS%", 10, 0);
 
         assertEquals(1, rows.size());
         SearchHitRow ss1 = rows.get(0);
@@ -113,9 +121,9 @@ class SearchRepositoryPgTest extends PostgresTestBase {
 
     @Test
     void countSearchUnionMatchesUnpagedRowCountForEveryQuery() {
-        for (String qLike : List.of("%svc%", "%Provider%", "%Member%", "%SS%")) {
-            long count = searchRepository.countSearchUnion(qLike);
-            List<SearchHitRow> all = searchRepository.searchUnion(qLike, 10_000, 0);
+        for (String qLike : List.of("%svc%", "%Provider%", MEMBER_QUERY, "%SS%")) {
+            long count = searchRepository.countSearchUnion(INSTANCE, qLike);
+            List<SearchHitRow> all = searchRepository.searchUnion(INSTANCE, qLike, 10_000, 0);
             assertEquals(count, all.size(), "countSearchUnion mismatch for " + qLike);
         }
     }
@@ -123,9 +131,9 @@ class SearchRepositoryPgTest extends PostgresTestBase {
     @Test
     void searchUnionLimitOffsetPagesThroughServiceResultsDeterministically() {
         // Sort key order for "%svc%" is lowercased service_code: svca, svcb, svcf.
-        List<SearchHitRow> page0 = searchRepository.searchUnion("%svc%", 1, 0);
-        List<SearchHitRow> page1 = searchRepository.searchUnion("%svc%", 1, 1);
-        List<SearchHitRow> page2 = searchRepository.searchUnion("%svc%", 1, 2);
+        List<SearchHitRow> page0 = searchRepository.searchUnion(INSTANCE, "%svc%", 1, 0);
+        List<SearchHitRow> page1 = searchRepository.searchUnion(INSTANCE, "%svc%", 1, 1);
+        List<SearchHitRow> page2 = searchRepository.searchUnion(INSTANCE, "%svc%", 1, 2);
 
         assertEquals(1, page0.size());
         assertEquals(1, page1.size());
@@ -135,6 +143,33 @@ class SearchRepositoryPgTest extends PostgresTestBase {
         assertEquals("svcF", page2.get(0).getServiceCode());
         assertEquals(3L, page0.get(0).getTotalCount(),
                 "total_count must reflect all matching rows, not just the 1-row page");
+    }
+
+    /**
+     * Search must be instance-scoped like every other V2 read: hits from another instance would 404
+     * on the follow-up browse call.
+     */
+    @Test
+    @Sql(scripts = {"classpath:pg/v2-fixture.sql", "classpath:pg/search-foreign-instance.sql"},
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void searchUnionExcludesRowsBelongingToAnotherXRoadInstance() {
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM member WHERE x_road_instance = 'OTHER'", Integer.class),
+                "the foreign-instance row must be present in the base table");
+
+        List<SearchHitRow> members = searchRepository.searchUnion(INSTANCE, MEMBER_QUERY, 10, 0);
+        assertEquals(3, members.size(), "M5 belongs to instance OTHER and must not be a hit");
+        assertTrue(members.stream().noneMatch(r -> "M5".equals(r.getMemberCode())));
+        assertEquals(3L, searchRepository.countSearchUnion(INSTANCE, MEMBER_QUERY));
+
+        assertTrue(searchRepository.searchUnion(INSTANCE, "%SS5%", 10, 0).isEmpty(),
+                "a subsystem of a foreign-instance member must not be a hit");
+        assertTrue(searchRepository.searchUnion(INSTANCE, "%svcG%", 10, 0).isEmpty(),
+                "a service of a foreign-instance member must not be a hit");
+
+        List<SearchHitRow> foreignHits = searchRepository.searchUnion(FOREIGN_INSTANCE, MEMBER_QUERY, 10, 0);
+        assertEquals(1, foreignHits.size(), "the same query scoped to OTHER returns only its own member");
+        assertEquals("M5", foreignHits.get(0).getMemberCode());
     }
 
     private static String serviceTypesOf(List<SearchHitRow> rows, String serviceCode) {

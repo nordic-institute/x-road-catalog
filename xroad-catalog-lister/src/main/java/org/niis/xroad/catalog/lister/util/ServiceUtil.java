@@ -148,7 +148,7 @@ public final class ServiceUtil {
             securityServerDataList = sharedParamsParser.parseDetails(sharedParamsFile);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             throw new CatalogListerRuntimeException(
-                    "Exception when parsing security server data from sharedParams file: " + e);
+                    "Exception when parsing Security Server data from sharedParams file: " + e);
         }
         return securityServerDataList;
     }

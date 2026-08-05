@@ -70,6 +70,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class PgQueryCountTest extends PostgresTestBase {
 
+    private static final String INSTANCE = "TEST";
+
     @Autowired
     private MemberRepository memberRepository;
 
@@ -115,12 +117,12 @@ class PgQueryCountTest extends PostgresTestBase {
     void findActiveForListMemberQueryCountIsExactlyTwoAtBothPageSizes() {
         entityManager.clear();
         stats.clear();
-        Page<?> page1 = memberRepository.findActiveForList("TEST", null, null, PageRequest.of(0, 1));
+        Page<?> page1 = memberRepository.findActiveForList(INSTANCE, null, null, PageRequest.of(0, 1));
         long queriesAtPageSize1 = stats.getPrepareStatementCount();
 
         entityManager.clear();
         stats.clear();
-        Page<?> page20 = memberRepository.findActiveForList("TEST", null, null, PageRequest.of(0, 20));
+        Page<?> page20 = memberRepository.findActiveForList(INSTANCE, null, null, PageRequest.of(0, 20));
         long queriesAtPageSize20 = stats.getPrepareStatementCount();
 
         assertEquals(1, page1.getContent().size());
@@ -140,12 +142,12 @@ class PgQueryCountTest extends PostgresTestBase {
     void findActiveForListSubsystemQueryCountIsExactlyTwoAtBothPageSizes() {
         entityManager.clear();
         stats.clear();
-        Page<?> page1 = subsystemRepository.findActiveForList("TEST", null, PageRequest.of(0, 1));
+        Page<?> page1 = subsystemRepository.findActiveForList(INSTANCE, null, PageRequest.of(0, 1));
         long queriesAtPageSize1 = stats.getPrepareStatementCount();
 
         entityManager.clear();
         stats.clear();
-        Page<?> page20 = subsystemRepository.findActiveForList("TEST", null, PageRequest.of(0, 20));
+        Page<?> page20 = subsystemRepository.findActiveForList(INSTANCE, null, PageRequest.of(0, 20));
         long queriesAtPageSize20 = stats.getPrepareStatementCount();
 
         assertEquals(1, page1.getContent().size());
@@ -178,11 +180,11 @@ class PgQueryCountTest extends PostgresTestBase {
     }
 
     private long runServicesListSequence(PageRequest pageRequest) {
-        long count = serviceRepository.countActiveAggregatesForList("TEST", null, null);
+        long count = serviceRepository.countActiveAggregatesForList(INSTANCE, null, null);
         assertEquals(3, count, "SS1 has 3 distinct active service codes: svcA, svcB, svcF");
 
         List<ServiceAggregateRow> aggregates =
-                serviceRepository.findActiveAggregatesForList("TEST", null, null, pageRequest);
+                serviceRepository.findActiveAggregatesForList(INSTANCE, null, null, pageRequest);
         assertFalse(aggregates.isEmpty());
 
         Set<Long> subsystemIds = aggregates.stream()
@@ -204,12 +206,12 @@ class PgQueryCountTest extends PostgresTestBase {
     void searchQueryCountIsExactlyOneAndInvariantWithResultSetSize() {
         entityManager.clear();
         stats.clear();
-        List<SearchHitRow> smallPage = searchRepository.searchUnion("%svc%", 1, 0);
+        List<SearchHitRow> smallPage = searchRepository.searchUnion(INSTANCE, "%svc%", 1, 0);
         long queriesSmallPage = stats.getPrepareStatementCount();
 
         entityManager.clear();
         stats.clear();
-        List<SearchHitRow> largePage = searchRepository.searchUnion("%svc%", 10, 0);
+        List<SearchHitRow> largePage = searchRepository.searchUnion(INSTANCE, "%svc%", 10, 0);
         long queriesLargePage = stats.getPrepareStatementCount();
 
         assertEquals(1, smallPage.size());

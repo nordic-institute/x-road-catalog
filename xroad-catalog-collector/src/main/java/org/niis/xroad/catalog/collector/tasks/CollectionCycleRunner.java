@@ -25,21 +25,24 @@
 package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
  * One collection cycle: list clients, block until the {@link FetchWorkTracker} pending counter
  * reaches zero, recompute the denormalized columns, then finalize the {@link CollectionRun} row.
  *
- * <p>The wait is unbounded by design: all collector I/O has explicit client timeouts, so every
- * fetch worker terminates and the counter reaches zero. The tick passed to
- * {@link FetchWorkTracker#awaitAllDone(long)} is a reporting interval, not a deadline — each tick
- * writes the pending count to the run row for heartbeat visibility.
+ * <p>The tick passed to {@link FetchWorkTracker#awaitAllDone(long)} is a reporting interval, not a
+ * deadline — each tick writes the pending count to the run row for heartbeat visibility. The wait
+ * itself ends at the end of the configured fetch window, so a counter that never drains cannot block
+ * the scheduler thread and stop collection altogether. A fetch window configured as unlimited has no
+ * end, so in that case the wait stays unbounded.
  *
  * <p>{@link #run()} never throws: it is the fixed-delay scheduler body, and an uncaught exception
  * would permanently kill the schedule.
@@ -54,39 +57,41 @@ public class CollectionCycleRunner {
     private final RecomputeDenormalizedColumnsTask recomputeTask;
     private final CollectionRunRepository collectionRunRepository;
     private final FetchWorkTracker fetchWorkTracker;
+    private final TaskPoolConfiguration taskPoolConfiguration;
     private final long tickMillis;
 
     @Autowired
     public CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
-            CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker) {
-        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, TICK_MILLIS);
+            CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
+            TaskPoolConfiguration taskPoolConfiguration) {
+        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, TICK_MILLIS);
     }
 
     CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
-            CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker, long tickMillis) {
+            CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
+            TaskPoolConfiguration taskPoolConfiguration, long tickMillis) {
         this.listClientsTask = listClientsTask;
         this.recomputeTask = recomputeTask;
         this.collectionRunRepository = collectionRunRepository;
         this.fetchWorkTracker = fetchWorkTracker;
+        this.taskPoolConfiguration = taskPoolConfiguration;
         this.tickMillis = tickMillis;
     }
 
     public void run() {
         CollectionRun run = startRun();
-        if (fetchWorkTracker.pending() > 0) {
-            log.warn("Collection cycle starting with {} items already pending from a previous cycle", fetchWorkTracker.pending());
+        long leftover = fetchWorkTracker.reset();
+        if (leftover > 0) {
+            log.warn("Collection cycle discarded {} items left pending by a previous cycle", leftover);
         }
         boolean listClientsOk = false;
         boolean allWorkDone = false;
         try {
+            LocalDateTime deadline = fetchWindowEnd();
             listClientsTask.run();
             listClientsOk = true;
             writeProgress(run);
-            while (!fetchWorkTracker.awaitAllDone(tickMillis)) {
-                log.info("Still collecting, {} items pending", fetchWorkTracker.pending());
-                writeProgress(run);
-            }
-            allWorkDone = true;
+            allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.warn("Interrupted while waiting for fetch tasks to finish", e);
@@ -98,6 +103,32 @@ public class CollectionCycleRunner {
             recomputeTask.run();
             finalizeRun(run, listClientsOk && allWorkDone);
         }
+    }
+
+    /**
+     * End of the window in which the collector is allowed to fetch, or null when fetching is unlimited.
+     * Reuses the {@code fetch-time-before-hour} semantics of {@link ListClientsTask}.
+     */
+    private LocalDateTime fetchWindowEnd() {
+        if (taskPoolConfiguration.isFetchRunUnlimited()) {
+            return null;
+        }
+        return LocalDate.now().atTime(taskPoolConfiguration.getFetchTimeBeforeHour(), 0);
+    }
+
+    private boolean awaitAllWorkDone(CollectionRun run, LocalDateTime deadline) throws InterruptedException {
+        while (!fetchWorkTracker.awaitAllDone(tickMillis)) {
+            if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
+                log.error("Fetch window ended at {} with {} items still pending; abandoning this collection cycle",
+                        deadline, fetchWorkTracker.pending());
+                long discarded = fetchWorkTracker.reset();
+                log.warn("Discarded {} pending items of the abandoned collection cycle", discarded);
+                return false;
+            }
+            log.info("Collecting ecosystem data, {} items pending", fetchWorkTracker.pending());
+            writeProgress(run);
+        }
+        return true;
     }
 
     private CollectionRun startRun() {

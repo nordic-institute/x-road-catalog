@@ -59,8 +59,7 @@ public abstract class BaseFetchTask<T> implements Runnable {
 
                 // take() blocks until an element becomes available or it gets interrupted
                 T input = inputQueue.take();
-                semaphore.acquire();
-                Thread.ofVirtual().start(() -> wrappedFetch(input));
+                FetchHandOff.handOff(semaphore, fetchWorkTracker, () -> wrappedFetch(input));
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while handling inputs, stopping {}", getClass().getSimpleName(), e);

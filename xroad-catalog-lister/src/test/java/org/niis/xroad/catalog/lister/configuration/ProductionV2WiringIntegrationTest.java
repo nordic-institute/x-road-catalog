@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Boots the real production wiring (no {@code test} profile, so {@link V2ProductionConfiguration}
+ * Boots the real production wiring (no {@code test} profile, so {@link ProductionConfigurationV2}
  * fires) against a Liquibase-managed Postgres schema and proves the V2 read-model repositories
  * resolve and execute a query against it. Every other lister test runs the {@code test} profile
  * (H2, {@code create-drop}), where {@code v2.entity} is deliberately never scanned, so only this

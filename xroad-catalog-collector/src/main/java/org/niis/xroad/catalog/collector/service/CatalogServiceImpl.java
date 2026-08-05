@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.catalog.collector.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.persistence.entity.Endpoint;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.entity.Member;
@@ -63,6 +64,7 @@ import java.util.stream.StreamSupport;
  */
 @Component
 @Transactional
+@Slf4j
 public class CatalogServiceImpl implements CatalogService {
 
     private static final String NOT_FOUND = " not found!";
@@ -173,6 +175,11 @@ public class CatalogServiceImpl implements CatalogService {
     public void saveWsdl(SubsystemId subsystemId, ServiceId serviceId, String wsdlString) {
         Assert.notNull(subsystemId, SUBSYSTEM_ID_REQUIRED);
         Assert.notNull(serviceId, SERVICE_ID_REQUIRED);
+        if (isBlank(wsdlString)) {
+            log.warn("Blank WSDL for service {}, keeping the stored descriptor", serviceId);
+            saveBlankDescriptorErrorLog(subsystemId, serviceId, "WSDL");
+            return;
+        }
         Service oldService = getExistingService(subsystemId, serviceId);
         LocalDateTime now = LocalDateTime.now();
         Wsdl wsdl = new Wsdl();
@@ -207,6 +214,11 @@ public class CatalogServiceImpl implements CatalogService {
     public void saveOpenApi(SubsystemId subsystemId, ServiceId serviceId, String openApiString) {
         Assert.notNull(subsystemId, SUBSYSTEM_ID_REQUIRED);
         Assert.notNull(serviceId, SERVICE_ID_REQUIRED);
+        if (isBlank(openApiString)) {
+            log.warn("Blank OpenAPI for service {}, keeping the stored descriptor", serviceId);
+            saveBlankDescriptorErrorLog(subsystemId, serviceId, "OpenAPI");
+            return;
+        }
         Service oldService = getExistingService(subsystemId, serviceId);
         LocalDateTime now = LocalDateTime.now();
         OpenApi openApi = new OpenApi();
@@ -386,5 +398,26 @@ public class CatalogServiceImpl implements CatalogService {
             throw new IllegalStateException("service " + serviceId + NOT_FOUND);
         }
         return oldService;
+    }
+
+    private void saveBlankDescriptorErrorLog(SubsystemId subsystemId, ServiceId serviceId, String descriptorType) {
+        ErrorLog errorLog = ErrorLog.builder()
+                .created(LocalDateTime.now())
+                .message("Blank " + descriptorType + " descriptor fetched for service " + serviceId
+                        + ", keeping the stored descriptor")
+                .code("500")
+                .xRoadInstance(subsystemId.getXRoadInstance())
+                .memberClass(subsystemId.getMemberClass())
+                .memberCode(subsystemId.getMemberCode())
+                .subsystemCode(subsystemId.getSubsystemCode())
+                .serviceCode(serviceId.getServiceCode())
+                .serviceVersion(serviceId.getServiceVersion())
+                .build();
+        errorLogRepository.save(errorLog);
+    }
+
+    // A failed WSDL or OpenAPI fetch produces no descriptor content; storing it would destroy the collected one.
+    private static boolean isBlank(String data) {
+        return data == null || data.isBlank();
     }
 }

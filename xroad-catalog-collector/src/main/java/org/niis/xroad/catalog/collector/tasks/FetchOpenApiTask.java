@@ -84,7 +84,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
                 catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(),
                         endpoint.getPath());
             }
-            log.info("Saved OpenApi for {} successfully", IdentifierUtil.toString(service));
+            log.info("Processed OpenApi for {} successfully", IdentifierUtil.toString(service));
         } catch (Exception e) {
             log.error("Failed to fetch OpenAPI for {}", IdentifierUtil.toString(service), e);
         }

@@ -28,6 +28,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +36,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassInfo;
-import org.niis.xroad.catalog.lister.v2.dto.SecurityServerInfoV2;
-import org.niis.xroad.catalog.lister.v2.dto.SubsystemNameInfo;
 import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2;
+import org.niis.xroad.catalog.lister.v2.parser.SharedParamsParserV2.ParsedSharedParams;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -49,6 +49,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -65,6 +70,15 @@ import static org.mockito.Mockito.when;
 class SharedParamsCacheTest {
 
     private static final String SHARED_PARAMS_FILE = "shared-params.xml";
+    private static final String METADATA_FILE = "shared-params.xml.metadata";
+    private static final String MOCKED_PARSER_CONTENT = "irrelevant, parser is mocked";
+    private static final String INSTANCE = "DEV";
+    private static final String MEMBER_CLASS_CODE = "PUB";
+    private static final String MEMBER_CLASS_DESCRIPTION = "Public";
+    private static final ParsedSharedParams EMPTY_PARSE =
+            new ParsedSharedParams(List.of(), List.of(), List.of());
+    private static final long TIMEOUT_SECONDS = 5;
+    private static final long JOIN_MILLIS = 5_000;
 
     @Mock
     private SharedParamsParserV2 parser;
@@ -80,63 +94,96 @@ class SharedParamsCacheTest {
 
     @Test
     void twoCallsWithinTtlInvokeParserOnlyOnce() throws Exception {
-        stubEmptyParseResults();
+        stubEmptyParse();
 
         cache.securityServers();
         cache.securityServers();
 
-        verify(parser, times(1)).parseSecurityServers(anyString());
-        verify(parser, times(1)).parseSubsystemNames(anyString());
-        verify(parser, times(1)).parseMemberClasses(anyString());
+        verify(parser, times(1)).parse(anyString());
+    }
+
+    @Test
+    void oneRefreshParsesTheDocumentOnceForEveryDerivedResultSet() throws Exception {
+        stubEmptyParse();
+
+        cache.subsystemNames();
+        cache.memberClasses();
+        cache.securityServers();
+
+        verify(parser, times(1)).parse(anyString());
     }
 
     @Test
     void refreshesAfterTtlExpires() throws Exception {
-        stubEmptyParseResults();
+        stubEmptyParse();
 
         cache.securityServers();
         clock.advance(Duration.ofSeconds(61));
         cache.securityServers();
 
-        verify(parser, times(2)).parseSecurityServers(anyString());
+        verify(parser, times(2)).parse(anyString());
     }
 
     @Test
     void staysCachedJustUnderTtl() throws Exception {
-        stubEmptyParseResults();
+        stubEmptyParse();
 
         cache.securityServers();
         clock.advance(Duration.ofSeconds(59));
         cache.securityServers();
 
-        verify(parser, times(1)).parseSecurityServers(anyString());
+        verify(parser, times(1)).parse(anyString());
     }
 
     @Test
     void memberClassesReadsDescriptionsAndCodesFromASingleParse() throws Exception {
-        stubEmptyParseResults();
-        when(parser.parseMemberClasses(anyString())).thenReturn(List.of(
-                MemberClassInfo.builder().code("PUB").description("Public").build()));
+        when(parser.parse(anyString())).thenReturn(parseWithMemberClass());
 
         SharedParamsCache.MemberClasses memberClasses = cache.memberClasses();
 
-        assertEquals("Public", memberClasses.descriptions().get("PUB"));
-        assertTrue(memberClasses.codes().contains("PUB"));
-        verify(parser, times(1)).parseMemberClasses(anyString());
+        assertEquals(MEMBER_CLASS_DESCRIPTION, memberClasses.descriptions().get(MEMBER_CLASS_CODE));
+        assertTrue(memberClasses.codes().contains(MEMBER_CLASS_CODE));
+        verify(parser, times(1)).parse(anyString());
+    }
+
+    /**
+     * Guards the take-one-snapshot-reference rule in memberClasses(): were it refactored into two
+     * independent cache reads (descriptions, then codes), a TTL expiry between them would mix data
+     * from two different parses. The first parse advances the clock past the TTL, so any second
+     * cache read would refresh and return the second parse's member class instead.
+     */
+    @Test
+    void memberClassesNeverMixesDescriptionsAndCodesAcrossARefreshBoundary() throws Exception {
+        when(parser.parse(anyString()))
+                .thenAnswer(invocation -> {
+                    clock.advance(Duration.ofSeconds(61));
+                    return parseWithMemberClass();
+                })
+                .thenReturn(new ParsedSharedParams(
+                        List.of(MemberClassInfo.builder().code("OTHER").description("Other").build()),
+                        List.of(), List.of()));
+
+        SharedParamsCache.MemberClasses memberClasses = cache.memberClasses();
+
+        assertEquals(Set.of(MEMBER_CLASS_CODE), memberClasses.codes());
+        assertEquals(MEMBER_CLASS_DESCRIPTION, memberClasses.descriptions().get(MEMBER_CLASS_CODE));
+        assertFalse(memberClasses.descriptions().containsKey("OTHER"),
+                "descriptions and codes must come from the same snapshot, never from two parses");
     }
 
     @Test
     void parseFailureYieldsEmptyResultsWithoutThrowingAndIsCachedForTheTtl() throws Exception {
-        when(parser.parseSubsystemNames(anyString())).thenThrow(new IOException("boom"));
+        when(parser.parse(anyString())).thenThrow(new IOException(
+                "did not validate against any supported shared-parameters schema version (V2-V5)"));
 
         assertTrue(cache.securityServers().isEmpty());
         assertTrue(cache.memberClassDescriptions().isEmpty());
         assertTrue(cache.memberClassCodes().isEmpty());
-        assertNull(cache.subsystemNames().resolve("PUB", "1234", "sub"));
+        assertNull(cache.subsystemNames().resolve(MEMBER_CLASS_CODE, "1234", "sub"));
 
         // still within the TTL window: the failed parse must not be retried on every call
         cache.securityServers();
-        verify(parser, times(1)).parseSubsystemNames(anyString());
+        verify(parser, times(1)).parse(anyString());
     }
 
     @Test
@@ -148,34 +195,58 @@ class SharedParamsCacheTest {
 
     @Test
     void getCurrentInstanceCachesValueForeverAfterFirstSuccess(@TempDir Path tmp) throws Exception {
-        Path file = tmp.resolve("shared-params.xml");
-        Files.writeString(file, "irrelevant, parser is mocked");
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
+        Files.writeString(file, MOCKED_PARSER_CONTENT);
         SharedParamsCache fileBacked = new SharedParamsCache(parser, clock, file.toString());
-        when(parser.parseInstanceIdentifier(file.toString())).thenReturn("DEV");
+        when(parser.parseInstanceIdentifier(file.toString())).thenReturn(INSTANCE);
 
-        assertEquals("DEV", fileBacked.getCurrentInstance());
+        assertEquals(INSTANCE, fileBacked.getCurrentInstance());
 
         // Delete the file — a fresh load would now fail. The cached call must succeed.
         Files.delete(file);
-        assertEquals("DEV", fileBacked.getCurrentInstance());
+        assertEquals(INSTANCE, fileBacked.getCurrentInstance());
         verify(parser, times(1)).parseInstanceIdentifier(file.toString());
     }
 
+    /**
+     * Guards the retry-on-failure contract: the 503 raised while shared-params.xml has not been
+     * synced yet must NOT be cached — the next call must load and succeed once the file appears.
+     * Protects against refactoring getCurrentInstance() into a failure-caching memoizer.
+     */
     @Test
-    void getCurrentInstanceRecoversAfterFileAppears(@TempDir Path tmp) throws Exception {
-        Path file = tmp.resolve("shared-params.xml");
+    void getCurrentInstanceDoesNotCacheTheMissingFileFailureAndRecoversAfterFileAppears(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
         SharedParamsCache fileBacked = new SharedParamsCache(parser, clock, file.toString());
 
         assertThrows(ResponseStatusException.class, fileBacked::getCurrentInstance);
 
-        Files.writeString(file, "irrelevant, parser is mocked");
-        when(parser.parseInstanceIdentifier(file.toString())).thenReturn("DEV");
-        assertEquals("DEV", fileBacked.getCurrentInstance());
+        Files.writeString(file, MOCKED_PARSER_CONTENT);
+        when(parser.parseInstanceIdentifier(file.toString())).thenReturn(INSTANCE);
+        assertEquals(INSTANCE, fileBacked.getCurrentInstance());
+    }
+
+    /**
+     * Same retry-on-failure contract for the other failure mode: a load that reaches the parser and
+     * fails (file present but not yet valid) must not be cached either — the next call retries.
+     */
+    @Test
+    void getCurrentInstanceDoesNotCacheAFailedParseAndRetriesOnTheNextCall(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
+        Files.writeString(file, MOCKED_PARSER_CONTENT);
+        SharedParamsCache fileBacked = new SharedParamsCache(parser, clock, file.toString());
+        when(parser.parseInstanceIdentifier(file.toString()))
+                .thenThrow(new IOException("does not validate yet"))
+                .thenReturn(INSTANCE);
+
+        assertThrows(IllegalStateException.class, fileBacked::getCurrentInstance);
+
+        assertEquals(INSTANCE, fileBacked.getCurrentInstance());
+        verify(parser, times(2)).parseInstanceIdentifier(file.toString());
     }
 
     @Test
     void getCurrentInstanceWrapsParseFailureAsIllegalState(@TempDir Path tmp) throws Exception {
-        Path file = tmp.resolve("shared-params.xml");
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
         Files.writeString(file, "not valid shared-params");
         SharedParamsCache fileBacked = new SharedParamsCache(parser, clock, file.toString());
         when(parser.parseInstanceIdentifier(file.toString())).thenThrow(new IOException("does not validate"));
@@ -183,9 +254,108 @@ class SharedParamsCacheTest {
         assertThrows(IllegalStateException.class, fileBacked::getCurrentInstance);
     }
 
+    /**
+     * The instance identifier never changes once known, so resolving it must not queue behind the
+     * TTL re-parse that nearly every V2 request would otherwise wait for.
+     */
+    @Test
+    void getCurrentInstanceDoesNotBlockWhileARefreshIsInProgress(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
+        Files.writeString(file, MOCKED_PARSER_CONTENT);
+        SharedParamsCache fileBacked = new SharedParamsCache(parser, clock, file.toString());
+        CountDownLatch parseEntered = new CountDownLatch(1);
+        CountDownLatch releaseParse = new CountDownLatch(1);
+        when(parser.parse(file.toString())).thenAnswer(invocation -> {
+            parseEntered.countDown();
+            awaitLatch(releaseParse);
+            return EMPTY_PARSE;
+        });
+        when(parser.parseInstanceIdentifier(file.toString())).thenReturn(INSTANCE);
+        AtomicReference<String> resolvedInstance = new AtomicReference<>();
+        Thread refresher = new Thread(fileBacked::securityServers);
+        Thread reader = new Thread(() -> resolvedInstance.set(fileBacked.getCurrentInstance()));
+
+        try {
+            refresher.start();
+            awaitLatch(parseEntered);
+            reader.start();
+
+            Awaitility.await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+                    .until(() -> INSTANCE.equals(resolvedInstance.get()));
+        } finally {
+            releaseParse.countDown();
+            refresher.join(JOIN_MILLIS);
+            reader.join(JOIN_MILLIS);
+        }
+    }
+
+    @Test
+    void readersAreServedTheExpiredSnapshotWhileAnotherThreadRefreshes() throws Exception {
+        CountDownLatch parseEntered = new CountDownLatch(1);
+        CountDownLatch releaseParse = new CountDownLatch(1);
+        AtomicInteger parses = new AtomicInteger();
+        when(parser.parse(anyString())).thenAnswer(invocation -> {
+            if (parses.incrementAndGet() == 1) {
+                return parseWithMemberClass();
+            }
+            parseEntered.countDown();
+            awaitLatch(releaseParse);
+            return EMPTY_PARSE;
+        });
+        assertTrue(cache.memberClassCodes().contains(MEMBER_CLASS_CODE));
+        clock.advance(Duration.ofSeconds(61));
+        AtomicReference<Set<String>> readerCodes = new AtomicReference<>();
+        Thread refresher = new Thread(cache::memberClassCodes);
+        Thread reader = new Thread(() -> readerCodes.set(cache.memberClassCodes()));
+
+        try {
+            refresher.start();
+            awaitLatch(parseEntered);
+            reader.start();
+
+            Awaitility.await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS)).until(() -> readerCodes.get() != null);
+            assertTrue(readerCodes.get().contains(MEMBER_CLASS_CODE),
+                    "an expired snapshot is served while one thread re-parses, instead of blocking the reader");
+        } finally {
+            releaseParse.countDown();
+            refresher.join(JOIN_MILLIS);
+            reader.join(JOIN_MILLIS);
+        }
+        assertTrue(cache.memberClassCodes().isEmpty(), "the re-parse result replaces the expired snapshot");
+        assertEquals(2, parses.get(), "an expired TTL must trigger exactly one re-parse");
+    }
+
+    @Test
+    void theFirstLoadWaitsInsteadOfServingAnUnparsedSnapshot() throws Exception {
+        CountDownLatch parseEntered = new CountDownLatch(1);
+        CountDownLatch releaseParse = new CountDownLatch(1);
+        when(parser.parse(anyString())).thenAnswer(invocation -> {
+            parseEntered.countDown();
+            awaitLatch(releaseParse);
+            return parseWithMemberClass();
+        });
+        AtomicReference<Set<String>> readerCodes = new AtomicReference<>();
+        Thread loader = new Thread(cache::memberClassCodes);
+        Thread reader = new Thread(() -> readerCodes.set(cache.memberClassCodes()));
+
+        loader.start();
+        awaitLatch(parseEntered);
+        reader.start();
+        Awaitility.await().atMost(Duration.ofSeconds(TIMEOUT_SECONDS))
+                .until(() -> reader.getState() == Thread.State.WAITING);
+        assertNull(readerCodes.get(), "an empty snapshot must not be served before the first parse completes");
+
+        releaseParse.countDown();
+        loader.join(JOIN_MILLIS);
+        reader.join(JOIN_MILLIS);
+
+        assertTrue(readerCodes.get().contains(MEMBER_CLASS_CODE));
+        verify(parser, times(1)).parse(anyString());
+    }
+
     @Test
     void globalConfExpiryReadsExpirationFromMetadataSidecar(@TempDir Path tmp) throws Exception {
-        stubEmptyParseResults();
+        stubEmptyParse();
         SharedParamsCache fileBacked = cacheWithMetadata(tmp, "2024-01-02T00:00:00Z");
 
         SharedParamsCache.GlobalConfExpiry expiry = fileBacked.globalConfExpiry();
@@ -196,9 +366,7 @@ class SharedParamsCacheTest {
 
     @Test
     void expiredGlobalConfIsFlaggedAndWarnedButDataIsStillServed(@TempDir Path tmp) throws Exception {
-        stubEmptyParseResults();
-        when(parser.parseMemberClasses(anyString())).thenReturn(List.of(
-                MemberClassInfo.builder().code("PUB").description("Public").build()));
+        when(parser.parse(anyString())).thenReturn(parseWithMemberClass());
         SharedParamsCache fileBacked = cacheWithMetadata(tmp, "2023-12-31T12:00:00Z");
         ListAppender<ILoggingEvent> appender = attachAppender();
         try {
@@ -206,7 +374,7 @@ class SharedParamsCacheTest {
 
             assertTrue(expiry.expired());
             assertEquals(Instant.parse("2023-12-31T12:00:00Z"), expiry.expiresAt());
-            assertTrue(fileBacked.memberClassCodes().contains("PUB"),
+            assertTrue(fileBacked.memberClassCodes().contains(MEMBER_CLASS_CODE),
                     "expired conf must be flagged, not refused — data is still served");
             List<ILoggingEvent> warns = appender.list.stream()
                     .filter(event -> event.getLevel() == Level.WARN).toList();
@@ -219,7 +387,7 @@ class SharedParamsCacheTest {
 
     @Test
     void missingMetadataSidecarReportsUnknownExpiryWithoutWarning() throws Exception {
-        stubEmptyParseResults();
+        stubEmptyParse();
         ListAppender<ILoggingEvent> appender = attachAppender();
         try {
             SharedParamsCache.GlobalConfExpiry expiry = cache.globalConfExpiry();
@@ -235,36 +403,34 @@ class SharedParamsCacheTest {
 
     @Test
     void unparsableMetadataSidecarReportsUnknownExpiryAndKeepsServingData(@TempDir Path tmp) throws Exception {
-        stubEmptyParseResults();
-        when(parser.parseMemberClasses(anyString())).thenReturn(List.of(
-                MemberClassInfo.builder().code("PUB").description("Public").build()));
-        Path file = tmp.resolve("shared-params.xml");
-        Files.writeString(file, "irrelevant, parser is mocked");
-        Files.writeString(tmp.resolve("shared-params.xml.metadata"), "not json at all");
+        when(parser.parse(anyString())).thenReturn(parseWithMemberClass());
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
+        Files.writeString(file, MOCKED_PARSER_CONTENT);
+        Files.writeString(tmp.resolve(METADATA_FILE), "not json at all");
         SharedParamsCache fileBacked = new SharedParamsCache(parser, clock, file.toString());
 
         SharedParamsCache.GlobalConfExpiry expiry = fileBacked.globalConfExpiry();
 
         assertFalse(expiry.expired());
         assertNull(expiry.expiresAt());
-        assertTrue(fileBacked.memberClassCodes().contains("PUB"));
+        assertTrue(fileBacked.memberClassCodes().contains(MEMBER_CLASS_CODE));
     }
 
     @Test
     void confLapsingMidTtlWindowIsReportedExpiredWithoutARefresh(@TempDir Path tmp) throws Exception {
-        stubEmptyParseResults();
+        stubEmptyParse();
         SharedParamsCache fileBacked = cacheWithMetadata(tmp, "2024-01-01T00:00:30Z");
 
         assertFalse(fileBacked.globalConfExpiry().expired());
         clock.advance(Duration.ofSeconds(40));
         assertTrue(fileBacked.globalConfExpiry().expired(), "expired is evaluated against the clock at call time");
-        verify(parser, times(1)).parseSecurityServers(anyString());
+        verify(parser, times(1)).parse(anyString());
     }
 
     private SharedParamsCache cacheWithMetadata(Path tmp, String expirationDate) throws IOException {
-        Path file = tmp.resolve("shared-params.xml");
-        Files.writeString(file, "irrelevant, parser is mocked");
-        Files.writeString(tmp.resolve("shared-params.xml.metadata"),
+        Path file = tmp.resolve(SHARED_PARAMS_FILE);
+        Files.writeString(file, MOCKED_PARSER_CONTENT);
+        Files.writeString(tmp.resolve(METADATA_FILE),
                 "{\"contentIdentifier\":\"SHARED-PARAMETERS\",\"instanceIdentifier\":\"DEV\","
                         + "\"expirationDate\":\"" + expirationDate + "\",\"contentFileName\":null,"
                         + "\"contentLocation\":\"\",\"configurationVersion\":\"5\"}");
@@ -282,15 +448,24 @@ class SharedParamsCacheTest {
         ((Logger) LoggerFactory.getLogger(SharedParamsCache.class)).detachAppender(appender);
     }
 
-    private void stubEmptyParseResults() throws Exception {
-        when(parser.parseSubsystemNames(anyString())).thenReturn(List.<SubsystemNameInfo>of());
-        when(parser.parseMemberClasses(anyString())).thenReturn(List.<MemberClassInfo>of());
-        when(parser.parseSecurityServers(anyString())).thenReturn(List.<SecurityServerInfoV2>of());
+    private void stubEmptyParse() throws Exception {
+        when(parser.parse(anyString())).thenReturn(EMPTY_PARSE);
+    }
+
+    private static ParsedSharedParams parseWithMemberClass() {
+        return new ParsedSharedParams(
+                List.of(MemberClassInfo.builder().code(MEMBER_CLASS_CODE).description(MEMBER_CLASS_DESCRIPTION).build()),
+                List.of(), List.of());
+    }
+
+    private static void awaitLatch(CountDownLatch latch) throws InterruptedException {
+        assertTrue(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "timed out waiting for the other thread");
     }
 
     private static final class MutableClock extends Clock {
 
-        private Instant now;
+        @SuppressWarnings("PMD.AvoidUsingVolatile")
+        private volatile Instant now;
 
         MutableClock(Instant now) {
             super();
