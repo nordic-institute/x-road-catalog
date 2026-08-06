@@ -64,7 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 @Component
 @Transactional
 @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")

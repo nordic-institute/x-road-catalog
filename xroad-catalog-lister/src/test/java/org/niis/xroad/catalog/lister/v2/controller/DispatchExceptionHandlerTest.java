@@ -25,7 +25,11 @@
 package org.niis.xroad.catalog.lister.v2.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorResponse;
 import org.springframework.http.HttpMethod;
@@ -37,6 +41,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -86,40 +91,27 @@ class DispatchExceptionHandlerTest {
         assertEquals(METHOD_NOT_ALLOWED_ERROR, response.getBody().getError());
     }
 
-    @Test
-    void nonV2PathRootContextRethrowsSoSpringDefaultHandlesIt() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("methodNotSupportedRethrowCases")
+    void handleMethodNotSupportedRethrowsForNonV2OrNullPaths(String requestUri, String contextPath) {
         HttpRequestMethodNotSupportedException ex =
                 new HttpRequestMethodNotSupportedException("POST", List.of("GET"));
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn("/api/default/getServiceStatistics");
-        Mockito.when(request.getContextPath()).thenReturn("");
+        Mockito.when(request.getRequestURI()).thenReturn(requestUri);
+        Mockito.when(request.getContextPath()).thenReturn(contextPath);
 
         assertThrows(HttpRequestMethodNotSupportedException.class,
                 () -> handler.handleMethodNotSupported(ex, request));
     }
 
-    @Test
-    void nonV2PathUnderContextPathRethrows() {
-        HttpRequestMethodNotSupportedException ex =
-                new HttpRequestMethodNotSupportedException("POST", List.of("GET"));
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn("/catalog/api/default/getServiceStatistics");
-        Mockito.when(request.getContextPath()).thenReturn("/catalog");
-
-        assertThrows(HttpRequestMethodNotSupportedException.class,
-                () -> handler.handleMethodNotSupported(ex, request));
-    }
-
-    @Test
-    void nullRequestUriRethrows() {
-        HttpRequestMethodNotSupportedException ex =
-                new HttpRequestMethodNotSupportedException("POST", List.of("GET"));
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn(null);
-        Mockito.when(request.getContextPath()).thenReturn("");
-
-        assertThrows(HttpRequestMethodNotSupportedException.class,
-                () -> handler.handleMethodNotSupported(ex, request));
+    private static Stream<Arguments> methodNotSupportedRethrowCases() {
+        return Stream.of(
+                Arguments.of(Named.of("non-V2 path at root context rethrows so Spring default handles it",
+                        "/api/default/getServiceStatistics"), ""),
+                Arguments.of(Named.of("non-V2 path under context path rethrows",
+                        "/catalog/api/default/getServiceStatistics"), "/catalog"),
+                Arguments.of(Named.of("null request URI rethrows", null), "")
+        );
     }
 
     @Test
@@ -154,28 +146,25 @@ class DispatchExceptionHandlerTest {
         assertEquals("NotAcceptable", response.getBody().getError());
     }
 
-    @Test
-    void nonV2PathContentNegotiationFailureRethrows() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("notAcceptableRethrowCases")
+    void handleNotAcceptableRethrowsForNonV2OrNullPaths(String requestUri, String contextPath) {
         HttpMediaTypeNotAcceptableException ex =
                 new HttpMediaTypeNotAcceptableException(List.of(MediaType.APPLICATION_JSON));
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn("/api/default/heartbeat");
-        Mockito.when(request.getContextPath()).thenReturn("");
+        Mockito.when(request.getRequestURI()).thenReturn(requestUri);
+        Mockito.when(request.getContextPath()).thenReturn(contextPath);
 
         assertThrows(HttpMediaTypeNotAcceptableException.class,
                 () -> handler.handleNotAcceptable(ex, request));
     }
 
-    @Test
-    void nullRequestUriOn406Rethrows() {
-        HttpMediaTypeNotAcceptableException ex =
-                new HttpMediaTypeNotAcceptableException(List.of(MediaType.APPLICATION_JSON));
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn(null);
-        Mockito.when(request.getContextPath()).thenReturn("");
-
-        assertThrows(HttpMediaTypeNotAcceptableException.class,
-                () -> handler.handleNotAcceptable(ex, request));
+    private static Stream<Arguments> notAcceptableRethrowCases() {
+        return Stream.of(
+                Arguments.of(Named.of("non-V2 path content negotiation failure rethrows",
+                        "/api/default/heartbeat"), ""),
+                Arguments.of(Named.of("null request URI on 406 rethrows", null), "")
+        );
     }
 
     @Test
@@ -209,25 +198,23 @@ class DispatchExceptionHandlerTest {
         assertEquals(NOT_FOUND_ERROR, response.getBody().getError());
     }
 
-    @Test
-    void nonV2PathUnknownResourceRethrows() {
-        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/api/default/nonexistent");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("noResourceFoundRethrowCases")
+    void handleNoResourceFoundRethrowsForNonV2OrNullPaths(String requestUri, String contextPath, String exceptionPath) {
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, exceptionPath);
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn("/api/default/nonexistent");
-        Mockito.when(request.getContextPath()).thenReturn("");
+        Mockito.when(request.getRequestURI()).thenReturn(requestUri);
+        Mockito.when(request.getContextPath()).thenReturn(contextPath);
 
         assertThrows(NoResourceFoundException.class,
                 () -> handler.handleNoResourceFound(ex, request));
     }
 
-    @Test
-    void nullRequestUriOn404Rethrows() {
-        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, UNKNOWN_V2_PATH);
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getRequestURI()).thenReturn(null);
-        Mockito.when(request.getContextPath()).thenReturn("");
-
-        assertThrows(NoResourceFoundException.class,
-                () -> handler.handleNoResourceFound(ex, request));
+    private static Stream<Arguments> noResourceFoundRethrowCases() {
+        return Stream.of(
+                Arguments.of(Named.of("non-V2 path unknown resource rethrows",
+                        "/api/default/nonexistent"), "", "/api/default/nonexistent"),
+                Arguments.of(Named.of("null request URI on 404 rethrows", null), "", UNKNOWN_V2_PATH)
+        );
     }
 }

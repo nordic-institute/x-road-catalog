@@ -28,7 +28,7 @@ sonar {
     properties {
         property("sonar.projectKey", "nordic-institute_x-road-catalog")
         property("sonar.organization", "nordic-institute")
-        property("sonar.exclusions", "**/src/test/**")
+        property("sonar.test.exclusions", "**/src/test/**")
     }
 }
 

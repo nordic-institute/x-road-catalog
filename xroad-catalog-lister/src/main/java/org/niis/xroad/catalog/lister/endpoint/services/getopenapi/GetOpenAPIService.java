@@ -36,7 +36,7 @@ import org.niis.xroad.catalog.persistence.entity.OpenApi;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class GetOpenAPIService implements ListerService<GetOpenAPIRequest, String> {
     private static final GetOpenAPIRequestDeserializer REQUEST_DESERIALIZER = new GetOpenAPIRequestDeserializer();
     private static final GetOpenAPIResponseSerializer RESPONSE_SERIALIZER = new GetOpenAPIResponseSerializer();

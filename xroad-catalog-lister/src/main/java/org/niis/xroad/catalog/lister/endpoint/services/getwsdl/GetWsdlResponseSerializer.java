@@ -34,7 +34,7 @@ import org.w3c.dom.CDATASection;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class GetWsdlResponseSerializer extends AbstractServiceResponseSerializer<GetWsdlRequest, String> {
 
     /**

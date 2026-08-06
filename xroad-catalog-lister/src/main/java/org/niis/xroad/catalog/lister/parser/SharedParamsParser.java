@@ -56,7 +56,7 @@ import java.util.Set;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 @Slf4j
 @Component
 public class SharedParamsParser {

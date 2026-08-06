@@ -35,6 +35,7 @@ import org.niis.xroad.globalconf.model.SharedParametersV2;
 import org.niis.xroad.globalconf.model.SharedParametersV3;
 import org.niis.xroad.globalconf.model.SharedParametersV4;
 import org.niis.xroad.globalconf.model.SharedParametersV5;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
@@ -108,6 +109,7 @@ public class SharedParamsParserV2 {
     // Read on every parse, written when the matching version changes
     private final AtomicReference<SchemaVersion> rememberedVersion = new AtomicReference<>();
 
+    @Autowired
     public SharedParamsParserV2() {
         this(SUPPORTED_VERSIONS);
     }

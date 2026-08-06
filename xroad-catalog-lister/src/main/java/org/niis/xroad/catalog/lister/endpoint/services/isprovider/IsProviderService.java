@@ -36,7 +36,7 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class IsProviderService implements ListerService<IsProviderRequest, Boolean> {
     private static final IsProviderRequestDeserializer REQUEST_DESERIALIZER = new IsProviderRequestDeserializer();
     private static final IsProviderResponseSerializer RESPONSE_SERIALIZER = new IsProviderResponseSerializer();

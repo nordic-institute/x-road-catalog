@@ -68,7 +68,7 @@ import java.util.List;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 @RestController
 @RequestMapping("/api")
 public class ServiceController implements ServiceOperations {

@@ -25,7 +25,6 @@
 package org.niis.xroad.catalog.lister.v2.controller;
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.niis.xroad.catalog.lister.v2.dto.HeartbeatDto;
 import org.niis.xroad.catalog.lister.v2.service.HeartbeatService;
 import org.springframework.context.annotation.PropertySource;
@@ -56,12 +55,10 @@ public class HeartbeatControllerV2 {
     }
 
     @GetMapping(path = "/heartbeat", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "App and database both healthy."),
-            @ApiResponse(responseCode = "503",
-                    description = "App or database unhealthy. Body shape is identical to the 200 response; "
-                            + "inspect appWorking and dbWorking to identify the failing dependency.")
-    })
+    @ApiResponse(responseCode = "200", description = "App and database both healthy.")
+    @ApiResponse(responseCode = "503",
+            description = "App or database unhealthy. Body shape is identical to the 200 response; "
+                    + "inspect appWorking and dbWorking to identify the failing dependency.")
     public ResponseEntity<HeartbeatDto> heartbeat() {
         HeartbeatDto body = heartbeatService.heartbeat();
         HttpStatus status = isHealthy(body) ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;

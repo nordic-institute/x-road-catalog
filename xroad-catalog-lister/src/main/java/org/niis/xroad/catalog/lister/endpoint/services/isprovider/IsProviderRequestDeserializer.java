@@ -34,7 +34,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class IsProviderRequestDeserializer extends AbstractCustomRequestDeserializer<IsProviderRequest> {
     @Override
     protected IsProviderRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {

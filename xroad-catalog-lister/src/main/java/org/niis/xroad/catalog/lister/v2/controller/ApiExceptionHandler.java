@@ -105,8 +105,7 @@ public class ApiExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
         HttpStatusCode statusCode = ex.getStatusCode();
         HttpStatus resolved = HttpStatus.resolve(statusCode.value());
-        String reason = ex.getReason() != null ? ex.getReason()
-                : (resolved != null ? resolved.getReasonPhrase() : "Request failed");
+        String reason = reasonOf(ex, resolved);
         if (statusCode.is5xxServerError()) {
             // Expected operational state (e.g. the startup window before the first global-conf sync),
             // so no stack trace and not ERROR level; the raising site logs the diagnostic context.
@@ -124,6 +123,16 @@ public class ApiExceptionHandler {
             return "Error";
         }
         return status.getReasonPhrase().replace(" ", "");
+    }
+
+    private static String reasonOf(ResponseStatusException ex, HttpStatus resolved) {
+        if (ex.getReason() != null) {
+            return ex.getReason();
+        }
+        if (resolved != null) {
+            return resolved.getReasonPhrase();
+        }
+        return "Request failed";
     }
 
     @ExceptionHandler(Exception.class)

@@ -27,7 +27,7 @@ package org.niis.xroad.catalog.lister.exception;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class CatalogListerRuntimeException extends RuntimeException {
 
     public CatalogListerRuntimeException(String s) {

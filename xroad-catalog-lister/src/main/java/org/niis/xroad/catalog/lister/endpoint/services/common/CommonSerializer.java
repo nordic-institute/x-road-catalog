@@ -40,7 +40,7 @@ import java.time.LocalDateTime;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.CommentSize", "java:S1192"})
 public final class CommonSerializer {
 

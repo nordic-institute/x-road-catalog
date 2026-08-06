@@ -35,7 +35,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
-@Deprecated
+@Deprecated(forRemoval = true)
 public class ListMembersRequestDeserializer extends AbstractCustomRequestDeserializer<ListMembersRequest> {
     @Override
     protected ListMembersRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {
