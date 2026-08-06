@@ -46,7 +46,6 @@ import org.niis.xroad.catalog.persistence.repository.ServiceRepository;
 import org.niis.xroad.catalog.persistence.repository.SubsystemRepository;
 import org.niis.xroad.catalog.persistence.repository.WsdlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -62,7 +61,7 @@ import java.util.stream.StreamSupport;
 /**
  * Implementation for catalogservice CRUD
  */
-@Component
+@org.springframework.stereotype.Service
 @Transactional
 @Slf4j
 public class CatalogServiceImpl implements CatalogService {

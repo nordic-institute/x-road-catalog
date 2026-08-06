@@ -49,7 +49,6 @@ import org.niis.xroad.catalog.persistence.repository.WsdlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -65,7 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
  */
 @Deprecated(forRemoval = true)
-@Component
+@org.springframework.stereotype.Service
 @Transactional
 @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
 public class CatalogServiceImpl implements CatalogService {
