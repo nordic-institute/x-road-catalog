@@ -101,11 +101,12 @@ values.
 
 #### Fixed-Mandatory Values for OpenAPI documentation
 
-| Spring Boot framework configurations | Defaults    | Comment                    | Since |
-|--------------------------------------|-------------|----------------------------|-------|
-| springdoc.api-docs.enabled           | `true`      | Enables OpenApi endpoint   | 1.0.0 |
-| springdoc.swagger-ui.enabled         | `true`      | Enables Swagger-UI         | 1.0.0 |
-| springdoc.swagger-ui.path            | `/api-docs` | Swagger-UI path to be used | 1.0.0 |
+| Spring Boot framework configurations  | Defaults    | Comment                                   | Since |
+|---------------------------------------|-------------|-------------------------------------------|-------|
+| springdoc.api-docs.enabled            | `true`      | Enables OpenApi endpoint                  | 1.0.0 |
+| springdoc.swagger-ui.enabled          | `true`      | Enables Swagger-UI                        | 1.0.0 |
+| springdoc.swagger-ui.path             | `/api-docs` | Swagger-UI path to be used                | 1.0.0 |
+| springdoc.swagger-ui.urls-primary-name | `v2`       | API group shown by default in Swagger-UI  | 4.0.0 |
 
 ## Build
 

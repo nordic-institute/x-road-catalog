@@ -19,6 +19,7 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /api-docs
+    urls-primary-name: v2
 
 # X-Road configuration-client parameters
 xroad:
