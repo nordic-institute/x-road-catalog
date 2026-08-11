@@ -53,6 +53,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 @Slf4j
 @Component
 public class SharedParamsParser {
@@ -80,7 +84,7 @@ public class SharedParamsParser {
     private Environment environment;
 
     /**
-     * Parses security server information from X-Road global configuration
+     * Parses Security Server information from X-Road global configuration
      * shared-params.xml.
      * Matches member elements with securityServer elements to gather the
      * information.
@@ -132,7 +136,7 @@ public class SharedParamsParser {
     }
 
     /**
-     * Parses security server information from X-Road global configuration
+     * Parses Security Server information from X-Road global configuration
      * shared-params.xml.
      * Matches member elements with securityServer elements to gather the
      * information.
@@ -154,7 +158,7 @@ public class SharedParamsParser {
     }
 
     /**
-     * Parses security server information from X-Road global configuration
+     * Parses Security Server information from X-Road global configuration
      * shared-params.xml.
      * Matches member elements with securityServer elements to gather the
      * information.

@@ -33,6 +33,10 @@ import org.niis.xroad.catalog.lister.endpoint.ListerService;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.Service;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public class GetServiceTypeService implements ListerService<GetServiceTypeRequest, String> {
     private static final GetServiceTypeRequestDeserializer REQUEST_DESERIALIZER = new GetServiceTypeRequestDeserializer();
     private static final GetServiceTypeResponseSerializer RESPONSE_SERIALIZER = new GetServiceTypeResponseSerializer();

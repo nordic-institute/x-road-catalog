@@ -87,11 +87,12 @@ public class MemberRepositoryTest {
 
     @Test
     public void testFindAll() {
+        // 11 = original members 1-8 plus fixture members 20-22 (22 is removed).
         Iterable<Member> members = memberRepository.findAll();
-        assertEquals(8, Iterables.size(members));
+        assertEquals(11, Iterables.size(members));
 
         members = memberRepository.findAllActive();
-        assertEquals(7, Iterables.size(members));
+        assertEquals(9, Iterables.size(members));
     }
 
 //    @Test

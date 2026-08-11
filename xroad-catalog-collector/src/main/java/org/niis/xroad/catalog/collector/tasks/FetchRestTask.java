@@ -49,8 +49,8 @@ public class FetchRestTask extends BaseFetchTask<XRoadIdentifier> {
     private final CatalogService catalogService;
 
     public FetchRestTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-            final BlockingQueue<XRoadIdentifier> restServicesQueue) {
-        super(restServicesQueue, taskPoolConfiguration.getFetchRestPoolSize());
+            final BlockingQueue<XRoadIdentifier> restServicesQueue, final FetchWorkTracker fetchWorkTracker) {
+        super(restServicesQueue, taskPoolConfiguration.getFetchRestPoolSize(), fetchWorkTracker);
         this.catalogService = catalogService;
     }
 

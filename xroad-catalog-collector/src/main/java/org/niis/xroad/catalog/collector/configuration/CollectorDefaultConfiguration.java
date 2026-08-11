@@ -24,13 +24,19 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+/**
+ * Scans the collector and persistence packages. Repository scanning covers only the V1 packages:
+ * the collector writes only through the V1 entities, which keeps the V2 read-model repositories
+ * out of scope.
+ */
 @Configuration
-@Import(PersistenceDefaultConfiguration.class)
-@ComponentScan(basePackages = "org.niis.xroad.catalog.collector")
+@ComponentScan(basePackages = {"org.niis.xroad.catalog.collector", "org.niis.xroad.catalog.persistence"})
+@EnableJpaRepositories("org.niis.xroad.catalog.persistence.repository")
+@EntityScan("org.niis.xroad.catalog.persistence.entity")
 public class CollectorDefaultConfiguration {
 }

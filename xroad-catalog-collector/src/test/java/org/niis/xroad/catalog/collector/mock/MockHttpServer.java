@@ -119,7 +119,7 @@ public interface MockHttpServer {
             exchange.getResponseHeaders().add("Content-Type", "application/xml");
             exchange.sendResponseHeaders(200, 0);
             try (InputStream is = resource.getInputStream();
-                 OutputStream os = exchange.getResponseBody()) {
+                    OutputStream os = exchange.getResponseBody()) {
 
                 byte[] buffer = new byte[1024];
                 int len;

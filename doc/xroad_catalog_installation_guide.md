@@ -34,6 +34,9 @@ Doc. ID: IG-XRDCAT
     * [2.5.1 X-Road Catalog Collector](#251-x-road-catalog-collector)
     * [2.5.2 X-Road Catalog Lister](#252-x-road-catalog-lister)
     * [2.5.3 services](#253-services)
+    * [2.5.4 Time zone configuration](#254-time-zone-configuration)
+    * [2.5.5 Search performance](#255-search-performance)
+    * [2.5.6 Collector timeouts](#256-collector-timeouts)
   * [2.6 SSL (optional)](#26-ssl-optional)
   * [2.7 Post-Installation Checks](#27-post-installation-checks)
   * [2.8 Logs](#28-logs)
@@ -199,6 +202,65 @@ sudo systemctl enable xroad-catalog-collector
 sudo systemctl restart xroad-catalog-lister
 sudo systemctl restart xroad-catalog-collector
 ```
+
+### 2.5.4 Time zone configuration
+
+X-Road Catalog stores every timestamp in the collector host's local wall-clock time, not UTC.
+The lister reads and serializes those timestamps back using the same convention, so
+the `xroad-catalog-collector`, `xroad-catalog-lister`, and the PostgreSQL database **must all run
+in the same time zone**. If they don't, day-boundary defaults used by the `/api/v2/reports/*` and
+`/errors` endpoints (which default to "today" in the server's local time) will be off by a day for
+requests made near midnight.
+
+Container images default to UTC, so when running X-Road Catalog in containers make sure all three
+services use the host's time zone, e.g. by bind-mounting `/etc/localtime:/etc/localtime:ro`,
+or by setting the same explicit `TZ` environment variable on all three
+services. Verify that the host's configured time zone (`timedatectl`) is the same on the
+collector host, the lister host, and the PostgreSQL host.
+
+### 2.5.5 Search performance
+
+The `/api/v2/search` endpoint matches substrings (`LIKE '%query%'`) across member names/codes,
+subsystem codes and service codes. Substring matching cannot use ordinary b-tree indexes, so each
+search request scans those tables. This is acceptable at typical catalog sizes; for very large
+ecosystems, PostgreSQL's `pg_trgm` extension with GIN trigram indexes on the searched columns
+removes the scans. X-Road Catalog does not create the extension itself — apply it manually if
+search latency becomes a concern.
+
+The search matches against the lowercased values of `member.name`, `member.member_code`,
+`subsystem.subsystem_code` and `service.service_code`, so the trigram indexes must be built on
+the same `LOWER(...)` expressions. As the database superuser:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_member_name_trgm ON member USING gin (LOWER(name) gin_trgm_ops);
+CREATE INDEX idx_member_code_trgm ON member USING gin (LOWER(member_code) gin_trgm_ops);
+CREATE INDEX idx_subsystem_code_trgm ON subsystem USING gin (LOWER(subsystem_code) gin_trgm_ops);
+CREATE INDEX idx_service_code_trgm ON service USING gin (LOWER(service_code) gin_trgm_ops);
+```
+
+### 2.5.6 Collector timeouts
+
+A collection cycle waits for all fetch work started by it to finish, so every operation a fetch
+worker performs must be time-bounded. The outbound HTTP and SOAP calls to the Security Server are
+bounded by `xroad-catalog.tasks.client-connect-timeout-seconds` (default `10`) and
+`xroad-catalog.tasks.client-read-timeout-seconds` (default `60`).
+
+Database writes are **not** bounded by those settings. The PostgreSQL JDBC driver has no read timeout
+by default, so a stalled connection (for example a silently dropped TCP connection) blocks a fetch
+worker indefinitely. Set the driver's `socketTimeout` parameter (in seconds) on the collector's
+datasource URL, and use a value larger than the slowest expected write:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://<host>:<port>/xroad_catalog?socketTimeout=60
+```
+
+For the lister the parameter is recommended rather than required, since a stalled read only affects
+the request that hit it. The packaged `application.yaml` files leave `spring.datasource.url` empty
+because the value is installation-specific, so add the parameter when configuring each URL.
 
 ## 2.6 SSL (optional)
 

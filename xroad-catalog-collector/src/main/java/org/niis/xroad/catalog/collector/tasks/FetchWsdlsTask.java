@@ -34,7 +34,9 @@ import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.IdentifierUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.util.concurrent.BlockingQueue;
 
 @Slf4j
@@ -46,8 +48,10 @@ public class FetchWsdlsTask extends BaseFetchTask<ProducerMember> {
     private final XRoadClient xroadClient;
 
     public FetchWsdlsTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-            final BlockingQueue<ProducerMember> wsdlServicesQueue) throws XRd4JException, SOAPException {
-        super(wsdlServicesQueue, taskPoolConfiguration.getFetchWsdlPoolSize());
+            final BlockingQueue<ProducerMember> wsdlServicesQueue, final FetchWorkTracker fetchWorkTracker,
+            final RestTemplate restTemplate, final Clock clock)
+            throws XRd4JException, SOAPException {
+        super(wsdlServicesQueue, taskPoolConfiguration.getFetchWsdlPoolSize(), fetchWorkTracker);
         this.catalogService = catalogService;
 
         ConsumerMember consumerMember = new ConsumerMember(
@@ -58,7 +62,7 @@ public class FetchWsdlsTask extends BaseFetchTask<ProducerMember> {
 
         String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
 
-        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate, clock);
     }
 
     @Override

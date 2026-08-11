@@ -47,7 +47,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -83,9 +85,12 @@ public class FetchWsdlsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
         BlockingQueue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
-        FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices);
+        FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+        fetchWorkTracker.register(1);
+        FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices, fetchWorkTracker,
+                new RestTemplate(), Clock.systemDefaultZone());
         ReflectionTestUtils.setField(fetchWsdlsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchWsdlsTask, "semaphore", semaphore);
@@ -103,5 +108,43 @@ public class FetchWsdlsTaskTest {
         fetchWsdlsRunner.interrupt();
 
         verify(catalogService, times(1)).saveWsdl(any(), any(), any());
+
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> fetchWorkTracker.pending() == 0);
+    }
+
+    @Test
+    public void testFetchWsdlPendingReturnsToZeroWhenFetchThrows() throws InterruptedException, XRd4JException, SOAPException {
+        SOAPClient soapClient = mock(SOAPClient.class);
+        when(soapClient.send(any(ServiceRequest.class), eq(taskPoolConfiguration.getSecurityServerHost()),
+                any(GetWsdlRequestSerializer.class), any(GetWsdlResponseDeserializer.class)))
+                .thenThrow(new RuntimeException("boom"));
+        XRoadClient xRoadClient = new XRoadClient(soapClient,
+                new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
+                        taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
+        BlockingQueue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
+        FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+        fetchWorkTracker.register(1);
+        FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices, fetchWorkTracker,
+                new RestTemplate(), Clock.systemDefaultZone());
+        ReflectionTestUtils.setField(fetchWsdlsTask, "xroadClient", xRoadClient);
+        Semaphore semaphore = new Semaphore(1);
+        ReflectionTestUtils.setField(fetchWsdlsTask, "semaphore", semaphore);
+        Thread fetchWsdlsRunner = Thread.ofVirtual().start(fetchWsdlsTask::run);
+        ProducerMember service = new ProducerMember(
+                "INSTANCE", "CLASS",
+                "CODE", "SUBSYSTEM",
+                "aService", "v1");
+        service.setObjectType(ObjectType.SERVICE);
+        wsdlServices.add(service);
+
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(wsdlServices::isEmpty);
+
+        semaphore.acquire();
+        fetchWsdlsRunner.interrupt();
+
+        verify(catalogService, times(0)).saveWsdl(any(), any(), any());
+
+        Awaitility.await().atMost(Duration.ofSeconds(2)).until(() -> fetchWorkTracker.pending() == 0);
     }
 }

@@ -27,6 +27,10 @@ package org.niis.xroad.catalog.lister.endpoint.services.isprovider;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 @Getter
 @Setter
 public class IsProviderRequest {

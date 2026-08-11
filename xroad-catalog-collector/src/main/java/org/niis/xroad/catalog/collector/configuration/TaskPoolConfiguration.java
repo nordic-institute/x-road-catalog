@@ -24,11 +24,16 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.Set;
 
 @Getter
@@ -52,7 +57,7 @@ public class TaskPoolConfiguration {
     @Autowired
     private IgnoredSubsystemIdsProperties ignoredSubsystemIdsProperties;
 
-    // Security server URLs
+    // Security Server URLs
 
     @Value("${xroad-catalog.urls.security-server-host}")
     private String securityServerHost;
@@ -88,6 +93,14 @@ public class TaskPoolConfiguration {
     @Value("${xroad-catalog.tasks.fetch-time-before-hour:4}")
     private int fetchTimeBeforeHour;
 
+    // Bounds on outbound client I/O so every worker is guaranteed to terminate
+
+    @Value("${xroad-catalog.tasks.client-connect-timeout-seconds:10}")
+    private long clientConnectTimeoutSeconds;
+
+    @Value("${xroad-catalog.tasks.client-read-timeout-seconds:60}")
+    private long clientReadTimeoutSeconds;
+
     // Collector internal pool parameters
 
     @Value("${xroad-catalog.pool-size.list-methods:50}")
@@ -104,6 +117,26 @@ public class TaskPoolConfiguration {
 
     public Set<String> getIgnoredSubsystemIds() {
         return ignoredSubsystemIdsProperties.getIgnoredSubsystemIds();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofSeconds(clientConnectTimeoutSeconds));
+        requestFactory.setReadTimeout(Duration.ofSeconds(clientReadTimeoutSeconds));
+        return new RestTemplate(requestFactory);
+    }
+
+    /**
+     * SAAJ-RI reads {@code saaj.connect.timeout} and {@code saaj.read.timeout} once, when
+     * {@code HttpSOAPConnection} is class-loaded on the first SOAP send — well after context
+     * initialization, so setting them in {@code @PostConstruct} is early enough.
+     */
+    @PostConstruct
+    public void configureSaajTimeouts() {
+        // Both parse timeout millis as int; must stay below Integer.MAX_VALUE/1000
+        System.setProperty("saaj.connect.timeout", String.valueOf(Duration.ofSeconds(clientConnectTimeoutSeconds).toMillis()));
+        System.setProperty("saaj.read.timeout", String.valueOf(Duration.ofSeconds(clientReadTimeoutSeconds).toMillis()));
     }
 
 }

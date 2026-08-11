@@ -29,6 +29,10 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 @Getter
 @Setter
 public class ListMembersRequest {

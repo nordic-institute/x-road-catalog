@@ -39,17 +39,15 @@ import java.util.List;
 
 public final class ClientListUtil {
 
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
-
     private ClientListUtil() {
         // Private empty constructor
     }
 
-    public static List<MemberWithName> clientListFromResponse(String url) {
+    public static List<MemberWithName> clientListFromResponse(String url, RestTemplate restTemplate) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = REST_TEMPLATE.exchange(url, HttpMethod.GET, requestEntity,
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
                 String.class);
         JSONObject bodyJson = new JSONObject(response.getBody());
         JSONArray members = bodyJson.getJSONArray("member");

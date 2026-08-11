@@ -38,7 +38,9 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.MemberId;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,24 +56,31 @@ public class ListClientsTask implements Runnable {
     private final CatalogService catalogService;
     private final Queue<MemberWithName> listMethodsQueue;
     private final NewMembersEventPublisher newMembersEventPublisher;
+    private final FetchWorkTracker fetchWorkTracker;
+    private final RestTemplate restTemplate;
+    private final Clock clock;
 
     public ListClientsTask(CatalogService catalogService, TaskPoolConfiguration taskPoolConfiguration,
-                           Queue<MemberWithName> listMethodsQueue, NewMembersEventPublisher newMembersEventPublisher) {
+                           Queue<MemberWithName> listMethodsQueue, NewMembersEventPublisher newMembersEventPublisher,
+                           FetchWorkTracker fetchWorkTracker, RestTemplate restTemplate, Clock clock) {
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.catalogService = catalogService;
         this.listMethodsQueue = listMethodsQueue;
         this.newMembersEventPublisher = newMembersEventPublisher;
+        this.fetchWorkTracker = fetchWorkTracker;
+        this.restTemplate = restTemplate;
+        this.clock = clock;
     }
 
     public void run() {
         log.info("Starting ListClientsTask");
-        if (CollectorUtils.isTimeBetweenHours(taskPoolConfiguration.getFlushLogTimeAfterHour(),
+        if (CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFlushLogTimeAfterHour(),
                 taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
             catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
         }
 
         if (taskPoolConfiguration.isFetchRunUnlimited()
-                || CollectorUtils.isTimeBetweenHours(taskPoolConfiguration.getFetchTimeAfterHour(),
+                || CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFetchTimeAfterHour(),
                 taskPoolConfiguration.getFetchTimeBeforeHour())) {
             fetchClients();
         }
@@ -81,7 +90,7 @@ public class ListClientsTask implements Runnable {
         String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
         try {
             log.info("Getting client list from {}", listClientsUrl);
-            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl);
+            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate);
             HashMap<MemberId, Member> m = populateMapWithMembers(clientList);
             Set<Member> newMembers = catalogService.saveAllMembersAndSubsystems(m.values());
 
@@ -89,6 +98,7 @@ public class ListClientsTask implements Runnable {
             List<MemberWithName> subsystems = clientList.stream()
                     .filter(client -> ObjectType.SUBSYSTEM.equals(client.getId().getObjectType()))
                     .toList();
+            fetchWorkTracker.register(subsystems.size());
             listMethodsQueue.addAll(subsystems);
 
             log.info("All subsystems ({}) sent to ListMethodsTask", subsystems.size());
@@ -96,7 +106,7 @@ public class ListClientsTask implements Runnable {
             newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).collect(Collectors.toSet()));
             log.info("{} new members were published as event", newMembers.size());
         } catch (Exception e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(null,
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
                     "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(), "500");
             catalogService.saveErrorLog(errorLog);
             log.error("Error when fetching listClients(url: {})", listClientsUrl, e);

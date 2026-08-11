@@ -24,17 +24,30 @@
  */
 package org.niis.xroad.catalog.persistence;
 
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
 import org.niis.xroad.catalog.persistence.configuration.ProcessedSqlLoader;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.repository.config.BootstrapMode;
 
+/**
+ * Test-only bootstrap. Declares {@code @EnableJpaRepositories} with {@link BootstrapMode#LAZY}:
+ * eager bootstrap would resolve every repository's {@code EntityInformation} at context refresh,
+ * which fails under the H2 {@code general-testdata} profile where only the {@code entity} package
+ * can be scanned. Lazy bootstrap defers resolution to the first method call, so H2 tests that never
+ * touch a V2 repository never trigger it, while Postgres-backed tests add {@code v2.entity} via
+ * their own {@code @EntityScan}.
+ */
 @SpringBootApplication
-@ComponentScan(basePackageClasses = Jsr310JpaConverters.class)
-@Import({PersistenceDefaultConfiguration.class, ProcessedSqlLoader.class})
+@ComponentScan(basePackages = "org.niis.xroad.catalog.persistence", basePackageClasses = Jsr310JpaConverters.class)
+@EnableJpaRepositories(value = {"org.niis.xroad.catalog.persistence.repository",
+        "org.niis.xroad.catalog.persistence.v2.repository"}, bootstrapMode = BootstrapMode.LAZY)
+@EntityScan("org.niis.xroad.catalog.persistence.entity")
+@Import(ProcessedSqlLoader.class)
 public class PersistenceTestApplication {
 
     public static void main(String[] args) {

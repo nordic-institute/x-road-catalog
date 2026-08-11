@@ -50,7 +50,8 @@ public class DefaultTasksInitializer implements ApplicationListener<ApplicationS
     private FetchOpenApiTask fetchOpenApiTask;
     @Autowired
     private ListMethodsTask listMethodsTask;
-    @Autowired private ListClientsTask listClientsTask;
+    @Autowired
+    private CollectionCycleRunner collectionCycleRunner;
 
 
     @Override
@@ -68,6 +69,6 @@ public class DefaultTasksInitializer implements ApplicationListener<ApplicationS
         long collectorInterval = taskPoolConfiguration.getCollectorInterval();
         log.info("Starting up catalog collector with collector interval of {} minutes", collectorInterval);
 
-        scheduler.scheduleWithFixedDelay(listClientsTask::run, 0, collectorInterval, TimeUnit.MINUTES);
+        scheduler.scheduleWithFixedDelay(collectionCycleRunner::run, 0, collectorInterval, TimeUnit.MINUTES);
     }
 }

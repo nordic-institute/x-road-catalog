@@ -45,6 +45,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public final class ServiceUtil {
 
     private ServiceUtil() {
@@ -144,7 +148,7 @@ public final class ServiceUtil {
             securityServerDataList = sharedParamsParser.parseDetails(sharedParamsFile);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             throw new CatalogListerRuntimeException(
-                    "Exception when parsing security server data from sharedParams file: " + e);
+                    "Exception when parsing Security Server data from sharedParams file: " + e);
         }
         return securityServerDataList;
     }

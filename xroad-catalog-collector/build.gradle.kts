@@ -61,6 +61,7 @@ dependencies {
     testImplementation(libs.mockito)
     testImplementation(libs.awaitility)
     testImplementation(libs.h2.database)
+    testImplementation(testFixtures(project(":xroad-catalog-persistence")))
 
     testRuntimeOnly(libs.junit.launcer)
 

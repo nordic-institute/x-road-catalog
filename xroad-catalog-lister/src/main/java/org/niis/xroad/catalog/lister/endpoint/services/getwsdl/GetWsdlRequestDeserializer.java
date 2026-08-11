@@ -31,6 +31,10 @@ import org.niis.xrd4j.server.deserializer.AbstractCustomRequestDeserializer;
 
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public class GetWsdlRequestDeserializer extends AbstractCustomRequestDeserializer<GetWsdlRequest> {
     @Override
     protected GetWsdlRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {

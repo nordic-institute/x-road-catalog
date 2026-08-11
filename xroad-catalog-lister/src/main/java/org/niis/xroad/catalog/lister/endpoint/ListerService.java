@@ -29,6 +29,12 @@ import org.niis.xrd4j.common.exception.XRd4JException;
 import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
 
+/**
+ * @param <T> the request type
+ * @param <U> the response type
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public interface ListerService<T, U> {
     String NAMESPACE_URL = "http://x-road.eu/ext/catalog/lister";
     String NAMESPACE_PREFIX = "tns";

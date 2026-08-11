@@ -32,6 +32,10 @@ import org.niis.xroad.catalog.lister.endpoint.services.common.DateTimeUtil;
 
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public class GetErrorsRequestDeserializer extends AbstractCustomRequestDeserializer<GetErrorsRequest> {
     @Override
     protected GetErrorsRequest deserializeRequest(Node requestNode, SOAPMessage message) throws SOAPException {

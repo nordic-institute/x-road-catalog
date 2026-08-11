@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>dev-cs</instanceIdentifier>
+    <source>
+        <address>https://example.org/dev-cs/globalconf</address>
+    </source>
+    <member id="id1">
+        <memberClass>
+            <code>PUB</code>
+            <description>Public sector</description>
+        </memberClass>
+        <memberCode>14151328</memberCode>
+        <name>Nahka-Albert</name>
+        <subsystem id="id2">
+            <subsystemCode>subsystem_a1</subsystemCode>
+            <subsystemName>Subsystem A1</subsystemName>
+        </subsystem>
+        <subsystem id="id3">
+            <subsystemCode>subsystem_a2</subsystemCode>
+        </subsystem>
+    </member>
+    <globalSettings>
+        <memberClass>
+            <code>PUB</code>
+            <description>Public sector</description>
+        </memberClass>
+        <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
+    </globalSettings>
+</ns3:conf>

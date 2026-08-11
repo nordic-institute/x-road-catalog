@@ -5,12 +5,16 @@ spring:
     url: jdbc:h2:mem:db;NON_KEYWORDS=TYPE,VALUE
     username: sa
   h2.console.enabled: false
+  liquibase:
+    enabled: false
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
     show-sql: false
     hibernate:
       ddl-auto: create-drop
+    properties:
+      hibernate.generate_statistics: true
   main.allow-bean-definition-overriding: true
   sql:
     init:

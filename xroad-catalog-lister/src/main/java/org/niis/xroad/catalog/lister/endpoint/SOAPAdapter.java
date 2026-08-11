@@ -40,6 +40,10 @@ import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersSe
 import org.niis.xroad.catalog.lister.service.CatalogService;
 
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 @Slf4j
 public class SOAPAdapter extends AbstractAdapterServlet {
     

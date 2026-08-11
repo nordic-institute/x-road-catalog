@@ -36,7 +36,9 @@ import org.niis.xroad.catalog.collector.util.MethodListUtil;
 import org.niis.xroad.catalog.collector.util.XRoadClient;
 import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -53,8 +55,10 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
     private final XRoadClient xroadClient;
 
     public FetchOpenApiTask(final CatalogService catalogService, final TaskPoolConfiguration taskPoolConfiguration,
-                            final BlockingQueue<XRoadIdentifier> openApiServicesQueue) throws XRd4JException, SOAPException {
-        super(openApiServicesQueue, taskPoolConfiguration.getFetchOpenapiPoolSize());
+                            final BlockingQueue<XRoadIdentifier> openApiServicesQueue, final FetchWorkTracker fetchWorkTracker,
+                            final RestTemplate restTemplate, final Clock clock)
+            throws XRd4JException, SOAPException {
+        super(openApiServicesQueue, taskPoolConfiguration.getFetchOpenapiPoolSize(), fetchWorkTracker);
         this.catalogService = catalogService;
 
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
@@ -66,7 +70,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
 
         String webservicesEndpoint = taskPoolConfiguration.getWebservicesEndpoint();
 
-        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate, clock);
     }
 
     @Override
@@ -81,7 +85,7 @@ public class FetchOpenApiTask extends BaseFetchTask<XRoadIdentifier> {
                 catalogService.saveEndpoint(createSubsystemId(service), createServiceId(service), endpoint.getMethod(),
                         endpoint.getPath());
             }
-            log.info("Saved OpenApi for {} successfully", IdentifierUtil.toString(service));
+            log.info("Processed OpenApi for {} successfully", IdentifierUtil.toString(service));
         } catch (Exception e) {
             log.error("Failed to fetch OpenAPI for {}", IdentifierUtil.toString(service), e);
         }

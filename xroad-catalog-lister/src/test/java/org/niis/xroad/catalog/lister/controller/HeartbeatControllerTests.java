@@ -98,4 +98,18 @@ public class HeartbeatControllerTests {
         assertEquals("1.0.3", json.getString("appVersion"));
     }
 
+    /**
+     * The V2 {@code RequestIdFilter} is registered on {@code /api/v2/*} only
+     * ({@code InfrastructureConfiguration}); V1 endpoints must not carry {@code X-Request-Id}.
+     */
+    @Test
+    public void v1HeartbeatResponseHasNoRequestIdHeader() {
+        given(catalogService.checkDatabaseConnection()).willReturn(Boolean.TRUE);
+
+        ResponseEntity<String> response = restTemplate.getForEntity("/api/heartbeat", String.class);
+        assertEquals(200, response.getStatusCode().value());
+        assertFalse(response.getHeaders().containsKey("X-Request-Id"),
+                "V1 endpoints must not carry the V2 X-Request-Id header");
+    }
+
 }

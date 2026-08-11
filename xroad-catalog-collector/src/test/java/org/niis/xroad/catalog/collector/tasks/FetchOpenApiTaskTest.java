@@ -44,9 +44,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +58,7 @@ import java.util.concurrent.Semaphore;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -82,7 +85,8 @@ public class FetchOpenApiTaskTest {
          * fetch logic is mocked and tested below.
          */
         BlockingQueue<XRoadIdentifier> queue = new LinkedBlockingQueue<>();
-        FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, queue);
+        FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, queue, new FetchWorkTracker(),
+                new RestTemplate(), Clock.systemDefaultZone());
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchOpenApiTask, "semaphore", semaphore);
         XRoadIdentifier restService = XRoadIdentifier.builder()
@@ -106,36 +110,57 @@ public class FetchOpenApiTaskTest {
     public void testFetch() throws XRd4JException, SOAPException, IOException {
         try (MockedStatic<MethodListUtil> mock = Mockito.mockStatic(MethodListUtil.class)) {
             final String openApiResponse = openApiFile.getContentAsString(StandardCharsets.UTF_8);
-            mock.when(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any()))
+            mock.when(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any(), any(), any()))
                     .thenReturn(openApiResponse);
             mock.when(() -> MethodListUtil.getEndpointList(any())).thenCallRealMethod();
 
-            FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration, new LinkedBlockingQueue<>());
+            FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration,
+                    new LinkedBlockingQueue<>(), new FetchWorkTracker(), new RestTemplate(), Clock.systemDefaultZone());
 
-            XRoadIdentifier service = XRoadIdentifier.builder()
-                    .xRoadInstance("INSTANCE")
-                    .memberClass("CLASS")
-                    .memberCode("CODE")
-                    .subsystemCode("SUBSYSTEM")
-                    .serviceCode("aService")
-                    .build();
-            service.setObjectType(ObjectType.SERVICE);
-            service.setServiceType("OPENAPI");
-            List<Endpoint> endpointList = new ArrayList<>();
-            Endpoint endpoint = new Endpoint();
-            endpoint.setMethod("GET");
-            endpoint.setPath("/getServices");
-            endpointList.add(endpoint);
-            service.setEndpoints(endpointList);
+            fetchOpenApiTask.fetch(openApiService());
 
-            fetchOpenApiTask.fetch(service);
-
-            mock.verify(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any()),
+            mock.verify(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any(), any(), any()),
                     times(1));
             verify(catalogService, times(0)).saveErrorLog(any());
             verify(catalogService, times(1)).saveOpenApi(any(), any(), any());
             verify(catalogService, times(1)).saveEndpoint(any(), any(), any(), any());
         }
+    }
+
+    @Test
+    public void testFetchDelegatesFailedFetchHandlingToCatalogService() throws XRd4JException, SOAPException {
+        try (MockedStatic<MethodListUtil> mock = Mockito.mockStatic(MethodListUtil.class)) {
+            mock.when(() -> MethodListUtil.openApiFromResponse(any(), any(), any(), any(), any(), any()))
+                    .thenReturn(null);
+            mock.when(() -> MethodListUtil.getEndpointList(any())).thenCallRealMethod();
+
+            FetchOpenApiTask fetchOpenApiTask = new FetchOpenApiTask(catalogService, taskPoolConfiguration,
+                    new LinkedBlockingQueue<>(), new FetchWorkTracker(), new RestTemplate(), Clock.systemDefaultZone());
+
+            fetchOpenApiTask.fetch(openApiService());
+
+            verify(catalogService, times(1)).saveOpenApi(any(), any(), isNull());
+            verify(catalogService, times(1)).saveEndpoint(any(), any(), any(), any());
+        }
+    }
+
+    private static XRoadIdentifier openApiService() {
+        XRoadIdentifier service = XRoadIdentifier.builder()
+                .xRoadInstance("INSTANCE")
+                .memberClass("CLASS")
+                .memberCode("CODE")
+                .subsystemCode("SUBSYSTEM")
+                .serviceCode("aService")
+                .build();
+        service.setObjectType(ObjectType.SERVICE);
+        service.setServiceType("OPENAPI");
+        List<Endpoint> endpointList = new ArrayList<>();
+        Endpoint endpoint = new Endpoint();
+        endpoint.setMethod("GET");
+        endpoint.setPath("/getServices");
+        endpointList.add(endpoint);
+        service.setEndpoints(endpointList);
+        return service;
     }
 
 }

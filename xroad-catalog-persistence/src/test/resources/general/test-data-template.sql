@@ -21,6 +21,20 @@ VALUES (7, 'dev-cs', 'PUB', '15', 'Updated Everything', '2016-01-01 00:00:00+02'
 INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched,  removed)
 VALUES (8, 'dev-cs', 'PUB', '14151329', 'Removed item', '2016-01-01 00:00:00+02', '2017-01-02 00:00:00+02', '2017-01-02 00:00:00+02', '2017-01-02 00:00:00+02');
 
+-- Members 20-22 exist only to give MemberRepositoryTest#testFindAll a fixed total/active count
+-- (11 total, 9 active) distinct from the original 8/7. They originally also carried subsystem and
+-- service children exercising the isProvider invariant; that scenario now lives in the
+-- Postgres fixture (see pg/v2-fixture.sql) so those child rows were removed here as orphaned.
+INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched, removed)
+VALUES (20, 'dev-cs', 'PUB', 'only-removed-service', 'Only removed service member',
+        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
+INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched, removed)
+VALUES (21, 'dev-cs', 'PUB', 'svc-under-removed-sub', 'Service under removed subsystem member',
+        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
+INSERT INTO member (id, x_road_instance, member_class, member_code, name, created, changed, fetched, removed)
+VALUES (22, 'dev-cs', 'PUB', 'removed-with-stale', 'Removed member with stale active children',
+        '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02');
+
 -- member 1 has 3 subsystems, 2 active and 1 removed one
 INSERT INTO subsystem (id, member_id, subsystem_code, created, changed, fetched,  removed)
 VALUES (1, 1, 'subsystem_a1', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);
@@ -135,6 +149,15 @@ VALUES (6, 'Service not found6', '500', '2020-05-04 11:41:24.792+03');
 
 INSERT INTO error_log(id, message, code, created)
 VALUES (7, 'Service not found7', '500', '2022-01-01 11:41:24.792+03');
+
+INSERT INTO error_log(id, message, code, created, x_road_instance, member_class, member_code, subsystem_code, service_code, service_version)
+VALUES (8, 'Fetch of WSDL failed', '500', '2020-05-04 11:41:24.792+03', 'DEV', 'GOV', '1234', 'TestSubsystem', 'testService', 'v1');
+
+INSERT INTO error_log(id, message, code, created, x_road_instance, member_class, member_code, subsystem_code, service_code, service_version)
+VALUES (9, 'Fetch of WSDL failed', '500', '2020-05-04 11:41:24.792+03', 'DEV', 'GOV', '1234', 'TestSubsystem', 'testService', 'v2');
+
+INSERT INTO error_log(id, message, code, created, x_road_instance, member_class, member_code, subsystem_code, service_code)
+VALUES (10, 'Fetch of REST services failed', '500', '2020-05-04 11:41:24.792+03', 'DEV', 'GOV', '1234', 'TestSubsystem', 'restService');
 
 INSERT INTO wsdl (id, service_id, data, external_id, created, changed, fetched,  removed)
 VALUES (1, 1, @file('src/test/resources/wsdl/TestService.wsdl'), '1003', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', '2016-01-01 00:00:00+02', NULL);

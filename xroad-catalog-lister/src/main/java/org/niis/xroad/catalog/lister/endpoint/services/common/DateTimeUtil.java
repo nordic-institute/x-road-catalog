@@ -33,6 +33,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public final class DateTimeUtil {
     private static final DatatypeFactory DATATYPE_FACTORY = DatatypeFactory.newDefaultInstance();
     private static final DateTimeFormatter DATE_TIME_FORMATTER =

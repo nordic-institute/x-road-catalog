@@ -40,12 +40,15 @@ import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
@@ -73,9 +76,16 @@ public class ListMethodsTask implements Runnable {
 
     private final Queue<XRoadIdentifier> restQueue;
 
+    private final FetchWorkTracker fetchWorkTracker;
+
+    private final RestTemplate restTemplate;
+
+    private final Clock clock;
+
     public ListMethodsTask(final CatalogService  catalogService, final BlockingQueue<MemberWithName> listMethodsQueue,
                            final Queue<ProducerMember> wsdlServicesQueue, final Queue<XRoadIdentifier> restServicesQueue,
-                           final Queue<XRoadIdentifier> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration)
+                           final Queue<XRoadIdentifier> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration,
+                           final FetchWorkTracker fetchWorkTracker, final RestTemplate restTemplate, final Clock clock)
             throws XRd4JException, SOAPException {
         this.catalogService = catalogService;
 
@@ -83,6 +93,9 @@ public class ListMethodsTask implements Runnable {
         this.wsdlQueue = wsdlServicesQueue;
         this.openApiQueue = openApiServicesQueue;
         this.restQueue = restServicesQueue;
+        this.fetchWorkTracker = fetchWorkTracker;
+        this.restTemplate = restTemplate;
+        this.clock = clock;
 
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
@@ -94,7 +107,7 @@ public class ListMethodsTask implements Runnable {
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getListMethodsPoolSize());
 
-        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint);
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate, clock);
     }
 
     public void run() {
@@ -105,8 +118,7 @@ public class ListMethodsTask implements Runnable {
 
                 // take() blocks until an element becomes available or it gets interrupted
                 MemberWithName client = clientsQueue.take();
-                semaphore.acquire();
-                Thread.ofVirtual().start(() -> saveSubsystemsAndServices(client));
+                FetchHandOff.handOff(semaphore, fetchWorkTracker, () -> saveSubsystemsAndServices(client));
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting for clients, stopping ListMethodsTask", e);
@@ -129,7 +141,7 @@ public class ListMethodsTask implements Runnable {
             log.debug("Handling subsystem {} ", subsystem);
 
             List<XRoadIdentifier> restServices = MethodListUtil.methodListFromResponse(client.getId(),
-                    xroadSecurityServerHost, consumerMember, catalogService);
+                    xroadSecurityServerHost, consumerMember, catalogService, restTemplate, clock);
             log.info("Received {} REST methods for client {} ", restServices.size(),
                     IdentifierUtil.toString(client));
 
@@ -147,21 +159,45 @@ public class ListMethodsTask implements Runnable {
 
             catalogService.saveServices(subsystem.createKey(), services);
 
-            this.wsdlQueue.addAll(soapServices);
-
-            for (XRoadIdentifier service : restServices) {
-                if (service.getServiceType().equalsIgnoreCase(SERVICE_TYPE_REST)) {
-                    this.restQueue.add(service);
-                } else {
-                    this.openApiQueue.add(service);
-                }
-            }
+            registerAndEnqueue(soapServices, this.wsdlQueue::add);
+            registerAndEnqueue(restServices, this::enqueueByServiceType);
 
             log.debug("Subsystem {} handled", subsystem);
         } catch (Exception e) {
             log.error("Error while handling client {}", IdentifierUtil.toString(client), e);
         } finally {
             semaphore.release();
+            fetchWorkTracker.complete();
+        }
+    }
+
+    /**
+     * Registers the whole batch before enqueueing any of it, so a consumer cannot drive the pending count
+     * to zero mid-batch, and reconciles whatever the loop did not hand over, so a failing enqueue cannot
+     * leave the collection cycle waiting for items that never reached a queue.
+     */
+    private <T> void registerAndEnqueue(final List<T> items, final Consumer<T> enqueue) {
+        fetchWorkTracker.register(items.size());
+        int notEnqueued = items.size();
+        try {
+            for (T item : items) {
+                enqueue.accept(item);
+                notEnqueued--;
+            }
+        } finally {
+            if (notEnqueued > 0) {
+                log.warn("{} of {} fetch-work items could not be enqueued, completing them as failed", notEnqueued, items.size());
+                fetchWorkTracker.complete(notEnqueued);
+            }
+        }
+    }
+
+    private void enqueueByServiceType(final XRoadIdentifier service) {
+        // service_type is optional in the listMethods response
+        if (SERVICE_TYPE_REST.equalsIgnoreCase(service.getServiceType())) {
+            this.restQueue.add(service);
+        } else {
+            this.openApiQueue.add(service);
         }
     }
 

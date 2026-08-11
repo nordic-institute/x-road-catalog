@@ -30,7 +30,7 @@ services:
       dockerfile: docker/collector/Dockerfile
     environment:
       # spring
-      - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
+      - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog?socketTimeout=60
       - setting_spring.datasource.password=xroad_catalog_collector
       - setting_spring.liquibase.password=secret
       - setting_spring.liquibase.contexts=users
@@ -58,7 +58,6 @@ services:
       - setting_xroad-catalog.tasks.fetch-run-unlimited=true
       - setting_xroad-catalog.tasks.fetch-time-after-hour=3
       - setting_xroad-catalog.tasks.fetch-time-before-hour=4
-
     volumes:
       - /etc/localtime:/etc/localtime:ro
     depends_on:

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <!--This is a sample to include a change log:
+        Please make sure to include the path "db/changelog/"
+        <include file="db/changelog/the_XML_file_name_goes_here.xml" />
+    -->
+    <include file="/db/changelog/collector/000-users.xml" context="@users" />
+    <include file="/db/changelog/collector/010-common-tables.xml" />
+    <include file="/db/changelog/collector/011-common-sequences.xml" />
+    <include file="/db/changelog/collector/012-common-indexes.xml" />
+    <include file="/db/changelog/collector/013-v2-denormalized-backfill.xml" />
+    <include file="/db/changelog/collector/014-collection-run.xml" />
+    <include file="/db/changelog/collector/015-v2-active-views.xml" />
+</databaseChangeLog>

@@ -35,6 +35,10 @@ import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
 import java.time.format.DateTimeFormatter;
 
+/**
+ * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
+ */
+@Deprecated(forRemoval = true)
 public class GetErrorsService implements ListerService<GetErrorsRequest, Iterable<ErrorLog>> {
     private static final GetErrorsRequestDeserializer REQUEST_DESERIALIZER = new GetErrorsRequestDeserializer();
     private static final GetErrorsResponseSerializer RESPONSE_SERIALIZER = new GetErrorsResponseSerializer();

@@ -26,6 +26,7 @@ package org.niis.xroad.catalog.collector.util;
 
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -34,17 +35,17 @@ public final class CollectorUtils {
     private CollectorUtils() {
     }
 
-    public static boolean isTimeBetweenHours(int fetchHourAfter, int fetchHourBefore) {
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime fetchTimeFrom = LocalDate.now().atTime(fetchHourAfter, 0);
-        LocalDateTime fetchTimeTo = LocalDate.now().atTime(fetchHourBefore, 0);
+    public static boolean isTimeBetweenHours(Clock clock, int fetchHourAfter, int fetchHourBefore) {
+        LocalDateTime today = LocalDateTime.now(clock);
+        LocalDateTime fetchTimeFrom = LocalDate.now(clock).atTime(fetchHourAfter, 0);
+        LocalDateTime fetchTimeTo = LocalDate.now(clock).atTime(fetchHourBefore, 0);
         return (today.isAfter(fetchTimeFrom) && today.isBefore(fetchTimeTo));
     }
 
-    public static ErrorLog createErrorLog(MemberWithName clientType, String message, String code) {
+    public static ErrorLog createErrorLog(Clock clock, MemberWithName clientType, String message, String code) {
         if (clientType != null) {
             return ErrorLog.builder()
-                    .created(LocalDateTime.now())
+                    .created(LocalDateTime.now(clock))
                     .message(message)
                     .code(code)
                     .xRoadInstance(clientType.getId().getXRoadInstance())
@@ -55,7 +56,7 @@ public final class CollectorUtils {
                     .subsystemCode(clientType.getId().getSubsystemCode())
                     .build();
         }
-        return ErrorLog.builder().created(LocalDateTime.now()).message(message).code(code).build();
+        return ErrorLog.builder().created(LocalDateTime.now(clock)).message(message).code(code).build();
     }
 
 }

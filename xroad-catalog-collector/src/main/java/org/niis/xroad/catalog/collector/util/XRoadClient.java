@@ -37,7 +37,9 @@ import org.niis.xrd4j.common.util.Constants;
 import org.niis.xroad.catalog.collector.exception.XRoadClientException;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,15 +53,21 @@ public class XRoadClient {
     final SOAPClient soapClient;
     final ConsumerMember consumerMember;
     final String securityServerURL;
+    final RestTemplate restTemplate;
+    final Clock clock;
 
-    public XRoadClient(final SOAPClient soapClient, final ConsumerMember consumerMember, final String securityServerURL) {
+    public XRoadClient(final SOAPClient soapClient, final ConsumerMember consumerMember, final String securityServerURL,
+                       final RestTemplate restTemplate, final Clock clock) {
         this.soapClient = soapClient;
         this.consumerMember = consumerMember;
         this.securityServerURL = securityServerURL;
+        this.restTemplate = restTemplate;
+        this.clock = clock;
     }
 
-    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL) throws SOAPException {
-        this(new SOAPClientImpl(), consumerMember, securityServerURL);
+    public XRoadClient(final ConsumerMember consumerMember, final String securityServerURL, final RestTemplate restTemplate,
+                       final Clock clock) throws SOAPException {
+        this(new SOAPClientImpl(), consumerMember, securityServerURL, restTemplate, clock);
     }
 
     /**
@@ -73,7 +81,7 @@ public class XRoadClient {
         } catch (Exception e) {
             log.error("Fetch of SOAP services failed: {}", e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
-                    .created(LocalDateTime.now())
+                    .created(LocalDateTime.now(clock))
                     .message("Fetch of SOAP services failed: " + e.getMessage())
                     .code("500")
                     .xRoadInstance(member.getXRoadInstance())
@@ -106,7 +114,7 @@ public class XRoadClient {
         } catch (Exception e) {
             log.error("Fetch of WSDL failed: {}", e.getMessage());
             ErrorLog errorLog = ErrorLog.builder()
-                    .created(LocalDateTime.now())
+                    .created(LocalDateTime.now(clock))
                     .message("Fetch of WSDL failed: " + e.getMessage())
                     .code("500")
                     .xRoadInstance(service.getXRoadInstance())
@@ -121,12 +129,15 @@ public class XRoadClient {
         }
     }
 
+    /**
+     * @return the OpenAPI descriptor, or {@code null} when the fetch failed
+     */
     public String getOpenApi(XRoadIdentifier service,
                              String host,
                              ConsumerMember clientIdentifier,
                              CatalogService catalogService) {
 
-        return MethodListUtil.openApiFromResponse(service, host, clientIdentifier, catalogService);
+        return MethodListUtil.openApiFromResponse(service, host, clientIdentifier, catalogService, restTemplate, clock);
     }
 
     private String queryId() {

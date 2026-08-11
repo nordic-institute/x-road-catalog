@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="010-common-tables-member" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="member table exists">
+            <not>
+                <tableExists tableName="member"/>
+            </not>
+        </preConditions>
+        <createTable tableName="member">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="member_pkey"/>
+            </column>
+            <column name="x_road_instance" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_class" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_code" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_provider" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-subsystem" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="subsystem table exists">
+            <not>
+                <tableExists tableName="subsystem"/>
+            </not>
+        </preConditions>
+        <createTable tableName="subsystem">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="subsystem_pkey"/>
+            </column>
+            <column name="member_id" type="bigserial">
+                <constraints nullable="false" foreignKeyName="fk_subsystem_member" referencedTableName="member"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="subsystem_code" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-service" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="service table exists">
+            <not>
+                <tableExists tableName="service"/>
+            </not>
+        </preConditions>
+        <createTable tableName="service">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="service_pkey"/>
+            </column>
+            <column name="subsystem_id" type="bigserial">
+                <constraints nullable="false" foreignKeyName="service_subsystem_id_fkey" referencedTableName="subsystem"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="service_code" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="service_version" type="text"/>
+            <column name="service_type" type="text" defaultValue="UNKNOWN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-wsdl" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="wsdl table exists">
+            <not>
+                <tableExists tableName="wsdl"/>
+            </not>
+        </preConditions>
+        <createTable tableName="wsdl">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="wsdl_pkey"/>
+            </column>
+            <column name="service_id" type="bigserial">
+                <constraints nullable="false" foreignKeyName="wsdl_service_id_fkey" referencedTableName="service"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="data" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-open-api" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="open_api table exists">
+            <not>
+                <tableExists tableName="open_api"/>
+            </not>
+        </preConditions>
+        <createTable tableName="open_api">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="open_api_pkey"/>
+            </column>
+            <column name="service_id" type="bigserial">
+                <constraints nullable="false" foreignKeyName="open_api_service_id_fkey" referencedTableName="service"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="data" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-rest" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="rest table exists">
+            <not>
+                <tableExists tableName="rest"/>
+            </not>
+        </preConditions>
+        <createTable tableName="rest">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="rest_pkey"/>
+            </column>
+            <column name="service_id" type="bigserial">
+                <constraints nullable="false" foreignKeyName="rest_service_id_fkey" referencedTableName="service"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="data" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-endpoint" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="endpoint table exists">
+            <not>
+                <tableExists tableName="endpoint"/>
+            </not>
+        </preConditions>
+        <createTable tableName="endpoint">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="endpoint_pkey"/>
+            </column>
+            <column name="service_id" type="bigserial">
+                <constraints nullable="false" foreignKeyName="endpoint_service_id_fkey" referencedTableName="service"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="method" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fetched" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="removed" type="timestamptz"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="010-common-tables-error-log" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="error_log table exists">
+            <not>
+                <tableExists tableName="error_log"/>
+            </not>
+        </preConditions>
+        <createTable tableName="error_log">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="error_log_pkey"/>
+            </column>
+            <column name="message" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="x_road_instance" type="text"/>
+            <column name="member_class" type="text"/>
+            <column name="member_code" type="text"/>
+            <column name="subsystem_code" type="text"/>
+            <column name="group_code" type="text"/>
+            <column name="service_code" type="text"/>
+            <column name="service_version" type="text"/>
+            <column name="security_category_code" type="text"/>
+            <column name="server_code" type="text"/>
+            <column name="created" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

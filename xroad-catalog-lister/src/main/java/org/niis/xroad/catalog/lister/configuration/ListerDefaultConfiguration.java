@@ -24,13 +24,18 @@
  */
 package org.niis.xroad.catalog.lister.configuration;
 
-import org.niis.xroad.catalog.persistence.configuration.PersistenceDefaultConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
+/**
+ * Scans the lister and persistence packages and deliberately declares no {@code @EnableJpaRepositories};
+ * repository enabling lives in mutually exclusive {@code @Profile}-gated configuration classes
+ * ({@link ProductionConfigurationV2} and the test-profile classes) so each context gets exactly one
+ * repository declaration for these packages.
+ */
 @Configuration
-@Import(PersistenceDefaultConfiguration.class)
-@ComponentScan(basePackages = "org.niis.xroad.catalog.lister")
+@ComponentScan(basePackages = {"org.niis.xroad.catalog.lister", "org.niis.xroad.catalog.persistence"})
+@EntityScan("org.niis.xroad.catalog.persistence.entity")
 public class ListerDefaultConfiguration {
 }

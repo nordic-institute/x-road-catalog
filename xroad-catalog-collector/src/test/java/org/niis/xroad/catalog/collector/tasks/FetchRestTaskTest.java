@@ -63,7 +63,7 @@ public class FetchRestTaskTest {
     @Test
     public void testFetchRestTask() throws InterruptedException, XRd4JException {
         BlockingQueue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
-        FetchRestTask fetchRestTask = new FetchRestTask(catalogService, taskPoolConfiguration, restServices);
+        FetchRestTask fetchRestTask = new FetchRestTask(catalogService, taskPoolConfiguration, restServices, new FetchWorkTracker());
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchRestTask, "semaphore", semaphore);
         Thread fetchRestRunner = Thread.ofVirtual().start(fetchRestTask::run);

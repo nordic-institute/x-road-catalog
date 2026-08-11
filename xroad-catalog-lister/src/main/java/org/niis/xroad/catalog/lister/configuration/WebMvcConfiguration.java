@@ -25,11 +25,18 @@
 package org.niis.xroad.catalog.lister.configuration;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebMvcConfiguration implements WebMvcConfigurer {
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new DeprecationHeaderInterceptor());
+    }
+
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
         // This defaults to false in Spring 6, but to keep the previous behaviour we set
