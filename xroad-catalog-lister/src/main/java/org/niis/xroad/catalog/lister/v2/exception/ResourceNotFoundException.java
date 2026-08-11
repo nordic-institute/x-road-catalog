@@ -22,27 +22,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.controller;
+package org.niis.xroad.catalog.lister.v2.exception;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * Thrown by the service-level descriptor lookup when the service has more than one visible version,
- * meaning the caller must pick a specific version path. Version entries may be {@code null} for
- * null-version services.
- */
-public class MultipleVersionsException extends RuntimeException {
+public final class ResourceNotFoundException extends RuntimeException {
 
-    private final List<String> versions;
-
-    public MultipleVersionsException(String message, List<String> versions) {
+    private ResourceNotFoundException(String message) {
         super(message);
-        this.versions = versions == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(versions));
     }
 
-    public List<String> getVersions() {
-        return versions;
+    /**
+     * Builds a {@code "<label> '<id>' not found"} message from the non-null {@code idParts} joined
+     * with {@code "/"}; null parts are skipped so an absent segment does not render as "null".
+     */
+    @SuppressWarnings("PMD.ShortMethodName")
+    public static ResourceNotFoundException of(String label, String... idParts) {
+        String id = Arrays.stream(idParts)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining("/"));
+        return new ResourceNotFoundException(label + " '" + id + "' not found");
     }
 }

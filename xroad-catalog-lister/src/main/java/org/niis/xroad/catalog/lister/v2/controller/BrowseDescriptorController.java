@@ -26,6 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
+import org.niis.xroad.catalog.lister.v2.exception.ResourceNotFoundException;
 import org.niis.xroad.catalog.lister.v2.service.ServiceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

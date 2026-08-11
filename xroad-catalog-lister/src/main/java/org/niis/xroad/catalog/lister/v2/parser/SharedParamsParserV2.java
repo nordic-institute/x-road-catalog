@@ -254,9 +254,11 @@ public class SharedParamsParserV2 {
      */
     private void rejectUnsafeXml(Path sharedParamsFile) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
         factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         factory.newDocumentBuilder().parse(sharedParamsFile.toFile());
     }
 }

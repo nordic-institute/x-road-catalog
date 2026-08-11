@@ -25,7 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.dto.MemberSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceSearchHit;

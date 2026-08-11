@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
-import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
 import org.niis.xroad.catalog.lister.v2.util.DateTimeUtil;
 import org.niis.xroad.catalog.lister.v2.util.ServiceVersionUtil;

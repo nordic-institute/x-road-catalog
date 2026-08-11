@@ -22,30 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.configuration;
+package org.niis.xroad.catalog.lister.v2.exception;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+/**
+ * Request input the client can correct; its message is echoed to the caller as a 400 by
+ * the V2 exception handler. Only validation raised by V2 code may use it — an unexpected
+ * {@link IllegalArgumentException} stays a 500 with a generic message instead of leaking an
+ * internal precondition as a client error. It extends {@link IllegalArgumentException} so the
+ * validation helpers keep their documented contract.
+ */
+public class BadRequestException extends IllegalArgumentException {
 
-@Configuration
-public class WebMvcConfiguration implements WebMvcConfigurer {
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new DeprecationHeaderInterceptor());
+    public BadRequestException(String message) {
+        super(message);
     }
 
-    @Override
-    public void configurePathMatch(PathMatchConfigurer configurer) {
-        // This defaults to false in Spring 6, but to keep the previous behaviour we set
-        // it to true
-        // Note that this is actually deprecated but the solution it points to is also
-        // deprecated now,
-        // in the future we probably need to resolve this another way (filters,
-        // redirects or just note
-        // in the documentation that /path is not the same as /path/).
-        configurer.setUseTrailingSlashMatch(true);
+    public BadRequestException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -33,8 +33,11 @@ import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
@@ -56,6 +59,9 @@ class CollectionCycleRunnerTest {
 
     private static final long TICK_MILLIS = 50L;
 
+    // Fixed at 12:30 so the deadline arithmetic below is deterministic regardless of wall clock.
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2025-06-01T12:30:00Z"), ZoneOffset.UTC);
+
     @Mock
     private ListClientsTask listClientsTask;
     @Mock
@@ -69,7 +75,7 @@ class CollectionCycleRunnerTest {
 
     private CollectionCycleRunner newRunner() {
         return new CollectionCycleRunner(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker,
-                taskPoolConfiguration, TICK_MILLIS);
+                taskPoolConfiguration, FIXED_CLOCK, TICK_MILLIS);
     }
 
     private void unlimitedFetchWindow() {
@@ -78,7 +84,8 @@ class CollectionCycleRunnerTest {
 
     private void fetchWindowEndedEarlierToday() {
         when(taskPoolConfiguration.isFetchRunUnlimited()).thenReturn(false);
-        when(taskPoolConfiguration.getFetchTimeBeforeHour()).thenReturn(LocalDateTime.now().getHour());
+        // The fixed clock reads 12:30, so a window ending at 12:00 is already over.
+        when(taskPoolConfiguration.getFetchTimeBeforeHour()).thenReturn(12);
     }
 
     private void registerWorkWhenListingClients(int items) {

@@ -26,6 +26,7 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
+import org.niis.xroad.catalog.lister.v2.exception.MultipleVersionsException;
 import org.niis.xroad.catalog.lister.v2.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

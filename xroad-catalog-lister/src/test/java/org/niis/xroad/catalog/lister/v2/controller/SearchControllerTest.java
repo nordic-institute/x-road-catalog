@@ -31,6 +31,7 @@ import org.niis.xroad.catalog.lister.v2.dto.MemberSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceSearchHit;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemSearchHit;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.service.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

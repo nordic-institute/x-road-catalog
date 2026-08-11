@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.controller;
+package org.niis.xroad.catalog.lister.v2.exception;
 
 import org.junit.jupiter.api.Test;
 

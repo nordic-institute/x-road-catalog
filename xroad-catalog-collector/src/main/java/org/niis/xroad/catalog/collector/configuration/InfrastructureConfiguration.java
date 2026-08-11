@@ -22,22 +22,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.v2.controller;
+package org.niis.xroad.catalog.collector.configuration;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.time.Clock;
 
 /**
- * Request input the client can correct; its message is echoed to the caller as a 400 by
- * {@link ApiExceptionHandler}. Only validation raised by V2 code may use it — an unexpected
- * {@link IllegalArgumentException} stays a 500 with a generic message instead of leaking an
- * internal precondition as a client error. It extends {@link IllegalArgumentException} so the
- * validation helpers keep their documented contract.
+ * Collector-wide cross-cutting infrastructure beans.
  */
-public class BadRequestException extends IllegalArgumentException {
+@Configuration
+public class InfrastructureConfiguration {
 
-    public BadRequestException(String message) {
-        super(message);
-    }
-
-    public BadRequestException(String message, Throwable cause) {
-        super(message, cause);
+    /**
+     * System-default-zone clock, not UTC: every timestamp the collector persists is host-local
+     * wall-clock time, and the lister's clock bean makes the same choice. Deployment invariant:
+     * the collector, the lister and the Postgres session must share one timezone.
+     * {@link ConditionalOnMissingBean} lets tests override with a fixed clock.
+     */
+    @Bean
+    @ConditionalOnMissingBean(Clock.class)
+    public Clock systemClock() {
+        return Clock.systemDefaultZone();
     }
 }

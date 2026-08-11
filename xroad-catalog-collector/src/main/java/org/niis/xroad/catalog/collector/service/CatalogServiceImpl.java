@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,9 +97,12 @@ public class CatalogServiceImpl implements CatalogService {
     @Autowired
     ErrorLogRepository errorLogRepository;
 
+    @Autowired
+    Clock clock;
+
     @Override
     public Set<Member> saveAllMembersAndSubsystems(Collection<Member> members) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         // process members
         Map<MemberId, Member> unprocessedOldMembers = new HashMap<>();
         StreamSupport.stream(memberRepository.findAll().spliterator(), false)
@@ -141,7 +145,7 @@ public class CatalogServiceImpl implements CatalogService {
             throw new IllegalStateException("subsystem " + subsystemId + NOT_FOUND);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         Map<ServiceId, Service> unprocessedOldServices = new HashMap<>();
         oldSubsystem.getAllServices().stream().forEach(s -> unprocessedOldServices.put(s.createKey(), s));
@@ -180,7 +184,7 @@ public class CatalogServiceImpl implements CatalogService {
             return;
         }
         Service oldService = getExistingService(subsystemId, serviceId);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         Wsdl wsdl = new Wsdl();
         wsdl.setData(wsdlString);
         Wsdl oldWsdl = oldService.getWsdl();
@@ -219,7 +223,7 @@ public class CatalogServiceImpl implements CatalogService {
             return;
         }
         Service oldService = getExistingService(subsystemId, serviceId);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         OpenApi openApi = new OpenApi();
         openApi.setData(openApiString);
         OpenApi oldOpenApi = oldService.getOpenApi();
@@ -253,7 +257,7 @@ public class CatalogServiceImpl implements CatalogService {
         Assert.notNull(subsystemId, SUBSYSTEM_ID_REQUIRED);
         Assert.notNull(serviceId, SERVICE_ID_REQUIRED);
         Service oldService = getExistingService(subsystemId, serviceId);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
         Rest rest = new Rest();
         rest.setData(restString);
         Rest oldRest = oldService.getRest();
@@ -291,14 +295,14 @@ public class CatalogServiceImpl implements CatalogService {
         Service oldService = getExistingService(subsystemId, serviceId);
         Endpoint oldEndpoint = endpointRepository.findAnyByServicePathAndMethod(oldService, method, path);
         if (oldEndpoint != null) {
-            oldEndpoint.getStatusInfo().setChanged(LocalDateTime.now());
+            oldEndpoint.getStatusInfo().setChanged(LocalDateTime.now(clock));
             oldEndpoint.getStatusInfo().setRemoved(null);
-            oldEndpoint.getStatusInfo().setFetched(LocalDateTime.now());
+            oldEndpoint.getStatusInfo().setFetched(LocalDateTime.now(clock));
         } else {
             Endpoint endpoint = new Endpoint();
             endpoint.setPath(path);
             endpoint.setMethod(method);
-            endpoint.getStatusInfo().setTimestampsForNew(LocalDateTime.now());
+            endpoint.getStatusInfo().setTimestampsForNew(LocalDateTime.now(clock));
             endpoint.getStatusInfo().setRemoved(null);
             oldService.setEndpoint(endpoint);
             endpoint.setService(oldService);
@@ -314,9 +318,9 @@ public class CatalogServiceImpl implements CatalogService {
         List<Endpoint> oldEndpoints = endpointRepository.findAnyByService(oldService);
         oldEndpoints.forEach(existingEndpoint -> {
             if (!existingEndpoint.getStatusInfo().isRemoved()) {
-                existingEndpoint.getStatusInfo().setRemoved(LocalDateTime.now());
-                existingEndpoint.getStatusInfo().setChanged(LocalDateTime.now());
-                existingEndpoint.getStatusInfo().setFetched(LocalDateTime.now());
+                existingEndpoint.getStatusInfo().setRemoved(LocalDateTime.now(clock));
+                existingEndpoint.getStatusInfo().setChanged(LocalDateTime.now(clock));
+                existingEndpoint.getStatusInfo().setFetched(LocalDateTime.now(clock));
             }
         });
     }
@@ -328,7 +332,7 @@ public class CatalogServiceImpl implements CatalogService {
 
     @Override
     public void deleteOldErrorLogEntries(Integer daysBefore) {
-        LocalDateTime oldDate = LocalDateTime.now().minusDays(daysBefore);
+        LocalDateTime oldDate = LocalDateTime.now(clock).minusDays(daysBefore);
         errorLogRepository.deleteEntriesOlderThan(oldDate);
     }
 
@@ -401,7 +405,7 @@ public class CatalogServiceImpl implements CatalogService {
 
     private void saveBlankDescriptorErrorLog(SubsystemId subsystemId, ServiceId serviceId, String descriptorType) {
         ErrorLog errorLog = ErrorLog.builder()
-                .created(LocalDateTime.now())
+                .created(LocalDateTime.now(clock))
                 .message("Blank " + descriptorType + " descriptor fetched for service " + serviceId
                         + ", keeping the stored descriptor")
                 .code("500")

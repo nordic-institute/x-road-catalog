@@ -28,6 +28,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorLogDto;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.service.ErrorLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

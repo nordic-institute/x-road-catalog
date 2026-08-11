@@ -31,6 +31,7 @@ import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -58,23 +59,25 @@ public class CollectionCycleRunner {
     private final CollectionRunRepository collectionRunRepository;
     private final FetchWorkTracker fetchWorkTracker;
     private final TaskPoolConfiguration taskPoolConfiguration;
+    private final Clock clock;
     private final long tickMillis;
 
     @Autowired
     public CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
             CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
-            TaskPoolConfiguration taskPoolConfiguration) {
-        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, TICK_MILLIS);
+            TaskPoolConfiguration taskPoolConfiguration, Clock clock) {
+        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, clock, TICK_MILLIS);
     }
 
     CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
             CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
-            TaskPoolConfiguration taskPoolConfiguration, long tickMillis) {
+            TaskPoolConfiguration taskPoolConfiguration, Clock clock, long tickMillis) {
         this.listClientsTask = listClientsTask;
         this.recomputeTask = recomputeTask;
         this.collectionRunRepository = collectionRunRepository;
         this.fetchWorkTracker = fetchWorkTracker;
         this.taskPoolConfiguration = taskPoolConfiguration;
+        this.clock = clock;
         this.tickMillis = tickMillis;
     }
 
@@ -113,12 +116,12 @@ public class CollectionCycleRunner {
         if (taskPoolConfiguration.isFetchRunUnlimited()) {
             return null;
         }
-        return LocalDate.now().atTime(taskPoolConfiguration.getFetchTimeBeforeHour(), 0);
+        return LocalDate.now(clock).atTime(taskPoolConfiguration.getFetchTimeBeforeHour(), 0);
     }
 
     private boolean awaitAllWorkDone(CollectionRun run, LocalDateTime deadline) throws InterruptedException {
         while (!fetchWorkTracker.awaitAllDone(tickMillis)) {
-            if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
+            if (deadline != null && LocalDateTime.now(clock).isAfter(deadline)) {
                 log.error("Fetch window ended at {} with {} items still pending; abandoning this collection cycle",
                         deadline, fetchWorkTracker.pending());
                 long discarded = fetchWorkTracker.reset();
@@ -133,7 +136,7 @@ public class CollectionCycleRunner {
 
     private CollectionRun startRun() {
         CollectionRun run = new CollectionRun();
-        run.setStarted(LocalDateTime.now());
+        run.setStarted(LocalDateTime.now(clock));
         try {
             return collectionRunRepository.save(run);
         } catch (Exception e) {
@@ -145,7 +148,7 @@ public class CollectionCycleRunner {
     private void writeProgress(CollectionRun run) {
         try {
             run.setPendingItems((int) fetchWorkTracker.pending());
-            run.setProgressUpdated(LocalDateTime.now());
+            run.setProgressUpdated(LocalDateTime.now(clock));
             collectionRunRepository.save(run);
         } catch (Exception e) {
             log.error("Failed to record collection run progress", e);
@@ -154,7 +157,7 @@ public class CollectionCycleRunner {
 
     private void finalizeRun(CollectionRun run, boolean success) {
         try {
-            run.setFinished(LocalDateTime.now());
+            run.setFinished(LocalDateTime.now(clock));
             run.setSuccess(success);
             run.setPendingItems(0);
             run.setMembersLastFetched(collectionRunRepository.findLatestMemberFetched());

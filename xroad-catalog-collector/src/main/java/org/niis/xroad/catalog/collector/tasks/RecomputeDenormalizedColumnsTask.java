@@ -52,7 +52,6 @@ public class RecomputeDenormalizedColumnsTask {
         this.denormalizationRepository = denormalizationRepository;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     public void run() {
         try {
             int members = denormalizationRepository.recomputeMemberIsProvider();

@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.catalog.lister.v2.util;
 
-import org.niis.xroad.catalog.lister.v2.controller.BadRequestException;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

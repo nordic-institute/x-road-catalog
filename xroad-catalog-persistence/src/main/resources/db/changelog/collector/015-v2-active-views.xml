@@ -113,10 +113,15 @@
         </sql>
     </changeSet>
 
-    <changeSet id="015-v2-active-search-index" author="niis" dbms="postgresql" runOnChange="true">
+    <changeSet id="015-v2-active-search-index" author="niis" dbms="postgresql">
+        <preConditions onFail="MARK_RAN" onFailMessage="active_search_index exists">
+            <not>
+                <viewExists viewName="active_search_index"/>
+            </not>
+        </preConditions>
         <comment>Unified search surface: members, subsystems and per-subsystem service aggregates.</comment>
         <sql>
-            CREATE OR REPLACE VIEW active_search_index AS
+            CREATE VIEW active_search_index AS
             SELECT 'member' AS entity_type, m.id AS entity_id,
                    LOWER(m.name) AS sort_key,
                    m.member_class, m.member_code, m.name AS member_name,

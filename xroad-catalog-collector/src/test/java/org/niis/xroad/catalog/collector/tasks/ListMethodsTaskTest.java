@@ -51,6 +51,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -124,7 +125,7 @@ public class ListMethodsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
@@ -132,7 +133,8 @@ public class ListMethodsTaskTest {
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         fetchWorkTracker.register(1);
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
-                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate());
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate(),
+                Clock.systemDefaultZone());
         ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
@@ -190,7 +192,7 @@ public class ListMethodsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         Queue<XRoadIdentifier> restServices = new LinkedBlockingQueue<>();
@@ -198,7 +200,8 @@ public class ListMethodsTaskTest {
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         fetchWorkTracker.register(1);
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
-                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate());
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate(),
+                Clock.systemDefaultZone());
         ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
@@ -248,7 +251,7 @@ public class ListMethodsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
         doThrow(new RuntimeException("boom")).when(catalogService).saveServices(any(), any());
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         Queue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
@@ -257,7 +260,8 @@ public class ListMethodsTaskTest {
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         fetchWorkTracker.register(1);
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
-                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate());
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, new RestTemplate(),
+                Clock.systemDefaultZone());
         ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);
@@ -339,12 +343,13 @@ public class ListMethodsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost(), restTemplate);
+                taskPoolConfiguration.getSecurityServerHost(), restTemplate, Clock.systemDefaultZone());
 
         BlockingQueue<MemberWithName> listedClients = new LinkedBlockingQueue<>();
         fetchWorkTracker.register(1);
         ListMethodsTask listMethodsTask = new ListMethodsTask(catalogService, listedClients, wsdlServices,
-                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, restTemplate);
+                restServices, openApiServices, taskPoolConfiguration, fetchWorkTracker, restTemplate,
+                Clock.systemDefaultZone());
         ReflectionTestUtils.setField(listMethodsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(listMethodsTask, "semaphore", semaphore);

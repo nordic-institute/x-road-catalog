@@ -34,6 +34,7 @@ import org.niis.xroad.catalog.lister.v2.dto.ChangeLogMemberItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogServiceItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ChangeLogSubsystemItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceStatisticsRowDto;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

@@ -25,6 +25,10 @@
 package org.niis.xroad.catalog.lister.v2.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.niis.xroad.catalog.lister.v2.dto.FullMemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberClassDto;
 import org.niis.xroad.catalog.lister.v2.dto.MemberDto;
 import org.niis.xroad.catalog.lister.v2.dto.PagedCollectionResponse;
@@ -32,6 +36,7 @@ import org.niis.xroad.catalog.lister.v2.dto.SecurityServerBrowseItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceVersionDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
+import org.niis.xroad.catalog.lister.v2.exception.ResourceNotFoundException;
 import org.niis.xroad.catalog.lister.v2.service.MemberClassService;
 import org.niis.xroad.catalog.lister.v2.service.MemberService;
 import org.niis.xroad.catalog.lister.v2.service.SecurityServerService;
@@ -40,6 +45,7 @@ import org.niis.xroad.catalog.lister.v2.service.SubsystemService;
 import org.niis.xroad.catalog.lister.v2.util.PaginationUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -102,9 +108,13 @@ public class BrowseController {
     }
 
     @GetMapping("/member-classes/{memberClass}/members/{memberCode}")
+    @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+            schema = @Schema(oneOf = {MemberDto.class, FullMemberDto.class})))
     public Object getMember(
             @PathVariable("memberClass") String memberClass,
             @PathVariable("memberCode") String memberCode,
+            @Parameter(description = "When true, returns the full member tree (subsystems, services and "
+                    + "aggregate counts) as the second response shape instead of the plain member.")
             @RequestParam(value = "full", defaultValue = "false") boolean full) {
         if (full) {
             return memberService.getFullTree(memberClass, memberCode)

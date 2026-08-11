@@ -49,6 +49,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -84,12 +85,12 @@ public class FetchWsdlsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
         BlockingQueue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         fetchWorkTracker.register(1);
         FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices, fetchWorkTracker,
-                new RestTemplate());
+                new RestTemplate(), Clock.systemDefaultZone());
         ReflectionTestUtils.setField(fetchWsdlsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchWsdlsTask, "semaphore", semaphore);
@@ -120,12 +121,12 @@ public class FetchWsdlsTaskTest {
         XRoadClient xRoadClient = new XRoadClient(soapClient,
                 new ConsumerMember(taskPoolConfiguration.getXroadInstance(), taskPoolConfiguration.getMemberClass(),
                         taskPoolConfiguration.getMemberCode(), taskPoolConfiguration.getSubsystemCode()),
-                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate());
+                taskPoolConfiguration.getSecurityServerHost(), new RestTemplate(), Clock.systemDefaultZone());
         BlockingQueue<ProducerMember> wsdlServices = new LinkedBlockingQueue<>();
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         fetchWorkTracker.register(1);
         FetchWsdlsTask fetchWsdlsTask = new FetchWsdlsTask(catalogService, taskPoolConfiguration, wsdlServices, fetchWorkTracker,
-                new RestTemplate());
+                new RestTemplate(), Clock.systemDefaultZone());
         ReflectionTestUtils.setField(fetchWsdlsTask, "xroadClient", xRoadClient);
         Semaphore semaphore = new Semaphore(1);
         ReflectionTestUtils.setField(fetchWsdlsTask, "semaphore", semaphore);

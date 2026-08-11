@@ -26,6 +26,9 @@ package org.niis.xroad.catalog.lister.v2.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.lister.v2.dto.ErrorResponse;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
+import org.niis.xroad.catalog.lister.v2.exception.MultipleVersionsException;
+import org.niis.xroad.catalog.lister.v2.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;

@@ -39,6 +39,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,8 @@ public final class MethodListUtil {
                                                                String host,
                                                                ConsumerMember consumerMember,
                                                                CatalogService catalogService,
-                                                               RestTemplate restTemplate) throws XRd4JException {
+                                                               RestTemplate restTemplate,
+                                                               Clock clock) throws XRd4JException {
         final String url = host + "/r1/"
                 + clientType.getXRoadInstance() + '/'
                 + clientType.getMemberClass() + '/'
@@ -66,7 +68,7 @@ public final class MethodListUtil {
         String xRoadClientHeader = createHeader(consumerMember);
         List<XRoadIdentifier> restServices = new ArrayList<>();
         JSONObject json = MethodListUtil.getJSON(url, "Fetch of REST services", clientType, xRoadClientHeader,
-                catalogService, restTemplate);
+                catalogService, restTemplate, clock);
         if (json != null) {
             JSONArray serviceList = json.getJSONArray("service");
             for (int i = 0; i < serviceList.length(); i++) {
@@ -105,7 +107,8 @@ public final class MethodListUtil {
                                              String host,
                                              ConsumerMember consumerMember,
                                              CatalogService catalogService,
-                                             RestTemplate restTemplate) {
+                                             RestTemplate restTemplate,
+                                             Clock clock) {
         final String url = host + "/r1/"
                 + clientType.getXRoadInstance() + '/'
                 + clientType.getMemberClass() + '/'
@@ -115,7 +118,7 @@ public final class MethodListUtil {
 
         String xRoadClientHeader = createHeader(consumerMember);
         JSONObject json = MethodListUtil.getJSON(url, "Fetch of OpenAPI descriptor", clientType, xRoadClientHeader,
-                catalogService, restTemplate);
+                catalogService, restTemplate, clock);
 
         return (json != null) ? json.toString() : null;
     }
@@ -138,7 +141,7 @@ public final class MethodListUtil {
     }
 
     private static JSONObject getJSON(String url, String operation, XRoadIdentifier client, String xRoadClientHeader,
-                                      CatalogService catalogService, RestTemplate restTemplate) {
+                                      CatalogService catalogService, RestTemplate restTemplate, Clock clock) {
         HttpHeaders headers = new HttpHeaders();
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.APPLICATION_JSON);
@@ -158,7 +161,7 @@ public final class MethodListUtil {
             if (!newSecurityServerMetadata.equals(securityServerMetadata)) {
                 log.error("{} failed: {}", operation, e.getMessage());
                 ErrorLog errorLog = ErrorLog.builder()
-                        .created(LocalDateTime.now())
+                        .created(LocalDateTime.now(clock))
                         .message(operation + " failed(url: " + url + "): "
                                 + e.getMessage())
                         .code("500")

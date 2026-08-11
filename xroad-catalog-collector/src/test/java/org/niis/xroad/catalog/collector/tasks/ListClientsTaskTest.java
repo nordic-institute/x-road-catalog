@@ -46,6 +46,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.time.Clock;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -108,7 +109,7 @@ public class ListClientsTaskTest {
 
             FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
             ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
-                    fetchWorkTracker, new RestTemplate());
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
             listClientsTask.run();
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
@@ -148,7 +149,7 @@ public class ListClientsTaskTest {
 
             FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
             ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
-                    fetchWorkTracker, new RestTemplate());
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
             listClientsTask.run();
 
             verifyNoInteractions(catalogService);
@@ -189,7 +190,7 @@ public class ListClientsTaskTest {
 
             FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
             ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
-                    fetchWorkTracker, new RestTemplate());
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
             listClientsTask.run();
 
             // Note: This line is time-sensitive and will fail if run between 23:00-00:00.
@@ -215,7 +216,7 @@ public class ListClientsTaskTest {
 
             FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
             ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
-                    fetchWorkTracker, new RestTemplate());
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
             listClientsTask.run();
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
@@ -233,7 +234,7 @@ public class ListClientsTaskTest {
 
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
-                fetchWorkTracker, new RestTemplate());
+                fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
         listClientsTask.run();
 
         verify(catalogService, times(1)).saveErrorLog(any());

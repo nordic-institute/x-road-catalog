@@ -42,6 +42,7 @@ import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -79,10 +80,12 @@ public class ListMethodsTask implements Runnable {
 
     private final RestTemplate restTemplate;
 
+    private final Clock clock;
+
     public ListMethodsTask(final CatalogService  catalogService, final BlockingQueue<MemberWithName> listMethodsQueue,
                            final Queue<ProducerMember> wsdlServicesQueue, final Queue<XRoadIdentifier> restServicesQueue,
                            final Queue<XRoadIdentifier> openApiServicesQueue, final TaskPoolConfiguration taskPoolConfiguration,
-                           final FetchWorkTracker fetchWorkTracker, final RestTemplate restTemplate)
+                           final FetchWorkTracker fetchWorkTracker, final RestTemplate restTemplate, final Clock clock)
             throws XRd4JException, SOAPException {
         this.catalogService = catalogService;
 
@@ -92,6 +95,7 @@ public class ListMethodsTask implements Runnable {
         this.restQueue = restServicesQueue;
         this.fetchWorkTracker = fetchWorkTracker;
         this.restTemplate = restTemplate;
+        this.clock = clock;
 
         this.taskPoolConfiguration = taskPoolConfiguration;
         this.xroadSecurityServerHost = taskPoolConfiguration.getSecurityServerHost();
@@ -103,7 +107,7 @@ public class ListMethodsTask implements Runnable {
 
         this.semaphore = new Semaphore(taskPoolConfiguration.getListMethodsPoolSize());
 
-        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate);
+        this.xroadClient = new XRoadClient(consumerMember, webservicesEndpoint, restTemplate, clock);
     }
 
     public void run() {
@@ -137,7 +141,7 @@ public class ListMethodsTask implements Runnable {
             log.debug("Handling subsystem {} ", subsystem);
 
             List<XRoadIdentifier> restServices = MethodListUtil.methodListFromResponse(client.getId(),
-                    xroadSecurityServerHost, consumerMember, catalogService, restTemplate);
+                    xroadSecurityServerHost, consumerMember, catalogService, restTemplate, clock);
             log.info("Received {} REST methods for client {} ", restServices.size(),
                     IdentifierUtil.toString(client));
 

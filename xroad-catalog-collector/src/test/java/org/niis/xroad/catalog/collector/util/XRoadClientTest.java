@@ -42,6 +42,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 
@@ -116,7 +117,7 @@ public class XRoadClientTest {
         ));
         when(soapClient.listMethods(any(ServiceRequest.class), eq(REQUEST_URL)))
                 .thenReturn(response);
-        XRoadClient xRoadClient = new XRoadClient(soapClient, client, REQUEST_URL, new RestTemplate());
+        XRoadClient xRoadClient = new XRoadClient(soapClient, client, REQUEST_URL, new RestTemplate(), Clock.systemDefaultZone());
         assertNotNull(xRoadClient);
         XRoadIdentifier client2 = getDefaultProducer();
         List<ProducerMember> openApiResponse = xRoadClient.getMethods(client2, catalogService);
@@ -134,7 +135,7 @@ public class XRoadClientTest {
         when(soapClient.send(any(ServiceRequest.class), eq(REQUEST_URL),
                 any(GetWsdlRequestSerializer.class), any(GetWsdlResponseDeserializer.class)))
                 .thenReturn(response);
-        XRoadClient xRoadClient = new XRoadClient(soapClient, client, REQUEST_URL, new RestTemplate());
+        XRoadClient xRoadClient = new XRoadClient(soapClient, client, REQUEST_URL, new RestTemplate(), Clock.systemDefaultZone());
         assertNotNull(xRoadClient);
         ProducerMember service = new ProducerMember(xroadInstance, memberClass, memberCode, subsystemCode, "getWsdl", "null");
         service.setObjectType(ObjectType.SERVICE);

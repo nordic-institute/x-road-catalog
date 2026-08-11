@@ -36,6 +36,7 @@ import org.niis.xroad.catalog.lister.v2.dto.SecurityServerListItemDto;
 import org.niis.xroad.catalog.lister.v2.dto.SecurityServerOwnerDto;
 import org.niis.xroad.catalog.lister.v2.dto.ServiceDto;
 import org.niis.xroad.catalog.lister.v2.dto.SubsystemDto;
+import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.service.MemberService;
 import org.niis.xroad.catalog.lister.v2.service.SecurityServerService;
 import org.niis.xroad.catalog.lister.v2.service.ServiceService;
