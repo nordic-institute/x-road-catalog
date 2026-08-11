@@ -18,12 +18,12 @@ jobs:
         with:
           submodules: 'true'
       - name: Set up JDK 21
-        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           cache-cleanup: always
@@ -34,20 +34,20 @@ jobs:
       - name: List JAR files
         run: ls -lah xroad-catalog-collector/build/libs xroad-catalog-lister/build/libs
       - name: Log in to the Container registry
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push xrddev-catalog-collector's Docker Image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: ${{ github.workspace }}
           file: ${{ github.workspace }}/docker/collector/Dockerfile
           push: true
           tags: ghcr.io/nordic-institute/xrddev-catalog-collector:latest
       - name: Build and push xrddev-catalog-lister's Docker Image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: ${{ github.workspace }}
           file: ${{ github.workspace }}/docker/lister/Dockerfile
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Clean old xrddev-catalog-collector's Docker Images
-        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb # v3.0.1
+        uses: snok/container-retention-policy@d3bdcf5ce9b05f685154e4a16c39233b245e3d53 # v3.1.0
         with:
           account: nordic-institute
           image-names: xrddev-catalog-collector
@@ -70,7 +70,7 @@ jobs:
           keep-n-most-recent: 1
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Clean old xrddev-catalog-lister's Docker Images
-        uses: snok/container-retention-policy@3b0972b2276b171b212f8c4efbca59ebba26eceb # v3.0.1
+        uses: snok/container-retention-policy@d3bdcf5ce9b05f685154e4a16c39233b245e3d53 # v3.1.0
         with:
           account: nordic-institute
           image-names: xrddev-catalog-lister
