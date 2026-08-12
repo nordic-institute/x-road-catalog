@@ -47,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -71,12 +73,14 @@ class CollectionCycleRunnerTest {
     private CollectionRunRepository collectionRunRepository;
     @Mock
     private TaskPoolConfiguration taskPoolConfiguration;
+    @Mock
+    private CollectorMetrics collectorMetrics;
 
     private final FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
 
     private CollectionCycleRunner newRunner() {
         return new CollectionCycleRunner(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker,
-                taskPoolConfiguration, FIXED_CLOCK, TICK_MILLIS);
+                taskPoolConfiguration, collectorMetrics, FIXED_CLOCK, TICK_MILLIS);
     }
 
     private void unlimitedFetchWindow() {
@@ -116,6 +120,32 @@ class CollectionCycleRunnerTest {
         assertNotNull(finalRow.getFinished());
         assertEquals(0, finalRow.getPendingItems());
         assertEquals(LocalDateTime.of(2025, 6, 1, 10, 0), finalRow.getMembersLastFetched());
+    }
+
+    /**
+     * Pins that a throwing metrics collaborator cannot skip the run-row finalization write: the lister's
+     * heartbeat reads that row, so a MeterRegistry failure leaving it unfinalized would corrupt the
+     * staleness signal. The {@code run} object is mutated in place, so asserting on its final state alone
+     * cannot tell a skipped save apart from a completed one; the save call count is the real signal — this
+     * cycle (no pending work) saves exactly 3 times when finalization completes (start, initial progress,
+     * finalize), and only 2 if the finalize save is skipped.
+     */
+    @Test
+    void metricRecordingFailureDoesNotPreventRunFinalization() {
+        unlimitedFetchWindow();
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+        doThrow(new IllegalStateException("meter registry boom"))
+                .when(collectorMetrics).recordCycleDuration(any(Duration.class), anyBoolean());
+
+        CollectionCycleRunner runner = newRunner();
+        runner.run();
+
+        verify(recomputeTask).run();
+        ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
+        verify(collectionRunRepository, atLeast(3)).save(saved.capture());
+        CollectionRun finalRow = saved.getValue();
+        assertNotNull(finalRow.getFinished());
+        assertEquals(Boolean.TRUE, finalRow.getSuccess());
     }
 
     @Test

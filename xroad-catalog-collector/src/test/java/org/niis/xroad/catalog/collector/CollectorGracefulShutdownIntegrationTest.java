@@ -96,7 +96,7 @@ class CollectorGracefulShutdownIntegrationTest {
 
     private static CollectionCycleRunner blockingCollectionCycleRunner(CountDownLatch cycleStarted,
             AtomicReference<Thread> schedulerThread) {
-        return new CollectionCycleRunner(null, null, null, null, null, null) {
+        return new CollectionCycleRunner(null, null, null, null, null, null, null) {
             @Override
             public void run() {
                 schedulerThread.set(Thread.currentThread());

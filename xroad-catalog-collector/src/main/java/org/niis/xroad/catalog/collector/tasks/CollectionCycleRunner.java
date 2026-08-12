@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -59,24 +60,27 @@ public class CollectionCycleRunner {
     private final CollectionRunRepository collectionRunRepository;
     private final FetchWorkTracker fetchWorkTracker;
     private final TaskPoolConfiguration taskPoolConfiguration;
+    private final CollectorMetrics collectorMetrics;
     private final Clock clock;
     private final long tickMillis;
 
     @Autowired
     public CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
             CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
-            TaskPoolConfiguration taskPoolConfiguration, Clock clock) {
-        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, clock, TICK_MILLIS);
+            TaskPoolConfiguration taskPoolConfiguration, CollectorMetrics collectorMetrics, Clock clock) {
+        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, collectorMetrics,
+                clock, TICK_MILLIS);
     }
 
     CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
             CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
-            TaskPoolConfiguration taskPoolConfiguration, Clock clock, long tickMillis) {
+            TaskPoolConfiguration taskPoolConfiguration, CollectorMetrics collectorMetrics, Clock clock, long tickMillis) {
         this.listClientsTask = listClientsTask;
         this.recomputeTask = recomputeTask;
         this.collectionRunRepository = collectionRunRepository;
         this.fetchWorkTracker = fetchWorkTracker;
         this.taskPoolConfiguration = taskPoolConfiguration;
+        this.collectorMetrics = collectorMetrics;
         this.clock = clock;
         this.tickMillis = tickMillis;
     }
@@ -177,6 +181,17 @@ public class CollectionCycleRunner {
             collectionRunRepository.save(run);
         } catch (Exception e) {
             log.error("Failed to finalize collection run", e);
+        }
+        // Recorded after the row is saved above, and isolated in its own catch, so a MeterRegistry
+        // failure here can never skip or roll back the run-row finalization the lister's heartbeat relies
+        // on.
+        try {
+            collectorMetrics.recordCycleDuration(Duration.between(run.getStarted(), run.getFinished()), success);
+            if (success) {
+                collectorMetrics.recordSuccess(run.getFinished());
+            }
+        } catch (Exception e) {
+            log.error("Failed to record collection cycle metrics", e);
         }
     }
 }

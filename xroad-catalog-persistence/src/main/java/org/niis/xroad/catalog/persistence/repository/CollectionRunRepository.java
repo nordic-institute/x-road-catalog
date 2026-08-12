@@ -45,6 +45,8 @@ public interface CollectionRunRepository extends CrudRepository<CollectionRun, L
 
     Optional<CollectionRun> findFirstByFinishedIsNullOrderByStartedDesc();
 
+    Optional<CollectionRun> findFirstBySuccessTrueOrderByFinishedDesc();
+
     @Query(value = "SELECT MAX(fetched) FROM member", nativeQuery = true)
     Instant findLatestMemberFetchedInstant();
 
