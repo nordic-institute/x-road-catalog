@@ -1,5 +1,10 @@
 server:
   port: '4920'
+
+management:
+  server:
+    port: 4925
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:4910/xroad_catalog

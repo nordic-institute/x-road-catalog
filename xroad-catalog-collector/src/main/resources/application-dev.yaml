@@ -1,5 +1,6 @@
-server:
-  port: 4915
+management:
+  server:
+    port: 4915
 
 spring:
   datasource:

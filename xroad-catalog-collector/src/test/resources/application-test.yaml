@@ -19,6 +19,10 @@ spring:
       mode: always
       platform: h2
 
+management:
+  server:
+    port: -1
+
 # X-Road instance parameters
 xroad-catalog:
   instance:

@@ -11,6 +11,27 @@ spring:
     show-sql: false
     hibernate.ddl-auto: none
     properties.hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  shutdown: graceful
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-components: always
+      group:
+        readiness:
+          include: readinessState,db
 
 # OpenAPI documentation
 springdoc:
