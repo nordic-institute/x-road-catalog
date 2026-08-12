@@ -89,6 +89,7 @@ public class CollectionCycleRunner {
         }
         boolean listClientsOk = false;
         boolean allWorkDone = false;
+        boolean interrupted = false;
         try {
             LocalDateTime deadline = fetchWindowEnd();
             listClientsTask.run();
@@ -96,7 +97,11 @@ public class CollectionCycleRunner {
             writeProgress(run);
             allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            // The interrupt flag is deliberately NOT restored here: the finally block below still has
+            // to reach the database to finalize this run, and a borrowed connection's own interruptible
+            // wait (e.g. Hikari's connection handoff) would otherwise immediately fail on a flag that
+            // was never cleared. Restored once those writes are done, below.
+            interrupted = true;
             log.warn("Interrupted while waiting for fetch tasks to finish", e);
         } catch (Exception e) {
             log.error("Collection cycle failed", e);
@@ -105,6 +110,9 @@ public class CollectionCycleRunner {
             // must be closed (success=false). Both catch internally, so run() never throws.
             recomputeTask.run();
             finalizeRun(run, listClientsOk && allWorkDone);
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
         }
     }
 

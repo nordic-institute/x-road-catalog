@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -157,6 +158,42 @@ class CollectionCycleRunnerTest {
         ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
         verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
         assertEquals(Boolean.FALSE, saved.getValue().getSuccess());
+    }
+
+    /**
+     * Pins the ordering the graceful-shutdown feature depends on: the finalization writes in
+     * {@code run()}'s {@code finally} block must run with the interrupt flag clear, so a borrowed
+     * database connection's own interruptible wait cannot immediately fail. The flag is restored only
+     * once those writes are done. Fails if the restore is ever moved back into the {@code catch} block.
+     */
+    @Test
+    void finalizationWritesRunWithInterruptFlagClearedThenRestoredAfterReturn() throws InterruptedException {
+        unlimitedFetchWindow();
+        registerWorkWhenListingClients(1);
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AtomicBoolean interruptedDuringFinalization = new AtomicBoolean(true);
+        doAnswer(invocation -> {
+            interruptedDuringFinalization.set(Thread.currentThread().isInterrupted());
+            return null;
+        }).when(recomputeTask).run();
+
+        CollectionCycleRunner runner = newRunner();
+
+        AtomicBoolean interruptedFlagRestored = new AtomicBoolean();
+        Thread runnerThread = new Thread(() -> {
+            runner.run();
+            interruptedFlagRestored.set(Thread.currentThread().isInterrupted());
+        });
+        runnerThread.start();
+        await().atMost(Duration.ofSeconds(2))
+                .until(() -> runnerThread.getState() == Thread.State.TIMED_WAITING
+                        || runnerThread.getState() == Thread.State.WAITING);
+        runnerThread.interrupt();
+        runnerThread.join(2_000);
+
+        assertFalse(interruptedDuringFinalization.get(), "finalization writes should run with the interrupt flag cleared");
+        assertTrue(interruptedFlagRestored.get(), "interrupt flag should be restored once finalization completes");
     }
 
     @Test
