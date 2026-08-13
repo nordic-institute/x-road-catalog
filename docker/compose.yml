@@ -42,8 +42,6 @@ services:
       - setting_xroad-catalog.target.member-class=COM
       - setting_xroad-catalog.target.member-code=1234
       - setting_xroad-catalog.instance.ignored-subsystem-ids[0]=DEV:COM:1234:MANAGEMENT
-      - setting_xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
-      - setting_xroad-catalog.ssl-keystore.password=changeit
       - setting_xroad-catalog.urls.security-server-host=http://ss0:8080/
       - setting_xroad-catalog.urls.list-clients-host=http://ss0:8080/
       - setting_xroad-catalog.urls.webservices-endpoint=http://ss0:8080/
