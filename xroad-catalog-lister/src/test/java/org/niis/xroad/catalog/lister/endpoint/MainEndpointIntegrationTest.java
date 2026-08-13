@@ -74,7 +74,7 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest(
         classes = ListerApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"spring.sql.init.mode=never"})
+        properties = {"spring.sql.init.mode=never", "xroad-catalog.legacy-api.enabled=true"})
 @ActiveProfiles("test")
 @DirtiesContext
 public class MainEndpointIntegrationTest {

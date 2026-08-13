@@ -67,7 +67,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = { "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml" })
+@TestPropertySource(properties = {
+        "xroad-catalog.shared-params-file=src/test/resources/shared-params.xml",
+        "xroad-catalog.legacy-api.enabled=true"
+})
 @ActiveProfiles({"test", "general-testdata"})
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class ServiceControllerTests {

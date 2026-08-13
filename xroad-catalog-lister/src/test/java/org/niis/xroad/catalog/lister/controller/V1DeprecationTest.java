@@ -51,7 +51,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "xroad-catalog.shared-params-file=src/test/resources/shared-params-dev-cs.xml",
         // The "test" profile disables SpringDoc by default; force it on so /v3/api-docs/v1
         // actually serves a document.
-        "springdoc.api-docs.enabled=true"
+        "springdoc.api-docs.enabled=true",
+        "xroad-catalog.legacy-api.enabled=true"
 })
 @ActiveProfiles({"test", "general-testdata"})
 class V1DeprecationTest {

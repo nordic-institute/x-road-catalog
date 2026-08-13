@@ -1,5 +1,5 @@
 # X-Road Catalog User Guide
-Version: 4.2.1
+Version: 4.3.0
 Doc. ID: UG-XRDCAT
 
 ---
@@ -26,6 +26,7 @@ Doc. ID: UG-XRDCAT
 | 16.08.2023 | 4.1.0   | Update Catalog Lister port number from `8080` to `8070`                        | Petteri Kivimäki |
 | 09.09.2023 | 4.2.0   | Update REST endpoint descriptions                                              | Petteri Kivimäki |
 | 17.11.2023 | 4.2.1   | Update response of ListMembers and service types for GetServiceType            | Bert Viikmäe     |
+| 13.08.2026 | 4.3.0   | Document V1 SOAP/REST endpoints being disabled by default behind a feature flag | Raido Kaju       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -104,6 +105,10 @@ The purpose of this module is to provide a web service which lists all the X-Roa
 More information about the [X-Road Catalog Lister](../xroad-catalog-lister/README.md) module.
 
 ### 3.1 SOAP endpoints
+
+> [!NOTE]
+> The SOAP interface is deprecated and disabled by default. Set
+> `xroad-catalog.legacy-api.enabled=true` to serve it.
 
 The main SOAP endpoints the module  provides with the `default` [profile](../BUILD.md#profiles): 
 
@@ -569,6 +574,10 @@ The XML response has a `<SOAP-ENV:Body>` element with the following structure:
             * `created`
 
 ## 3.2 REST endpoints
+
+> [!NOTE]
+> The V1 REST API is deprecated and disabled by default. Set
+> `xroad-catalog.legacy-api.enabled=true` to serve it.
 
 The main endpoints provided by the default [profile](../BUILD.md#profiles):
 

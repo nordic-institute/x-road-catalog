@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.lister.v2.configuration;
 
 import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfiguration {
 
     @Bean
+    @ConditionalOnProperty(name = "xroad-catalog.legacy-api.enabled", havingValue = "true")
     public GroupedOpenApi v1Api() {
         return GroupedOpenApi.builder()
                 .group("v1")

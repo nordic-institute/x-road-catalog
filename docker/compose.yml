@@ -91,6 +91,7 @@ services:
       # catalog
       - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
       - setting_xroad-catalog.configuration-client.enabled=true
+      - setting_xroad-catalog.legacy-api.enabled=true
     volumes:
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro
       - /etc/localtime:/etc/localtime:ro
