@@ -24,6 +24,10 @@
  */
 package org.niis.xroad.catalog.lister.endpoint;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xrd4j.common.exception.XRd4JException;
@@ -39,6 +43,7 @@ import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderServ
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersService;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 
+import java.io.IOException;
 
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
@@ -86,5 +91,20 @@ public class SOAPAdapter extends AbstractAdapterServlet {
     @Override
     protected String getWSDLPath() {
         return "services.wsdl";
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (request.getParameter("wsdl") == null && "/services.wsdl".equals(request.getPathInfo())) {
+            super.doGet(new HttpServletRequestWrapper(request) {
+                @Override
+                public String getParameter(String name) {
+                    return "wsdl".equals(name) ? "" : super.getParameter(name);
+                }
+            }, response);
+            return;
+        }
+        super.doGet(request, response);
     }
 }

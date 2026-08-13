@@ -43,7 +43,7 @@ public class ServletConfiguration {
             @Autowired CatalogService catalogService
     ) {
         ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService), "/ws");
+                new SOAPAdapter(catalogService), "/ws/*");
         bean.setLoadOnStartup(1);
         return bean;
     }
