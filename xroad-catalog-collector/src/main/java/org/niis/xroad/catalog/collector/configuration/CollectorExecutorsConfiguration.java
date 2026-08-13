@@ -38,9 +38,10 @@ import java.util.concurrent.ScheduledExecutorService;
 public class CollectorExecutorsConfiguration {
 
     /**
-     * Spring's inferred destroy method for an {@code ExecutorService} is {@code close()}, which awaits
-     * termination indefinitely; shutdown is instead owned by {@code DefaultTasksInitializer#shutdown},
-     * which is bounded.
+     * The empty {@code destroyMethod} tells Spring to call no destroy method at all: left to inference,
+     * Spring would call {@code ExecutorService.close()} on context shutdown, which awaits termination
+     * indefinitely and could hang the shutdown. The only shutdown path is the bounded
+     * {@code DefaultTasksInitializer#shutdown}, whose {@code @PreDestroy} runs before this bean is destroyed.
      */
     @Bean(destroyMethod = "")
     public ScheduledExecutorService collectorScheduler() {

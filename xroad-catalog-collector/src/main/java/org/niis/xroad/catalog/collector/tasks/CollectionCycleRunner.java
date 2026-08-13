@@ -101,7 +101,7 @@ public class CollectionCycleRunner {
             writeProgress(run);
             allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {
-            // The interrupt flag is deliberately NOT restored here: the finally block below still has
+            // The interrupt is deliberately deferred until after the finally block: it still has
             // to reach the database to finalize this run, and a borrowed connection's own interruptible
             // wait (e.g. Hikari's connection handoff) would otherwise immediately fail on a flag that
             // was never cleared. Restored once those writes are done, below.
