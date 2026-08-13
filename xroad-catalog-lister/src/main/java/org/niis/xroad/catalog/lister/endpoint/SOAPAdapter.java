@@ -93,6 +93,12 @@ public class SOAPAdapter extends AbstractAdapterServlet {
         return "services.wsdl";
     }
 
+    /**
+     * Restores the {@code GET /ws/services.wsdl} retrieval URL that Spring-WS served originally.
+     * XRD4J's {@link AbstractAdapterServlet} serves the WSDL only when a {@code wsdl} query
+     * parameter is present, so the path-style request is rewritten to look like {@code GET /ws?wsdl}
+     * and delegated to the parent, keeping its content-type and error handling.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

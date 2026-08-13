@@ -79,9 +79,9 @@ Configurations are categorized according to their usage into different groups in
 
 #### Optional Configurations for Legacy API Features
 
-| Parameter                          | Defaults | Description                                                                                                                             | Since |
-|-------------------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------|-------|
-| `xroad-catalog.legacy-api.enabled` | `false`  | Enables the deprecated V1 REST API (`/api/*`) and the SOAP endpoint (`/ws/*`). Disabled endpoints return 404.                             | 4.0.0 |
+| Parameter                          | Defaults | Description                                                                                                   | Since |
+|------------------------------------|----------|---------------------------------------------------------------------------------------------------------------|-------|
+| `xroad-catalog.legacy-api.enabled` | `false`  | Enables the deprecated V1 REST API (`/api/*`) and the SOAP endpoint (`/ws/*`). Disabled endpoints return 404. | 4.0.0 |
 
 ### Fixed-Mandatory Values to include in `application.yaml`
 
