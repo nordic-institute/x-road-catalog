@@ -86,6 +86,9 @@ public class CollectionCycleRunner {
     }
 
     public void run() {
+        // Monotonic elapsed time for the duration metric: wall-clock (LocalDateTime) differences can go
+        // backwards across a DST rollback or an NTP step, and Micrometer silently drops negative samples.
+        long cycleStartNanos = System.nanoTime();
         CollectionRun run = startRun();
         long leftover = fetchWorkTracker.reset();
         if (leftover > 0) {
@@ -113,7 +116,7 @@ public class CollectionCycleRunner {
             // Runs even on failure: partial fetch results still need recomputing and the run row
             // must be closed (success=false). Both catch internally, so run() never throws.
             recomputeTask.run();
-            finalizeRun(run, listClientsOk && allWorkDone);
+            finalizeRun(run, listClientsOk && allWorkDone, Duration.ofNanos(System.nanoTime() - cycleStartNanos));
         }
         if (interrupted) {
             Thread.currentThread().interrupt();
@@ -167,7 +170,7 @@ public class CollectionCycleRunner {
         }
     }
 
-    private void finalizeRun(CollectionRun run, boolean success) {
+    private void finalizeRun(CollectionRun run, boolean success, Duration cycleDuration) {
         try {
             run.setFinished(LocalDateTime.now(clock));
             run.setSuccess(success);
@@ -186,7 +189,7 @@ public class CollectionCycleRunner {
         // failure here can never skip or roll back the run-row finalization the lister's heartbeat relies
         // on.
         try {
-            collectorMetrics.recordCycleDuration(Duration.between(run.getStarted(), run.getFinished()), success);
+            collectorMetrics.recordCycleDuration(cycleDuration, success);
             if (success) {
                 collectorMetrics.recordSuccess(run.getFinished());
             }

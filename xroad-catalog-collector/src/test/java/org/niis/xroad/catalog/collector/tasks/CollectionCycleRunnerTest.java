@@ -48,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
@@ -146,6 +147,27 @@ class CollectionCycleRunnerTest {
         CollectionRun finalRow = saved.getValue();
         assertNotNull(finalRow.getFinished());
         assertEquals(Boolean.TRUE, finalRow.getSuccess());
+    }
+
+    /**
+     * Pins that the cycle-duration metric is measured with a monotonic elapsed-time source instead of
+     * being derived from the injected wall clock: under this fixed clock any wall-clock difference is
+     * exactly zero, so only an elapsed-time measurement can produce the strictly positive duration
+     * asserted here. Wall-clock arithmetic can go backwards across a DST rollback or an NTP step, and
+     * Micrometer silently drops negative samples.
+     */
+    @Test
+    void cycleDurationMetricUsesMonotonicElapsedTimeNotTheWallClock() {
+        unlimitedFetchWindow();
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CollectionCycleRunner runner = newRunner();
+        runner.run();
+
+        ArgumentCaptor<Duration> recorded = ArgumentCaptor.forClass(Duration.class);
+        verify(collectorMetrics).recordCycleDuration(recorded.capture(), eq(true));
+        assertTrue(recorded.getValue().compareTo(Duration.ZERO) > 0,
+                "expected a positive elapsed duration under a fixed wall clock, got " + recorded.getValue());
     }
 
     @Test
