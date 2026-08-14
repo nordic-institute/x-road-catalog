@@ -39,9 +39,6 @@ xroad-catalog:
     subsystem-code: ''
     member-class: ''
     member-code: ''
-  ssl-keystore:
-    location: /etc/xroad/xroad-catalog/keystore
-    password: changeit
   urls:
     security-server-host: ''
     list-clients-host: ${xroad-catalog.urls.security-server-host}
