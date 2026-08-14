@@ -22,4 +22,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rewrite on Java 21 (virtual threads) and Spring Boot 3.5
 - Database schema now managed by Liquibase
-- Legacy V1 REST and SOAP APIs behind a config toggle, disabled by default for new installs
+- Legacy V1 REST and SOAP APIs behind a configuration toggle

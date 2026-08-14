@@ -70,8 +70,9 @@ the heartbeat endpoints. The old `update_version.sh` script has been removed sin
 
 `xroad-catalog-lister/src/main/resources/version.properties` is a template expanded by the build's
 `processResources` task and must not be edited by hand — only the `xroad-catalog.app-name` line is literal.
+The packaged `version.properties` is regenerated on the next build, so no other file needs editing.
 
-After bumping the version, refresh the dependency lockfiles:
+When changing dependencies (e.g. editing `gradle/libs.versions.toml`), refresh the dependency lockfiles:
 
 ```
 ./gradlew dependencies :xroad-catalog-persistence:dependencies \
@@ -82,5 +83,5 @@ After bumping the version, refresh the dependency lockfiles:
 Tag the release commit on `develop` with an annotated tag:
 
 ```
-git tag -a vX.Y.Z -m "X-Road Catalog X.Y.Z"
+git tag -a vX.Y.Z -m "X-Road Catalog X.Y.Z" && git push origin vX.Y.Z
 ```
