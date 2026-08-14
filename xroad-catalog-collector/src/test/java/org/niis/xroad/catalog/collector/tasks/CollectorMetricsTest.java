@@ -88,7 +88,7 @@ class CollectorMetricsTest {
 
         new CollectorMetrics(meterRegistry, collectionRunRepository, FIXED_CLOCK);
 
-        double value = meterRegistry.get("xroad.catalog.collection.last.success").gauge().value();
+        double value = meterRegistry.get("xroad.catalog.collection.last.success.timestamp").gauge().value();
         assertEquals(0.0, value, 0.001);
     }
 
@@ -100,7 +100,7 @@ class CollectorMetricsTest {
 
         new CollectorMetrics(meterRegistry, collectionRunRepository, FIXED_CLOCK);
 
-        double value = meterRegistry.get("xroad.catalog.collection.last.success").gauge().value();
+        double value = meterRegistry.get("xroad.catalog.collection.last.success.timestamp").gauge().value();
         long expectedEpochSeconds = LocalDateTime.of(2025, 6, 1, 10, 0).atZone(ZoneOffset.UTC).toEpochSecond();
         assertEquals(expectedEpochSeconds, value, 0.001);
     }
@@ -111,11 +111,11 @@ class CollectorMetricsTest {
         CollectorMetrics metrics = new CollectorMetrics(meterRegistry, collectionRunRepository, FIXED_CLOCK);
 
         metrics.recordCycleDuration(Duration.ofSeconds(1), false);
-        double afterFailure = meterRegistry.get("xroad.catalog.collection.last.success").gauge().value();
+        double afterFailure = meterRegistry.get("xroad.catalog.collection.last.success.timestamp").gauge().value();
         assertEquals(0.0, afterFailure, 0.001);
 
         metrics.recordSuccess(LocalDateTime.of(2025, 6, 1, 11, 0));
-        double afterSuccess = meterRegistry.get("xroad.catalog.collection.last.success").gauge().value();
+        double afterSuccess = meterRegistry.get("xroad.catalog.collection.last.success.timestamp").gauge().value();
         long expectedEpochSeconds = LocalDateTime.of(2025, 6, 1, 11, 0).atZone(ZoneOffset.UTC).toEpochSecond();
         assertEquals(expectedEpochSeconds, afterSuccess, 0.001);
     }

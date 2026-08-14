@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CollectorMetrics {
 
     static final String CYCLE_DURATION_METRIC = "xroad.catalog.collection.cycle.duration";
-    static final String LAST_SUCCESS_METRIC = "xroad.catalog.collection.last.success";
+    static final String LAST_SUCCESS_TIMESTAMP_METRIC = "xroad.catalog.collection.last.success.timestamp";
     static final String SUCCESS_TAG = "success";
 
     private final MeterRegistry meterRegistry;
@@ -57,7 +57,7 @@ public class CollectorMetrics {
     public CollectorMetrics(MeterRegistry meterRegistry, CollectionRunRepository collectionRunRepository, Clock clock) {
         this.meterRegistry = meterRegistry;
         this.clock = clock;
-        Gauge.builder(LAST_SUCCESS_METRIC, lastSuccessEpochSeconds, AtomicLong::get)
+        Gauge.builder(LAST_SUCCESS_TIMESTAMP_METRIC, lastSuccessEpochSeconds, AtomicLong::get)
                 .description("Epoch seconds of the last successful collection cycle, for alerting on staleness")
                 .baseUnit("seconds")
                 .register(meterRegistry);
