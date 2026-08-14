@@ -289,15 +289,7 @@ The created `xroad-catalog.cer` file must be added to the Security Server (Throu
 
 TLS client authentication is configured at the JVM level, via the `javax.net.ssl.keyStore`,
 `javax.net.ssl.keyStorePassword` and `javax.net.ssl.keyStoreType` system properties (and the corresponding
-`trustStore` properties for server-certificate trust), supplied by the container runtime. The concrete mount
-points and flag wiring are part of the production Docker setup and will be documented alongside it. The former
-`xroad-catalog.ssl-keystore.location`/`xroad-catalog.ssl-keystore.password` properties have been removed; they
-were non-functional and never actually engaged the keystore.
-
-**Note:** the removed mechanism never handled server-certificate trust at all. When wiring up
-`-Djavax.net.ssl.trustStore`, keep in mind that it **replaces** the JVM's default `cacerts` truststore for the
-whole JVM, not just for connections to the Security Server — the production Docker setup docs must cover both
-the keystore and the truststore.
+`trustStore` properties for server-certificate trust), supplied by the container runtime.
 
 ## 2.7 Post-Installation Checks
 
