@@ -168,7 +168,7 @@ public class HeartbeatService {
 
     private long tryCountDescriptorAnomalies() {
         try {
-            return denormalizationRepository.findServicesWithMultipleActiveDescriptors().size();
+            return denormalizationRepository.countServicesWithMultipleActiveDescriptors();
         } catch (Exception e) {
             log.warn("Failed to count descriptor anomalies; reporting 0", e);
             return 0L;

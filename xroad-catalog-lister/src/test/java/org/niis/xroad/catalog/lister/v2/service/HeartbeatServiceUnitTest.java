@@ -34,14 +34,12 @@ import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 import org.niis.xroad.catalog.persistence.repository.DenormalizationRepository;
 import org.niis.xroad.catalog.persistence.v2.repository.ErrorLogRepository;
-import org.niis.xroad.catalog.persistence.repository.projection.DescriptorAnomalyRow;
 import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,7 +50,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -116,10 +115,10 @@ class HeartbeatServiceUnitTest {
         when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
                 .thenReturn(Optional.empty());
         when(collectionRunRepository.checkConnection()).thenReturn(1);
-        when(denormalizationRepository.findServicesWithMultipleActiveDescriptors())
-                .thenReturn(List.of(mock(DescriptorAnomalyRow.class), mock(DescriptorAnomalyRow.class)));
+        when(denormalizationRepository.countServicesWithMultipleActiveDescriptors()).thenReturn(2L);
 
         assertEquals(2L, service.heartbeat().getDescriptorAnomalies());
+        verify(denormalizationRepository, never()).findServicesWithMultipleActiveDescriptors();
     }
 
     @Test
@@ -127,7 +126,7 @@ class HeartbeatServiceUnitTest {
         when(collectionRunRepository.findFirstByFinishedIsNotNullOrderByFinishedDesc())
                 .thenReturn(Optional.empty());
         when(collectionRunRepository.checkConnection()).thenReturn(1);
-        when(denormalizationRepository.findServicesWithMultipleActiveDescriptors())
+        when(denormalizationRepository.countServicesWithMultipleActiveDescriptors())
                 .thenThrow(new DataAccessResourceFailureException("boom"));
 
         assertEquals(0L, service.heartbeat().getDescriptorAnomalies());
