@@ -28,7 +28,7 @@ will be updated with the environment variable values before starting the applica
 
 ## Open ports
 
-There are only two ports open to the host machine:
+There are only three ports open to the host machine:
 
 * `5080` for the `adminer` service web UI for accessing the database.
   * Use the configuration below to access the web UI:
@@ -39,3 +39,32 @@ There are only two ports open to the host machine:
     * Database: `xroad_catalog`
 * `8070` for the `xroad-catalog-lister` service API. This port also allows you to access the `Swagger UI` under path `/api-docs`.
 * `4910` for the postgres database.
+
+Both catalog services also listen on port `8090` for their management endpoints, but that port is deliberately
+**not** published to the host. It is reachable only from the compose networks, and only the `health` and
+`prometheus` endpoints are exposed there — `env`, `heapdump`, `loggers` and `threaddump` are not.
+
+## Health checks
+
+Both images define a `HEALTHCHECK` against the readiness probe on the management port:
+
+```
+curl -f http://localhost:8090/actuator/health/readiness
+```
+
+The readiness group covers `readinessState` and `db`, so a container reports healthy only once its database
+connection works. The collector is given a longer start period (90s) than the lister (60s) because it runs the
+Liquibase migrations at startup and cannot become ready until they finish.
+
+Note that the health response carries the overall status only. Component details are hidden by default; use the
+`dev` Spring profile, which sets `management.endpoint.health.show-components: always`, when you need the
+breakdown while debugging locally.
+
+## Shutdown grace period
+
+Both services are configured for graceful shutdown, and `compose.yml` sets `stop_grace_period: 35s` on each.
+This must stay above the application-side shutdown budget, which is `spring.lifecycle.timeout-per-shutdown-phase`
+(30s) plus, for the collector, the 25s that `DefaultTasksInitializer` spends in its `@PreDestroy` hook waiting for
+the scheduler and fetch workers to wind down. Docker's default grace period is only 10 seconds, which would
+SIGKILL the process mid-shutdown and leave an in-flight collection run unfinalized. If either application-side
+timeout is raised, raise `stop_grace_period` to match.

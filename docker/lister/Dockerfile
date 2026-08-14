@@ -45,6 +45,7 @@ USER xroad
 ENTRYPOINT ["/entrypoint.sh", "java", "-Xms128m", "-Xmx2g", "-jar", "/app/xroad-catalog-lister.jar"]
 CMD ["--spring.config.location=/app/"]
 
-# Health check
-#HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-#  CMD curl -f http://localhost:8080/actuator/health || exit 1
+# Health check. Actuator is served on the management port (8090), not on the API port 8080.
+# The start period allows for the X-Road configuration client to come up alongside the web context.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8090/actuator/health/readiness || exit 1
