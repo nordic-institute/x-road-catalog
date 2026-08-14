@@ -37,6 +37,10 @@ tasks.jar {
 }
 
 dependencies {
+    // Supplies the versions of Spring Boot managed artifacts that are not pinned in the version catalog,
+    // notably micrometer-registry-prometheus, keeping them aligned with the Spring Boot release in use.
+    implementation(platform(libs.spring.boot.dependencies))
+
     implementation(project(":xroad-catalog-persistence"))
     implementation(libs.jakarta)
     implementation(libs.spring.doc)

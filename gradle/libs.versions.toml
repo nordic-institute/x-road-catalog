@@ -12,7 +12,6 @@ json = "20250517"
 junitLauncher = "6.0.3"
 liquibase = "5.0.2"
 lombok = "1.18.44"
-micrometerPrometheus = "1.15.4"
 mockito = "5.23.0"
 postgresql = "42.7.10"
 plexusUtils="4.0.3"
@@ -42,10 +41,13 @@ license-gradle-plugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometerPrometheus" }
+# Version deliberately omitted: supplied by the spring-boot-dependencies platform imported in the module
+# build scripts, so the Micrometer version can never drift away from the one Spring Boot expects.
+micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexusUtils" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 spring-boot-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
