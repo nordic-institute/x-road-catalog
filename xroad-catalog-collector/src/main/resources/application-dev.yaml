@@ -1,6 +1,10 @@
 management:
   server:
     port: 4915
+  endpoint:
+    health:
+      # Local development only: expose the per-component health breakdown for easier debugging
+      show-components: always
 
 spring:
   datasource:

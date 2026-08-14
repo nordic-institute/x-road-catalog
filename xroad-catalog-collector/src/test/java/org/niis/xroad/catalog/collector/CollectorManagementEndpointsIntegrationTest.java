@@ -60,7 +60,7 @@ import static org.mockito.BDDMockito.willThrow;
  * outside of tests.
  */
 @SpringBootTest(classes = CollectorApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-        properties = {"server.port=-1", "management.server.port=0"})
+        properties = {"server.port=-1", "management.server.port=0", "management.endpoint.health.show-components=always"})
 @AutoConfigureObservability
 @ActiveProfiles({"test", "general-testdata"})
 class CollectorManagementEndpointsIntegrationTest {
@@ -121,6 +121,13 @@ class CollectorManagementEndpointsIntegrationTest {
         assertEquals("-1", environment.getProperty("local.server.port"));
     }
 
+    /**
+     * Also pins the fact that {@code management.endpoint.health.cache.time-to-live} does NOT apply to
+     * health <em>group</em> paths: the caching invoker is only installed on read operations whose
+     * parameters are all cacheable context types, and {@code /actuator/health/{*path}} is served by an
+     * operation with a mandatory {@code @Selector String... path} parameter. If groups were cached, the
+     * UP -&gt; 503 -&gt; UP transitions below could not be observed within milliseconds.
+     */
     @Test
     void readinessReflectsDatabaseState() throws SQLException {
         assertEquals(HttpStatus.OK,

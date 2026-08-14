@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * outside of tests.
  */
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "management.server.port=0")
+        properties = {"management.server.port=0", "management.endpoint.health.show-components=always"})
 @AutoConfigureObservability
 @ActiveProfiles({"test", "general-testdata"})
 class ListerManagementEndpointsIntegrationTest {

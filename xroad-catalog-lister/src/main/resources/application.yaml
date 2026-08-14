@@ -28,7 +28,9 @@ management:
     health:
       probes:
         enabled: true
-      show-components: always
+      # show-details/show-components are left at their default (never): probes only need the HTTP status code
+      cache:
+        time-to-live: 10s
       group:
         readiness:
           include: readinessState,db
