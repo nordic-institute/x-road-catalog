@@ -27,6 +27,7 @@ package org.niis.xroad.catalog.lister.configuration;
 import org.niis.xroad.catalog.lister.endpoint.SOAPAdapter;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Deprecated(forRemoval = true)
 @Configuration
+@ConditionalOnProperty(name = "xroad-catalog.legacy-api.enabled", havingValue = "true")
 public class ServletConfiguration {
 
     @Bean
@@ -43,7 +45,7 @@ public class ServletConfiguration {
             @Autowired CatalogService catalogService
     ) {
         ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService), "/ws");
+                new SOAPAdapter(catalogService), "/ws/*");
         bean.setLoadOnStartup(1);
         return bean;
     }

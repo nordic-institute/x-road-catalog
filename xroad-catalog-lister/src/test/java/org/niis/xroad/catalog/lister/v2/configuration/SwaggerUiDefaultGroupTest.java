@@ -44,7 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         // The "test" profile disables SpringDoc by default; force it on so the
         // swagger-config endpoint is served.
         "springdoc.api-docs.enabled=true",
-        "springdoc.swagger-ui.enabled=true"
+        "springdoc.swagger-ui.enabled=true",
+        "xroad-catalog.legacy-api.enabled=true"
 })
 @ActiveProfiles({"test", "general-testdata"})
 class SwaggerUiDefaultGroupTest {

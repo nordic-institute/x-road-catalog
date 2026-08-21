@@ -10,6 +10,7 @@
         * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
     * [Optional Configurations](#optional-configurations)
         * [Optional Configurations for Configuration-Client Features](#optional-configurations-for-configuration-client-features)
+        * [Optional Configurations for Legacy API Features](#optional-configurations-for-legacy-api-features)
     * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
         * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
         * [Fixed-Mandatory Values for Configuration-Client Features](#fixed-mandatory-values-for-configuration-client-features)
@@ -75,6 +76,12 @@ Configurations are categorized according to their usage into different groups in
 | `xroad.configuration-client.proxy-configuration-backup-cron`   | 0 15 3 * * ?                        | Cron expression for proxy configuration automatic backup job                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 1.0.0 |
 | `xroad.configuration-client.global_conf_tls_cert_verification` | true                                | It is possible to disable the verification of the global configuration download TLS certificate. Should be `true` in production environment                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | 1.0.0 |
 | `xroad.configuration-client.global_conf_hostname_verification` | true                                | It is possible to disable the hostname verification. Does the hostname specified in the URL match the hostname specified in the Common Name (CN) of the Central Server’s TLS certificate. Should be `true` in production environment                                                                                                                                                                                                                                                                                                                                                                                                                                           | 1.0.0 |
+
+#### Optional Configurations for Legacy API Features
+
+| Parameter                          | Defaults | Description                                                                                                   | Since |
+|------------------------------------|----------|---------------------------------------------------------------------------------------------------------------|-------|
+| `xroad-catalog.legacy-api.enabled` | `false`  | Enables the deprecated V1 REST API (`/api/*`) and the SOAP endpoint (`/ws/*`). Disabled endpoints return 404. | 4.0.0 |
 
 ### Fixed-Mandatory Values to include in `application.yaml`
 
