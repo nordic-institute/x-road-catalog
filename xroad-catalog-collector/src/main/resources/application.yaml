@@ -29,7 +29,6 @@ spring:
           username: xroad_catalog_lister
           password: ''
   main:
-    allow-bean-definition-overriding: true
     web-application-type: servlet
   lifecycle:
     timeout-per-shutdown-phase: 30s
