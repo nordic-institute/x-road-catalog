@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -59,29 +60,35 @@ public class CollectionCycleRunner {
     private final CollectionRunRepository collectionRunRepository;
     private final FetchWorkTracker fetchWorkTracker;
     private final TaskPoolConfiguration taskPoolConfiguration;
+    private final CollectorMetrics collectorMetrics;
     private final Clock clock;
     private final long tickMillis;
 
     @Autowired
     public CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
             CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
-            TaskPoolConfiguration taskPoolConfiguration, Clock clock) {
-        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, clock, TICK_MILLIS);
+            TaskPoolConfiguration taskPoolConfiguration, CollectorMetrics collectorMetrics, Clock clock) {
+        this(listClientsTask, recomputeTask, collectionRunRepository, fetchWorkTracker, taskPoolConfiguration, collectorMetrics,
+                clock, TICK_MILLIS);
     }
 
     CollectionCycleRunner(ListClientsTask listClientsTask, RecomputeDenormalizedColumnsTask recomputeTask,
             CollectionRunRepository collectionRunRepository, FetchWorkTracker fetchWorkTracker,
-            TaskPoolConfiguration taskPoolConfiguration, Clock clock, long tickMillis) {
+            TaskPoolConfiguration taskPoolConfiguration, CollectorMetrics collectorMetrics, Clock clock, long tickMillis) {
         this.listClientsTask = listClientsTask;
         this.recomputeTask = recomputeTask;
         this.collectionRunRepository = collectionRunRepository;
         this.fetchWorkTracker = fetchWorkTracker;
         this.taskPoolConfiguration = taskPoolConfiguration;
+        this.collectorMetrics = collectorMetrics;
         this.clock = clock;
         this.tickMillis = tickMillis;
     }
 
     public void run() {
+        // Monotonic elapsed time for the duration metric: wall-clock (LocalDateTime) differences can go
+        // backwards across a DST rollback or an NTP step, and Micrometer silently drops negative samples.
+        long cycleStartNanos = System.nanoTime();
         CollectionRun run = startRun();
         long leftover = fetchWorkTracker.reset();
         if (leftover > 0) {
@@ -89,6 +96,7 @@ public class CollectionCycleRunner {
         }
         boolean listClientsOk = false;
         boolean allWorkDone = false;
+        boolean interrupted = false;
         try {
             LocalDateTime deadline = fetchWindowEnd();
             listClientsTask.run();
@@ -96,7 +104,10 @@ public class CollectionCycleRunner {
             writeProgress(run);
             allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            // The interrupt is restored only after the finally block: the finalization writes still have
+            // to reach the database, and a borrowed connection's own interruptible wait would fail
+            // immediately on a flag that was never cleared.
+            interrupted = true;
             log.warn("Interrupted while waiting for fetch tasks to finish", e);
         } catch (Exception e) {
             log.error("Collection cycle failed", e);
@@ -104,7 +115,10 @@ public class CollectionCycleRunner {
             // Runs even on failure: partial fetch results still need recomputing and the run row
             // must be closed (success=false). Both catch internally, so run() never throws.
             recomputeTask.run();
-            finalizeRun(run, listClientsOk && allWorkDone);
+            finalizeRun(run, listClientsOk && allWorkDone, Duration.ofNanos(System.nanoTime() - cycleStartNanos));
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -155,7 +169,7 @@ public class CollectionCycleRunner {
         }
     }
 
-    private void finalizeRun(CollectionRun run, boolean success) {
+    private void finalizeRun(CollectionRun run, boolean success, Duration cycleDuration) {
         try {
             run.setFinished(LocalDateTime.now(clock));
             run.setSuccess(success);
@@ -169,6 +183,17 @@ public class CollectionCycleRunner {
             collectionRunRepository.save(run);
         } catch (Exception e) {
             log.error("Failed to finalize collection run", e);
+        }
+        // Recorded after the row is saved above, and isolated in its own catch, so a MeterRegistry
+        // failure here can never skip or roll back the run-row finalization the lister's heartbeat relies
+        // on.
+        try {
+            collectorMetrics.recordCycleDuration(cycleDuration, success);
+            if (success) {
+                collectorMetrics.recordSuccess(run.getFinished());
+            }
+        } catch (Exception e) {
+            log.error("Failed to record collection cycle metrics", e);
         }
     }
 }

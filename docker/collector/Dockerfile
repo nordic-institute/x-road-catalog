@@ -46,6 +46,7 @@ USER xroad
 ENTRYPOINT ["/entrypoint.sh", "java", "-Xms128m", "-Xmx2g", "-jar", "/app/xroad-catalog-collector.jar"]
 CMD ["--spring.config.location=/app/"]
 
-# Health check
-#HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-#  CMD curl -f http://localhost:8080/actuator/health || exit 1
+# Health check. Actuator is served on the management port (8090); the collector has no main connector
+# (server.port: -1). The start period allows for the Liquibase migrations that run at startup.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+  CMD curl -f http://localhost:8090/actuator/health/readiness || exit 1

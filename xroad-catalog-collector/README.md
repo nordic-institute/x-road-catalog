@@ -13,6 +13,9 @@
   * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
     * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
     * [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
+    * [Fixed-Mandatory Values for Management Endpoints](#fixed-mandatory-values-for-management-endpoints)
+* [Monitoring](#monitoring)
+* [Graceful shutdown and container stop timeout](#graceful-shutdown-and-container-stop-timeout)
 * [Run](#run)
 * [Run against a remote Security Server over an SSH tunnel](#run-against-a-remote-security-server-over-an-ssh-tunnel)
 
@@ -133,10 +136,62 @@ values.
 
 #### Fixed-Mandatory Values for Spring Boot Framework
 
-| Spring Boot framework configurations                                                                                                                                                                   | Defaults | Comment                                         | Since |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|-------------------------------------------------|-------|
-| [spring.main.allow-bean-definition-overriding](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.core.spring.main.allow-bean-definition-overriding) | `true`   |                                                 | 1.0.0 |
-| [spring.main.web-application-type](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.core.spring.main.web-application-type)                         | `none`   | Collector module does not require a web server. | 1.0.0 |
+| Spring Boot framework configurations                                                                                                                                                                 | Defaults   | Comment                                                                                                                                                                                                                         | Since |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| [spring.main.web-application-type](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.core.spring.main.web-application-type)                       | `servlet`  | The collector serves no HTTP API of its own, but a servlet container is still required to expose the Actuator management endpoints. The main connector is disabled with `server.port: -1`, so only the management port listens. | 4.0.0 |
+| [spring.lifecycle.timeout-per-shutdown-phase](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.core.spring.lifecycle.timeout-per-shutdown-phase) | `30s`      | How long Spring waits for each shutdown phase to complete. See [Graceful shutdown and container stop timeout](#graceful-shutdown-and-container-stop-timeout).                                                                   | 4.0.0 |
+| [server.port](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.server.server.port)                                                               | `-1`       | Disables the main HTTP connector, so nothing is served on a main port. The Actuator endpoints listen on `management.server.port` instead.                                                                                       | 4.0.0 |
+| [server.shutdown](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.server.server.shutdown)                                                       | `graceful` | Requests in flight on the management connector are allowed to finish before the web context is closed.                                                                                                                          | 4.0.0 |
+
+#### Fixed-Mandatory Values for Management Endpoints
+
+The Actuator management endpoints are used for container health checks and for metrics scraping, see
+[Monitoring](#monitoring).
+
+| Management endpoint configurations                   | Defaults            | Comment                                                                                                                                                                                                             | Since |
+|------------------------------------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| `management.server.port`                             | `8090`              | The Actuator endpoints are served on this separate connector, not on an application port.                                                                                                                           | 4.0.0 |
+| `management.endpoints.web.exposure.include`          | `health,prometheus` | Only these two endpoints are exposed. Endpoints such as `env`, `heapdump`, `loggers` and `threaddump` are deliberately left unexposed.                                                                              | 4.0.0 |
+| `management.endpoint.health.probes.enabled`          | `true`              | Enables the `/actuator/health/liveness` and `/actuator/health/readiness` probe endpoints.                                                                                                                           | 4.0.0 |
+| `management.endpoint.health.group.readiness.include` | `readinessState,db` | Readiness reflects database reachability. Liveness deliberately does not, so that a database outage does not make the runtime restart an otherwise healthy process.                                                 | 4.0.0 |
+| `management.endpoint.health.cache.time-to-live`      | `10s`               | Caches `/actuator/health`.                                                                                                                                                                                          | 4.0.0 |
+| `management.endpoint.health.show-components`         | `never`             | Spring Boot defaults to `never`: the health response carries the overall status only, with no component breakdown. The `dev` profile (`application-dev.yaml`) overrides it to `always`, useful for local debugging. | 4.0.0 |
+
+## Monitoring
+
+The collector exposes no HTTP API, but it does serve Spring Boot Actuator endpoints on the management port
+(`management.server.port`, `8090` by default):
+
+| Endpoint                     | Purpose                                                                                                |
+|------------------------------|--------------------------------------------------------------------------------------------------------|
+| `/actuator/health`           | Overall status only, without a component breakdown (see `management.endpoint.health.show-components`). |
+| `/actuator/health/liveness`  | Liveness probe. Does not depend on the database, so a database outage does not trigger a restart.      |
+| `/actuator/health/readiness` | Readiness probe. Reports `DOWN` while the database is unreachable.                                     |
+| `/actuator/prometheus`       | Metrics in the Prometheus text format, to be scraped by a Prometheus-compatible collector.             |
+
+In addition to the standard JVM, process and data source meters provided by Micrometer, the following collector-specific
+metrics are exported (the names below are the exported Prometheus names):
+
+| Metric                                                    | Type  | Description                                                                                      |
+|-----------------------------------------------------------|-------|--------------------------------------------------------------------------------------------------|
+| `xroad_catalog_collection_cycle_duration_seconds`         | Timer | Duration of a full collection cycle, tagged `success` with the value `true` or `false`.          |
+| `xroad_catalog_collection_last_success_timestamp_seconds` | Gauge | Unix epoch seconds of the last successful collection cycle, intended for alerting on stale data. |
+
+## Graceful shutdown and container stop timeout
+
+On `SIGTERM` the collector shuts down in an orderly way instead of dropping work in progress:
+
+1. Graceful web shutdown is enabled (`server.shutdown: graceful`) and each shutdown phase is given up to 30 seconds
+   (`spring.lifecycle.timeout-per-shutdown-phase`).
+2. `DefaultTasksInitializer` then waits in a `@PreDestroy` hook for up to a further 25 seconds for the collector
+   scheduler and the virtual fetch worker threads to wind down, so that an in-flight collection run is finalized.
+
+> [!IMPORTANT]
+> The container runtime must allow more time than its default stop timeout, otherwise the process is `SIGKILL`ed in the
+> middle of its shutdown and the in-flight collection run is never finalized. Docker's default stop timeout is only 10
+> seconds, which is not enough: `docker/compose.yml` therefore sets `stop_grace_period: 35s`, and a Kubernetes
+> deployment needs an equivalent `terminationGracePeriodSeconds`. If either of the two timeouts above is raised, raise
+> the runtime's stop timeout accordingly.
 
 ## Run
 

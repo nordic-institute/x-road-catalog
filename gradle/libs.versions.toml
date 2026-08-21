@@ -41,9 +41,12 @@ license-gradle-plugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexusUtils" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
+spring-boot-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator", version.ref = "springBoot" }
 spring-boot-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springBoot" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 spring-boot-web = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }

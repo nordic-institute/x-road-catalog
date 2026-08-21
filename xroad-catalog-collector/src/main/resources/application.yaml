@@ -29,8 +29,31 @@ spring:
           username: xroad_catalog_lister
           password: ''
   main:
-    allow-bean-definition-overriding: true
-    web-application-type: none
+    web-application-type: servlet
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  port: -1
+  shutdown: graceful
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      # show-details/show-components are left at their default (never): probes only need the HTTP status code
+      cache:
+        time-to-live: 10s
+      group:
+        readiness:
+          include: readinessState,db
 
 # X-Road instance parameters
 xroad-catalog:
