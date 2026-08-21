@@ -73,7 +73,7 @@ The packaged `version.properties` is regenerated on the next build, so no other 
 
 When changing dependencies (e.g. editing `gradle/libs.versions.toml`), refresh the dependency lockfiles:
 
-```
+```bash
 ./gradlew dependencies :xroad-catalog-persistence:dependencies \
     :xroad-catalog-collector:dependencies :xroad-catalog-lister:dependencies \
     --write-locks
