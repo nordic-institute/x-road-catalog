@@ -44,9 +44,9 @@ import java.util.concurrent.TimeUnit;
  * Starts the collector's scheduled cycle and its virtual fetch workers on {@link ApplicationStartedEvent},
  * and tears both down within a bounded grace period on context close.
  *
- * <p>Bean destruction order does the rest: this bean transitively depends on the repositories via
- * {@link CollectionCycleRunner}, so {@link #shutdown()} runs before the {@code DataSource} closes,
- * letting the interrupted cycle's finalization writes complete.
+ * <p>{@link #shutdown()} has to run before the {@code DataSource} closes, so the interrupted cycle can
+ * still finalize its run row. It does, because this bean transitively depends on the repositories via
+ * {@link CollectionCycleRunner} — that dependency is load-bearing.
  *
  * <p>Accepted limitation: virtual fetch workers already handed off by {@link FetchHandOff} are untracked;
  * shutdown does not wait for them beyond the grace period.

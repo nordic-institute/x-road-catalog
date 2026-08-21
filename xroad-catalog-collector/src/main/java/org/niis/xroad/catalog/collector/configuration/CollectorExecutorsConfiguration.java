@@ -31,17 +31,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * Provides the collector's scheduling executor as a Spring-managed bean so its lifecycle is tied to the
- * application context.
+ * Executors provided as Spring-managed beans, so their lifecycle is tied to the application context.
  */
 @Configuration
 public class CollectorExecutorsConfiguration {
 
     /**
-     * The empty {@code destroyMethod} tells Spring to call no destroy method at all: left to inference,
-     * Spring would call {@code ExecutorService.close()} on context shutdown, which awaits termination
-     * indefinitely and could hang the shutdown. The only shutdown path is the bounded
-     * {@code DefaultTasksInitializer#shutdown}, whose {@code @PreDestroy} runs before this bean is destroyed.
+     * The empty {@code destroyMethod} stops Spring from inferring {@code ExecutorService.close()}, which
+     * awaits termination indefinitely and could hang shutdown. Shutdown runs through the bounded
+     * {@code DefaultTasksInitializer#shutdown} instead.
      */
     @Bean(destroyMethod = "")
     public ScheduledExecutorService collectorScheduler() {

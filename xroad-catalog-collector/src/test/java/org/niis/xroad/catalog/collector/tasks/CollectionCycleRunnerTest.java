@@ -125,11 +125,9 @@ class CollectionCycleRunnerTest {
 
     /**
      * Pins that a throwing metrics collaborator cannot skip the run-row finalization write: the lister's
-     * heartbeat reads that row, so a MeterRegistry failure leaving it unfinalized would corrupt the
-     * staleness signal. The {@code run} object is mutated in place, so asserting on its final state alone
-     * cannot tell a skipped save apart from a completed one; the save call count is the real signal — this
-     * cycle (no pending work) saves exactly 3 times when finalization completes (start, initial progress,
-     * finalize), and only 2 if the finalize save is skipped.
+     * heartbeat reads that row, so leaving it unfinalized would corrupt the staleness signal. The
+     * {@code run} object is mutated in place, so the save call count, not its final state, is what tells a
+     * skipped save apart from a completed one.
      */
     @Test
     void metricRecordingFailureDoesNotPreventRunFinalization() {
@@ -150,11 +148,9 @@ class CollectionCycleRunnerTest {
     }
 
     /**
-     * Pins that the cycle-duration metric is measured with a monotonic elapsed-time source instead of
-     * being derived from the injected wall clock: under this fixed clock any wall-clock difference is
-     * exactly zero, so only an elapsed-time measurement can produce the strictly positive duration
-     * asserted here. Wall-clock arithmetic can go backwards across a DST rollback or an NTP step, and
-     * Micrometer silently drops negative samples.
+     * Pins that the cycle-duration metric uses a monotonic elapsed-time source rather than the injected
+     * wall clock: under this fixed clock any wall-clock difference is exactly zero, so only elapsed time
+     * can produce the strictly positive duration asserted here. See {@link CollectionCycleRunner#run()}.
      */
     @Test
     void cycleDurationMetricUsesMonotonicElapsedTimeNotTheWallClock() {
@@ -214,9 +210,8 @@ class CollectionCycleRunnerTest {
 
     /**
      * Pins the ordering the graceful-shutdown feature depends on: the finalization writes in
-     * {@code run()}'s {@code finally} block must run with the interrupt flag clear, so a borrowed
-     * database connection's own interruptible wait cannot immediately fail. The flag is restored only
-     * once those writes are done. Fails if the restore is ever moved back into the {@code catch} block.
+     * {@code run()}'s {@code finally} block run with the interrupt flag clear, and the flag is restored
+     * only afterwards. Fails if the restore is ever moved back into the {@code catch} block.
      */
     @Test
     void finalizationWritesRunWithInterruptFlagClearedThenRestoredAfterReturn() throws InterruptedException {

@@ -35,19 +35,16 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Access log for the management port. Emits exactly one INFO line per request through the normal
- * SLF4J pipeline (and therefore to stdout in a container), so probes, scrapes and manual pokes at
- * the actuator surface leave a trace. The lister's public REST and SOAP traffic on the main port is
- * deliberately not covered — see {@link ManagementAccessLogConfiguration}.
+ * Access log for the management port: one INFO line per request through SLF4J, and therefore to stdout in a
+ * container, so probes, scrapes and manual pokes at the actuator surface leave a trace. The lister's public
+ * REST and SOAP traffic on the main port is not covered, see {@link ManagementAccessLogConfiguration}.
  *
- * <p>The line is written from a {@code finally} block, so a request that blows up mid-chain is
- * still recorded; the status is read after the chain so it reflects what the container actually
- * decided. Requests that never reach a handler (404, 401) are logged too, because the filter is
- * registered at {@code HIGHEST_PRECEDENCE} on {@code /*}.
+ * <p>The line is written from a {@code finally} block, so requests that fail mid-chain are recorded too, with
+ * the status the container actually returned.
  *
- * <p>The request target is logged verbatim as received. That is safe from log injection: Tomcat
- * rejects control characters in the request line, and neither {@code getRequestURI()} nor
- * {@code getQueryString()} percent-decodes, so an encoded {@code %0A} stays encoded.
+ * <p>The request target is logged verbatim, which is safe from log injection: Tomcat rejects control
+ * characters in the request line and neither {@code getRequestURI()} nor {@code getQueryString()}
+ * percent-decodes.
  */
 @Slf4j
 public class ManagementAccessLogFilter extends OncePerRequestFilter {

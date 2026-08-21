@@ -112,9 +112,8 @@ class CollectorManagementEndpointsIntegrationTest {
     }
 
     /**
-     * With {@code server.port=-1} the main connector never binds; Boot still records the disabled
-     * port verbatim as {@code local.server.port}, so {@code "-1"} (never a real bound port) is the
-     * proof that no main HTTP listener ever came up.
+     * With {@code server.port=-1} the main connector never binds, and Boot records the disabled port
+     * verbatim as {@code local.server.port}, so {@code "-1"} proves no main HTTP listener came up.
      */
     @Test
     void mainConnectorNeverStarts() {
@@ -122,11 +121,9 @@ class CollectorManagementEndpointsIntegrationTest {
     }
 
     /**
-     * Also pins the fact that {@code management.endpoint.health.cache.time-to-live} does NOT apply to
-     * health <em>group</em> paths: the caching invoker is only installed on read operations whose
-     * parameters are all cacheable context types, and {@code /actuator/health/{*path}} is served by an
-     * operation with a mandatory {@code @Selector String... path} parameter. If groups were cached, the
-     * UP -&gt; 503 -&gt; UP transitions below could not be observed within milliseconds.
+     * Also pins that {@code management.endpoint.health.cache.time-to-live} does not apply to health
+     * <em>group</em> paths: were groups cached, the UP -&gt; 503 -&gt; UP transitions below could not be
+     * observed within milliseconds.
      */
     @Test
     void readinessReflectsDatabaseState() throws SQLException {

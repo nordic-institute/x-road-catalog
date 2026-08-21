@@ -63,8 +63,7 @@ breakdown while debugging locally.
 ## Shutdown grace period
 
 Both services are configured for graceful shutdown, and `compose.yml` sets `stop_grace_period: 35s` on each.
-This must stay above the application-side shutdown budget, which is `spring.lifecycle.timeout-per-shutdown-phase`
-(30s) plus, for the collector, the 25s that `DefaultTasksInitializer` spends in its `@PreDestroy` hook waiting for
-the scheduler and fetch workers to wind down. Docker's default grace period is only 10 seconds, which would
-SIGKILL the process mid-shutdown and leave an in-flight collection run unfinalized. If either application-side
-timeout is raised, raise `stop_grace_period` to match.
+Docker's default of 10 seconds would SIGKILL the process mid-shutdown and leave an in-flight collection run
+unfinalized. The 35s must stay above the application-side shutdown budget described in
+[Graceful shutdown and container stop timeout](../xroad-catalog-collector/README.md#graceful-shutdown-and-container-stop-timeout);
+raise it if either of the timeouts named there is raised.

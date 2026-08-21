@@ -52,14 +52,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Pins both directions of the management access log: requests to the management port are logged, and
  * requests to the lister's public API on the main port are not.
  *
- * <p>The negative direction is the load-bearing one. {@code @ManagementContextConfiguration} is
- * meta-annotated with {@code @Configuration}, hence with {@code @Component}, so moving
- * {@code ManagementAccessLogConfiguration} into one of {@code ListerDefaultConfiguration}'s component-scan
- * roots would make the main context register the filter as well and start logging every public REST and
- * SOAP call. This test fails if that ever happens.
+ * <p>The negative direction is the load-bearing one: it fails if {@code ManagementAccessLogConfiguration}
+ * is ever moved into a component-scanned package, where the main context would register the filter too and
+ * start logging every public REST and SOAP call.
  *
  * <p>{@code management.server.port} must be overridden to {@code 0} here: {@code application-test.yaml}
- * sets it to {@code -1}, which would leave no management context — and therefore no filter — at all.
+ * sets it to {@code -1}, which would leave no management context, and therefore no filter, at all.
  */
 @SpringBootTest(classes = ListerApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"management.server.port=0", "management.endpoint.health.show-components=always"})

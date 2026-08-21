@@ -104,10 +104,9 @@ public class CollectionCycleRunner {
             writeProgress(run);
             allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {
-            // The interrupt is deliberately deferred until after the finally block: it still has
-            // to reach the database to finalize this run, and a borrowed connection's own interruptible
-            // wait (e.g. Hikari's connection handoff) would otherwise immediately fail on a flag that
-            // was never cleared. Restored once those writes are done, below.
+            // The interrupt is restored only after the finally block: the finalization writes still have
+            // to reach the database, and a borrowed connection's own interruptible wait would fail
+            // immediately on a flag that was never cleared.
             interrupted = true;
             log.warn("Interrupted while waiting for fetch tasks to finish", e);
         } catch (Exception e) {

@@ -43,23 +43,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Full-context guard for the {@code destroyMethod = ""} choice on
- * {@code CollectorExecutorsConfiguration#collectorScheduler}: an inferred {@code close()} destroy method
- * would block {@link ConfigurableApplicationContext#close()} indefinitely while the cycle below is in
- * flight, and dropping the {@code @PreDestroy} would leave {@code collector-scheduler} alive after close.
+ * {@code CollectorExecutorsConfiguration#collectorScheduler}: an inferred {@code close()} would block
+ * {@link ConfigurableApplicationContext#close()} while a cycle is in flight, and dropping the
+ * {@code @PreDestroy} would leave {@code collector-scheduler} alive after close.
  *
- * <p>The collector test task shares one JVM across all classes with cached, never-closed contexts, so two
- * isolation fixes are load-bearing, not style: the scheduler thread is asserted by captured identity (an
- * {@link AtomicReference}), never a JVM-wide name scan, which would alias onto same-named threads kept
- * alive by other cached contexts; and {@code spring.datasource.url} is forced to a private H2 instance via
- * {@link TestPropertyValues} — {@code SpringApplicationBuilder#properties(String...)} alone does NOT
- * override the profile-specific {@code application-test.yaml} value, since it is Boot's lowest-priority
- * "default properties" source. Without the override, close()'s real schema drop hits the {@code
- * jdbc:h2:mem:db} instance shared by every other test-profile context in the JVM.
- *
- * <p>The blocking {@link CollectionCycleRunner} replacement is registered via an
- * {@link org.springframework.context.ApplicationContextInitializer}, not a scanned {@code @Configuration}:
- * the latter would leak through {@code CollectorApplication}'s default component scan into every other
- * test that boots the full context, silently replacing their real {@code collectionCycleRunner} too.
+ * <p>Three details keep this test from disturbing the other contexts cached in the same JVM:
+ * <ul>
+ *   <li>the scheduler thread is asserted by captured identity ({@link AtomicReference}), never by a
+ *       JVM-wide name scan, which would alias onto same-named threads in other cached contexts;</li>
+ *   <li>{@code spring.datasource.url} is overridden through {@link TestPropertyValues}, because
+ *       {@code SpringApplicationBuilder#properties(String...)} does not override
+ *       {@code application-test.yaml}; without it the schema drop on close hits the H2 instance shared by
+ *       every other test-profile context;</li>
+ *   <li>the blocking {@link CollectionCycleRunner} is registered through an
+ *       {@link org.springframework.context.ApplicationContextInitializer}, so it is not picked up by the
+ *       component scan of every other test that boots the full context.</li>
+ * </ul>
  */
 class CollectorGracefulShutdownIntegrationTest {
 

@@ -41,8 +41,6 @@ license-gradle-plugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 liquibase-hibernate6 = { module = "org.liquibase.ext:liquibase-hibernate6", version.ref = "liquibase" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-# Version deliberately omitted: supplied by the spring-boot-dependencies platform imported in the module
-# build scripts, so the Micrometer version can never drift away from the one Spring Boot expects.
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexusUtils" }

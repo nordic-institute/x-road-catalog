@@ -28,9 +28,8 @@ services:
     build:
       context: ../.
       dockerfile: docker/collector/Dockerfile
-    # Must stay above the application-side shutdown budget, otherwise Docker SIGKILLs mid-shutdown.
-    # Budget here: graceful web shutdown (spring.lifecycle.timeout-per-shutdown-phase, 30s) followed by
-    # DefaultTasksInitializer.SHUTDOWN_GRACE_SECONDS (25s) in @PreDestroy. If either is raised, raise this too.
+    # Must stay above the application-side shutdown budget, otherwise Docker SIGKILLs mid-shutdown. Raise this
+    # if spring.lifecycle.timeout-per-shutdown-phase or DefaultTasksInitializer.SHUTDOWN_GRACE_SECONDS is raised.
     stop_grace_period: 35s
     environment:
       # spring

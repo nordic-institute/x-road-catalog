@@ -48,8 +48,7 @@ import static org.mockito.Mockito.when;
 /**
  * No-Spring guard for {@link DefaultTasksInitializer#shutdown()}: pins that shutdown interrupts the
  * scheduler and every worker, bounds its own wait, and lets an in-flight {@link CollectionCycleRunner}
- * cycle observe the interrupt (the steps {@code DefaultTasksInitializer} owns once
- * {@code CollectionCycleRunner}'s own {@code finally} block finalizes the run row).
+ * cycle observe the interrupt.
  */
 @ExtendWith(MockitoExtension.class)
 class DefaultTasksInitializerShutdownTest {
