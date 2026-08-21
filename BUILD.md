@@ -59,3 +59,22 @@ See [xroad-catalog-lister/README.md](xroad-catalog-lister/README.md#build) for d
 
 * **Build X-Road Catalog Persistence**  
 See [xroad-catalog-persistence/README.md](xroad-catalog-persistence/README.md#build) for details.
+
+## Versioning and releases
+
+The project version is single-sourced in the `version=` line of the root `gradle.properties`. Bump it by
+editing that single line; Gradle's automatic `version` property propagates the new value to every
+subproject, including the generated `xroad-catalog-lister/build/resources/main/version.properties` used by
+the heartbeat endpoints.
+
+`xroad-catalog-lister/src/main/resources/version.properties` is a template expanded by the build's
+`processResources` task and must not be edited by hand — only the `xroad-catalog.app-name` line is literal.
+The packaged `version.properties` is regenerated on the next build, so no other file needs editing.
+
+When changing dependencies (e.g. editing `gradle/libs.versions.toml`), refresh the dependency lockfiles:
+
+```bash
+./gradlew dependencies :xroad-catalog-persistence:dependencies \
+    :xroad-catalog-collector:dependencies :xroad-catalog-lister:dependencies \
+    --write-locks
+```

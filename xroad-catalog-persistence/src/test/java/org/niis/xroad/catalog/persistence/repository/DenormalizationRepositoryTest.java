@@ -81,6 +81,13 @@ class DenormalizationRepositoryTest extends PostgresTestBase {
         assertEquals(27L, anomalies.get(0).getServiceId());
     }
 
+    @Test
+    void countMatchesAnomalyRowQuery() {
+        long count = repository.countServicesWithMultipleActiveDescriptors();
+        assertEquals(1, count);
+        assertEquals(repository.findServicesWithMultipleActiveDescriptors().size(), count);
+    }
+
     private Boolean flag(String memberCode) {
         return jdbcTemplate.queryForObject("SELECT is_provider FROM member WHERE member_code = ?", Boolean.class, memberCode);
     }

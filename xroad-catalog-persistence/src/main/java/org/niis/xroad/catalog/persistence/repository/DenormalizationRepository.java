@@ -59,6 +59,16 @@ public interface DenormalizationRepository extends Repository<Member, Long> {
             + " FROM service s2) calc"
             + " WHERE calc.id = s.id AND s.service_type IS DISTINCT FROM calc.value";
 
+    // Shared by DESCRIPTOR_ANOMALIES_SQL and COUNT_DESCRIPTOR_ANOMALIES_SQL so the anomaly definition
+    // (which services count as having multiple active descriptors) cannot drift between the two queries.
+    // Deliberately excludes "FROM service s": the row query interposes the subsystem/member joins between
+    // that and this fragment, while the count query appends this fragment directly after its own FROM.
+    String DESCRIPTOR_ANOMALY_FROM_WHERE = " LEFT JOIN (SELECT service_id, COUNT(*) AS cnt FROM wsdl"
+            + "   WHERE removed IS NULL GROUP BY service_id) w ON w.service_id = s.id"
+            + " LEFT JOIN (SELECT service_id, COUNT(*) AS cnt FROM open_api"
+            + "   WHERE removed IS NULL GROUP BY service_id) o ON o.service_id = s.id"
+            + " WHERE s.removed IS NULL AND COALESCE(w.cnt, 0) + COALESCE(o.cnt, 0) > 1";
+
     String DESCRIPTOR_ANOMALIES_SQL = "SELECT s.id AS serviceId, m.member_class AS memberClass,"
             + " m.member_code AS memberCode, ss.subsystem_code AS subsystemCode,"
             + " s.service_code AS serviceCode, s.service_version AS serviceVersion,"
@@ -66,12 +76,10 @@ public interface DenormalizationRepository extends Repository<Member, Long> {
             + " FROM service s"
             + " JOIN subsystem ss ON s.subsystem_id = ss.id"
             + " JOIN member m ON ss.member_id = m.id"
-            + " LEFT JOIN (SELECT service_id, COUNT(*) AS cnt FROM wsdl"
-            + "   WHERE removed IS NULL GROUP BY service_id) w ON w.service_id = s.id"
-            + " LEFT JOIN (SELECT service_id, COUNT(*) AS cnt FROM open_api"
-            + "   WHERE removed IS NULL GROUP BY service_id) o ON o.service_id = s.id"
-            + " WHERE s.removed IS NULL AND COALESCE(w.cnt, 0) + COALESCE(o.cnt, 0) > 1"
+            + DESCRIPTOR_ANOMALY_FROM_WHERE
             + " ORDER BY s.id";
+
+    String COUNT_DESCRIPTOR_ANOMALIES_SQL = "SELECT COUNT(*) FROM service s" + DESCRIPTOR_ANOMALY_FROM_WHERE;
 
     @Modifying
     @Transactional
@@ -85,4 +93,7 @@ public interface DenormalizationRepository extends Repository<Member, Long> {
 
     @Query(value = DESCRIPTOR_ANOMALIES_SQL, nativeQuery = true)
     List<DescriptorAnomalyRow> findServicesWithMultipleActiveDescriptors();
+
+    @Query(value = COUNT_DESCRIPTOR_ANOMALIES_SQL, nativeQuery = true)
+    long countServicesWithMultipleActiveDescriptors();
 }

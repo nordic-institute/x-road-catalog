@@ -23,8 +23,6 @@ repositories {
     mavenCentral()
 }
 
-val project_version by extra("4.0.0")
-
 dependencyLocking {
     lockAllConfigurations()
 }
@@ -38,8 +36,6 @@ sonar {
 }
 
 subprojects {
-    version = project_version
-
     dependencyLocking {
         lockAllConfigurations()
     }

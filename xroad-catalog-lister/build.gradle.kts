@@ -36,6 +36,14 @@ tasks.jar {
     enabled = false
 }
 
+tasks.processResources {
+    val appVersion = project.version.toString()
+    inputs.property("appVersion", appVersion)
+    filesMatching("version.properties") {
+        expand("appVersion" to appVersion)
+    }
+}
+
 dependencies {
     implementation(platform(libs.spring.boot.dependencies))
 
