@@ -66,6 +66,40 @@ class CollectionRunRepositoryTest extends PostgresTestBase {
     }
 
     @Test
+    void findFirstBySuccessTrueOrderByFinishedDescSkipsFailedAndUnfinishedRuns() {
+        CollectionRun olderSuccess = new CollectionRun();
+        olderSuccess.setStarted(LocalDateTime.of(2025, 6, 1, 1, 0));
+        olderSuccess.setFinished(LocalDateTime.of(2025, 6, 1, 2, 0));
+        olderSuccess.setSuccess(Boolean.TRUE);
+        repository.save(olderSuccess);
+
+        CollectionRun newerFailure = new CollectionRun();
+        newerFailure.setStarted(LocalDateTime.of(2025, 6, 2, 1, 0));
+        newerFailure.setFinished(LocalDateTime.of(2025, 6, 2, 2, 0));
+        newerFailure.setSuccess(Boolean.FALSE);
+        repository.save(newerFailure);
+
+        CollectionRun inProgress = new CollectionRun();
+        inProgress.setStarted(LocalDateTime.of(2025, 6, 3, 1, 0));
+        repository.save(inProgress);
+
+        CollectionRun latestSuccess = repository.findFirstBySuccessTrueOrderByFinishedDesc().orElseThrow();
+        assertEquals(LocalDateTime.of(2025, 6, 1, 2, 0), latestSuccess.getFinished());
+        assertEquals(Boolean.TRUE, latestSuccess.getSuccess());
+    }
+
+    @Test
+    void findFirstBySuccessTrueOrderByFinishedDescIsEmptyWhenNoSuccessfulRunExists() {
+        CollectionRun failed = new CollectionRun();
+        failed.setStarted(LocalDateTime.of(2025, 6, 1, 1, 0));
+        failed.setFinished(LocalDateTime.of(2025, 6, 1, 2, 0));
+        failed.setSuccess(Boolean.FALSE);
+        repository.save(failed);
+
+        assertTrue(repository.findFirstBySuccessTrueOrderByFinishedDesc().isEmpty());
+    }
+
+    @Test
     void findFirstByFinishedIsNullOrderByStartedDescReturnsTheUnfinishedRun() {
         CollectionRun finished = new CollectionRun();
         finished.setStarted(LocalDateTime.of(2025, 6, 1, 1, 0));

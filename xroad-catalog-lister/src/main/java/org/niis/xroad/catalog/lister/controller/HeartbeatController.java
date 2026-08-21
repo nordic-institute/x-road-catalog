@@ -28,6 +28,7 @@ import org.niis.xroad.catalog.lister.dto.HeartbeatResponse;
 import org.niis.xroad.catalog.lister.service.CatalogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +42,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api")
 @PropertySource("classpath:version.properties")
+@ConditionalOnProperty(name = "xroad-catalog.legacy-api.enabled", havingValue = "true")
 public class HeartbeatController implements HeartbeatOperations {
 
     @Value("${xroad-catalog.app-name}")

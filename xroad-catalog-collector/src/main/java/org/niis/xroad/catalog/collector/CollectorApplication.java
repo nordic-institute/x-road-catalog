@@ -24,40 +24,17 @@
  */
 package org.niis.xroad.catalog.collector;
 
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.IgnoredSubsystemIdsProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-
-@Slf4j
 @SpringBootApplication
 @EnableConfigurationProperties(IgnoredSubsystemIdsProperties.class)
 public class CollectorApplication {
 
-    public static void main(String[] args) throws URISyntaxException {
-
-        ApplicationContext context = SpringApplication.run(CollectorApplication.class, args);
-
-        final Environment env = context.getEnvironment();
-
-        final String keystore = env.getProperty("xroad-catalog.ssl-keystore.location");
-        final String keystorePw = env.getProperty("xroad-catalog.ssl-keystore.password");
-
-        if (keystore != null && !keystore.isEmpty() && keystorePw != null) {
-            if (!Path.of(keystore).toFile().exists()) {
-                log.warn("Keystore file at {} is not accessible or does not exist, not using keystore", keystore);
-            } else {
-                log.info("Using keystore at {}", keystore);
-                System.setProperty("javax.net.ssl.keyStore", keystore);
-                System.setProperty("javax.net.ssl.keyStorePassword", keystorePw);
-            }
-        }
+    public static void main(String[] args) {
+        SpringApplication.run(CollectorApplication.class, args);
     }
 
 }

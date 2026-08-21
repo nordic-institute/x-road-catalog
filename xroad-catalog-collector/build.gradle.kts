@@ -40,13 +40,17 @@ springBoot {
 }
 
 dependencies {
+    implementation(platform(libs.spring.boot.dependencies))
+
     implementation(project(":xroad-catalog-persistence"))
     implementation(libs.jakarta.annotation)
     implementation(libs.guava)
     implementation(libs.http.client)
     implementation(libs.json)
+    implementation(libs.spring.boot.actuator)
     implementation(libs.spring.boot.jpa)
     implementation(libs.spring.boot.web)
+    implementation(libs.micrometer.prometheus)
     implementation(libs.jackson)
     implementation(libs.xrd4j.client)
     implementation(libs.lombok)

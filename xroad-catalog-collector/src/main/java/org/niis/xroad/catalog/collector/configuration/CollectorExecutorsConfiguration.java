@@ -22,31 +22,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.catalog.lister.configuration;
+package org.niis.xroad.catalog.collector.configuration;
 
-import org.niis.xroad.catalog.lister.endpoint.SOAPAdapter;
-import org.niis.xroad.catalog.lister.service.CatalogService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
- */
-@Deprecated(forRemoval = true)
-@Configuration
-@ConditionalOnProperty(name = "xroad-catalog.legacy-api.enabled", havingValue = "true")
-public class ServletConfiguration {
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-    @Bean
-    public ServletRegistrationBean<SOAPAdapter> soapAdapterServletBean(
-            @Autowired CatalogService catalogService
-    ) {
-        ServletRegistrationBean<SOAPAdapter> bean = new ServletRegistrationBean<>(
-                new SOAPAdapter(catalogService), "/ws/*");
-        bean.setLoadOnStartup(1);
-        return bean;
+/**
+ * Executors provided as Spring-managed beans, so their lifecycle is tied to the application context.
+ */
+@Configuration
+public class CollectorExecutorsConfiguration {
+
+    /**
+     * The empty {@code destroyMethod} stops Spring from inferring {@code ExecutorService.close()}, which
+     * awaits termination indefinitely and could hang shutdown. Shutdown runs through the bounded
+     * {@code DefaultTasksInitializer#shutdown} instead.
+     */
+    @Bean(destroyMethod = "")
+    public ScheduledExecutorService collectorScheduler() {
+        return Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name("collector-scheduler").factory());
     }
 }

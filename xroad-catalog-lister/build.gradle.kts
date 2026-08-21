@@ -45,12 +45,16 @@ tasks.processResources {
 }
 
 dependencies {
+    implementation(platform(libs.spring.boot.dependencies))
+
     implementation(project(":xroad-catalog-persistence"))
     implementation(libs.jakarta)
     implementation(libs.spring.doc)
     implementation(libs.commons.csv)
+    implementation(libs.spring.boot.actuator)
     implementation(libs.spring.boot.jpa)
     implementation(libs.spring.boot.web)
+    implementation(libs.micrometer.prometheus)
     implementation(libs.jackson)
     implementation(libs.guava)
     implementation(libs.lombok)

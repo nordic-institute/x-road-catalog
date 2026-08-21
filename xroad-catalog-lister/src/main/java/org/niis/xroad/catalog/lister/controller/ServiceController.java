@@ -50,6 +50,7 @@ import org.niis.xroad.catalog.persistence.entity.Rest;
 import org.niis.xroad.catalog.persistence.entity.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,7 @@ import java.util.List;
 @Deprecated(forRemoval = true)
 @RestController
 @RequestMapping("/api")
+@ConditionalOnProperty(name = "xroad-catalog.legacy-api.enabled", havingValue = "true")
 public class ServiceController implements ServiceOperations {
 
     @Value("${xroad-catalog.shared-params-file}")

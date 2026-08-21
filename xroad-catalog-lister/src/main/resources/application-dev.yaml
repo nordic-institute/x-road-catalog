@@ -1,5 +1,14 @@
 server:
   port: '4920'
+
+management:
+  server:
+    port: 4925
+  endpoint:
+    health:
+      # Local development only: expose the per-component health breakdown for easier debugging
+      show-components: always
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:4910/xroad_catalog

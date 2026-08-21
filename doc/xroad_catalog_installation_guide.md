@@ -287,12 +287,9 @@ keytool -keystore /etc/xroad/xroad-catalog/keystore -exportcert -rfc -alias xroa
 
 The created `xroad-catalog.cer` file must be added to the Security Server (Through UI: Security Server Clients > SELECT SERVICE > Internal Servers > Internal TLS Certificates > ADD)
 
-The keystore location and password can be configured using:
-
-```properties
-xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
-xroad-catalog.ssl-keystore.password=changeit
-```
+TLS client authentication is configured at the JVM level, via the `javax.net.ssl.keyStore`,
+`javax.net.ssl.keyStorePassword` and `javax.net.ssl.keyStoreType` system properties (and the corresponding
+`trustStore` properties for server-certificate trust), supplied by the container runtime.
 
 ## 2.7 Post-Installation Checks
 

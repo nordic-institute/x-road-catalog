@@ -74,7 +74,7 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest(
         classes = ListerApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"spring.sql.init.mode=never"})
+        properties = {"spring.sql.init.mode=never", "xroad-catalog.legacy-api.enabled=true"})
 @ActiveProfiles("test")
 @DirtiesContext
 public class MainEndpointIntegrationTest {
@@ -87,21 +87,30 @@ public class MainEndpointIntegrationTest {
     @MockitoBean
     CatalogService catalogService;
 
-    private String getEndpointUrl() {
-        return "http://localhost:" + port + "/ws";
-    }
-
     @Test
     public void testListMembersHttpSoap() throws Exception {
         mockMembersForListServices();
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers response should match expected XML");
+    }
+
+    @Test
+    public void testListMembersViaOperationPath() throws Exception {
+        mockMembersForListServices();
+
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest, "/ws/ListMembers");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "ListMembers response via operation path should match expected XML");
     }
 
     @Test
@@ -410,13 +419,17 @@ public class MainEndpointIntegrationTest {
     }
 
     private ResponseEntity<String> sendSoapRequest(String soapRequest) {
+        return sendSoapRequest(soapRequest, "/ws");
+    }
+
+    private ResponseEntity<String> sendSoapRequest(String soapRequest, String path) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_XML);
         headers.set("SOAPAction", "");
-        
+
         HttpEntity<String> entity = new HttpEntity<>(soapRequest, headers);
-        
-        return restTemplate.postForEntity(getEndpointUrl(), entity, String.class);
+
+        return restTemplate.postForEntity("http://localhost:" + port + path, entity, String.class);
     }
 
     private String loadXmlFromClasspath(String path) throws IOException {

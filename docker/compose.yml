@@ -28,6 +28,9 @@ services:
     build:
       context: ../.
       dockerfile: docker/collector/Dockerfile
+    # Must stay above the application-side shutdown budget, otherwise Docker SIGKILLs mid-shutdown. Raise this
+    # if spring.lifecycle.timeout-per-shutdown-phase or DefaultTasksInitializer.SHUTDOWN_GRACE_SECONDS is raised.
+    stop_grace_period: 35s
     environment:
       # spring
       - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog?socketTimeout=60
@@ -42,8 +45,6 @@ services:
       - setting_xroad-catalog.target.member-class=COM
       - setting_xroad-catalog.target.member-code=1234
       - setting_xroad-catalog.instance.ignored-subsystem-ids[0]=DEV:COM:1234:MANAGEMENT
-      - setting_xroad-catalog.ssl-keystore.location=/etc/xroad/xroad-catalog/keystore
-      - setting_xroad-catalog.ssl-keystore.password=changeit
       - setting_xroad-catalog.urls.security-server-host=http://ss0:8080/
       - setting_xroad-catalog.urls.list-clients-host=http://ss0:8080/
       - setting_xroad-catalog.urls.webservices-endpoint=http://ss0:8080/
@@ -69,6 +70,9 @@ services:
     build:
       context: ../.
       dockerfile: docker/lister/Dockerfile
+    # Must stay above the application-side shutdown budget (spring.lifecycle.timeout-per-shutdown-phase, 30s),
+    # otherwise Docker SIGKILLs mid-shutdown. If that timeout is raised, raise this too.
+    stop_grace_period: 35s
     environment:
       # spring
       - setting_spring.profiles.active=dev
@@ -87,6 +91,7 @@ services:
       # catalog
       - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
       - setting_xroad-catalog.configuration-client.enabled=true
+      - setting_xroad-catalog.legacy-api.enabled=true
     volumes:
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro
       - /etc/localtime:/etc/localtime:ro
