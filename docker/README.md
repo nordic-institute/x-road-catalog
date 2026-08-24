@@ -9,22 +9,110 @@ The `compose.yml` file has been configured so that the services can access the `
 
 ## Running the environment
 
-1. Build the JAR files for the services by running `./gradlew build` in the root of the project.
-2. Copy your environments configuration anchor file to the [lister/config](lister/config) directory with the name `configuration-anchor.xml`.
-3. By default, the compose environment is configured using the `application.yaml` file inside `<module>/src/main/resources/` directory and overwrites the values using environment variables provided in `compose.yml`. 
-   For more information on how to overwrite the configuration files, see the section below.
-
-   Alternatively you can mount your own configuration file to the directory `/app` inside the containers. **NB!**: The entries inside the file may overwritten by the environment variables provided in `compose.yml` file.
-4. Keeping the provided X-Road-instance parameters in `compose.yml` like `setting_xroad-catalog.target.subsystem-code=catalog`, make sure to add the subsystem to your X-Road instance and make sure to give it the desired access method (`HTTPS`, `HTTPS NO AUTH`, `HTTP`)
+1. Build the JAR files for the services by running `./gradlew clean build` in the root of the project. Use `clean`:
+   the Dockerfiles `COPY` `build/libs/*.jar` by wildcard, so a stale jar left over from an earlier build would get
+   baked into the image.
+2. Copy your environment's configuration anchor file to the [lister/config](lister/config) directory with the name
+   `configuration-anchor.xml`.
+3. `compose.yml` is the living example of how the containers are configured; see [Configuration](#configuration)
+   below for how to change it.
+4. Keeping the provided X-Road-instance parameters in `compose.yml` like `XROAD_CATALOG_TARGET_SUBSYSTEM_CODE=catalog`,
+   make sure to add the subsystem to your X-Road instance and make sure to give it the desired access method (`HTTPS`,
+   `HTTPS NO AUTH`, `HTTP`).
 5. Start the environment with `docker compose up -d --build`.
-6. (Optional) In order to verify the setup, make sure that the catalog service can access the X-Road service, by running catalog's `/api/getListOfServices` request and check entry "`serviceList`" for a subsystem that contains services.
+6. (Optional) Verify the setup with `curl http://localhost:8070/api/v2/heartbeat`: once the collector has completed
+   a run against your X-Road instance, the `lastCollectionData` timestamps are populated.
 
-### Overwriting configuration files by environment variables
+## Configuration
 
-You can overwrite the provides configuration files by providing environment variables that start with `setting_`. 
-For example, if you want to overwrite the `xroad-catalog.target.xroad-instance` setting in the `application.yaml` file, 
-you can set the environment variable `setting_xroad-catalog.target.xroad-instance=DEV` when running the container. The entires inside `application.yaml` 
-will be updated with the environment variable values before starting the application.
+The containers use Spring's standard configuration mechanisms. Each image ships a packaged `application.yaml` with
+the application defaults, and every value in it is overridable two ways:
+
+* **Environment variables** — this is what `compose.yml` uses; treat it as the living example.
+* **A mounted config file** — Spring's default external-config location `/app/config/application.yaml` applies
+  inside the container. Mount it read-only; nothing in the image rewrites configuration files.
+
+### Environment variable naming
+
+Standard Spring relaxed binding applies to `spring.*` and `management.*` keys, for example:
+
+* `spring.datasource.url` -> `SPRING_DATASOURCE_URL`
+* `management.endpoint.health.show-components` -> `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS`
+
+For this application's own `xroad.*` and `xroad-catalog.*` keys, replace every `.` and `-` with `_` and uppercase the
+result; a literal `_` already present in the key survives, for example:
+
+* `xroad-catalog.target.xroad-instance` -> `XROAD_CATALOG_TARGET_XROAD_INSTANCE`
+* `xroad.configuration-client.global_conf_tls_cert_verification` ->
+  `XROAD_CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION`
+
+List-valued keys take an index suffix: `xroad-catalog.instance.ignored-subsystem-ids[0]` ->
+`XROAD_CATALOG_INSTANCE_IGNORED_SUBSYSTEM_IDS_0`.
+
+**Caveat:** only `xroad.*` keys defined in the packaged lister `application.yaml` are passed to the X-Road
+configuration client. A key without a packaged default cannot be introduced via an environment variable — set it in
+a mounted config file instead.
+
+### JVM tuning
+
+Both images default to:
+
+```
+JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+```
+
+An operator-set `JAVA_TOOL_OPTIONS` replaces this whole string, not just the parts you name.
+
+### Dev profile
+
+`compose.yml` does not activate the `dev` Spring profile — the profile would repoint the lister's port and
+datasource. For verbose logging, set `LOGGING_LEVEL_*` environment variables instead.
+
+## TLS material and configuration anchor
+
+| What                              | Container path                                                                      |
+|-----------------------------------|-------------------------------------------------------------------------------------|
+| Configuration anchor (lister)     | `/etc/xroad/configuration-anchor.xml` (ro)                                          |
+| Keystore / truststore (collector) | `/etc/xroad/catalog/ssl/keystore.p12`, `/etc/xroad/catalog/ssl/truststore.p12` (ro) |
+| JVM options file (secrets)        | `/etc/xroad/catalog/jvm-options` (ro)                                               |
+
+### JVM options file
+
+The entrypoint script (`docker/docker-entrypoint.sh`, copied to `/entrypoint.sh` in the image) reads this file at
+container start, if present, and splits its contents on whitespace into extra `java` flags (globbing is disabled, so
+paths containing spaces are not supported). The default path is `/etc/xroad/catalog/jvm-options`; override it with
+the `JAVA_OPTS_FILE` environment variable. It fails closed: if the path is mounted as something other than a regular
+file (e.g. a directory from a missing bind-mount source), or `JAVA_OPTS_FILE` names a path that doesn't exist, the
+container refuses to start rather than silently running without the flags.
+
+Example file, mounted read-only at that path, to configure mTLS towards a Security Server:
+
+```
+-Djavax.net.ssl.keyStore=/etc/xroad/catalog/ssl/keystore.p12
+-Djavax.net.ssl.keyStorePassword=<keystore-password>
+-Djavax.net.ssl.keyStoreType=PKCS12
+-Djavax.net.ssl.trustStore=/etc/xroad/catalog/ssl/truststore.p12
+-Djavax.net.ssl.trustStorePassword=<truststore-password>
+-Djavax.net.ssl.trustStoreType=PKCS12
+```
+
+> [!IMPORTANT]
+> `-Djavax.net.ssl.trustStore` REPLACES the JVM's default `cacerts` trust store for the whole JVM — with a truststore
+> configured, publicly-issued certificates are no longer trusted unless they are added to it.
+
+> [!WARNING]
+> Never put these flags in `JAVA_TOOL_OPTIONS`: the JVM echoes its full value, passwords included, into the
+> container log at every start (`Picked up JAVA_TOOL_OPTIONS: ...`). The passwords do remain visible in the
+> container's process arguments (`/proc/1/cmdline`, `docker top`), so restrict exec/inspect access accordingly.
+
+### Bind-mount permissions
+
+Docker creates missing bind-mount directories as `root:root`; the application runs as the non-root `xroad` user.
+Mounted files must therefore be readable by that user — e.g. world-readable (`0444`) or owned by a matching uid. A
+root-owned `0400` host file is not.
+
+`/etc/xroad/globalconf` — the lister's downloaded global configuration — is stored in the container's writable
+layer. Mount a volume there if you want it to persist across container recreation.
 
 ## Open ports
 
@@ -49,16 +137,16 @@ Both catalog services also listen on port `8090` for their management endpoints,
 Both images define a `HEALTHCHECK` against the readiness probe on the management port:
 
 ```
-curl -f http://localhost:8090/actuator/health/readiness
+wget -q -O /dev/null http://localhost:8090/actuator/health/readiness
 ```
 
 The readiness group covers `readinessState` and `db`, so a container reports healthy only once its database
 connection works. The collector is given a longer start period (90s) than the lister (60s) because it runs the
 Liquibase migrations at startup and cannot become ready until they finish.
 
-Note that the health response carries the overall status only. Component details are hidden by default; use the
-`dev` Spring profile, which sets `management.endpoint.health.show-components: always`, when you need the
-breakdown while debugging locally.
+Note that the health response carries the overall status only. Component details are hidden by default; `compose.yml`
+sets `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS=always` for the lister so you get the breakdown while debugging
+locally — set the same environment variable on the collector if you need it there too.
 
 ## Shutdown grace period
 
