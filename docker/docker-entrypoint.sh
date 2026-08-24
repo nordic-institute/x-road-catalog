@@ -1,30 +1,21 @@
-#!/bin/bash
-set -e
+#!/bin/sh
+# Passes JVM flags from a mounted options file (secret-safe alternative to JAVA_TOOL_OPTIONS, which the JVM
+# echoes into the log). Flags are whitespace-split, globbing disabled; paths with spaces are unsupported.
+# Fails if the path is mis-mounted (not a regular file) or an explicitly set JAVA_OPTS_FILE does not exist.
+set -eu
+set -f
 
-# Default to /app/etc/settings.yaml, but allow override
-CATALOG_APPLICATION_FILE=${CATALOG_APPLICATION_FILE:-/app/application.yaml}
-
-echo "starting entrypoint script"
-# Only update if settings file exists
-if [ -f "$CATALOG_APPLICATION_FILE" ]; then
-  # Loop through all environment variables
-  env | while IFS='=' read -r VAR VALUE; do
-    # Only process variables with 'setting_' prefix
-    if [[ "$VAR" == setting_* ]]; then
-      # Strip the 'setting_' prefix for the YAML path
-      PATH_VAR=${VAR#setting_}
-      # Convert to yq path (replace _ with - for YAML keys)
-      YQ_PATH=$(echo "$PATH_VAR" | sed 's/_/-/g')
-      # Determine if the value should be quoted (if not a number, boolean, or null)
-      if [[ "$VALUE" =~ ^([0-9]+(\.[0-9]+)?|true|false|null)$ ]]; then
-        # No quotes for numbers, booleans, or null
-        yq -i ".${YQ_PATH} = ${VALUE}" "$CATALOG_APPLICATION_FILE"
-      else
-        # Quote for strings
-        yq -i ".${YQ_PATH} = \"${VALUE}\"" "$CATALOG_APPLICATION_FILE"
-      fi
-    fi
-  done
+OPTS_FILE="${JAVA_OPTS_FILE:-/etc/xroad/catalog/jvm-options}"
+EXTRA=""
+if [ -e "$OPTS_FILE" ]; then
+  if [ ! -f "$OPTS_FILE" ]; then
+    echo "entrypoint: JAVA_OPTS_FILE path '$OPTS_FILE' exists but is not a regular file (mis-mounted?)" >&2
+    exit 1
+  fi
+  EXTRA=$(cat "$OPTS_FILE")
+elif [ -n "${JAVA_OPTS_FILE:-}" ]; then
+  echo "entrypoint: JAVA_OPTS_FILE path '$OPTS_FILE' does not exist" >&2
+  exit 1
 fi
 
-exec "$@"
+exec java $EXTRA "$@"

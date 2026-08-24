@@ -1,5 +1,6 @@
-# Base image for X-Road Catalog
-FROM eclipse-temurin:21-jre-alpine AS base-xroad-catalog
+# Base image for X-Road Catalog. Digest-pinned; Dependabot tracks the tag/digest pair.
+FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:974b08960c5d96694c780e65b2d5705268ab1e1ca1a0dd0caf4ba6c3fe34d699 \
+    AS base-xroad-catalog
 
 # Labels following the OCI Image Spec
 LABEL org.opencontainers.image.vendor="Nordic Institute for Interoperability Solutions (NIIS)" \
@@ -16,37 +17,38 @@ RUN addgroup -S xroad && adduser -S xroad -G xroad
 # Set working directory
 WORKDIR /app
 
-# Create necessary directories and set permissions
-RUN mkdir -p /etc/xroad \
-    && chown -R xroad:xroad /app /etc/xroad
+# Set /app ownership
+RUN chown -R xroad:xroad /app
 
-# Define volumes
-VOLUME /etc/xroad
+# -------------------- Separator: builder stage, extracts the layered boot jar --------------------
+FROM base-xroad-catalog AS builder
+
+COPY xroad-catalog-collector/build/libs/xroad-catalog-collector-*.jar /app/xroad-catalog-collector.jar
+RUN java -Djarmode=tools -jar /app/xroad-catalog-collector.jar extract --layers --launcher --destination extracted
 
 # -------------------- Separator: Start of xroad-catalog-collector image --------------------
 # Final image for X-Road Catalog Collector
 FROM base-xroad-catalog AS xroad-catalog-collector
 
-RUN apk add --no-cache curl && \
-    curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
-    -o /usr/bin/yq && \
-    chmod +x /usr/bin/yq && \
-    apk add --no-cache bash
-
-
-# Copy application JAR file
-COPY xroad-catalog-collector/build/libs/xroad-catalog-collector-*.jar /app/xroad-catalog-collector.jar
 COPY docker/docker-entrypoint.sh /entrypoint.sh
-COPY xroad-catalog-collector/src/main/resources/application.yaml /app/application.yaml
+
+# Copy extracted layers in cacheable order: least-to-most likely to change between builds.
+COPY --from=builder --chown=xroad:xroad /app/extracted/dependencies/ ./
+COPY --from=builder --chown=xroad:xroad /app/extracted/spring-boot-loader/ ./
+COPY --from=builder --chown=xroad:xroad /app/extracted/snapshot-dependencies/ ./
+COPY --from=builder --chown=xroad:xroad /app/extracted/application/ ./
 
 # Switch to non-root user
 USER xroad
 
-# Define entry point and default command
-ENTRYPOINT ["/entrypoint.sh", "java", "-Xms128m", "-Xmx2g", "-jar", "/app/xroad-catalog-collector.jar"]
-CMD ["--spring.config.location=/app/"]
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+
+EXPOSE 8090
+
+# Define entry point
+ENTRYPOINT ["/entrypoint.sh", "org.springframework.boot.loader.launch.JarLauncher"]
 
 # Health check. Actuator is served on the management port (8090); the collector has no main connector
 # (server.port: -1). The start period allows for the Liquibase migrations that run at startup.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-  CMD curl -f http://localhost:8090/actuator/health/readiness || exit 1
+  CMD wget -q -O /dev/null http://localhost:8090/actuator/health/readiness || exit 1

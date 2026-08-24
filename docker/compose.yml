@@ -33,34 +33,39 @@ services:
     stop_grace_period: 35s
     environment:
       # spring
-      - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog?socketTimeout=60
-      - setting_spring.datasource.password=xroad_catalog_collector
-      - setting_spring.liquibase.password=secret
-      - setting_spring.liquibase.contexts=users
-      - setting_spring.liquibase.parameters.users.collector.password=xroad_catalog_collector
-      - setting_spring.liquibase.parameters.users.lister.password=xroad_catalog_lister
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog?socketTimeout=60
+      - SPRING_DATASOURCE_PASSWORD=xroad_catalog_collector
+      - SPRING_LIQUIBASE_PASSWORD=secret
+      - SPRING_LIQUIBASE_CONTEXTS=users
+      - SPRING_LIQUIBASE_PARAMETERS_USERS_COLLECTOR_PASSWORD=xroad_catalog_collector
+      - SPRING_LIQUIBASE_PARAMETERS_USERS_LISTER_PASSWORD=xroad_catalog_lister
       # catalog
-      - setting_xroad-catalog.target.xroad-instance=DEV
-      - setting_xroad-catalog.target.subsystem-code=catalog
-      - setting_xroad-catalog.target.member-class=COM
-      - setting_xroad-catalog.target.member-code=1234
-      - setting_xroad-catalog.instance.ignored-subsystem-ids[0]=DEV:COM:1234:MANAGEMENT
-      - setting_xroad-catalog.urls.security-server-host=http://ss0:8080/
-      - setting_xroad-catalog.urls.list-clients-host=http://ss0:8080/
-      - setting_xroad-catalog.urls.webservices-endpoint=http://ss0:8080/
-      - setting_xroad-catalog.pool-size.fetch-openapi=5
-      - setting_xroad-catalog.pool-size.fetch-rest=5
-      - setting_xroad-catalog.pool-size.fetch-wsdl=5
-      - setting_xroad-catalog.pool-size.list-methods=5
-      - setting_xroad-catalog.log-storage.error-log-length-in-days=90
-      - setting_xroad-catalog.log-storage.flush-log-time-after-hour=3
-      - setting_xroad-catalog.log-storage.flush-log-time-before-hour=4
-      - setting_xroad-catalog.tasks.collector-interval-min=1
-      - setting_xroad-catalog.tasks.fetch-run-unlimited=true
-      - setting_xroad-catalog.tasks.fetch-time-after-hour=3
-      - setting_xroad-catalog.tasks.fetch-time-before-hour=4
+      - XROAD_CATALOG_TARGET_XROAD_INSTANCE=DEV
+      - XROAD_CATALOG_TARGET_SUBSYSTEM_CODE=catalog
+      - XROAD_CATALOG_TARGET_MEMBER_CLASS=COM
+      - XROAD_CATALOG_TARGET_MEMBER_CODE=1234
+      - XROAD_CATALOG_INSTANCE_IGNORED_SUBSYSTEM_IDS_0=DEV:COM:1234:MANAGEMENT
+      - XROAD_CATALOG_URLS_SECURITY_SERVER_HOST=http://ss0:8080/
+      - XROAD_CATALOG_URLS_LIST_CLIENTS_HOST=http://ss0:8080/
+      - XROAD_CATALOG_URLS_WEBSERVICES_ENDPOINT=http://ss0:8080/
+      - XROAD_CATALOG_POOL_SIZE_FETCH_OPENAPI=5
+      - XROAD_CATALOG_POOL_SIZE_FETCH_REST=5
+      - XROAD_CATALOG_POOL_SIZE_FETCH_WSDL=5
+      - XROAD_CATALOG_POOL_SIZE_LIST_METHODS=5
+      - XROAD_CATALOG_LOG_STORAGE_ERROR_LOG_LENGTH_IN_DAYS=90
+      - XROAD_CATALOG_LOG_STORAGE_FLUSH_LOG_TIME_AFTER_HOUR=3
+      - XROAD_CATALOG_LOG_STORAGE_FLUSH_LOG_TIME_BEFORE_HOUR=4
+      - XROAD_CATALOG_TASKS_COLLECTOR_INTERVAL_MIN=1
+      - XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED=true
+      - XROAD_CATALOG_TASKS_FETCH_TIME_AFTER_HOUR=3
+      - XROAD_CATALOG_TASKS_FETCH_TIME_BEFORE_HOUR=4
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      # Example: mount a JVM options file to pass secret flags (e.g. javax.net.ssl.* passwords) without them
+      # leaking into JAVA_TOOL_OPTIONS logs; see docker/README.md.
+      # - ./collector/config/jvm-options:/etc/xroad/catalog/jvm-options:ro
+      # - ./collector/config/keystore.p12:/etc/xroad/catalog/ssl/keystore.p12:ro
+      # - ./collector/config/truststore.p12:/etc/xroad/catalog/ssl/truststore.p12:ro
     depends_on:
       - xrd-catalog-db
     networks:
@@ -75,23 +80,25 @@ services:
     stop_grace_period: 35s
     environment:
       # spring
-      - setting_spring.profiles.active=dev
-      - setting_spring.datasource.url=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
-      - setting_spring.datasource.password=xroad_catalog_lister
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
+      - SPRING_DATASOURCE_PASSWORD=xroad_catalog_lister
+      # show-components (default "never") is the one dev-profile behavior this compose relies on. The dev
+      # profile's verbose TRACE/DEBUG loggers are intentionally not applied; set LOGGING_LEVEL_* if needed.
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS=always
       # xroad
-      - setting_xroad.common.configuration-path=/etc/xroad/globalconf
-      - setting_xroad.proxy.configuration-anchor-file=/etc/xroad/configuration-anchor.xml
-      - setting_xroad.configuration-client.port=5665
-      - setting_xroad.configuration-client.admin-port=5675
-      - setting_xroad.configuration-client.update-interval=60
-      - setting_xroad.configuration-client.allowed-federations=none
-      - setting_xroad.configuration-client.proxy-configuration-backup-cron=0 15 3 * * ?
-      - setting_xroad.configuration-client.global_conf_tls_cert_verification=false
-      - setting_xroad.configuration-client.global_conf_hostname_verification=false
+      - XROAD_COMMON_CONFIGURATION_PATH=/etc/xroad/globalconf
+      - XROAD_PROXY_CONFIGURATION_ANCHOR_FILE=/etc/xroad/configuration-anchor.xml
+      - XROAD_CONFIGURATION_CLIENT_PORT=5665
+      - XROAD_CONFIGURATION_CLIENT_ADMIN_PORT=5675
+      - XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL=60
+      - XROAD_CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS=none
+      - XROAD_CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON=0 15 3 * * ?
+      - XROAD_CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION=false
+      - XROAD_CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION=false
       # catalog
-      - setting_xroad-catalog.shared-params-file=/etc/xroad/globalconf/DEV/shared-params.xml
-      - setting_xroad-catalog.configuration-client.enabled=true
-      - setting_xroad-catalog.legacy-api.enabled=true
+      - XROAD_CATALOG_SHARED_PARAMS_FILE=/etc/xroad/globalconf/DEV/shared-params.xml
+      - XROAD_CATALOG_CONFIGURATION_CLIENT_ENABLED=true
+      - XROAD_CATALOG_LEGACY_API_ENABLED=true
     volumes:
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro
       - /etc/localtime:/etc/localtime:ro
