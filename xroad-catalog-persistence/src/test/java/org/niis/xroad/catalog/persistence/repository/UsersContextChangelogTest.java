@@ -25,7 +25,10 @@
 package org.niis.xroad.catalog.persistence.repository;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.catalog.persistence.PersistenceTestApplication;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -61,6 +64,9 @@ class UsersContextChangelogTest {
     private static final String COLLECTOR_PASSWORD = "collector-pw";
     private static final String LISTER_USERNAME = "it_users_ctx_lister";
     private static final String LISTER_PASSWORD = "li'ster-pw";
+    private static final String ABSENT_COLLECTOR_USERNAME = "it_users_ctx_absent_collector";
+    private static final String MISSING_ROLE_DATABASE = "users_ctx_missing_role";
+    private static final int MAX_CAUSE_DEPTH = 50;
 
     static {
         POSTGRES.start();
@@ -147,6 +153,94 @@ class UsersContextChangelogTest {
                             + "now())"),
                     "lister must not have write access to member");
         }
+    }
+
+    /**
+     * The {@code users} changesets guard their grants with a precondition on {@code pg_roles}, so that a missing
+     * role fails startup with a message naming the role instead of a bare "role does not exist" SQL error. Boots
+     * an isolated context against a throwaway database in the same container, naming a collector role that was
+     * never created, and asserts the operator-facing message survives all the way out of the Spring failure.
+     */
+    @Test
+    void missingRoleHaltsStartupWithMessageNamingTheRole() throws SQLException {
+        createDatabase(MISSING_ROLE_DATABASE);
+
+        Exception failure = assertThrows(Exception.class, () -> new SpringApplicationBuilder(
+                PersistenceTestApplication.class)
+                .web(WebApplicationType.NONE)
+                .properties(
+                        "spring.datasource.url=" + jdbcUrlFor(MISSING_ROLE_DATABASE),
+                        "spring.datasource.username=" + POSTGRES.getUsername(),
+                        "spring.datasource.password=" + POSTGRES.getPassword(),
+                        "spring.datasource.driver-class-name=org.postgresql.Driver",
+                        "spring.jpa.hibernate.ddl-auto=none",
+                        "spring.sql.init.mode=never",
+                        "spring.liquibase.enabled=true",
+                        "spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.xml",
+                        "spring.liquibase.contexts=users",
+                        "spring.liquibase.user=" + POSTGRES.getUsername(),
+                        "spring.liquibase.password=" + POSTGRES.getPassword(),
+                        "spring.liquibase.parameters.users.collector.username=" + ABSENT_COLLECTOR_USERNAME,
+                        "spring.liquibase.parameters.users.lister.username=" + LISTER_USERNAME)
+                .run()
+                .close());
+
+        String reported = messageChainOf(failure);
+        assertTrue(reported.contains(ABSENT_COLLECTOR_USERNAME),
+                "startup failure must name the missing role, but was: " + reported);
+        assertTrue(reported.contains("must be created before startup"),
+                "startup failure must carry the precondition's onFailMessage, but was: " + reported);
+
+        // HALT, not MARK_RAN: the changeset must stay unapplied so it still runs once the role is created.
+        int recorded = countUsersChangesetsIn(MISSING_ROLE_DATABASE);
+        assertEquals(0, recorded, "no users changeset may be recorded as applied when the role is missing");
+    }
+
+    private static String jdbcUrlFor(String database) {
+        return "jdbc:postgresql://" + POSTGRES.getHost() + ":" + POSTGRES.getFirstMappedPort() + "/" + database;
+    }
+
+    private static void createDatabase(String database) throws SQLException {
+        try (
+                Connection superuser = DriverManager.getConnection(
+                        POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+                Statement statement = superuser.createStatement()) {
+            statement.executeUpdate("CREATE DATABASE " + database);
+        }
+    }
+
+    private static int countUsersChangesetsIn(String database) throws SQLException {
+        try (
+                Connection connection = DriverManager.getConnection(
+                        jdbcUrlFor(database), POSTGRES.getUsername(), POSTGRES.getPassword());
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        "SELECT count(*) FROM information_schema.tables WHERE table_name = 'databasechangelog'")) {
+            rs.next();
+            if (rs.getInt(1) == 0) {
+                return 0;
+            }
+        }
+        try (
+                Connection connection = DriverManager.getConnection(
+                        jdbcUrlFor(database), POSTGRES.getUsername(), POSTGRES.getPassword());
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        "SELECT count(*) FROM databasechangelog WHERE id LIKE '000-users-%'")) {
+            rs.next();
+            return rs.getInt(1);
+        }
+    }
+
+    private static String messageChainOf(Throwable throwable) {
+        StringBuilder chain = new StringBuilder();
+        Throwable current = throwable;
+        // Depth-bounded rather than null-terminated, so a self-referencing cause cannot spin forever.
+        for (int depth = 0; current != null && depth < MAX_CAUSE_DEPTH; depth++) {
+            chain.append(current.getMessage()).append(System.lineSeparator());
+            current = current.getCause();
+        }
+        return chain.toString();
     }
 
     private Connection connectAs(String username, String password) throws SQLException {

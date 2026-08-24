@@ -73,12 +73,34 @@ Configurations are categorized according to their usage into different groups in
 | spring.liquibase.parameters.users.lister.username                                                                                                                          | `xroad_catalog_lister`    | Mandatory if liquibase context include `users`. Identifies the pre-created role that is granted read-only privilege to all tables, views, and functions in the database.     | 1.0.0 |
 
 > [!NOTE]
-> The `users` context only grants privileges; it never creates roles. Both application roles must exist before the
-> first start, e.g.:
+> The `users` context only grants privileges; it never creates roles. Both application roles must exist before
+> the first start, and the application refuses to start with a message naming the missing role otherwise. Create
+> them as plain login roles with no administrative attributes:
 > ```sql
-> CREATE ROLE xroad_catalog_collector WITH LOGIN PASSWORD '...';
-> CREATE ROLE xroad_catalog_lister WITH LOGIN PASSWORD '...';
+> CREATE ROLE xroad_catalog_collector WITH
+>     LOGIN
+>     NOSUPERUSER
+>     NOCREATEDB
+>     NOCREATEROLE
+>     NOINHERIT
+>     NOREPLICATION
+>     NOBYPASSRLS
+>     CONNECTION LIMIT -1
+>     PASSWORD '<collector password>';
+>
+> CREATE ROLE xroad_catalog_lister WITH
+>     LOGIN
+>     NOSUPERUSER
+>     NOCREATEDB
+>     NOCREATEROLE
+>     NOINHERIT
+>     NOREPLICATION
+>     NOBYPASSRLS
+>     CONNECTION LIMIT -1
+>     PASSWORD '<lister password>';
 > ```
+> Apart from `NOINHERIT`, the attributes above are PostgreSQL's `CREATE ROLE` defaults; they are spelled out so
+> that the intended privilege level of the two roles is explicit and survives a cluster with different defaults.
 > Once the roles exist, the `users` context grants them their privileges.
 
 #### Mandatory Configurations for Common Features
