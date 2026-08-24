@@ -4,36 +4,10 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="000-users-collector-drop" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="Failed to remove full-access user because it does not exist">
-            <sqlCheck expectedResult="1">
-                SELECT count(*) FROM pg_roles WHERE rolname = '${users.collector.username}';
-            </sqlCheck>
-        </preConditions>
-        <sqlFile path="db/changelog/sql/000-drop-full-access-user.sql"/>
+    <changeSet id="000-users-collector-grants" author="niis" dbms="postgresql">
+        <sqlFile path="db/changelog/sql/000-grant-full-access-user.sql"/>
     </changeSet>
-    <changeSet id="000-users-collector-create" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="Failed to create full-access user because it already exists">
-            <sqlCheck expectedResult="0">
-                SELECT count(*) FROM pg_roles WHERE rolname = '${users.collector.username}';
-            </sqlCheck>
-        </preConditions>
-        <sqlFile path="db/changelog/sql/000-create-full-access-user.sql"/>
-    </changeSet>
-    <changeSet id="000-users-lister-drop" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="Failed to remove read-only user because it does not exist">
-            <sqlCheck expectedResult="1">
-                SELECT count(*) FROM pg_roles WHERE rolname = '${users.lister.username}';
-            </sqlCheck>
-        </preConditions>
-        <sqlFile path="db/changelog/sql/000-drop-readonly-user.sql"/>
-    </changeSet>
-    <changeSet id="000-users-lister-create" author="niis" dbms="postgresql">
-        <preConditions onFail="MARK_RAN" onFailMessage="Failed to create read-only user because it already exists">
-            <sqlCheck expectedResult="0">
-                SELECT count(*) FROM pg_roles WHERE rolname = '${users.lister.username}';
-            </sqlCheck>
-        </preConditions>
-        <sqlFile path="db/changelog/sql/000-create-readonly-user.sql"/>
+    <changeSet id="000-users-lister-grants" author="niis" dbms="postgresql">
+        <sqlFile path="db/changelog/sql/000-grant-readonly-user.sql"/>
     </changeSet>
 </databaseChangeLog>

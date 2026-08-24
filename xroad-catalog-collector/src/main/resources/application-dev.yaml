@@ -19,10 +19,8 @@ spring:
       users:
         collector:
           username: xroad_catalog_collector
-          password: xroad_catalog_collector
         lister:
           username: xroad_catalog_lister
-          password: xroad_catalog_lister
 
 # X-Road instance parameters
 xroad-catalog:

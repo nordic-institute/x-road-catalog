@@ -16,7 +16,9 @@ The `compose.yml` file has been configured so that the services can access the `
 
    Alternatively you can mount your own configuration file to the directory `/app` inside the containers. **NB!**: The entries inside the file may overwritten by the environment variables provided in `compose.yml` file.
 4. Keeping the provided X-Road-instance parameters in `compose.yml` like `setting_xroad-catalog.target.subsystem-code=catalog`, make sure to add the subsystem to your X-Road instance and make sure to give it the desired access method (`HTTPS`, `HTTPS NO AUTH`, `HTTP`)
-5. Start the environment with `docker compose up -d --build`.
+5. Start the environment with `docker compose up -d --build`. On first start the database container creates the two
+   application roles from `db/init-app-roles.sql`; init scripts only run on an empty data volume, so after changing
+   them reset the database with `docker compose down -v`.
 6. (Optional) In order to verify the setup, make sure that the catalog service can access the X-Road service, by running catalog's `/api/getListOfServices` request and check entry "`serviceList`" for a subsystem that contains services.
 
 ### Overwriting configuration files by environment variables
