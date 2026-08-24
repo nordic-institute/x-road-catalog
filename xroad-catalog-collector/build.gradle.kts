@@ -25,10 +25,6 @@ repositories {
 
 tasks.bootJar {
     enabled = true
-    layered {
-        enabled = false
-    }
-    includeTools = false
 }
 
 tasks.jar {
