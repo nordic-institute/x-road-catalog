@@ -11,7 +11,7 @@
             </not>
         </preConditions>
         <createTable tableName="member">
-            <column autoIncrement="true" name="id" type="SERIAL">
+            <column autoIncrement="true" name="id" type="bigserial">
                 <constraints primaryKey="true" nullable="false" primaryKeyName="member_pkey"/>
             </column>
             <column name="x_road_instance" type="text">
@@ -26,9 +26,6 @@
             <column name="name" type="text">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_provider" type="boolean" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
             <column name="created" type="timestamptz">
                 <constraints nullable="false"/>
             </column>
@@ -40,6 +37,16 @@
             </column>
             <column name="removed" type="timestamptz"/>
         </createTable>
+    </changeSet>
+    <changeSet id="010-member-add-is-provider" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="member.is_provider exists">
+            <not><columnExists tableName="member" columnName="is_provider"/></not>
+        </preConditions>
+        <addColumn tableName="member">
+            <column name="is_provider" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
     <changeSet id="010-common-tables-subsystem" author="niis">
         <preConditions onFail="MARK_RAN" onFailMessage="subsystem table exists">
@@ -88,9 +95,6 @@
                 <constraints nullable="false"/>
             </column>
             <column name="service_version" type="text"/>
-            <column name="service_type" type="text" defaultValue="UNKNOWN">
-                <constraints nullable="false"/>
-            </column>
             <column name="created" type="timestamptz">
                 <constraints nullable="false"/>
             </column>
@@ -102,6 +106,16 @@
             </column>
             <column name="removed" type="timestamptz"/>
         </createTable>
+    </changeSet>
+    <changeSet id="010-service-add-service-type" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="service.service_type exists">
+            <not><columnExists tableName="service" columnName="service_type"/></not>
+        </preConditions>
+        <addColumn tableName="service">
+            <column name="service_type" type="text" defaultValue="UNKNOWN">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
     <changeSet id="010-common-tables-wsdl" author="niis">
         <preConditions onFail="MARK_RAN" onFailMessage="wsdl table exists">

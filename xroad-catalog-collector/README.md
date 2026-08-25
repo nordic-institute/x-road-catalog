@@ -64,15 +64,44 @@ Configurations are categorized according to their usage into different groups in
 | Data Source and Liquibase Configurations                                                                                                                                   | Defaults                  | Comment                                                                                                                                                                      | Since |
 |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
 | [spring.datasource.url](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.url)                   |                           |                                                                                                                                                                              | 1.0.0 |
-| [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)         |                           | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.collector.username`.        | 1.0.0 |
-| [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.elasticsearch.password)      |                           | If database users will be created by liquibase scripts (see `spring.liquibase.contexts`), username must match `spring.liquibase.parameters.users.collector.password`.        | 1.0.0 |
+| [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)         |                           | Must match the pre-created collector role, i.e. `spring.liquibase.parameters.users.collector.username`.                                                                      | 1.0.0 |
+| [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.password)         |                           | Must match the password of the pre-created collector role.                                                                                                                   | 1.0.0 |
 | [spring.liquibase.user](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.user)         | `xroad_catalog`           | An admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                                           | 1.0.0 |
 | [spring.liquibase.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.password) |                           | Password of the admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                              | 1.0.0 |
-| [spring.liquibase.contexts](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.contexts) | `users`                   | Available value is `users`. It is used to create new users (a user for collector module and a user for lister module).                                                       | 1.0.0 |
-| spring.liquibase.parameters.users.collector.username                                                                                                                       | `xroad_catalog_collector` | Mandatory if liquibase context include `users`. The username will be used to create a new user with full read/write privilege to everything in the database.                 | 1.0.0 |
-| spring.liquibase.parameters.users.collector.password                                                                                                                       |                           | Mandatory if liquibase context include `users`. The password will be used to create a new user with full read/write privilege to everything in the database.                 | 1.0.0 |
-| spring.liquibase.parameters.users.lister.username                                                                                                                          | `xroad_catalog_lister`    | Mandatory if liquibase context include `users`. The username will be used to create a new user with read-only privilege to all tables, views, and functions in the database. | 1.0.0 |
-| spring.liquibase.parameters.users.lister.password                                                                                                                          |                           | Mandatory if liquibase context include `users`. The password will be used to create a new user with read-only privilege to all tables, views, and functions in the database. | 1.0.0 |
+| [spring.liquibase.contexts](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.contexts) | `users`                   | Available value is `users`. It grants privileges to the pre-created collector and lister roles.                                                                              | 1.0.0 |
+| spring.liquibase.parameters.users.collector.username                                                                                                                       | `xroad_catalog_collector` | Mandatory if liquibase context include `users`. Identifies the pre-created role that is granted full read/write privilege to everything in the database.                     | 1.0.0 |
+| spring.liquibase.parameters.users.lister.username                                                                                                                          | `xroad_catalog_lister`    | Mandatory if liquibase context include `users`. Identifies the pre-created role that is granted read-only privilege to all tables, views, and functions in the database.     | 1.0.0 |
+
+> [!NOTE]
+> The `users` context only grants privileges; it never creates roles. Both application roles must exist before
+> the first start, and the application refuses to start with a message naming the missing role otherwise. Create
+> them as plain login roles with no administrative attributes:
+> ```sql
+> CREATE ROLE xroad_catalog_collector WITH
+>     LOGIN
+>     NOSUPERUSER
+>     NOCREATEDB
+>     NOCREATEROLE
+>     NOINHERIT
+>     NOREPLICATION
+>     NOBYPASSRLS
+>     CONNECTION LIMIT -1
+>     PASSWORD '<collector password>';
+>
+> CREATE ROLE xroad_catalog_lister WITH
+>     LOGIN
+>     NOSUPERUSER
+>     NOCREATEDB
+>     NOCREATEROLE
+>     NOINHERIT
+>     NOREPLICATION
+>     NOBYPASSRLS
+>     CONNECTION LIMIT -1
+>     PASSWORD '<lister password>';
+> ```
+> Apart from `NOINHERIT`, the attributes above are PostgreSQL's `CREATE ROLE` defaults; they are spelled out so
+> that the intended privilege level of the two roles is explicit and survives a cluster with different defaults.
+> Once the roles exist, the `users` context grants them their privileges.
 
 #### Mandatory Configurations for Common Features
 

@@ -24,10 +24,8 @@ spring:
       users:
         collector:
           username: xroad_catalog_collector
-          password: ''
         lister:
           username: xroad_catalog_lister
-          password: ''
   main:
     web-application-type: servlet
   lifecycle:
