@@ -12,6 +12,7 @@ services:
     volumes:
       - xrd-catalog-db-data:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
+      - ./db/init-app-roles.sql:/docker-entrypoint-initdb.d/init-app-roles.sql:ro
     networks:
       - xrd-catalog-network
   adminer:
@@ -37,8 +38,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=xroad_catalog_collector
       - SPRING_LIQUIBASE_PASSWORD=secret
       - SPRING_LIQUIBASE_CONTEXTS=users
-      - SPRING_LIQUIBASE_PARAMETERS_USERS_COLLECTOR_PASSWORD=xroad_catalog_collector
-      - SPRING_LIQUIBASE_PARAMETERS_USERS_LISTER_PASSWORD=xroad_catalog_lister
       # catalog
       - XROAD_CATALOG_TARGET_XROAD_INSTANCE=DEV
       - XROAD_CATALOG_TARGET_SUBSYSTEM_CODE=catalog

@@ -1,4 +1,3 @@
-CREATE ROLE ${users.lister.username} NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT LOGIN NOREPLICATION NOBYPASSRLS CONNECTION LIMIT -1 PASSWORD '${users.lister.password}';
 GRANT USAGE ON SCHEMA public TO ${users.lister.username};
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${users.lister.username};
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${users.lister.username};

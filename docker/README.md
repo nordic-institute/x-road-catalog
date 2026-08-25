@@ -19,7 +19,9 @@ The `compose.yml` file has been configured so that the services can access the `
 4. Keeping the provided X-Road-instance parameters in `compose.yml` like `XROAD_CATALOG_TARGET_SUBSYSTEM_CODE=catalog`,
    make sure to add the subsystem to your X-Road instance and make sure to give it the desired access method (`HTTPS`,
    `HTTPS NO AUTH`, `HTTP`).
-5. Start the environment with `docker compose up -d --build`.
+5. Start the environment with `docker compose up -d --build`. On first start the database container creates the
+   two application roles from `db/init-app-roles.sql`; init scripts only run on an empty data volume, so after
+   changing them reset the database with `docker compose down -v`.
 6. (Optional) Verify the setup with `curl http://localhost:8070/api/v2/heartbeat`: once the collector has completed
    a run against your X-Road instance, the `lastCollectionData` timestamps are populated.
 
