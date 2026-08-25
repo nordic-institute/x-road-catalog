@@ -3,6 +3,8 @@ name: xrd-catalog-service-dev
 services:
   xrd-catalog-db:
     image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 512m
     ports:
       - 4910:5432
     environment:
@@ -17,6 +19,8 @@ services:
       - xrd-catalog-network
   adminer:
     image: adminer
+    restart: unless-stopped
+    mem_limit: 128m
     volumes:
       - /etc/localtime:/etc/localtime:ro
     ports:
@@ -29,6 +33,10 @@ services:
     build:
       context: ../.
       dockerfile: docker/collector/Dockerfile
+    restart: unless-stopped
+    # The image's JAVA_TOOL_OPTIONS sizes the heap at 75% of this limit. Without a limit the JVM would instead
+    # take 75% of host RAM, per service.
+    mem_limit: 1g
     # Must stay above the application-side shutdown budget, otherwise Docker SIGKILLs mid-shutdown. Raise this
     # if spring.lifecycle.timeout-per-shutdown-phase or DefaultTasksInitializer.SHUTDOWN_GRACE_SECONDS is raised.
     stop_grace_period: 35s
@@ -74,6 +82,8 @@ services:
     build:
       context: ../.
       dockerfile: docker/lister/Dockerfile
+    restart: unless-stopped
+    mem_limit: 1g
     # Must stay above the application-side shutdown budget (spring.lifecycle.timeout-per-shutdown-phase, 30s),
     # otherwise Docker SIGKILLs mid-shutdown. If that timeout is raised, raise this too.
     stop_grace_period: 35s

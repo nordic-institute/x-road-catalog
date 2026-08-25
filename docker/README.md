@@ -63,6 +63,9 @@ Both images default to:
 JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 ```
 
+`MaxRAMPercentage` sizes the heap from the container's memory limit, so each service needs one. Without a limit
+the JVM reads the host's total RAM instead and every service sizes its heap at 75% of it.
+
 An operator-set `JAVA_TOOL_OPTIONS` replaces this whole string, not just the parts you name.
 
 ### Dev profile
