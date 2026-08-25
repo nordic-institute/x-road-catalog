@@ -1,10 +1,4 @@
 buildscript {
-    /*dependencies {
-        classpath(libs.licenseGradlePlugin) {
-            exclude(group = "org.springframework", module = "spring-core")
-        }
-    }*/
-
     configurations.configureEach {
         resolutionStrategy {
             activateDependencyLocking()

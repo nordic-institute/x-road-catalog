@@ -278,18 +278,22 @@ openssl s_client -showcerts -connect <SERVER_ADDRESS>:443  </dev/null
 ```
 
 If accessing the `listMethods` service requires authentication, create a key and a certificate and add it to keystore file
-`/etc/xroad/xroad-catalog/keystore` (note: replace the `<COUNTRY_CODE>` placeholder with a real country code):
+`/etc/xroad/xroad-catalog/keystore.p12` (note: replace the `<COUNTRY_CODE>` placeholder with a real country code):
 
 ```bash
-sudo keytool -alias xroad-catalog -genkeypair -keystore /etc/xroad/xroad-catalog/keystore -validity 7300 -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname C=<COUNTRY_CODE>,CN=xroad-catalog
-keytool -keystore /etc/xroad/xroad-catalog/keystore -exportcert -rfc -alias xroad-catalog > xroad-catalog.cer
+sudo keytool -alias xroad-catalog -genkeypair -keystore /etc/xroad/xroad-catalog/keystore.p12 -storetype PKCS12 \
+    -validity 7300 -keyalg RSA -keysize 2048 -sigalg SHA256withRSA -dname C=<COUNTRY_CODE>,CN=xroad-catalog
+keytool -keystore /etc/xroad/xroad-catalog/keystore.p12 -storetype PKCS12 -exportcert -rfc -alias xroad-catalog > xroad-catalog.cer
 ```
 
 The created `xroad-catalog.cer` file must be added to the Security Server (Through UI: Security Server Clients > SELECT SERVICE > Internal Servers > Internal TLS Certificates > ADD)
 
 TLS client authentication is configured at the JVM level, via the `javax.net.ssl.keyStore`,
 `javax.net.ssl.keyStorePassword` and `javax.net.ssl.keyStoreType` system properties (and the corresponding
-`trustStore` properties for server-certificate trust), supplied by the container runtime.
+`trustStore` properties for server-certificate trust). In the container images these flags are supplied via a
+JVM options file mounted into the container (default path `/etc/xroad/catalog/jvm-options`) — see
+[docker/README.md](../docker/README.md#tls-material-and-configuration-anchor) for the mount contract and a
+worked example.
 
 ## 2.7 Post-Installation Checks
 
