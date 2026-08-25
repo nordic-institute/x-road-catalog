@@ -4,10 +4,6 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <!-- The 'users' context only grants privileges, it never creates roles. The preconditions below turn a
-         missing role into a readable startup failure instead of a raw "role does not exist" SQL stack trace.
-         They must fail with HALT rather than MARK_RAN: marking them ran would silently skip the grants and
-         record them as applied, leaving the role without privileges even after the operator creates it. -->
     <changeSet id="000-users-collector-grants" author="niis" dbms="postgresql">
         <preConditions onFail="HALT"
             onFailMessage="Role '${users.collector.username}' must be created before startup - the 'users' context only grants privileges.">
