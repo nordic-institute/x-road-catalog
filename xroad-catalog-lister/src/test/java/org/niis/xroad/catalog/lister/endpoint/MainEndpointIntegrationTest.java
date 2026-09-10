@@ -79,6 +79,8 @@ import static org.mockito.BDDMockito.given;
 @DirtiesContext
 public class MainEndpointIntegrationTest {
 
+    private static final String LEGACY_NAMESPACE = "http://xroad.vrk.fi/xroad-catalog-lister";
+
     private final TestRestTemplate restTemplate = new TestRestTemplate();
 
     @LocalServerPort
@@ -98,6 +100,7 @@ public class MainEndpointIntegrationTest {
 
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "ListMembersResponse");
     }
 
     @Test
@@ -124,6 +127,7 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetServiceTypeSoapResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetServiceType SOAP response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "GetServiceTypeResponse");
     }
 
     @Test
@@ -137,6 +141,7 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderTrueResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider true response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "IsProviderResponse");
     }
 
     @Test
@@ -167,6 +172,7 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetWsdlResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetWsdl response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "GetWsdlResponse");
         
         // Verify that the WSDL content is properly wrapped in CDATA
         String responseBody = response.getBody();
@@ -217,6 +223,7 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOpenApiResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetOpenApi response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "GetOpenAPIResponse");
     }
 
     @Test
@@ -256,6 +263,7 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetErrorsResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "GetErrorsResponse");
     }
 
     @Test
@@ -264,7 +272,9 @@ public class MainEndpointIntegrationTest {
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersNullStartDateRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersNullStartDateResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers null startDateTime response should match expected SOAP fault");
     }
@@ -275,7 +285,9 @@ public class MainEndpointIntegrationTest {
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersNullEndDateRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersNullEndDateResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembers null endDateTime response should match expected SOAP fault");
     }
@@ -293,7 +305,9 @@ public class MainEndpointIntegrationTest {
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/GetServiceTypeNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetServiceTypeNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetServiceType not found response should match expected SOAP fault");
     }
@@ -305,7 +319,9 @@ public class MainEndpointIntegrationTest {
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderMemberNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderMemberNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "IsProvider member not found response should match expected SOAP fault");
     }
@@ -316,7 +332,9 @@ public class MainEndpointIntegrationTest {
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/GetWsdlNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetWsdlNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetWsdl not found response should match expected SOAP fault");
     }
@@ -327,7 +345,9 @@ public class MainEndpointIntegrationTest {
 
         String soapRequest = loadXmlFromClasspath("main-soap-requests/GetOpenApiNotFoundRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOpenApiNotFoundResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetOpenApi not found response should match expected SOAP fault");
     }
@@ -343,6 +363,35 @@ public class MainEndpointIntegrationTest {
         
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersWithFullHierarchyResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembersWithFullHierarchy response should match expected XML");
+        assertLegacyNamespace(response.getBody(), "ListMembersResponse");
+        assertFalse(response.getBody().contains("serviceType"),
+                "ListMembers response must not carry the serviceType element the RPM release never emitted");
+    }
+
+    @Test
+    public void testUnknownOperationReturnsFault() throws Exception {
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml")
+                .replace("<id:serviceCode>ListMembers</id:serviceCode>", "<id:serviceCode>GetOrganizations</id:serviceCode>");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOrganizationsFiProfileDisabledResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "Unknown operation response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testServedWsdlKeepsOriginalContract() {
+        ResponseEntity<String> response = restTemplate.getForEntity("http://localhost:" + port + "/ws/services.wsdl", String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        String wsdl = response.getBody();
+        Assertions.assertNotNull(wsdl);
+        assertTrue(wsdl.contains("targetNamespace=\"" + LEGACY_NAMESPACE + "\""),
+                "Served WSDL must keep the original target namespace");
+        assertFalse(wsdl.contains("GetOrganizations"), "Served WSDL must not declare the removed FI-profile operations");
+        assertFalse(wsdl.contains("serviceType"), "Served WSDL must not declare the serviceType element");
+        assertTrue(wsdl.contains("<soap:address location=\"http://localhost:8070/ws\"/>"));
     }
     
     @Test
@@ -413,13 +462,27 @@ public class MainEndpointIntegrationTest {
         
         String soapRequest = loadXmlFromClasspath("main-soap-requests/GetErrorsRequest.xml");
         ResponseEntity<String> response = sendSoapRequest(soapRequest);
-        
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetErrorsEmptyResultResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors empty result response should match expected SOAP fault");
     }
 
     private ResponseEntity<String> sendSoapRequest(String soapRequest) {
         return sendSoapRequest(soapRequest, "/ws");
+    }
+
+    private void assertLegacyNamespace(String responseBody, String responseElement) throws Exception {
+        Assertions.assertNotNull(responseBody);
+        javax.xml.parsers.DocumentBuilderFactory factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        org.w3c.dom.Document document = factory.newDocumentBuilder()
+                .parse(new java.io.ByteArrayInputStream(responseBody.getBytes(StandardCharsets.UTF_8)));
+        assertEquals(1, document.getElementsByTagNameNS(LEGACY_NAMESPACE, responseElement).getLength(),
+                "Response element " + responseElement + " must be in the original namespace " + LEGACY_NAMESPACE);
+        assertFalse(responseBody.contains("http://x-road.eu/ext/catalog/lister"),
+                "Response must not use the renamed namespace");
     }
 
     private ResponseEntity<String> sendSoapRequest(String soapRequest, String path) {

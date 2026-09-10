@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:sch="http://xroad.vrk.fi/xroad-catalog-lister"
                   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-                  xmlns:tns="http://x-road.eu/ext/catalog/lister"
+                  xmlns:tns="http://xroad.vrk.fi/xroad-catalog-lister"
                   xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
                   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                   xmlns:id="http://x-road.eu/xsd/identifiers"
-                  targetNamespace="http://x-road.eu/ext/catalog/lister"
+                  targetNamespace="http://xroad.vrk.fi/xroad-catalog-lister"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd
 http://x-road.eu/xsd/identifiers ">
@@ -105,7 +106,7 @@ http://x-road.eu/xsd/identifiers ">
             <xsd:element name="protocolVersion" type="xsd:string" />
         </xsd:schema>
         <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-                   targetNamespace="http://x-road.eu/ext/catalog/lister">
+                   targetNamespace="http://xroad.vrk.fi/xroad-catalog-lister">
 
 
             <xs:element name="ListMembers">
@@ -253,7 +254,7 @@ http://x-road.eu/xsd/identifiers ">
                     <xs:element name="created" type="xs:dateTime"/>
                     <xs:element name="changed" type="xs:dateTime"/>
                     <xs:element name="fetched" type="xs:dateTime"/>
-                    <xs:element minOccurs="0" name="removed" type="xs:dateTime"/>
+                    <xs:element name="removed" type="xs:dateTime"/>
                 </xs:sequence>
             </xs:complexType>
 
@@ -271,7 +272,7 @@ http://x-road.eu/xsd/identifiers ">
                     <xs:element name="created" type="xs:dateTime"/>
                     <xs:element name="changed" type="xs:dateTime"/>
                     <xs:element name="fetched" type="xs:dateTime"/>
-                    <xs:element minOccurs="0" name="removed" type="xs:dateTime"/>
+                    <xs:element name="removed" type="xs:dateTime"/>
                 </xs:sequence>
             </xs:complexType>
 
@@ -285,15 +286,12 @@ http://x-road.eu/xsd/identifiers ">
                 <xs:sequence>
                     <xs:element name="serviceCode" type="xs:string"/>
                     <xs:element name="serviceVersion" type="xs:string"/>
-                    <xs:element name="serviceType" type="xs:string"/>
-                    <xs:choice>
-                        <xs:element name="wsdl" type="tns:WSDL"/>
-                        <xs:element name="openapi" type="tns:OPENAPI"/>
-                    </xs:choice>
+                    <xs:element name="wsdl" type="tns:WSDL"/>
+                    <xs:element name="openapi" type="tns:OPENAPI"/>
                     <xs:element name="created" type="xs:dateTime"/>
                     <xs:element name="changed" type="xs:dateTime"/>
                     <xs:element name="fetched" type="xs:dateTime"/>
-                    <xs:element minOccurs="0" name="removed" type="xs:dateTime"/>
+                    <xs:element name="removed" type="xs:dateTime"/>
                 </xs:sequence>
             </xs:complexType>
 
@@ -303,7 +301,7 @@ http://x-road.eu/xsd/identifiers ">
                     <xs:element name="created" type="xs:dateTime"/>
                     <xs:element name="changed" type="xs:dateTime"/>
                     <xs:element name="fetched" type="xs:dateTime"/>
-                    <xs:element minOccurs="0" name="removed" type="xs:dateTime"/>
+                    <xs:element name="removed" type="xs:dateTime"/>
                 </xs:sequence>
             </xs:complexType>
 
@@ -313,7 +311,7 @@ http://x-road.eu/xsd/identifiers ">
                     <xs:element name="created" type="xs:dateTime"/>
                     <xs:element name="changed" type="xs:dateTime"/>
                     <xs:element name="fetched" type="xs:dateTime"/>
-                    <xs:element minOccurs="0" name="removed" type="xs:dateTime"/>
+                    <xs:element name="removed" type="xs:dateTime"/>
                 </xs:sequence>
             </xs:complexType>
 

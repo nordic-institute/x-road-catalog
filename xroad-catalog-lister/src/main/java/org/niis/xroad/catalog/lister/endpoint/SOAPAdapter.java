@@ -28,12 +28,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xrd4j.common.exception.XRd4JException;
 import org.niis.xrd4j.common.message.ErrorMessage;
 import org.niis.xrd4j.common.message.ServiceRequest;
 import org.niis.xrd4j.common.message.ServiceResponse;
+import org.niis.xrd4j.common.util.SOAPHelper;
 import org.niis.xrd4j.server.AbstractAdapterServlet;
 import org.niis.xroad.catalog.lister.endpoint.services.geterrors.GetErrorsService;
 import org.niis.xroad.catalog.lister.endpoint.services.getopenapi.GetOpenAPIService;
@@ -42,8 +45,15 @@ import org.niis.xroad.catalog.lister.endpoint.services.getwsdl.GetWsdlService;
 import org.niis.xroad.catalog.lister.endpoint.services.isprovider.IsProviderService;
 import org.niis.xroad.catalog.lister.endpoint.services.listmembers.ListMembersService;
 import org.niis.xroad.catalog.lister.service.CatalogService;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.XMLConstants;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.regex.Pattern;
 
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
@@ -51,7 +61,9 @@ import java.io.IOException;
 @Deprecated(forRemoval = true)
 @Slf4j
 public class SOAPAdapter extends AbstractAdapterServlet {
-    
+
+    private static final Pattern FAULT_ELEMENT = Pattern.compile("<(?:[\\w.-]+:)?Fault[\\s/>]");
+
     private final transient ListMembersService listMembersService;
     private final transient GetErrorsService getErrorsService;
     private final transient GetOpenAPIService getOpenAPIService;
@@ -91,6 +103,75 @@ public class SOAPAdapter extends AbstractAdapterServlet {
     @Override
     protected String getWSDLPath() {
         return "services.wsdl";
+    }
+
+    /**
+     * Restores the HTTP status Spring-WS used for SOAP faults. XRD4J writes every response, faults
+     * included, with HTTP 200 and keeps its response writing private, so the body is buffered here
+     * and the status is set to 500 when the envelope carries a fault, before the body is written out.
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        BufferedResponse buffered = new BufferedResponse(response);
+        super.doPost(request, buffered);
+        String body = buffered.getBody();
+        if (isSoapFault(body)) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+        try (PrintWriter writer = response.getWriter()) {
+            writer.write(body);
+        }
+    }
+
+    /**
+     * Adds the {@code xml:lang="en"} attribute Spring-WS put on {@code faultstring}, so faults keep
+     * the exact shape the original implementation produced.
+     */
+    @Override
+    protected SOAPMessage errorToSOAP(ErrorMessage errorMessage, ServiceRequest request) {
+        SOAPMessage message = super.errorToSOAP(errorMessage, request);
+        try {
+            NodeList faultStrings = message.getSOAPBody().getElementsByTagName("faultstring");
+            for (int i = 0; i < faultStrings.getLength(); i++) {
+                ((Element) faultStrings.item(i)).setAttributeNS(XMLConstants.XML_NS_URI, "xml:lang", "en");
+            }
+        } catch (SOAPException e) {
+            log.warn("Unable to set the faultstring language", e);
+        }
+        return message;
+    }
+
+    private static boolean isSoapFault(String body) {
+        if (!FAULT_ELEMENT.matcher(body).find()) {
+            return false;
+        }
+        try {
+            SOAPMessage message = SOAPHelper.toSOAP(body);
+            return message != null && message.getSOAPBody().hasFault();
+        } catch (SOAPException e) {
+            log.warn("Unable to inspect the SOAP response for a fault", e);
+            return false;
+        }
+    }
+
+    private static final class BufferedResponse extends HttpServletResponseWrapper {
+        private final StringWriter buffer = new StringWriter();
+        private final PrintWriter writer = new PrintWriter(buffer);
+
+        BufferedResponse(HttpServletResponse response) {
+            super(response);
+        }
+
+        @Override
+        public PrintWriter getWriter() {
+            return writer;
+        }
+
+        String getBody() {
+            writer.flush();
+            return buffer.toString();
+        }
     }
 
     /**

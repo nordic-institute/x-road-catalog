@@ -62,7 +62,7 @@ public final class CommonSerializer {
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
-     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="removed" type="xs:dateTime"/&gt;
      *     &lt;/xs:sequence&gt;
      * &lt;/xs:complexType&gt;
      * }</pre>
@@ -102,7 +102,7 @@ public final class CommonSerializer {
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
-     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="removed" type="xs:dateTime"/&gt;
      *     &lt;/xs:sequence&gt;
      * &lt;/xs:complexType&gt;
      * }</pre>
@@ -128,15 +128,12 @@ public final class CommonSerializer {
      *     &lt;xs:sequence&gt;
      *         &lt;xs:element name="serviceCode" type="xs:string"/&gt;
      *         &lt;xs:element name="serviceVersion" type="xs:string"/&gt;
-     *         &lt;xs:element name="serviceType" type="xs:string"/&gt;
-     *         &lt;xs:choice&gt;
-     *             &lt;xs:element name="wsdl" type="tns:WSDL"/&gt;
-     *             &lt;xs:element name="openapi" type="tns:OPENAPI"/&gt;
-     *         &lt;/xs:choice&gt;
+     *         &lt;xs:element name="wsdl" type="tns:WSDL"/&gt;
+     *         &lt;xs:element name="openapi" type="tns:OPENAPI"/&gt;
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
-     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="removed" type="xs:dateTime"/&gt;
      *     &lt;/xs:sequence&gt;
      * &lt;/xs:complexType&gt;
      * }</pre>
@@ -146,18 +143,6 @@ public final class CommonSerializer {
         SOAPElement serviceEl = parent.addChildElement(envelope.createName("service"));
         addElementWithValue(envelope, serviceEl, "serviceCode", service.getServiceCode());
         addElementWithValue(envelope, serviceEl, "serviceVersion", service.getServiceVersion());
-
-        String serviceType;
-        if (service.hasWsdl()) {
-            serviceType = "SOAP";
-        } else if (service.hasOpenApi()) {
-            serviceType = "OPENAPI";
-        } else if (service.hasRest()) {
-            serviceType = "REST";
-        } else {
-            serviceType = "UNKNOWN";
-        }
-        addElementWithValue(envelope, serviceEl, "serviceType", serviceType);
 
         if (service.getWsdl() != null) {
             serialize(envelope, serviceEl, service.getWsdl());
@@ -180,7 +165,7 @@ public final class CommonSerializer {
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
-     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="removed" type="xs:dateTime"/&gt;
      *     &lt;/xs:sequence&gt;
      * &lt;/xs:complexType&gt;
      * }</pre>
@@ -202,7 +187,7 @@ public final class CommonSerializer {
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      *         &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
-     *         &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     *         &lt;xs:element name="removed" type="xs:dateTime"/&gt;
      *     &lt;/xs:sequence&gt;
      * &lt;/xs:complexType&gt;
      * }</pre>
@@ -222,7 +207,7 @@ public final class CommonSerializer {
      * &lt;xs:element name="created" type="xs:dateTime"/&gt;
      * &lt;xs:element name="changed" type="xs:dateTime"/&gt;
      * &lt;xs:element name="fetched" type="xs:dateTime"/&gt;
-     * &lt;xs:element minOccurs="0" name="removed" type="xs:dateTime"/&gt;
+     * &lt;xs:element name="removed" type="xs:dateTime"/&gt;
      * }</pre>
      */
     public static void serialize(final SOAPEnvelope envelope, final SOAPElement parent,
