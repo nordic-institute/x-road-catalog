@@ -18,7 +18,7 @@ RUN addgroup -S xroad && adduser -S xroad -G xroad
 WORKDIR /app
 
 # Create necessary directories and set permissions
-RUN mkdir -p /etc/xroad \
+RUN mkdir -p /etc/xroad/globalconf \
     && chown -R xroad:xroad /app /etc/xroad
 
 # -------------------- Separator: builder stage, extracts the layered boot jar --------------------
@@ -44,12 +44,12 @@ USER xroad
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
-EXPOSE 8080 8090
+EXPOSE 8070 8090
 
 # Define entry point
 ENTRYPOINT ["/entrypoint.sh", "org.springframework.boot.loader.launch.JarLauncher"]
 
-# Health check. Actuator is served on the management port (8090), not on the API port 8080.
+# Health check. Actuator is served on the management port (8090), not on the API port 8070.
 # The start period allows for the X-Road configuration client to come up alongside the web context.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -q -O /dev/null http://localhost:8090/actuator/health/readiness || exit 1

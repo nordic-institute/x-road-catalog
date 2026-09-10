@@ -20,7 +20,7 @@
         <xrd:protocolVersion xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">4.0</xrd:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns2:ListMembersResponse xmlns:ns2="http://x-road.eu/ext/catalog/lister">
+        <ns2:ListMembersResponse xmlns:ns2="http://xroad.vrk.fi/xroad-catalog-lister">
             <ns2:memberList>
                 <ns2:member>
                     <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
@@ -34,7 +34,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>calculateTax</ns2:serviceCode>
                                     <ns2:serviceVersion>v1</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-calculateTax-v1</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -48,7 +47,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>validateTaxpayer</ns2:serviceCode>
                                     <ns2:serviceVersion>v2</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-validateTaxpayer-v2</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -61,7 +59,6 @@
                                 </ns2:service>
                                 <ns2:service>
                                     <ns2:serviceCode>getTaxHistory</ns2:serviceCode>
-                                    <ns2:serviceType>REST</ns2:serviceType>
                                     <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
                                     <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
                                     <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
@@ -76,7 +73,6 @@
                             <ns2:services>
                                 <ns2:service>
                                     <ns2:serviceCode>userAPI</ns2:serviceCode>
-                                    <ns2:serviceType>OPENAPI</ns2:serviceType>
                                     <ns2:openapi>
                                         <ns2:externalId>openapi-userAPI</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -89,14 +85,12 @@
                                 </ns2:service>
                                 <ns2:service>
                                     <ns2:serviceCode>getUserData</ns2:serviceCode>
-                                    <ns2:serviceType>REST</ns2:serviceType>
                                     <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
                                     <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
                                     <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
                                 </ns2:service>
                                 <ns2:service>
                                     <ns2:serviceCode>updateUserProfile</ns2:serviceCode>
-                                    <ns2:serviceType>REST</ns2:serviceType>
                                     <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
                                     <ns2:changed>2025-01-01T12:00:00.000+02:00</ns2:changed>
                                     <ns2:fetched>2025-01-01T12:00:00.000+02:00</ns2:fetched>
@@ -122,7 +116,6 @@
                             <ns2:services>
                                 <ns2:service>
                                     <ns2:serviceCode>weatherAPI</ns2:serviceCode>
-                                    <ns2:serviceType>OPENAPI</ns2:serviceType>
                                     <ns2:openapi>
                                         <ns2:externalId>openapi-weatherAPI</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -135,7 +128,6 @@
                                 </ns2:service>
                                 <ns2:service>
                                     <ns2:serviceCode>climateAPI</ns2:serviceCode>
-                                    <ns2:serviceType>OPENAPI</ns2:serviceType>
                                     <ns2:openapi>
                                         <ns2:externalId>openapi-climateAPI</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -168,7 +160,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>legacyOperation1</ns2:serviceCode>
                                     <ns2:serviceVersion>v1</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-legacyOperation1-v1</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -182,7 +173,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>legacyOperation2</ns2:serviceCode>
                                     <ns2:serviceVersion>v1</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-legacyOperation2-v1</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -196,7 +186,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>legacyBatchProcess</ns2:serviceCode>
                                     <ns2:serviceVersion>v3</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-legacyBatchProcess-v3</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -229,7 +218,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>dataService</ns2:serviceCode>
                                     <ns2:serviceVersion>v1</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-dataService-v1</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -243,7 +231,6 @@
                                 <ns2:service>
                                     <ns2:serviceCode>dataService</ns2:serviceCode>
                                     <ns2:serviceVersion>v2</ns2:serviceVersion>
-                                    <ns2:serviceType>SOAP</ns2:serviceType>
                                     <ns2:wsdl>
                                         <ns2:externalId>wsdl-dataService-v2</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>
@@ -256,7 +243,6 @@
                                 </ns2:service>
                                 <ns2:service>
                                     <ns2:serviceCode>dataService</ns2:serviceCode>
-                                    <ns2:serviceType>OPENAPI</ns2:serviceType>
                                     <ns2:openapi>
                                         <ns2:externalId>openapi-dataService</ns2:externalId>
                                         <ns2:created>2025-01-01T12:00:00.000+02:00</ns2:created>

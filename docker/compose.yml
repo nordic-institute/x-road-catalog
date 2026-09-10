@@ -112,7 +112,7 @@ services:
       - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - 8070:8080
+      - 8070:8070
     depends_on:
       - xrd-catalog-collector
     networks:
