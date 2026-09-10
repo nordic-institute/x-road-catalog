@@ -138,6 +138,9 @@ public class SOAPAdapter extends AbstractAdapterServlet {
     @Override
     protected SOAPMessage errorToSOAP(ErrorMessage errorMessage, ServiceRequest request) {
         SOAPMessage message = super.errorToSOAP(errorMessage, request);
+        if (message == null) {
+            return null;
+        }
         try {
             NodeList faultStrings = message.getSOAPBody().getElementsByTagName("faultstring");
             for (int i = 0; i < faultStrings.getLength(); i++) {
@@ -149,7 +152,7 @@ public class SOAPAdapter extends AbstractAdapterServlet {
         return message;
     }
 
-    private static boolean isSoapFault(String body) {
+    static boolean isSoapFault(String body) {
         if (!FAULT_ELEMENT.matcher(body).find()) {
             return false;
         }

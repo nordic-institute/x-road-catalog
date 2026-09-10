@@ -209,6 +209,25 @@ public class MainEndpointIntegrationTest {
     }
 
     @Test
+    public void testGetWsdlContainingFaultElementIsNotAFault() throws Exception {
+        String externalId = "1000";
+        String wsdlWithFault = "<definitions><message name=\"Error\"><Fault>boom</Fault></message></definitions>";
+        Wsdl testWsdl = new Wsdl(new Service(), wsdlWithFault, externalId);
+        testWsdl.setStatusInfo(MainMockDataFactory.createStandardStatusInfo());
+        given(catalogService.getWsdl(externalId))
+                .willReturn(testWsdl);
+
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetWsdlRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        String responseBody = response.getBody();
+        Assertions.assertNotNull(responseBody);
+        assertTrue(responseBody.contains("<![CDATA[" + wsdlWithFault + "]]>"),
+                "GetWsdl response should return WSDL content containing a Fault element wrapped in CDATA");
+    }
+
+    @Test
     public void testGetOpenApiHttpSoap() throws Exception {
         String externalId = "3003";
         OpenApi testOpenApi = new OpenApi(new Service(), "This is OpenAPI content", externalId);
