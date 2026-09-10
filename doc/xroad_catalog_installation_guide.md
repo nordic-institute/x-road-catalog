@@ -450,8 +450,22 @@ properties, supplied in the JVM options file ([6.5](#65-jvm-options)) so that th
 
 Mount the keystore, the truststore and the options file read-only at the paths in the table above.
 
-The truststore replaces the JVM's default trust store, which has no side effects because the Security Server is the
-only TLS endpoint the collector connects to.
+The truststore replaces the JVM's default trust store (`cacerts`) for the whole collector JVM, so publicly issued
+certificates are no longer trusted unless they are added to it. The collector's HTTP and SOAP calls all go to the
+Security Server, so this is normally harmless.
+
+A TLS connection to PostgreSQL is not affected either, because the PostgreSQL JDBC driver does not use the JVM trust
+store by default. With `sslmode=verify-ca` or `sslmode=verify-full` in the datasource URL, the driver validates the
+database server's certificate against the CA certificates in the PEM file named by the `sslrootcert` URL parameter,
+which defaults to `~/.postgresql/root.crt` in the home directory of the user running the JVM. In a container, mount the
+database CA certificate read-only and point `sslrootcert` at it explicitly; this applies to the lister as well:
+
+```text
+jdbc:postgresql://<db-host>:5432/xroad_catalog?socketTimeout=60&sslmode=verify-full&sslrootcert=/etc/xroad/catalog/ssl/db-ca.pem
+```
+
+Only a datasource URL that sets `sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory` makes the driver use the JVM
+trust store; in that case the database CA must be added to the collector's truststore too.
 
 ### 7.3 File Permissions
 
@@ -459,6 +473,10 @@ The application runs as the non-root user `xroad`. Every mounted file must be re
 world-readable (`0444`), or owned by the uid the image assigns to `xroad`. A root-owned `0400` host file is not
 readable and the service fails at startup. Docker creates missing bind-mount directories as `root:root`; a directory
 mounted at a path where a file is expected trips the entrypoint's fail-closed check ([6.5](#65-jvm-options)).
+
+A host directory bind-mounted at `/etc/xroad/globalconf` must also be writable by `xroad`, or the lister cannot store
+the downloaded global configuration and never becomes ready. A named volume needs no preparation: Docker initializes
+it with the ownership the image gives that directory.
 
 ## 8. Ports
 

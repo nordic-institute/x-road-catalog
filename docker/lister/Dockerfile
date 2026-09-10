@@ -18,7 +18,7 @@ RUN addgroup -S xroad && adduser -S xroad -G xroad
 WORKDIR /app
 
 # Create necessary directories and set permissions
-RUN mkdir -p /etc/xroad \
+RUN mkdir -p /etc/xroad/globalconf \
     && chown -R xroad:xroad /app /etc/xroad
 
 # -------------------- Separator: builder stage, extracts the layered boot jar --------------------

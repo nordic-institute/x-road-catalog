@@ -111,16 +111,23 @@ public class SOAPAdapter extends AbstractAdapterServlet {
      * and the status is set to 500 when the envelope carries a fault, before the body is written out.
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         BufferedResponse buffered = new BufferedResponse(response);
-        super.doPost(request, buffered);
+        try {
+            super.doPost(request, buffered);
+        } catch (ServletException | IOException e) {
+            log.error("Unable to process the SOAP request", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        }
         String body = buffered.getBody();
         if (isSoapFault(body)) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
         try (PrintWriter writer = response.getWriter()) {
             writer.write(body);
+        } catch (IOException e) {
+            log.warn("Unable to write the SOAP response", e);
         }
     }
 

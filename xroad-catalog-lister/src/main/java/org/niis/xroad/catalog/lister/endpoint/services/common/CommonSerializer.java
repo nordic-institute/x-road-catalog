@@ -144,12 +144,14 @@ public final class CommonSerializer {
         addElementWithValue(envelope, serviceEl, "serviceCode", service.getServiceCode());
         addElementWithValue(envelope, serviceEl, "serviceVersion", service.getServiceVersion());
 
-        if (service.getWsdl() != null) {
-            serialize(envelope, serviceEl, service.getWsdl());
+        Wsdl wsdl = service.getWsdl();
+        if (wsdl != null) {
+            serialize(envelope, serviceEl, wsdl);
         }
 
-        if (service.getOpenApi() != null) {
-            serialize(envelope, serviceEl, service.getOpenApi());
+        OpenApi openApi = service.getOpenApi();
+        if (openApi != null) {
+            serialize(envelope, serviceEl, openApi);
         }
 
         serialize(envelope, serviceEl, service.getStatusInfo());
