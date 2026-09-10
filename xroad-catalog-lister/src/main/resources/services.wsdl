@@ -553,7 +553,7 @@ http://x-road.eu/xsd/identifiers ">
     </wsdl:binding>
     <wsdl:service name="ServicesPortService">
         <wsdl:port binding="tns:ServicesPortSoap11" name="ServicesPortSoap11">
-            <soap:address location="http://localhost:8080/ws"/>
+            <soap:address location="http://localhost:8070/ws"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>
