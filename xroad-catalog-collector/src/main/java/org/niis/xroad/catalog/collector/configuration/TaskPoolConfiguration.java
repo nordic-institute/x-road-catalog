@@ -133,10 +133,25 @@ public class TaskPoolConfiguration {
      * initialization, so setting them in {@code @PostConstruct} is early enough.
      */
     @PostConstruct
+    void init() {
+        configureSaajTimeouts();
+        normalizeUrls();
+    }
+
     public void configureSaajTimeouts() {
         // Both parse timeout millis as int; must stay below Integer.MAX_VALUE/1000
         System.setProperty("saaj.connect.timeout", String.valueOf(Duration.ofSeconds(clientConnectTimeoutSeconds).toMillis()));
         System.setProperty("saaj.read.timeout", String.valueOf(Duration.ofSeconds(clientReadTimeoutSeconds).toMillis()));
+    }
+
+    public void normalizeUrls() {
+        securityServerHost = stripTrailingSlashes(securityServerHost);
+        webservicesEndpoint = stripTrailingSlashes(webservicesEndpoint);
+        listClientsHost = stripTrailingSlashes(listClientsHost);
+    }
+
+    private static String stripTrailingSlashes(String value) {
+        return value == null || value.isBlank() ? value : value.replaceAll("/+$", "");
     }
 
 }
