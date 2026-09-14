@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -117,6 +118,15 @@ public class TaskPoolConfiguration {
 
     public Set<String> getIgnoredSubsystemIds() {
         return ignoredSubsystemIdsProperties.getIgnoredSubsystemIds();
+    }
+
+    public boolean isIgnoredSubsystem(MemberWithName subsystem) {
+        String identifier = String.format("%s:%s:%s:%s",
+                subsystem.getId().getXRoadInstance(),
+                subsystem.getId().getMemberClass(),
+                subsystem.getId().getMemberCode(),
+                subsystem.getId().getSubsystemCode());
+        return getIgnoredSubsystemIds().contains(identifier);
     }
 
     @Bean
