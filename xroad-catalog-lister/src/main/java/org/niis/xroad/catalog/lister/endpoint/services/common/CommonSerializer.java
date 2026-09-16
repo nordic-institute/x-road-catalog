@@ -128,6 +128,7 @@ public final class CommonSerializer {
      *     &lt;xs:sequence&gt;
      *         &lt;xs:element name="serviceCode" type="xs:string"/&gt;
      *         &lt;xs:element name="serviceVersion" type="xs:string"/&gt;
+     *         &lt;xs:element name="serviceType" type="xs:string"/&gt;
      *         &lt;xs:element name="wsdl" type="tns:WSDL"/&gt;
      *         &lt;xs:element name="openapi" type="tns:OPENAPI"/&gt;
      *         &lt;xs:element name="created" type="xs:dateTime"/&gt;
@@ -143,6 +144,7 @@ public final class CommonSerializer {
         SOAPElement serviceEl = parent.addChildElement(envelope.createName("service"));
         addElementWithValue(envelope, serviceEl, "serviceCode", service.getServiceCode());
         addElementWithValue(envelope, serviceEl, "serviceVersion", service.getServiceVersion());
+        addElementWithValue(envelope, serviceEl, "serviceType", serviceType(service));
 
         Wsdl wsdl = service.getWsdl();
         if (wsdl != null) {
@@ -155,6 +157,23 @@ public final class CommonSerializer {
         }
 
         serialize(envelope, serviceEl, service.getStatusInfo());
+    }
+
+    /**
+     * The service type value the 3.0.7 release reported: the first descriptor kind found, in the
+     * order WSDL, OpenAPI, REST, else {@code UNKNOWN}.
+     */
+    private static String serviceType(final Service service) {
+        if (service.hasWsdl()) {
+            return "SOAP";
+        }
+        if (service.hasOpenApi()) {
+            return "OPENAPI";
+        }
+        if (service.hasRest()) {
+            return "REST";
+        }
+        return "UNKNOWN";
     }
 
     /**

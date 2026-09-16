@@ -209,6 +209,7 @@ Contents of the XML response of the request
               <ns2:services>
                 <ns2:service>
                   <ns2:serviceCode>clientReg</ns2:serviceCode>
+                  <ns2:serviceType>SOAP</ns2:serviceType>
                   <ns2:wsdl>
                     <ns2:externalId>1584692751893_da8be621-5d6b-4920-91c9-d8c359dddbad</ns2:externalId>
                     <ns2:created>2020-03-20T10:25:51.892+02:00</ns2:created>
@@ -221,12 +222,14 @@ Contents of the XML response of the request
                 </ns2:service>
                 <ns2:service>
                   <ns2:serviceCode>respa.tampere.fi</ns2:serviceCode>
+                  <ns2:serviceType>REST</ns2:serviceType>
                   <ns2:created>2020-03-20T10:25:51.632+02:00</ns2:created>
                   <ns2:changed>2020-03-20T10:25:51.632+02:00</ns2:changed>
                   <ns2:fetched>2020-03-20T12:31:07.223+02:00</ns2:fetched>
                 </ns2:service>
                 <ns2:service>
                   <ns2:serviceCode>authCertDeletion</ns2:serviceCode>
+                  <ns2:serviceType>SOAP</ns2:serviceType>
                   <ns2:wsdl>
                     <ns2:externalId>1584692751942_ab002cbd-bbbd-43c7-a311-b0dc5adf3af1</ns2:externalId>
                     <ns2:created>2020-03-20T10:25:51.936+02:00</ns2:created>
@@ -239,6 +242,7 @@ Contents of the XML response of the request
                 </ns2:service>
                 <ns2:service>
                   <ns2:serviceCode>clientDeletion</ns2:serviceCode>
+                  <ns2:serviceType>SOAP</ns2:serviceType>
                   <ns2:wsdl>
                     <ns2:externalId>1584692751908_5bdde30d-3a5f-42c0-9f45-d884f5810996</ns2:externalId>
                     <ns2:created>2020-03-20T10:25:51.906+02:00</ns2:created>
@@ -251,6 +255,7 @@ Contents of the XML response of the request
                 </ns2:service>
                 <ns2:service>
                   <ns2:serviceCode>ownerChange</ns2:serviceCode>
+                  <ns2:serviceType>SOAP</ns2:serviceType>
                   <ns2:wsdl>
                     <ns2:externalId>1584692751888_07141c5a-bfe0-4c84-b621-e5e4a9db01fa</ns2:externalId>
                     <ns2:created>2020-03-20T10:25:51.884+02:00</ns2:created>
@@ -263,6 +268,7 @@ Contents of the XML response of the request
                 </ns2:service>
                 <ns2:service>
                   <ns2:serviceCode>PetStoreNew</ns2:serviceCode>
+                  <ns2:serviceType>REST</ns2:serviceType>
                   <ns2:created>2020-03-20T10:25:51.632+02:00</ns2:created>
                   <ns2:changed>2020-03-20T10:25:51.632+02:00</ns2:changed>
                   <ns2:fetched>2020-03-20T12:31:07.223+02:00</ns2:fetched>
@@ -301,6 +307,7 @@ The XML response has a `<SOAP-ENV:Body>` element with the following structure:
           * `services`
             * `service`
             * `serviceCode`
+            * `serviceType` (`SOAP`, `OPENAPI`, `REST` or `UNKNOWN`)
             * `wsdl` (if the given service description is a WSDL description)
               * `externalId`
 

@@ -37,8 +37,9 @@ import org.niis.xrd4j.common.message.ServiceResponse;
 @Deprecated(forRemoval = true)
 public interface ListerService<T, U> {
     String NAMESPACE_URL = "http://xroad.vrk.fi/xroad-catalog-lister";
-    String NAMESPACE_PREFIX = "tns";
+    String NAMESPACE_PREFIX = "ns2";
     String FAULT_CODE_SERVER = "SOAP-ENV:Server";
+    String FAULT_CODE_CLIENT = "SOAP-ENV:Client";
     
     ServiceResponse<T, U> execute(ServiceRequest<T> request) throws XRd4JException, SOAPException;
 }

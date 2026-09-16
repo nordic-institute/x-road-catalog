@@ -80,6 +80,8 @@ import static org.mockito.BDDMockito.given;
 public class MainEndpointIntegrationTest {
 
     private static final String LEGACY_NAMESPACE = "http://xroad.vrk.fi/xroad-catalog-lister";
+    private static final String RPM_REQUESTS = "rpm-3.0.4-soap/requests/";
+    private static final String RPM_RESPONSES = "rpm-3.0.4-soap/responses/";
 
     private final TestRestTemplate restTemplate = new TestRestTemplate();
 
@@ -312,6 +314,26 @@ public class MainEndpointIntegrationTest {
     }
 
     @Test
+    public void testListMembersWithUnparseableStartDateTimeReturnsClientFault() throws Exception {
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml")
+                .replace("<tns:startDateTime>2020-01-01T01:01:00</tns:startDateTime>",
+                        "<tns:startDateTime>not-a-date</tns:startDateTime>");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertInvalidStartDateTimeFault(response, "ListMembers");
+    }
+
+    @Test
+    public void testGetErrorsWithUnparseableStartDateTimeReturnsClientFault() throws Exception {
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/GetErrorsRequest.xml")
+                .replace("<tns:startDateTime>2001-05-06T12:00:00</tns:startDateTime>",
+                        "<tns:startDateTime>not-a-date</tns:startDateTime>");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertInvalidStartDateTimeFault(response, "GetErrors");
+    }
+
+    @Test
     public void testGetServiceTypeNotFound() throws Exception {
         given(catalogService.getService(
                 MainMockDataFactory.DEFAULT_XROAD_INSTANCE,
@@ -383,8 +405,8 @@ public class MainEndpointIntegrationTest {
         String expectedResponse = loadXmlFromClasspath("main-soap-responses/ListMembersWithFullHierarchyResponse.xml");
         assertXmlEquals(expectedResponse, response.getBody(), "ListMembersWithFullHierarchy response should match expected XML");
         assertLegacyNamespace(response.getBody(), "ListMembersResponse");
-        assertFalse(response.getBody().contains("serviceType"),
-                "ListMembers response must not carry the serviceType element the RPM release never emitted");
+        assertTrue(response.getBody().contains("<ns2:serviceType>SOAP</ns2:serviceType>"),
+                "ListMembers response must carry the serviceType element the 3.0.7 RPM release emitted");
     }
 
     @Test
@@ -400,6 +422,65 @@ public class MainEndpointIntegrationTest {
     }
 
     @Test
+    public void testServiceFailureReturnsSoapFault() throws Exception {
+        given(catalogService.getAllMembers(any(LocalDateTime.class), any(LocalDateTime.class)))
+                .willThrow(new IllegalStateException("simulated database outage"));
+
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/ListMembersRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(MediaType.TEXT_XML.isCompatibleWith(response.getHeaders().getContentType()),
+                "A failing SOAP request must still be answered with a SOAP fault, not the JSON error page");
+
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/InternalServerErrorResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "Unhandled service failure should match expected SOAP fault");
+        assertFalse(response.getBody().contains("simulated database outage"),
+                "The fault must not leak the internal exception message");
+    }
+
+    @Test
+    public void testIsProviderWithEmptySoapHeader() throws Exception {
+        mockProvider();
+
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderNoHeaderRequest.xml");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/IsProviderNoHeaderResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "IsProvider without X-Road headers should match expected XML");
+        assertLegacyNamespace(response.getBody(), "IsProviderResponse");
+    }
+
+    @Test
+    public void testUnknownPayloadRootWithEmptySoapHeaderReturnsFault() throws Exception {
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderNoHeaderRequest.xml")
+                .replace("tns:IsProvider", "tns:GetOrganizations");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/GetOrganizationsFiProfileDisabledResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(), "Unknown payload root response should match expected SOAP fault");
+    }
+
+    @Test
+    public void testHeaderServiceCodeWinsOverThePayloadRoot() throws Exception {
+        mockProvider();
+
+        String soapRequest = loadXmlFromClasspath("main-soap-requests/IsProviderTrueRequest.xml")
+                .replace("<id:serviceCode>IsProvider</id:serviceCode>", "<id:serviceCode>ListMembers</id:serviceCode>");
+        ResponseEntity<String> response = sendSoapRequest(soapRequest);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        Assertions.assertNotNull(response.getBody());
+        assertTrue(response.getBody().contains(
+                        "The X-Road header names service ListMembers but the SOAP body element is IsProvider"),
+                "A request carrying an X-Road header must be dispatched on the header, not on the payload root");
+    }
+
+    @Test
     public void testServedWsdlKeepsOriginalContract() {
         ResponseEntity<String> response = restTemplate.getForEntity("http://localhost:" + port + "/ws/services.wsdl", String.class);
 
@@ -409,7 +490,8 @@ public class MainEndpointIntegrationTest {
         assertTrue(wsdl.contains("targetNamespace=\"" + LEGACY_NAMESPACE + "\""),
                 "Served WSDL must keep the original target namespace");
         assertFalse(wsdl.contains("GetOrganizations"), "Served WSDL must not declare the removed FI-profile operations");
-        assertFalse(wsdl.contains("serviceType"), "Served WSDL must not declare the serviceType element");
+        assertTrue(wsdl.contains("<xs:element name=\"serviceType\" type=\"xs:string\"/>"),
+                "Served WSDL must declare the serviceType element the 3.0.7 RPM release added");
         assertTrue(wsdl.contains("<soap:address location=\"http://localhost:8070/ws\"/>"));
     }
     
@@ -488,8 +570,89 @@ public class MainEndpointIntegrationTest {
         assertXmlEquals(expectedResponse, response.getBody(), "GetErrors empty result response should match expected SOAP fault");
     }
 
+    @Test
+    public void testIsProviderMatchesRpmResponseBytes() throws Exception {
+        mockRpmCaptureProvider();
+
+        ResponseEntity<String> response = sendSoapRequest(loadXmlFromClasspath(RPM_REQUESTS + "IsProvider.xml"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(loadRpmResponse("IsProvider.xml"), response.getBody());
+    }
+
+    @Test
+    public void testIsProviderWithEmptyHeaderMatchesRpmResponseBytes() throws Exception {
+        mockRpmCaptureProvider();
+
+        ResponseEntity<String> response = sendSoapRequest(loadXmlFromClasspath(RPM_REQUESTS + "IsProvider-emptyheader.xml"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(loadRpmResponse("IsProvider-emptyheader.xml"), response.getBody());
+    }
+
+    @Test
+    public void testIsProviderWithoutHeaderGetsAnEmptyResponseHeader() throws Exception {
+        mockRpmCaptureProvider();
+
+        ResponseEntity<String> response = sendSoapRequest(loadXmlFromClasspath(RPM_REQUESTS + "IsProvider-noheader.xml"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(loadRpmResponse("IsProvider-emptyheader.xml"), response.getBody());
+    }
+
+    @Test
+    public void testFaultMatchesRpmResponseBytes() throws Exception {
+        ResponseEntity<String> response = sendSoapRequest(loadXmlFromClasspath(RPM_REQUESTS + "GetServiceType-nullversion.xml"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(loadRpmResponse("GetServiceType-nullversion.xml"), response.getBody());
+    }
+
+    @Test
+    public void testGetWsdlMatchesRpmResponseBytes() throws Exception {
+        String expected = loadRpmResponse("GetWsdl.xml");
+        String wsdl = expected.substring(expected.indexOf("<![CDATA[") + "<![CDATA[".length(), expected.indexOf("]]>"));
+        String externalId = "1789455921801_9ce327dc-c3cc-4640-a05f-8478f3c87384";
+        Wsdl capturedWsdl = new Wsdl(new Service(), wsdl, externalId);
+        capturedWsdl.setStatusInfo(MainMockDataFactory.createStandardStatusInfo());
+        given(catalogService.getWsdl(externalId)).willReturn(capturedWsdl);
+
+        ResponseEntity<String> response = sendSoapRequest(loadXmlFromClasspath(RPM_REQUESTS + "GetWsdl.xml"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expected, response.getBody());
+    }
+
+    private void mockRpmCaptureProvider() {
+        given(catalogService.getMember(MainMockDataFactory.DEFAULT_XROAD_INSTANCE, MainMockDataFactory.MEMBER_CLASS_COM, "1234"))
+                .willReturn(MainMockDataFactory.PROVIDER_MEMBER);
+    }
+
+    /**
+     * The captured 3.0.4 responses had no final newline; XRD4J writes the body with {@code println}, so the
+     * resource file's conventional final newline stands in for the platform line separator it appends.
+     */
+    private String loadRpmResponse(String name) throws IOException {
+        String response = loadXmlFromClasspath(RPM_RESPONSES + name);
+        return response.substring(0, response.length() - 1) + System.lineSeparator();
+    }
+
     private ResponseEntity<String> sendSoapRequest(String soapRequest) {
         return sendSoapRequest(soapRequest, "/ws");
+    }
+
+    private void assertInvalidStartDateTimeFault(ResponseEntity<String> response, String operation) throws IOException {
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(MediaType.TEXT_XML.isCompatibleWith(response.getHeaders().getContentType()),
+                operation + " with an unparseable startDateTime must be answered with a SOAP fault");
+
+        String expectedResponse = loadXmlFromClasspath("main-soap-responses/InvalidStartDateTimeResponse.xml");
+        assertXmlEquals(expectedResponse, response.getBody(),
+                operation + " unparseable startDateTime response should match the expected Client fault");
+        assertFalse(response.getBody().contains("Internal server error"),
+                "A client input error must not be reported as an internal server error");
+        assertFalse(response.getBody().contains("IllegalArgumentException"),
+                "The fault must not leak the exception class");
     }
 
     private void assertLegacyNamespace(String responseBody, String responseElement) throws Exception {

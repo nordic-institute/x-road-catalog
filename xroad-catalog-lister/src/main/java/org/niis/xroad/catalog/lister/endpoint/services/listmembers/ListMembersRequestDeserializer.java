@@ -53,11 +53,11 @@ public class ListMembersRequestDeserializer extends AbstractCustomRequestDeseria
             }
 
             if ("startDateTime".equals(node.getLocalName())) {
-                request.setStartDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
+                request.setStartDateTime(DateTimeUtil.parseXmlDateTime("startDateTime", node.getTextContent()));
             }
 
             if ("endDateTime".equals(node.getLocalName())) {
-                request.setEndDateTime(DateTimeUtil.parseXmlDateTime(node.getTextContent()));
+                request.setEndDateTime(DateTimeUtil.parseXmlDateTime("endDateTime", node.getTextContent()));
             }
         }
 
