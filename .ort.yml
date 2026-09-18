@@ -1,25 +1,54 @@
 ---
 excludes:
   paths:
+
+  - pattern: ".github/**"
+    reason: "BUILD_TOOL_OF"
+    comment: "GitHub configuration files."
+
   - pattern: "3RD-PARTY-NOTICES.txt"
     reason: "OTHER"
     comment: "File including 3rd party license notices."
+
+  - pattern: "buildSrc/**"
+    reason: "BUILD_TOOL_OF"
+    comment: "Build configuration files."
+
+  - pattern: "CODE_OF_CONDUCT.md"
+    reason: "DOCUMENTATION_OF"
+    comment: "Documentation that's not distributed."
+
+  - pattern: "config/**"
+    reason: "BUILD_TOOL_OF"
+    comment: "Build configuration files."
 
   - pattern: "doc/**"
     reason: "DOCUMENTATION_OF"
     comment: "This directory contains documentation that's not distributed."
 
+  - pattern: "docker/**"
+    reason: "OTHER"
+    comment: "Docker based development environment."
+
   - pattern: "gradle/**"
     reason: "BUILD_TOOL_OF"
     comment: "This directory contains Gradle build tool."
+
+  - pattern: "gradlew"
+    reason: "BUILD_TOOL_OF"
+    comment: "Gradle wrapper startup batch script."
+
+  - pattern: "gradlew.bat"
+    reason: "BUILD_TOOL_OF"
+    comment: "Gradle wrapper startup batch script."
 
   - pattern: "img/**"
     reason: "DOCUMENTATION_OF"
     comment: "This directory contains documentation images that are not distributed."
 
-  - pattern: "xroad-catalog-collector/packages/**"
-    reason: "BUILD_TOOL_OF"
-    comment: "This directory contains packaging scripts."
+  - pattern: "README.md"
+    reason: "DOCUMENTATION_OF"
+    comment: "Documentation that's not distributed."
 
   - pattern: "xroad-catalog-collector/src/test/**"
     reason: "TEST_OF"
@@ -28,10 +57,6 @@ excludes:
   - pattern: "xroad-catalog-lister/img/**"
     reason: "DOCUMENTATION_OF"
     comment: "This directory contains documentation images that are not distributed."
-
-  - pattern: "xroad-catalog-lister/packages/**"
-    reason: "BUILD_TOOL_OF"
-    comment: "This directory contains packaging scripts."
 
   - pattern: "xroad-catalog-lister/src/test/**"
     reason: "TEST_OF"
