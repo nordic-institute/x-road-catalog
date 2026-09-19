@@ -1,25 +1,62 @@
 ---
 excludes:
   paths:
+
+  - pattern: ".github/**"
+    reason: "BUILD_TOOL_OF"
+    comment: "GitHub configuration files."
+
+  - pattern: ".ort.yml"
+    reason: "DOCUMENTATION_OF"
+    comment: "The file is a oss review toolkit configuration file."
+
   - pattern: "3RD-PARTY-NOTICES.txt"
     reason: "OTHER"
     comment: "File including 3rd party license notices."
+
+  - pattern: "BUILD.md"
+    reason: "DOCUMENTATION_OF"
+    comment: "Documentation that's not distributed."
+
+  - pattern: "buildSrc/**"
+    reason: "BUILD_TOOL_OF"
+    comment: "Build configuration files."
+
+  - pattern: "CODE_OF_CONDUCT.md"
+    reason: "DOCUMENTATION_OF"
+    comment: "Documentation that's not distributed."
+
+  - pattern: "config/**"
+    reason: "BUILD_TOOL_OF"
+    comment: "Build configuration files."
 
   - pattern: "doc/**"
     reason: "DOCUMENTATION_OF"
     comment: "This directory contains documentation that's not distributed."
 
+  - pattern: "docker/**"
+    reason: "OTHER"
+    comment: "Docker based development environment."
+
   - pattern: "gradle/**"
     reason: "BUILD_TOOL_OF"
     comment: "This directory contains Gradle build tool."
+
+  - pattern: "gradlew"
+    reason: "BUILD_TOOL_OF"
+    comment: "Gradle wrapper startup batch script."
+
+  - pattern: "gradlew.bat"
+    reason: "BUILD_TOOL_OF"
+    comment: "Gradle wrapper startup batch script."
 
   - pattern: "img/**"
     reason: "DOCUMENTATION_OF"
     comment: "This directory contains documentation images that are not distributed."
 
-  - pattern: "xroad-catalog-collector/packages/**"
-    reason: "BUILD_TOOL_OF"
-    comment: "This directory contains packaging scripts."
+  - pattern: "README.md"
+    reason: "DOCUMENTATION_OF"
+    comment: "Documentation that's not distributed."
 
   - pattern: "xroad-catalog-collector/src/test/**"
     reason: "TEST_OF"
@@ -28,10 +65,6 @@ excludes:
   - pattern: "xroad-catalog-lister/img/**"
     reason: "DOCUMENTATION_OF"
     comment: "This directory contains documentation images that are not distributed."
-
-  - pattern: "xroad-catalog-lister/packages/**"
-    reason: "BUILD_TOOL_OF"
-    comment: "This directory contains packaging scripts."
 
   - pattern: "xroad-catalog-lister/src/test/**"
     reason: "TEST_OF"
@@ -102,7 +135,7 @@ resolutions:
     - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:javax.xml.bind:jaxb-api:2.1."
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The finding is to a file which is found in later files with CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0, of which CDDL-1.1 is chosen. While web hits can no longer confirm this for this exact version, earlier analysis did confirm this with web hits. The latest version contains many of the same files with BSD-3-Clause."
-    - message: "copyleft-strong license CC-BY-SA-3.0 in Gradle::x-road-catalog:.*"
+    - message: "Strong copyleft in open source project code CC-BY-SA-3.0 in Gradle::x-road-catalog:.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The files meant by this license hit are not distributed with X-Road Catalog."
     - message: "copyleft-strong license GPL-3.0-only in Maven:gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:.*"
