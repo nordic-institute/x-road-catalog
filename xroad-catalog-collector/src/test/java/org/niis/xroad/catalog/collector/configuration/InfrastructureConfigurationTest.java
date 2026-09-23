@@ -24,29 +24,28 @@
  */
 package org.niis.xroad.catalog.collector.configuration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
-import java.time.Duration;
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Collector-wide cross-cutting infrastructure beans.
+ * Pins the millisecond precision of the collector clock that stamps every persisted timestamp.
  */
-@Configuration
-public class InfrastructureConfiguration {
+class InfrastructureConfigurationTest {
 
-    /**
-     * System-default-zone clock, not UTC: every timestamp the collector persists is host-local
-     * wall-clock time, and the lister's clock bean makes the same choice. Deployment invariant:
-     * the collector, the lister and the Postgres session must share one timezone.
-     * Ticks in whole milliseconds so persisted timestamps keep the precision the 3.x converters produced.
-     * {@link ConditionalOnMissingBean} lets tests override with a fixed clock.
-     */
-    @Bean
-    @ConditionalOnMissingBean(Clock.class)
-    public Clock systemClock() {
-        return Clock.tick(Clock.systemDefaultZone(), Duration.ofMillis(1));
+    private static final int SAMPLES = 20;
+    private static final int NANOS_PER_MILLI = 1_000_000;
+
+    @Test
+    void systemClockTicksInWholeMilliseconds() {
+        Clock clock = new InfrastructureConfiguration().systemClock();
+
+        for (int i = 0; i < SAMPLES; i++) {
+            Instant instant = clock.instant();
+            assertEquals(0, instant.getNano() % NANOS_PER_MILLI, "clock must tick in whole milliseconds: " + instant);
+        }
     }
 }

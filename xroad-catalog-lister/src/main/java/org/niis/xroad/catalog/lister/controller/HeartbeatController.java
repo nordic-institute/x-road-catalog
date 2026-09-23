@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
@@ -59,7 +60,7 @@ public class HeartbeatController implements HeartbeatOperations {
         return HeartbeatResponse.builder()
                 .appName(appName)
                 .appVersion(appVersion)
-                .systemTime(LocalDateTime.now())
+                .systemTime(LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS))
                 .dbWorking(catalogService.checkDatabaseConnection())
                 .lastCollectionData(catalogService.getLastCollectionData())
                 .appWorking(Boolean.TRUE).build();
