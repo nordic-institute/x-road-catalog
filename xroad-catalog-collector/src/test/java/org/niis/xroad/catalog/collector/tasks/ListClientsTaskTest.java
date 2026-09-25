@@ -25,6 +25,7 @@
 package org.niis.xroad.catalog.collector.tasks;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.niis.xrd4j.common.exception.XRd4JException;
@@ -37,6 +38,7 @@ import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
 import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -47,10 +49,12 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.time.Clock;
+import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -202,6 +206,41 @@ public class ListClientsTaskTest {
     }
 
     @Test
+    public void testIgnoredSubsystemIsExcludedFromCatalogAndFromListMethods() throws XRd4JException {
+        try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
+
+            ReflectionTestUtils.setField(conf, "fetchRunUnlimited", true);
+
+            // DEV:COM:1234:Test is listed in xroad-catalog.instance.ignored-subsystem-ids of the test profile
+            List<MemberWithName> clientList = Arrays.asList(
+                    createClientType(ObjectType.MEMBER, "DEV", "COM", "1234", null),
+                    createClientType(ObjectType.SUBSYSTEM, "DEV", "COM", "1234", "Test"),
+                    createClientType(ObjectType.SUBSYSTEM, "DEV", "COM", "1234", "Kept")
+            );
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class))).thenReturn(clientList);
+
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of());
+
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
+            listClientsTask.run();
+
+            ArgumentCaptor<Collection<Member>> saved = ArgumentCaptor.captor();
+            verify(catalogService, times(1)).saveAllMembersAndSubsystems(saved.capture());
+            assertEquals(1, saved.getValue().size());
+            Set<String> savedSubsystems = saved.getValue().iterator().next().getAllSubsystems().stream()
+                    .map(Subsystem::getSubsystemCode).collect(Collectors.toSet());
+            assertEquals(Set.of("Kept"), savedSubsystems);
+
+            assertEquals(1, listMethodsQueue.size());
+            assertEquals("Kept", listMethodsQueue.peek().getId().getSubsystemCode());
+            assertEquals(1, fetchWorkTracker.pending());
+        }
+    }
+
+    @Test
     public void testOnReceiveWithEmptyMemberList() {
         try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
 
@@ -244,10 +283,15 @@ public class ListClientsTaskTest {
     }
 
     private MemberWithName createClientType(ObjectType objectType, String memberCode, String subsystemCode) throws XRd4JException {
+        return createClientType(objectType, "FI", "GOV", memberCode, subsystemCode);
+    }
+
+    private MemberWithName createClientType(ObjectType objectType, String xroadInstance, String memberClass, String memberCode,
+                                            String subsystemCode) throws XRd4JException {
         MemberWithName c = new MemberWithName();
         XRoadIdentifier xrcit = XRoadIdentifier.builder()
-                .xRoadInstance("FI")
-                .memberClass("GOV")
+                .xRoadInstance(xroadInstance)
+                .memberClass(memberClass)
                 .memberCode(memberCode)
                 .subsystemCode(subsystemCode)
                 .build();

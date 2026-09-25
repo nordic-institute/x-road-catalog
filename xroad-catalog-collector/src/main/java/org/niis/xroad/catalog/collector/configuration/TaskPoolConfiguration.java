@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -119,6 +120,15 @@ public class TaskPoolConfiguration {
         return ignoredSubsystemIdsProperties.getIgnoredSubsystemIds();
     }
 
+    public boolean isIgnoredSubsystem(MemberWithName subsystem) {
+        String identifier = String.format("%s:%s:%s:%s",
+                subsystem.getId().getXRoadInstance(),
+                subsystem.getId().getMemberClass(),
+                subsystem.getId().getMemberCode(),
+                subsystem.getId().getSubsystemCode());
+        return getIgnoredSubsystemIds().contains(identifier);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -133,10 +143,25 @@ public class TaskPoolConfiguration {
      * initialization, so setting them in {@code @PostConstruct} is early enough.
      */
     @PostConstruct
+    void init() {
+        configureSaajTimeouts();
+        normalizeUrls();
+    }
+
     public void configureSaajTimeouts() {
         // Both parse timeout millis as int; must stay below Integer.MAX_VALUE/1000
         System.setProperty("saaj.connect.timeout", String.valueOf(Duration.ofSeconds(clientConnectTimeoutSeconds).toMillis()));
         System.setProperty("saaj.read.timeout", String.valueOf(Duration.ofSeconds(clientReadTimeoutSeconds).toMillis()));
+    }
+
+    public void normalizeUrls() {
+        securityServerHost = stripTrailingSlashes(securityServerHost);
+        webservicesEndpoint = stripTrailingSlashes(webservicesEndpoint);
+        listClientsHost = stripTrailingSlashes(listClientsHost);
+    }
+
+    private static String stripTrailingSlashes(String value) {
+        return value == null || value.isBlank() ? value : value.replaceAll("/+$", "");
     }
 
 }

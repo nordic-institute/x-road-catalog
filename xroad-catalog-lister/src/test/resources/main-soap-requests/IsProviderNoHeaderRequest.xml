@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://xroad.vrk.fi/xroad-catalog-lister">
+    <soap:Header/>
+    <soap:Body>
+        <tns:IsProvider>
+            <tns:xRoadInstance>DEV</tns:xRoadInstance>
+            <tns:memberClass>ORG</tns:memberClass>
+            <tns:memberCode>14151328</tns:memberCode>
+        </tns:IsProvider>
+    </soap:Body>
+</soap:Envelope>

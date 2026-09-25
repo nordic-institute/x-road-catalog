@@ -51,7 +51,7 @@ public class ListMembersService implements ListerService<ListMembersRequest, Ite
         REQUEST_DESERIALIZER.deserialize(request);
         if (request.getRequestData().getStartDateTime() == null || request.getRequestData().getEndDateTime() == null) {
             request.setErrorMessage(
-                    new ErrorMessage(FAULT_CODE_SERVER, "startDateTime and endDateTime parameters are required", null, null));
+                    new ErrorMessage(FAULT_CODE_SERVER, "startDateTime and endDateTime parameters are missing", null, null));
             throw new XRd4JException("Missing required parameters");
         }
         Iterable<Member> members = catalogService.getAllMembers(request.getRequestData().getStartDateTime(),

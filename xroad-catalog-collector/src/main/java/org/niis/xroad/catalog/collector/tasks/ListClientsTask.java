@@ -90,7 +90,8 @@ public class ListClientsTask implements Runnable {
         String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
         try {
             log.info("Getting client list from {}", listClientsUrl);
-            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate);
+            List<MemberWithName> clientList = withoutIgnoredSubsystems(
+                    ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate));
             HashMap<MemberId, Member> m = populateMapWithMembers(clientList);
             Set<Member> newMembers = catalogService.saveAllMembersAndSubsystems(m.values());
 
@@ -112,6 +113,19 @@ public class ListClientsTask implements Runnable {
             log.error("Error when fetching listClients(url: {})", listClientsUrl, e);
         }
 
+    }
+
+    private List<MemberWithName> withoutIgnoredSubsystems(List<MemberWithName> clientList) {
+        return clientList.stream().filter(client -> !isIgnoredSubsystem(client)).toList();
+    }
+
+    private boolean isIgnoredSubsystem(MemberWithName client) {
+        boolean ignored = ObjectType.SUBSYSTEM.equals(client.getId().getObjectType())
+                && taskPoolConfiguration.isIgnoredSubsystem(client);
+        if (ignored) {
+            log.info("Subsystem {} marked as ignored in configuration, excluding it from the catalog", IdentifierUtil.toString(client));
+        }
+        return ignored;
     }
 
     private HashMap<MemberId, Member> populateMapWithMembers(List<MemberWithName> clientList) {

@@ -15,7 +15,7 @@ spring:
     timeout-per-shutdown-phase: 30s
 
 server:
-  port: 8080
+  port: 8070
   shutdown: graceful
 
 management:
@@ -54,7 +54,7 @@ xroad:
     admin-port: 5675
     update-interval: 60
     allowed-federations: none
-    proxy-configuration-backup-cron: 0 15 3 * * ?
+    proxy-configuration-backup-cron: "* * * * * ? 2099"
     global_conf_tls_cert_verification: true
     global_conf_hostname_verification: true
 
