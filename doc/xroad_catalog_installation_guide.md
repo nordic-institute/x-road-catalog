@@ -71,7 +71,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 X-Road Catalog is an [X-Road](https://github.com/nordic-institute/X-Road/) extension that collects information on
 members, subsystems and services from an X-Road ecosystem and provides a REST interface to access the data.
 
-X-Road Catalog consists of two deployable services:
+X-Road Catalog consists of three modules, two of which are deployable services; the third, X-Road Catalog
+Persistence, is a library packaged into both:
 
 * X-Road Catalog Collector
   * Collects information from the X-Road ecosystem through a Security Server and stores it to a database.
@@ -129,7 +130,8 @@ The management port (`8090`) of both services is meant for the container runtime
 scraper only. Keep it internal to the container network; do not publish it. Only the `health`
 (with its `liveness` / `readiness` groups) and `prometheus` endpoints are exposed there.
 
-The collector has no API at all; it only serves the management port.
+The collector does not expose an API for application data or services; it only exposes a monitoring API on the
+management port.
 
 The database should accept connections from the two application containers only, and each application must connect
 with its own role ([5.1 Database Roles](#51-database-roles)): the lister's role is read-only, so a compromise of the
@@ -169,6 +171,10 @@ The images are published to Docker Hub:
 Images are tagged with the X-Road Catalog release version (`niis/xroad-catalog-lister:<VERSION>`). Pin an explicit
 version tag in production. The collector and lister must run the same version.
 
+The available versions are listed in the [GitHub releases](https://github.com/nordic-institute/X-Road-Catalog/releases)
+of X-Road Catalog; the release notes of the target version name any configuration changes
+([14. Upgrading](#14-upgrading)).
+
 Properties common to both images:
 
 * The application runs as the non-root user `xroad`.
@@ -179,6 +185,24 @@ Properties common to both images:
 
 Creating the database and its roles is the operator's responsibility — the application only manages the schema
 *inside* an existing database.
+
+The database must run in the same time zone as the two applications ([6.6](#66-time-zone-configuration)) — set `TZ`
+explicitly when the database is a container, as the stock `postgres` images default to UTC. The snippet below is
+illustrative only:
+
+```yaml
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: <superuser password>
+      TZ: Europe/Helsinki
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
 
 ### 5.1 Database Roles
 
@@ -247,8 +271,8 @@ either of two ways, and the two can be combined:
   is the right choice when a key has no packaged default or when list-valued keys become unwieldy as environment
   variables.
 
-The complete configuration reference of each module, including the *fixed* values that a mounted file must repeat
-unchanged, is in the module READMEs:
+A mounted file is merged with the packaged defaults key by key, so it only needs to contain the keys you change. The
+complete configuration reference of each module is in the module READMEs:
 
 * [X-Road Catalog Collector — Configuration](../xroad-catalog-collector/README.md#configuration)
 * [X-Road Catalog Lister — Configuration](../xroad-catalog-lister/README.md#configuration)
@@ -295,7 +319,7 @@ corresponding environment variable.
 | `xroad-catalog.target.member-class`       | `XROAD_CATALOG_TARGET_MEMBER_CLASS`       | Member class of the catalog's own subsystem                                                                                     |
 | `xroad-catalog.target.member-code`        | `XROAD_CATALOG_TARGET_MEMBER_CODE`        | Member code of the catalog's own subsystem                                                                                      |
 | `xroad-catalog.target.subsystem-code`     | `XROAD_CATALOG_TARGET_SUBSYSTEM_CODE`     | Subsystem code of the catalog's own subsystem                                                                                   |
-| `xroad-catalog.urls.security-server-host` | `XROAD_CATALOG_URLS_SECURITY_SERVER_HOST` | URL of the Security Server client port, e.g. `http://ss.example.org:8080/` or `https://ss.example.org:8443/`                    |
+| `xroad-catalog.urls.security-server-host` | `XROAD_CATALOG_URLS_SECURITY_SERVER_HOST` | URL of the Security Server client port, e.g. `http://ss.example.org:8080` or `https://ss.example.org:8443`                      |
 
 Commonly adjusted optional values:
 
@@ -495,8 +519,9 @@ it with the ownership the image gives that directory.
 1. **PostgreSQL**, with the roles and database from [5. Database Setup](#5-database-setup).
 2. **Collector.** On its first start it creates the schema and grants the application roles their privileges; its
    readiness probe turns `UP` once the migrations have finished and the database is reachable.
-3. **Lister**, once the collector reports ready. Started earlier, the lister stays not-ready until the schema and
-   grants exist and retries under the restart policy.
+3. **Lister**, once the collector reports ready. The lister does not create or validate the schema, and its
+   readiness probe only checks that the database connection works — started before the collector's first run it
+   reports healthy but fails on actual queries.
 
 Docker Compose expresses this with `depends_on` and `condition: service_healthy`.
 
@@ -520,13 +545,22 @@ services:
       XROAD_CATALOG_TARGET_MEMBER_CLASS: GOV
       XROAD_CATALOG_TARGET_MEMBER_CODE: "1234567-8"
       XROAD_CATALOG_TARGET_SUBSYSTEM_CODE: catalog
-      XROAD_CATALOG_URLS_SECURITY_SERVER_HOST: https://ss.example.org:8443/
+      XROAD_CATALOG_URLS_SECURITY_SERVER_HOST: https://ss.example.org:8443
       XROAD_CATALOG_INSTANCE_IGNORED_SUBSYSTEM_IDS_0: FI:GOV:1234567-8:MANAGEMENT
+      # Collection happens only between these hours of the container's local time; see
+      # 10. Post-Installation Checks.
+      XROAD_CATALOG_TASKS_FETCH_TIME_AFTER_HOUR: "3"
+      XROAD_CATALOG_TASKS_FETCH_TIME_BEFORE_HOUR: "4"
+      # Uncomment to collect around the clock instead of only inside that window.
+      # XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED: "true"
       TZ: Europe/Helsinki
-    volumes:
-      - ./collector/jvm-options:/etc/xroad/catalog/jvm-options:ro
-      - ./collector/keystore.p12:/etc/xroad/catalog/ssl/keystore.p12:ro
-      - ./collector/truststore.p12:/etc/xroad/catalog/ssl/truststore.p12:ro
+    # TLS material is needed only for the HTTPS / HTTPS NO AUTH connection types (7.2), and the JVM
+    # options file only when JVM flags carry secrets (6.5). Every host file listed here must exist
+    # before the first `up`, or the container refuses to start (7.3).
+    # volumes:
+    #   - ./collector/jvm-options:/etc/xroad/catalog/jvm-options:ro
+    #   - ./collector/keystore.p12:/etc/xroad/catalog/ssl/keystore.p12:ro
+    #   - ./collector/truststore.p12:/etc/xroad/catalog/ssl/truststore.p12:ro
 
   xroad-catalog-lister:
     image: niis/xroad-catalog-lister:<VERSION>
@@ -552,9 +586,10 @@ volumes:
   globalconf:
 ```
 
-Start with `docker compose up -d`. [docker/README.md](../docker/README.md) contains a complete development
-environment, including a PostgreSQL container with a role-initialization script, that can serve as a further
-reference.
+Start with `docker compose up -d`.
+
+If PostgreSQL runs as a container, put it on the same Docker network as the two services and use its service name as
+`<db-host>`.
 
 ### 9.3 Resource Limits and Stop Timeout
 
@@ -582,27 +617,37 @@ the port published in your deployment.
 2. The collector's log shows the Liquibase summary and the start of the first collection cycle:
 
    ```bash
-   docker compose logs xroad-catalog-collector | grep -iE "liquibase|UPDATE SUMMARY|collect"
+   docker compose logs xroad-catalog-collector \
+     | grep -E "liquibase|Starting ListClientsTask|Getting client list|Recomputed denormalized"
    ```
 
-3. The lister's heartbeat answers `200`. `lastCollectionData` is populated once the collector has completed a full
-   cycle, which on a fresh install happens within `xroad-catalog.tasks.collector-interval-min` provided the current
-   time is inside the fetch window (or `fetch-run-unlimited` is `true`):
+3. The **initial collection run** has completed; the data checks below depend on it. By default the collector fetches
+   only between `xroad-catalog.tasks.fetch-time-after-hour` and `fetch-time-before-hour` (03:00-04:00 in the
+   container's local time, see [6.6](#66-time-zone-configuration)), so on a first install the initial run happens only
+   once that window opens. Outside that window a cycle starts, does nothing and is recorded as **successful**: the
+   catalog stays empty and no error is logged. Either wait for the window or set
+   `XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED=true` to collect around the clock.
+
+4. The lister's heartbeat answers `200`. `lastCollectionData` is populated once the collector has completed a full
+   cycle, which on a fresh install happens within `xroad-catalog.tasks.collector-interval-min` of the fetch window
+   opening (or of startup, when `fetch-run-unlimited` is `true`):
 
    ```bash
    curl -s http://<lister-host>:8070/api/v2/heartbeat
    ```
 
-4. Data is served:
+5. Data is served:
 
    ```bash
    curl -s "http://<lister-host>:8070/api/v2/list/members?page=1&size=5"
    ```
 
-5. The Swagger UI is reachable at `http://<lister-host>:8070/api-docs`.
+6. The Swagger UI is reachable at `http://<lister-host>:8070/api-docs`.
 
-If the heartbeat stays without collection data, check the collector log for errors against the Security Server
-(access rights of the catalog subsystem, TLS trust) and the V2 error endpoint `GET /api/v2/browse/errors`.
+If the heartbeat answers `200` but `lastCollectionData` stays `null`, work through, in order: the fetch window
+(step 3), then the collector log for errors against the Security Server (access rights of the catalog subsystem, TLS
+trust), then the V2 error endpoint `GET /api/v2/browse/errors`. A lister that was started before the collector's first
+run reports the same empty `lastCollectionData` with `dbWorking: true` (see [9.1](#91-startup-order)).
 
 ## 11. Monitoring
 
@@ -654,12 +699,21 @@ Back up with `pg_dump` (any role that can read the whole database; the owner is 
 pg_dump -Fc -h <db-host> -U xroad_catalog xroad_catalog > xroad_catalog_$(date +%F).dump
 ```
 
-Restore into an empty database that has the roles from [5.1](#51-database-roles), then start the collector
-(which re-applies any missing migrations and grants) before the lister:
+Restore into an **empty** database. Stop both services, then, as a PostgreSQL superuser, drop and recreate the
+database and reapply the schema owner from [5.1](#51-database-roles):
+
+```sql
+DROP DATABASE xroad_catalog;
+CREATE DATABASE xroad_catalog OWNER xroad_catalog ENCODING 'UTF8';
+\connect xroad_catalog
+ALTER SCHEMA public OWNER TO xroad_catalog;
+```
 
 ```bash
 pg_restore -h <db-host> -U xroad_catalog -d xroad_catalog --no-owner --role=xroad_catalog xroad_catalog_<date>.dump
 ```
+
+Then start the collector (which re-applies any missing migrations and grants) before the lister.
 
 Do not run a backup or a restore while a collection cycle is running: stop the collector, or schedule the backup
 outside the collection window. The `created`/`changed`/`removed` history used by the statistics and reports

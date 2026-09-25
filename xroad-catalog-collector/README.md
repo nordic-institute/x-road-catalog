@@ -141,12 +141,7 @@ values will be used.
 
 ### Fixed-Mandatory Values to include in `application.yaml`
 
-The following list of configurations must be included in the `application.yaml` file without modifications to their
-values.
-> [!IMPORTANT]
-> If user is not using the `application.yaml` file to customize the configurations, e.g., using spring boot profile or
-> k8s
-> configmap, service will use the default `application.yaml` which provide these values already.
+The following values are supplied by the packaged `application.yaml` and are listed for reference.
 
 #### Fixed-Mandatory Values for Data Source and Liquibase
 
