@@ -192,7 +192,14 @@ public class TaskPoolConfiguration {
     }
 
     private static String stripTrailingSlashes(String value) {
-        return value == null || value.isBlank() ? value : value.replaceAll("/+$", "");
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        int end = value.length();
+        while (end > 0 && value.charAt(end - 1) == '/') {
+            end--;
+        }
+        return value.substring(0, end);
     }
 
 }

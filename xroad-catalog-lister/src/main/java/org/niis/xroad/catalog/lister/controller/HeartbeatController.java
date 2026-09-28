@@ -26,13 +26,13 @@ package org.niis.xroad.catalog.lister.controller;
 
 import org.niis.xroad.catalog.lister.dto.HeartbeatResponse;
 import org.niis.xroad.catalog.lister.service.CatalogService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -52,15 +52,20 @@ public class HeartbeatController implements HeartbeatOperations {
     @Value("${xroad-catalog.app-version}")
     private String appVersion;
 
-    @Autowired
-    private CatalogService catalogService;
+    private final CatalogService catalogService;
+    private final Clock clock;
+
+    public HeartbeatController(CatalogService catalogService, Clock clock) {
+        this.catalogService = catalogService;
+        this.clock = clock;
+    }
 
     @Override
     public HeartbeatResponse getHeartbeat() {
         return HeartbeatResponse.builder()
                 .appName(appName)
                 .appVersion(appVersion)
-                .systemTime(LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS))
+                .systemTime(LocalDateTime.now(clock).truncatedTo(ChronoUnit.MILLIS))
                 .dbWorking(catalogService.checkDatabaseConnection())
                 .lastCollectionData(catalogService.getLastCollectionData())
                 .appWorking(Boolean.TRUE).build();

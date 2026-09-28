@@ -173,7 +173,10 @@ public class SOAPAdapter extends AbstractAdapterServlet {
 
     private static Transformer newIdentityTransformer() throws SOAPException {
         try {
-            return TransformerFactory.newInstance().newTransformer();
+            TransformerFactory factory = TransformerFactory.newInstance();
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+            return factory.newTransformer();
         } catch (TransformerException e) {
             throw new SOAPException("Unable to create an identity transformer", e);
         }
