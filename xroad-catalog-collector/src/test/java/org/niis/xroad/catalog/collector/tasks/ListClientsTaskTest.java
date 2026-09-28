@@ -33,10 +33,12 @@ import org.niis.xrd4j.common.member.ObjectType;
 import org.niis.xroad.catalog.collector.CollectorApplication;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
 import org.niis.xroad.catalog.collector.events.NewMembersEventPublisher;
+import org.niis.xroad.catalog.collector.exception.CatalogCollectorRuntimeException;
 import org.niis.xroad.catalog.collector.service.CatalogService;
 import org.niis.xroad.catalog.collector.util.ClientListUtil;
 import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.niis.xroad.catalog.collector.util.XRoadIdentifier;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
 import org.niis.xroad.catalog.persistence.entity.Member;
 import org.niis.xroad.catalog.persistence.entity.Subsystem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +62,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
@@ -118,7 +122,8 @@ public class ListClientsTaskTest {
             FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
             ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
                     fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
-            listClientsTask.run();
+
+            assertTrue(listClientsTask.run());
 
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
             verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
@@ -277,12 +282,42 @@ public class ListClientsTaskTest {
         FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
         ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
                 fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
-        listClientsTask.run();
+
+        assertFalse(listClientsTask.run());
 
         verify(catalogService, times(1)).saveErrorLog(any());
         verifyNoInteractions(newMembersEventPublisher);
         assertEquals(0, listMethodsQueue.size());
         assertEquals(0, fetchWorkTracker.pending());
+    }
+
+    /**
+     * Guards the contract {@code CollectionCycleRunner} relies on: a failing listClients call is reported
+     * as a failure (never thrown) and the error log row carrying the cause is still written.
+     */
+    @Test
+    public void testFailedListClientsFetchReportsFailureAndSavesTheErrorLog() {
+        try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class)))
+                    .thenThrow(new CatalogCollectorRuntimeException("listClients answered HTTP 200 OK with a body that is not JSON"));
+
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
+
+            assertFalse(assertDoesNotThrow(listClientsTask::run));
+
+            ArgumentCaptor<ErrorLog> errorLog = ArgumentCaptor.forClass(ErrorLog.class);
+            verify(catalogService, times(1)).saveErrorLog(errorLog.capture());
+            assertEquals("500", errorLog.getValue().getCode());
+            assertTrue(errorLog.getValue().getMessage().endsWith(
+                    "/listClients): listClients answered HTTP 200 OK with a body that is not JSON"),
+                    errorLog.getValue().getMessage());
+            verifyNoInteractions(newMembersEventPublisher);
+            assertEquals(0, listMethodsQueue.size());
+            assertEquals(0, fetchWorkTracker.pending());
+        }
     }
 
     private MemberWithName createClientType(ObjectType objectType, String memberCode, String subsystemCode) throws XRd4JException {

@@ -116,10 +116,14 @@ class CollectionCycleRunnerTest {
         when(taskPoolConfiguration.getFetchTimeBeforeHour()).thenReturn(14);
     }
 
+    private void listClientsSucceeds() {
+        when(listClientsTask.run()).thenReturn(true);
+    }
+
     private void registerWorkWhenListingClients(int items) {
         doAnswer(invocation -> {
             fetchWorkTracker.register(items);
-            return null;
+            return true;
         }).when(listClientsTask).run();
     }
 
@@ -127,7 +131,7 @@ class CollectionCycleRunnerTest {
         doAnswer(invocation -> {
             fetchWorkTracker.register(items);
             clock.set(AFTER_WINDOW_END);
-            return null;
+            return true;
         }).when(listClientsTask).run();
     }
 
@@ -213,6 +217,7 @@ class CollectionCycleRunnerTest {
     @Test
     void insideTheFetchWindowTheCycleRunsAfterTheErrorLogFlush() {
         insideFetchWindow();
+        listClientsSucceeds();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
         List<String> logged = runCapturingRunnerLog(newRunner());
@@ -232,6 +237,7 @@ class CollectionCycleRunnerTest {
     @Test
     void successfulCycleFinalizesRunWithZeroPendingItems() {
         unlimitedFetchWindow();
+        listClientsSucceeds();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
         when(collectionRunRepository.findLatestMemberFetched()).thenReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
@@ -260,6 +266,7 @@ class CollectionCycleRunnerTest {
     @Test
     void metricRecordingFailureDoesNotPreventRunFinalization() {
         unlimitedFetchWindow();
+        listClientsSucceeds();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
         doThrow(new IllegalStateException("meter registry boom"))
                 .when(collectorMetrics).recordCycleDuration(any(Duration.class), anyBoolean());
@@ -283,6 +290,7 @@ class CollectionCycleRunnerTest {
     @Test
     void cycleDurationMetricUsesMonotonicElapsedTimeNotTheWallClock() {
         unlimitedFetchWindow();
+        listClientsSucceeds();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CollectionCycleRunner runner = newRunner();
@@ -294,10 +302,15 @@ class CollectionCycleRunnerTest {
                 "expected a positive elapsed duration under a fixed wall clock, got " + recorded.getValue());
     }
 
+    /**
+     * The production failure path: {@link ListClientsTask#run()} catches the fetch failure, writes the
+     * error log row and returns false. The cycle must then be finalized as unsuccessful in the run row and
+     * the duration timer, and the last-success gauge must not advance.
+     */
     @Test
-    void listClientsFailureIsContainedAndRunIsFinalizedUnsuccessful() {
+    void listClientsFetchFailureFinalizesRunUnsuccessfulAndLeavesTheSuccessGaugeAlone() {
         unlimitedFetchWindow();
-        doThrow(new IllegalStateException("boom")).when(listClientsTask).run();
+        when(listClientsTask.run()).thenReturn(false);
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CollectionCycleRunner runner = newRunner();
@@ -307,6 +320,29 @@ class CollectionCycleRunnerTest {
         ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
         verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
         assertEquals(Boolean.FALSE, saved.getValue().getSuccess());
+        assertNotNull(saved.getValue().getFinished());
+        verify(collectorMetrics).recordCycleDuration(any(Duration.class), eq(false));
+        verify(collectorMetrics, never()).recordSuccess(any());
+    }
+
+    /**
+     * Pins the runner's own catch: {@link ListClientsTask#run()} never throws, so this only guards the
+     * scheduler against a regression of that contract, with the same unsuccessful finalization.
+     */
+    @Test
+    void exceptionEscapingListClientsIsContainedAndRunIsFinalizedUnsuccessful() {
+        unlimitedFetchWindow();
+        doThrow(new IllegalStateException("boom")).when(listClientsTask).run();
+        when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CollectionCycleRunner runner = newRunner();
+
+        assertDoesNotThrow(runner::run);
+        verify(recomputeTask).run();
+        ArgumentCaptor<CollectionRun> saved = ArgumentCaptor.forClass(CollectionRun.class);
+        verify(collectionRunRepository, atLeastOnce()).save(saved.capture());
+        assertEquals(Boolean.FALSE, saved.getValue().getSuccess());
+        verify(collectorMetrics, never()).recordSuccess(any());
     }
 
     @Test
@@ -402,6 +438,7 @@ class CollectionCycleRunnerTest {
     @Test
     void progressWriteFailureDoesNotAbortCycle() {
         unlimitedFetchWindow();
+        listClientsSucceeds();
         when(collectionRunRepository.save(any(CollectionRun.class)))
                 .thenReturn(new CollectionRun())
                 .thenThrow(new IllegalStateException("db down"))
@@ -419,6 +456,7 @@ class CollectionCycleRunnerTest {
     @Test
     void leftoverPendingWorkFromPreviousCycleIsDiscardedAndCycleCompletes() {
         unlimitedFetchWindow();
+        listClientsSucceeds();
         when(collectionRunRepository.save(any(CollectionRun.class))).thenAnswer(inv -> inv.getArgument(0));
         fetchWorkTracker.register(3);
 

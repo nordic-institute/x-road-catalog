@@ -121,7 +121,7 @@ public class ListMethodsTask implements Runnable {
                 FetchHandOff.handOff(semaphore, fetchWorkTracker, () -> saveSubsystemsAndServices(client));
             }
         } catch (InterruptedException e) {
-            log.warn("Interrupted while waiting for clients, stopping ListMethodsTask", e);
+            log.info("Interrupted while waiting for clients, stopping ListMethodsTask");
             Thread.currentThread().interrupt();
         }
     }

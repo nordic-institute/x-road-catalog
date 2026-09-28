@@ -47,6 +47,10 @@ import java.time.LocalDateTime;
  * reflect only cycles that actually collected. The old {@code error_log} rows are flushed before that
  * check, in their own separately configured window, so the flush happens on every tick.
  *
+ * <p>A cycle whose client list could not be fetched is finalized with {@code success = false}: the
+ * {@link ListClientsTask} reports the failure through its return value after writing the error log row,
+ * so the last-success gauge only advances when the ecosystem was actually listed.
+ *
  * <p>The tick passed to {@link FetchWorkTracker#awaitAllDone(long)} is a reporting interval, not a
  * deadline — each tick writes the pending count to the run row for heartbeat visibility. The wait
  * itself ends at the end of the configured fetch window, so a counter that never drains cannot block
@@ -118,8 +122,7 @@ public class CollectionCycleRunner {
         boolean interrupted = false;
         try {
             LocalDateTime deadline = fetchWindowEnd();
-            listClientsTask.run();
-            listClientsOk = true;
+            listClientsOk = listClientsTask.run();
             writeProgress(run);
             allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {

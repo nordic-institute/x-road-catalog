@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class ListClientsTask implements Runnable {
+public class ListClientsTask {
 
     private final TaskPoolConfiguration taskPoolConfiguration;
     private final CatalogService catalogService;
@@ -74,10 +74,14 @@ public class ListClientsTask implements Runnable {
 
     /**
      * Fetches the client list unconditionally; the fetch window is decided by {@link CollectionCycleRunner}.
+     * Never throws: a failed fetch is written to the error log and reported through the return value, so
+     * that the runner finalizes the cycle as unsuccessful instead of the scheduler dying.
+     *
+     * @return true when the client list was fetched and stored, false when the fetch failed
      */
-    public void run() {
+    public boolean run() {
         log.info("Starting ListClientsTask");
-        fetchClients();
+        return fetchClients();
     }
 
     /**
@@ -97,7 +101,7 @@ public class ListClientsTask implements Runnable {
         }
     }
 
-    private void fetchClients() {
+    private boolean fetchClients() {
         String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
         try {
             log.info("Getting client list from {}", listClientsUrl);
@@ -117,13 +121,14 @@ public class ListClientsTask implements Runnable {
 
             newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).collect(Collectors.toSet()));
             log.info("{} new members were published as event", newMembers.size());
+            return true;
         } catch (Exception e) {
             ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
                     "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(), "500");
             catalogService.saveErrorLog(errorLog);
             log.error("Error when fetching listClients(url: {})", listClientsUrl, e);
+            return false;
         }
-
     }
 
     private List<MemberWithName> withoutIgnoredSubsystems(List<MemberWithName> clientList) {

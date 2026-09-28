@@ -62,7 +62,7 @@ public abstract class BaseFetchTask<T> implements Runnable {
                 FetchHandOff.handOff(semaphore, fetchWorkTracker, () -> wrappedFetch(input));
             }
         } catch (InterruptedException e) {
-            log.warn("Interrupted while handling inputs, stopping {}", getClass().getSimpleName(), e);
+            log.info("Interrupted while handling inputs, stopping {}", getClass().getSimpleName());
             Thread.currentThread().interrupt();
         }
     }
