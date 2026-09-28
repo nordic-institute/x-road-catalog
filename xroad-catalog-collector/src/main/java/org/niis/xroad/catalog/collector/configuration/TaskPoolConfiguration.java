@@ -41,6 +41,8 @@ import java.util.Set;
 @Configuration
 public class TaskPoolConfiguration {
 
+    private static final int MAX_HOUR = 23;
+
     // X-Road instance parameters
 
     @Value("${xroad-catalog.target.xroad-instance}")
@@ -146,6 +148,35 @@ public class TaskPoolConfiguration {
     void init() {
         configureSaajTimeouts();
         normalizeUrls();
+        validateHourWindows();
+    }
+
+    /**
+     * Fails startup on an hour outside 0-23 or a window whose start is not before its end. Both windows are
+     * evaluated by {@code CollectorUtils.isTimeBetweenHours}, which would otherwise throw on every scheduler
+     * tick for an hour such as 24, and are open at both ends, so an empty window never fetches or flushes.
+     */
+    public void validateHourWindows() {
+        validateHourWindow("xroad-catalog.tasks.fetch-time-after-hour", fetchTimeAfterHour,
+                "xroad-catalog.tasks.fetch-time-before-hour", fetchTimeBeforeHour);
+        validateHourWindow("xroad-catalog.log-storage.flush-log-time-after-hour", flushLogTimeAfterHour,
+                "xroad-catalog.log-storage.flush-log-time-before-hour", flushLogTimeBeforeHour);
+    }
+
+    private static void validateHourWindow(String afterProperty, int afterHour, String beforeProperty, int beforeHour) {
+        validateHour(afterProperty, afterHour);
+        validateHour(beforeProperty, beforeHour);
+        if (afterHour >= beforeHour) {
+            throw new IllegalStateException(String.format("%s (%d) must be lower than %s (%d): the window does not cross midnight",
+                    afterProperty, afterHour, beforeProperty, beforeHour));
+        }
+    }
+
+    private static void validateHour(String property, int hour) {
+        if (hour < 0 || hour > MAX_HOUR) {
+            throw new IllegalStateException(String.format("%s must be an hour of the day between 0 and %d, got %d",
+                    property, MAX_HOUR, hour));
+        }
     }
 
     public void configureSaajTimeouts() {

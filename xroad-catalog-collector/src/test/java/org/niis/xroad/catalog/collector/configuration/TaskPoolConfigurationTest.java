@@ -33,9 +33,12 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit test (no Spring context) for the client I/O timeout wiring in {@link TaskPoolConfiguration}.
@@ -133,6 +136,61 @@ class TaskPoolConfigurationTest {
         taskPoolConfiguration.normalizeUrls();
 
         assertNull(taskPoolConfiguration.getSecurityServerHost());
+    }
+
+    @Test
+    void validateHourWindowsAcceptsTheDefaultWindows() {
+        setHourWindows(3, 4, 3, 4);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsAcceptsTheFullDay() {
+        setHourWindows(0, 23, 0, 23);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsRejectsFetchHourAbove23() {
+        setHourWindows(3, 24, 3, 4);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.tasks.fetch-time-before-hour"), e.getMessage());
+        assertTrue(e.getMessage().contains("24"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsRejectsNegativeFlushHour() {
+        setHourWindows(3, 4, -1, 4);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsRejectsFetchWindowThatDoesNotStartBeforeItEnds() {
+        setHourWindows(4, 3, 3, 4);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.tasks.fetch-time-after-hour"), e.getMessage());
+        assertTrue(e.getMessage().contains("xroad-catalog.tasks.fetch-time-before-hour"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsRejectsEmptyFlushWindow() {
+        setHourWindows(3, 4, 3, 3);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
+    }
+
+    private void setHourWindows(int fetchAfter, int fetchBefore, int flushAfter, int flushBefore) {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchTimeAfterHour", fetchAfter);
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchTimeBeforeHour", fetchBefore);
+        ReflectionTestUtils.setField(taskPoolConfiguration, "flushLogTimeAfterHour", flushAfter);
+        ReflectionTestUtils.setField(taskPoolConfiguration, "flushLogTimeBeforeHour", flushBefore);
     }
 
 }

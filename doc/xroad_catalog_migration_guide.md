@@ -427,10 +427,10 @@ SELECT count(*) FROM active_search_index;
 ```
 
 Wait for the collector's readiness probe (`docker compose ps` shows *healthy*) and for the initial collection run to
-finish — the log reports it, and `collection_run` gains a row. Whether that run collects anything depends on the
-`fetch-run-unlimited` value carried over in [4.1](#41-collector): with `false` the collector only fetches between
-`xroad-catalog.tasks.fetch-time-after-hour` and `fetch-time-before-hour`, and outside that window a cycle does nothing
-and is still recorded as successful
+finish — the log reports it, and `collection_run` gains a row. When that run happens depends on the
+`fetch-run-unlimited` value carried over in [4.1](#41-collector): with `false` the collector runs cycles only between
+`xroad-catalog.tasks.fetch-time-after-hour` and `fetch-time-before-hour`, so until that window opens
+`collection_run` stays empty
 ([Installation Guide, 10](xroad_catalog_installation_guide.md#10-post-installation-checks)).
 
 ### 6.6 Start the Lister and Verify the APIs

@@ -46,9 +46,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.time.Clock;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
@@ -56,6 +58,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,6 +66,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @SpringBootTest(classes = CollectorApplication.class)
 @ActiveProfiles({"test", "general-testdata"})
@@ -125,9 +129,10 @@ public class ListClientsTaskTest {
     }
 
     @Test
-    public void testWhenFetchNotUnlimitedAndTimeOutsideOfConfiguration() throws XRd4JException {
+    public void testFetchesEvenWhenTheFetchWindowIsClosed() throws XRd4JException {
         try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
 
+            // The fetch window is decided by CollectionCycleRunner; a closed window must not stop this task.
             ReflectionTestUtils.setField(conf, "fetchRunUnlimited", false);
             ReflectionTestUtils.setField(conf, "fetchTimeAfterHour", 23);
             ReflectionTestUtils.setField(conf, "fetchTimeBeforeHour", 23);
@@ -150,46 +155,6 @@ public class ListClientsTaskTest {
             member1.setMemberCode("member1");
             final Member member2 = new Member();
             member2.setMemberCode("member2");
-
-            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
-            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
-                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
-            listClientsTask.run();
-
-            verifyNoInteractions(catalogService);
-            verifyNoInteractions(newMembersEventPublisher);
-
-            assertEquals(0, listMethodsQueue.size());
-            assertEquals(0, fetchWorkTracker.pending());
-        }
-    }
-
-    @Test
-    public void testOnReceiveWhenFetchNotUnlimitedButTimeIsInBetween() throws XRd4JException {
-        try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
-
-            ReflectionTestUtils.setField(conf, "fetchRunUnlimited", false);
-            ReflectionTestUtils.setField(conf, "fetchTimeAfterHour", 0);
-            ReflectionTestUtils.setField(conf, "fetchTimeBeforeHour", 23);
-
-            List<MemberWithName> clientList = Arrays.asList(
-                    createClientType(ObjectType.MEMBER, "member1", null),
-                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub1"),
-                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub2"),
-                    createClientType(ObjectType.SUBSYSTEM, "member1", "sub3"),
-                    createClientType(ObjectType.MEMBER, "member2", null),
-                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub1"),
-                    createClientType(ObjectType.SUBSYSTEM, "member2", "sssub2")
-            );
-
-            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class))).thenReturn(clientList);
-
-            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
-
-            final Member member1 = new Member();
-            member1.setMemberCode("member1");
-            final Member member2 = new Member();
-            member2.setMemberCode("member2");
             Mockito.when(catalogService.saveAllMembersAndSubsystems(any())).thenReturn(Set.of(member1, member2));
 
             FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
@@ -197,12 +162,50 @@ public class ListClientsTaskTest {
                     fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
             listClientsTask.run();
 
-            // Note: This line is time-sensitive and will fail if run between 23:00-00:00.
             verify(catalogService, times(1)).saveAllMembersAndSubsystems(any());
             verify(newMembersEventPublisher, times(1)).publishNewMembersEvent(eq(Set.of("member1", "member2")));
+
             assertEquals(5, listMethodsQueue.size());
             assertEquals(5, fetchWorkTracker.pending());
         }
+    }
+
+    @Test
+    public void testFlushOldErrorLogEntriesInsideTheFlushWindow() {
+        ReflectionTestUtils.setField(conf, "flushLogTimeAfterHour", 3);
+        ReflectionTestUtils.setField(conf, "flushLogTimeBeforeHour", 4);
+        ReflectionTestUtils.setField(conf, "errorLogLengthInDays", 90);
+
+        ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, new ConcurrentLinkedQueue<>(),
+                newMembersEventPublisher, new FetchWorkTracker(), new RestTemplate(), fixedClockAt(3, 30));
+        listClientsTask.flushOldErrorLogEntries();
+
+        verify(catalogService, times(1)).deleteOldErrorLogEntries(90);
+        verifyNoMoreInteractions(catalogService);
+    }
+
+    @Test
+    public void testFlushOldErrorLogEntriesOutsideTheFlushWindow() {
+        ReflectionTestUtils.setField(conf, "flushLogTimeAfterHour", 3);
+        ReflectionTestUtils.setField(conf, "flushLogTimeBeforeHour", 4);
+
+        ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, new ConcurrentLinkedQueue<>(),
+                newMembersEventPublisher, new FetchWorkTracker(), new RestTemplate(), fixedClockAt(12, 30));
+        listClientsTask.flushOldErrorLogEntries();
+
+        verifyNoInteractions(catalogService);
+    }
+
+    @Test
+    public void testFlushOldErrorLogEntriesFailureIsContained() {
+        ReflectionTestUtils.setField(conf, "flushLogTimeAfterHour", 3);
+        ReflectionTestUtils.setField(conf, "flushLogTimeBeforeHour", 4);
+        Mockito.doThrow(new IllegalStateException("db down")).when(catalogService).deleteOldErrorLogEntries(any());
+
+        ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, new ConcurrentLinkedQueue<>(),
+                newMembersEventPublisher, new FetchWorkTracker(), new RestTemplate(), fixedClockAt(3, 30));
+
+        assertDoesNotThrow(listClientsTask::flushOldErrorLogEntries);
     }
 
     @Test
@@ -301,5 +304,9 @@ public class ListClientsTaskTest {
         c.setName(memberCode);
         return c;
 
+    }
+
+    private static Clock fixedClockAt(int hour, int minute) {
+        return Clock.fixed(LocalDate.of(2025, 6, 1).atTime(hour, minute).toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
     }
 }

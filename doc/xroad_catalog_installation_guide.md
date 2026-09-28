@@ -337,8 +337,8 @@ Commonly adjusted optional values:
 | `xroad-catalog.instance.ignored-subsystem-ids`         | `XROAD_CATALOG_INSTANCE_IGNORED_SUBSYSTEM_IDS_<n>`     | empty                     | Subsystems excluded from the catalog, as `INSTANCE:CLASS:CODE:SUBSYSTEM`; typically the management subsystem. Neither the subsystem nor its services are collected.                              |
 | `xroad-catalog.tasks.collector-interval-min`           | `XROAD_CATALOG_TASKS_COLLECTOR_INTERVAL_MIN`           | `20`                      | Minutes between collection cycles                                                                                                                                                                |
 | `xroad-catalog.tasks.fetch-run-unlimited`              | `XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED`              | `false`                   | `true` to collect around the clock instead of only between the `fetch-time-*` hours                                                                                                              |
-| `xroad-catalog.tasks.fetch-time-after-hour`            | `XROAD_CATALOG_TASKS_FETCH_TIME_AFTER_HOUR`            | `3`                       | Start hour of the daily collection window (local time of the container, see [6.6](#66-time-zone-configuration))                                                                                  |
-| `xroad-catalog.tasks.fetch-time-before-hour`           | `XROAD_CATALOG_TASKS_FETCH_TIME_BEFORE_HOUR`           | `4`                       | End hour of the daily collection window (local time of the container, see [6.6](#66-time-zone-configuration))                                                                                    |
+| `xroad-catalog.tasks.fetch-time-after-hour`            | `XROAD_CATALOG_TASKS_FETCH_TIME_AFTER_HOUR`            | `3`                       | Start hour, 0-23, of the daily collection window (local time of the container, see [6.6](#66-time-zone-configuration)); must be lower than `fetch-time-before-hour`                              |
+| `xroad-catalog.tasks.fetch-time-before-hour`           | `XROAD_CATALOG_TASKS_FETCH_TIME_BEFORE_HOUR`           | `4`                       | End hour, 0-23, of the daily collection window (local time of the container, see [6.6](#66-time-zone-configuration)); the window does not cross midnight                                         |
 | `xroad-catalog.log-storage.error-log-length-in-days`   | `XROAD_CATALOG_LOG_STORAGE_ERROR_LOG_LENGTH_IN_DAYS`   | `90`                      | Retention of collection error records                                                                                                                                                            |
 | `spring.datasource.hikari.maximum-pool-size`           | `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE`           | `10`                      | Database connection pool size. Raise when `hikaricp_connections_pending` stays above zero or `hikaricp_connections_timeout_total` increments in the Prometheus output, see [11](#11-monitoring). |
 
@@ -651,16 +651,14 @@ the port published in your deployment.
      | grep -E "UPDATE SUMMARY|Run:|Starting ListClientsTask|Getting client list|Recomputed denormalized"
    ```
 
-   `Getting client list from …` indicates a fetch happened. `Starting ListClientsTask` followed only by
-   `Recomputed denormalized columns: 0 member rows …` indicates the cycle ran outside the fetch window and fetched
-   nothing (step 3).
+   `Getting client list from …` indicates a fetch happened. If it is missing, no cycle has run yet, which is expected
+   outside the fetch window (step 3).
 
 3. The **initial collection run** has completed; the data checks below depend on it. By default the collector fetches
    only between `xroad-catalog.tasks.fetch-time-after-hour` and `fetch-time-before-hour` (03:00-04:00 in the
    container's local time, see [6.6](#66-time-zone-configuration)), so on a first install the initial run happens only
-   once that window opens. Outside that window a cycle starts, does nothing and is recorded as **successful**: the
-   catalog stays empty and no error is logged. Either wait for the window or set
-   `XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED=true` to collect around the clock.
+   once that window opens. Outside that window **no cycle runs**: the catalog stays empty and the log shows no cycle.
+   Either wait for the window or set `XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED=true` to collect around the clock.
 
 4. The lister's heartbeat answers `200`:
 
@@ -719,12 +717,13 @@ Beyond the standard JVM, process, HTTP and data source meters, the collector exp
 | Metric                                                    | Type  | Use                                                               |
 |-----------------------------------------------------------|-------|-------------------------------------------------------------------|
 | `xroad_catalog_collection_cycle_duration_seconds`         | Timer | Duration of a full collection cycle, tagged `success=true\|false` |
-| `xroad_catalog_collection_last_success_timestamp_seconds` | Gauge | Alert when `time() - value` exceeds a few collection intervals    |
+| `xroad_catalog_collection_last_success_timestamp_seconds` | Gauge | Alert when `time() - value` exceeds the threshold given below     |
 
-The gauge tracks cycle completion, not data collection: a cycle that runs outside the fetch window
-([10](#10-post-installation-checks), step 3) fetches nothing, counts as successful and advances it, so the alert above
-detects a collector that has stopped running cycles, not one that never fetches. Alert on data freshness through the
-`*LastFetched` timestamps of `lastCollectionData` in the lister's heartbeat instead.
+The gauge is the finish time of the last cycle that actually fetched: cycles outside the fetch window
+([10](#10-post-installation-checks), step 3) are skipped and do not advance it. With `fetch-run-unlimited` set to
+`false` it advances only during the daily fetch window, so set the alert threshold to a day plus a margin; with `true`,
+a few collection intervals are enough. Per-entity freshness is available through the `*LastFetched` timestamps of
+`lastCollectionData` in the lister's heartbeat.
 
 To see the component breakdown of `/actuator/health` while debugging, set
 `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS=always`.

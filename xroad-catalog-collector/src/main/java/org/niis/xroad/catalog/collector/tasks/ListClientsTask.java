@@ -72,17 +72,28 @@ public class ListClientsTask implements Runnable {
         this.clock = clock;
     }
 
+    /**
+     * Fetches the client list unconditionally; the fetch window is decided by {@link CollectionCycleRunner}.
+     */
     public void run() {
         log.info("Starting ListClientsTask");
-        if (CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFlushLogTimeAfterHour(),
-                taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
-            catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
-        }
+        fetchClients();
+    }
 
-        if (taskPoolConfiguration.isFetchRunUnlimited()
-                || CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFetchTimeAfterHour(),
-                taskPoolConfiguration.getFetchTimeBeforeHour())) {
-            fetchClients();
+    /**
+     * Deletes {@code error_log} rows older than the configured retention when the clock is inside the
+     * flush-log window. Called by {@link CollectionCycleRunner} on every scheduler tick, independently of
+     * the fetch window. Never throws, so a failed flush cannot stop the collection cycle or the scheduler.
+     */
+    public void flushOldErrorLogEntries() {
+        if (!CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFlushLogTimeAfterHour(),
+                taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
+            return;
+        }
+        try {
+            catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
+        } catch (Exception e) {
+            log.error("Failed to flush old error log entries", e);
         }
     }
 
