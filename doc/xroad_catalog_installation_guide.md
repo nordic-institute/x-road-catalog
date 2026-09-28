@@ -96,8 +96,6 @@ X-Road Catalog is distributed as container images only. Pre-existing installatio
 
 ### 2.1 Components and Network Flows
 
-![X-Road Catalog production](../img/xroad_catalog_production.png)
-
 A deployment consists of the two application containers and a PostgreSQL database:
 
 | Component  | Talks to                                                                                                                   | Listens on                                    |
@@ -168,8 +166,9 @@ The images are published to Docker Hub:
 | `niis/xroad-catalog-collector` | Collector |
 | `niis/xroad-catalog-lister`    | Lister    |
 
-Images are tagged with the X-Road Catalog release version (`niis/xroad-catalog-lister:<VERSION>`). Pin an explicit
-version tag in production. The collector and lister must run the same version.
+Images are tagged with the X-Road Catalog release version (`niis/xroad-catalog-lister:<VERSION>`); `<VERSION>` is the
+X-Road Catalog release version, not the version of this document. Pin an explicit version tag in production. The
+collector and lister must run the same version.
 
 The available versions are listed in the [GitHub releases](https://github.com/nordic-institute/X-Road-Catalog/releases)
 of X-Road Catalog; the release notes of the target version name any configuration changes
@@ -197,12 +196,18 @@ services:
     environment:
       POSTGRES_PASSWORD: <superuser password>
       TZ: Europe/Helsinki
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
     volumes:
       - pgdata:/var/lib/postgresql/data
 
 volumes:
   pgdata:
 ```
+
+The stock `postgres` images define no `HEALTHCHECK`; the `healthcheck` above is what lets Compose start the collector
+only once the database accepts connections ([9.1 Startup Order](#91-startup-order)).
 
 ### 5.1 Database Roles
 
@@ -341,6 +346,9 @@ The full list, including the worker pool sizes and the log-flush window, is in t
 [collector README](../xroad-catalog-collector/README.md#optional-configurations).
 
 ### 6.4 Lister Configuration
+
+The values below have no usable default and must be provided. The table lists the property name and the
+corresponding environment variable.
 
 | Property                           | Environment variable               | Value                                                                                                                                                      |
 |------------------------------------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -496,7 +504,9 @@ trust store; in that case the database CA must be added to the collector's trust
 The application runs as the non-root user `xroad`. Every mounted file must be readable by that user — for example
 world-readable (`0444`), or owned by the uid the image assigns to `xroad`. A root-owned `0400` host file is not
 readable and the service fails at startup. Docker creates missing bind-mount directories as `root:root`; a directory
-mounted at a path where a file is expected trips the entrypoint's fail-closed check ([6.5](#65-jvm-options)).
+mounted at the JVM options file path trips the entrypoint's fail-closed check ([6.5](#65-jvm-options)), while a
+directory mounted at any other file path (anchor, keystore, truststore, configuration file) is only rejected by the
+application when it starts.
 
 A host directory bind-mounted at `/etc/xroad/globalconf` must also be writable by `xroad`, or the lister cannot store
 the downloaded global configuration and never becomes ready. A named volume needs no preparation: Docker initializes
@@ -523,7 +533,9 @@ it with the ownership the image gives that directory.
    readiness probe only checks that the database connection works — started before the collector's first run it
    reports healthy but fails on actual queries.
 
-Docker Compose expresses this with `depends_on` and `condition: service_healthy`.
+Docker Compose expresses this with `depends_on` and `condition: service_healthy`: the collector waits on the `db`
+healthcheck of [5](#5-database-setup) when the database is a container, and the lister on the collector image's
+built-in `HEALTHCHECK`.
 
 ### 9.2 Docker Compose Example
 
@@ -532,11 +544,28 @@ are shown inline for simplicity and should come from an `.env` file or the runti
 
 ```yaml
 services:
+  # Uncomment to run PostgreSQL as a container (5), together with the collector's `depends_on`
+  # and the `pgdata` volume below; then use `db` as the database host in both datasource URLs.
+  # db:
+  #   image: postgres:16
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_PASSWORD: <superuser password>
+  #     TZ: Europe/Helsinki
+  #   healthcheck:
+  #     test: ["CMD", "pg_isready", "-U", "postgres"]
+  #     interval: 10s
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
   xroad-catalog-collector:
     image: niis/xroad-catalog-collector:<VERSION>
     restart: unless-stopped
     mem_limit: 2g
     stop_grace_period: 35s
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db.example.org:5432/xroad_catalog?socketTimeout=60
       SPRING_DATASOURCE_PASSWORD: <collector password>
@@ -580,16 +609,17 @@ services:
       - globalconf:/etc/xroad/globalconf
     ports:
       # Bind to an address reachable only by the Security Server / reverse proxy.
-      - "10.0.0.5:8070:8070"
+      - "<host-ip>:8070:8070"
 
 volumes:
   globalconf:
+  # pgdata:
 ```
 
 Start with `docker compose up -d`.
 
-If PostgreSQL runs as a container, put it on the same Docker network as the two services and use its service name as
-`<db-host>`.
+With a containerised database the order is: `docker compose up -d db`, create the roles and database of
+[5.1](#51-database-roles) in it (`docker compose exec db psql -U postgres`), then `docker compose up -d`.
 
 ### 9.3 Resource Limits and Stop Timeout
 
@@ -614,12 +644,16 @@ the port published in your deployment.
    docker compose ps
    ```
 
-2. The collector's log shows the Liquibase summary and the start of the first collection cycle:
+2. The collector's log shows the Liquibase summary and the first collection cycle:
 
    ```bash
    docker compose logs xroad-catalog-collector \
-     | grep -E "liquibase|Starting ListClientsTask|Getting client list|Recomputed denormalized"
+     | grep -E "UPDATE SUMMARY|Run:|Starting ListClientsTask|Getting client list|Recomputed denormalized"
    ```
+
+   `Getting client list from …` indicates a fetch happened. `Starting ListClientsTask` followed only by
+   `Recomputed denormalized columns: 0 member rows …` indicates the cycle ran outside the fetch window and fetched
+   nothing (step 3).
 
 3. The **initial collection run** has completed; the data checks below depend on it. By default the collector fetches
    only between `xroad-catalog.tasks.fetch-time-after-hour` and `fetch-time-before-hour` (03:00-04:00 in the
@@ -628,13 +662,28 @@ the port published in your deployment.
    catalog stays empty and no error is logged. Either wait for the window or set
    `XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED=true` to collect around the clock.
 
-4. The lister's heartbeat answers `200`. `lastCollectionData` is populated once the collector has completed a full
-   cycle, which on a fresh install happens within `xroad-catalog.tasks.collector-interval-min` of the fetch window
-   opening (or of startup, when `fetch-run-unlimited` is `true`):
+4. The lister's heartbeat answers `200`:
 
    ```bash
    curl -s http://<lister-host>:8070/api/v2/heartbeat
    ```
+
+   Before the first fetch `lastCollectionData` is empty:
+
+   ```json
+   "lastCollectionData": {
+     "membersLastFetched": null,
+     "subsystemsLastFetched": null,
+     "servicesLastFetched": null,
+     "wsdlsLastFetched": null,
+     "openapisLastFetched": null,
+     "restsLastFetched": null
+   }
+   ```
+
+   The six timestamps are populated once the collector has completed a full cycle, which on a fresh install happens
+   within `xroad-catalog.tasks.collector-interval-min` of the fetch window opening (or of startup, when
+   `fetch-run-unlimited` is `true`).
 
 5. Data is served:
 
@@ -642,12 +691,14 @@ the port published in your deployment.
    curl -s "http://<lister-host>:8070/api/v2/list/members?page=1&size=5"
    ```
 
-6. The Swagger UI is reachable at `http://<lister-host>:8070/api-docs`.
+6. The Swagger UI is reachable at `http://<lister-host>:8070/api-docs`. That path answers with a redirect to
+   `/swagger-ui/index.html`, so a scripted check must follow it (`curl -sIL`).
 
-If the heartbeat answers `200` but `lastCollectionData` stays `null`, work through, in order: the fetch window
-(step 3), then the collector log for errors against the Security Server (access rights of the catalog subsystem, TLS
-trust), then the V2 error endpoint `GET /api/v2/browse/errors`. A lister that was started before the collector's first
-run reports the same empty `lastCollectionData` with `dbWorking: true` (see [9.1](#91-startup-order)).
+If the heartbeat answers `200` but `lastCollectionData` stays empty (all six `*LastFetched` fields `null`), work
+through, in order: the fetch window (step 3), then the collector log for errors against the Security Server (access
+rights of the catalog subsystem, TLS trust), then the V2 error endpoint `GET /api/v2/browse/errors`. A lister that was
+started before the collector's first run reports the same empty `lastCollectionData` with `dbWorking: true` (see
+[9.1](#91-startup-order)).
 
 ## 11. Monitoring
 
@@ -669,6 +720,11 @@ Beyond the standard JVM, process, HTTP and data source meters, the collector exp
 |-----------------------------------------------------------|-------|-------------------------------------------------------------------|
 | `xroad_catalog_collection_cycle_duration_seconds`         | Timer | Duration of a full collection cycle, tagged `success=true\|false` |
 | `xroad_catalog_collection_last_success_timestamp_seconds` | Gauge | Alert when `time() - value` exceeds a few collection intervals    |
+
+The gauge tracks cycle completion, not data collection: a cycle that runs outside the fetch window
+([10](#10-post-installation-checks), step 3) fetches nothing, counts as successful and advances it, so the alert above
+detects a collector that has stopped running cycles, not one that never fetches. Alert on data freshness through the
+`*LastFetched` timestamps of `lastCollectionData` in the lister's heartbeat instead.
 
 To see the component breakdown of `/actuator/health` while debugging, set
 `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS=always`.
