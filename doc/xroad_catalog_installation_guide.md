@@ -530,8 +530,9 @@ it with the ownership the image gives that directory.
 2. **Collector.** On its first start it creates the schema and grants the application roles their privileges; its
    readiness probe turns `UP` once the migrations have finished and the database is reachable.
 3. **Lister**, once the collector reports ready. The lister does not create or validate the schema, and its
-   readiness probe only checks that the database connection works — started before the collector's first run it
-   reports healthy but fails on actual queries.
+   readiness probe only checks that the database connection works — started before the collector's first start has
+   completed it reports healthy but answers data queries with `500`; started after that but before the first
+   collection run it serves an empty catalog ([10](#10-post-installation-checks), step 4).
 
 Docker Compose expresses this with `depends_on` and `condition: service_healthy`: the collector waits on the `db`
 healthcheck of [5](#5-database-setup) when the database is a container, and the lister on the collector image's
@@ -648,11 +649,14 @@ the port published in your deployment.
 
    ```bash
    docker compose logs xroad-catalog-collector \
-     | grep -E "UPDATE SUMMARY|Run:|Starting ListClientsTask|Getting client list|Recomputed denormalized"
+     | grep -E "UPDATE SUMMARY|Run:|Starting ListClientsTask|Getting client list|Recomputed denormalized|ERROR"
    ```
 
-   `Getting client list from …` indicates a fetch happened. If it is missing, no cycle has run yet, which is expected
-   outside the fetch window (step 3).
+   `Getting client list from …` indicates a fetch was attempted. If it is missing, no cycle has run yet, which is
+   expected outside the fetch window (step 3). An `ERROR … Error when fetching listClients` line after it means the
+   cycle failed: it is recorded with `success=false`, the heartbeat's `lastRunErrors` (step 4) is greater than `0`
+   and `GET /api/v2/browse/errors` lists the message. `Recomputed denormalized columns: 0 member rows …` is normal for
+   a cycle that changed nothing.
 
 3. The **initial collection run** has completed; the data checks below depend on it. By default the collector fetches
    only between `xroad-catalog.tasks.fetch-time-after-hour` and `fetch-time-before-hour` (03:00-04:00 in the
@@ -694,7 +698,8 @@ the port published in your deployment.
 
 If the heartbeat answers `200` but `lastCollectionData` stays empty (all six `*LastFetched` fields `null`), work
 through, in order: the fetch window (step 3), then the collector log for errors against the Security Server (access
-rights of the catalog subsystem, TLS trust), then the V2 error endpoint `GET /api/v2/browse/errors`. A lister that was
+rights of the catalog subsystem, TLS trust), then the V2 error endpoint `GET /api/v2/browse/errors`. If the timestamps
+are populated but stop advancing, check `lastRunErrors` in the heartbeat and the same two places. A lister that was
 started before the collector's first run reports the same empty `lastCollectionData` with `dbWorking: true` (see
 [9.1](#91-startup-order)).
 
@@ -710,7 +715,12 @@ Both services expose Spring Boot Actuator endpoints on the management port `8090
 | `/actuator/prometheus`       | Metrics in Prometheus text format                                                                                |
 
 The images' built-in `HEALTHCHECK` polls the readiness probe every 30 seconds with a start period of 90 seconds for
-the collector (migrations) and 60 seconds for the lister (global configuration download).
+the collector (migrations) and 60 seconds for the lister (global configuration download). The management port is not
+published, so query it from inside the container with `wget` (the images contain `wget`, not `curl`):
+
+```bash
+docker compose exec xroad-catalog-lister wget -qO- http://localhost:8090/actuator/health
+```
 
 Beyond the standard JVM, process, HTTP and data source meters, the collector exports:
 
@@ -720,10 +730,13 @@ Beyond the standard JVM, process, HTTP and data source meters, the collector exp
 | `xroad_catalog_collection_last_success_timestamp_seconds` | Gauge | Alert when `time() - value` exceeds the threshold given below     |
 
 The gauge is the finish time of the last cycle that actually fetched: cycles outside the fetch window
-([10](#10-post-installation-checks), step 3) are skipped and do not advance it. With `fetch-run-unlimited` set to
-`false` it advances only during the daily fetch window, so set the alert threshold to a day plus a margin; with `true`,
-a few collection intervals are enough. Per-entity freshness is available through the `*LastFetched` timestamps of
-`lastCollectionData` in the lister's heartbeat.
+([10](#10-post-installation-checks), step 3) are skipped and runs where the `listClients` call failed are recorded with
+`success=false`; neither advances it. Until the first successful cycle the gauge is `0` and the timer does not appear
+in the output, so gate the alert on `value > 0`. At restart the gauge is restored from the last successful cycle in
+the database, so a restart outside the window does not reset it. With `fetch-run-unlimited` set to `false` it advances
+only during the daily fetch window, so set the alert threshold to a day plus a margin; with `true`, a few collection
+intervals are enough. Per-entity freshness is available through the `*LastFetched` timestamps of `lastCollectionData`
+in the lister's heartbeat.
 
 To see the component breakdown of `/actuator/health` while debugging, set
 `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS=always`.

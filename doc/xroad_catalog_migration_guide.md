@@ -372,7 +372,7 @@ Follow the [Installation Guide](xroad_catalog_installation_guide.md) with these 
   password; `SPRING_DATASOURCE_PASSWORD` to the `xroad_catalog_collector` password.
 * Lister: `SPRING_DATASOURCE_PASSWORD` set to the `xroad_catalog_lister` password;
   `XROAD_CATALOG_LEGACY_API_ENABLED=true` as long as V1 or SOAP consumers exist; the configuration anchor copied from
-  the RPM host, where it is `root:xroad 0640`, made readable by the container user
+  the RPM host, where it is owned by the `xroad` user and not world-readable, made readable by the container user
   ([Installation Guide, 7.3](xroad_catalog_installation_guide.md#73-file-permissions)) and mounted.
 * Both, and the database: the same `TZ` as the RPM host had.
 * TLS material for the collector, if needed, per [4.3](#43-tls-keystore).
