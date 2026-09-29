@@ -97,7 +97,6 @@ The following values are supplied by the packaged `application.yaml` and are lis
 | [spring.jpa.open-in-view](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.open-in-view)                         | `false`                                   | Preferably `false` in production.                                                   | 1.0.0 |
 | [spring.jpa.show-sql](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.show-sql)                                 | `false`                                   | Use to debug SQL statements executed. Preferably `false` in production.             | 1.0.0 |
 | [spring.jpa.hibernate.ddl-auto](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.hibernate.ddl-auto)             | `none`                                    | Keep to `none` to prevent hiberante from trying to update the database.             | 1.0.0 |
-| spring.jpa.properties.hibernate.dialect                                                                                                                                              | `org.hibernate.dialect.PostgreSQLDialect` | PostgreSQL is the only supported RDMBS. Don't change                                | 1.0.0 |
 
 #### Fixed-Mandatory Values for Configuration-Client Features
 

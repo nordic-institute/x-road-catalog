@@ -6,7 +6,6 @@ spring:
     password: sa
   h2.console.enabled: false
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     defer-datasource-initialization: true
     hibernate.ddl-auto: create-drop
   liquibase:
