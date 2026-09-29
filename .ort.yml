@@ -156,3 +156,11 @@ resolutions:
     - message: "copyleft-strong license GPL-1.0-or-later in Maven:org.jetbrains.kotlin:kotlin-compiler-embeddable:.*"
       reason: "LICENSE_ACQUIRED_EXCEPTION"
       comment: "The files meant by this license hit are not distributed with X-Road Catalog."
+    - message: "source-available license FSL-1.1-ALv2 in Maven:org.liquibase:liquibase-core:.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "Liquibase relicensed at 5.0 from Apache-2.0 to FSL-1.1-ALv2 (Functional Source
+        License 1.1, Apache-2.0 Future License). NIIS accepts the FSL terms for this dependency.
+        FSL is source-available, not OSI-approved open source: it permits use, modification and
+        redistribution but prohibits use to provide a competing product or service, and each
+        release converts to Apache-2.0 two years after publication. X-Road Catalog embeds Liquibase 
+        for database migrations and does not compete with it, so the non-compete condition is satisfied."
