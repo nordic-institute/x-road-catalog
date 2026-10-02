@@ -155,7 +155,7 @@ The deployment relies on the following trust assumptions:
   from the lister to the Central Server's global configuration download address (HTTP `80` or HTTPS `443`).
 * The **configuration anchor** file of the X-Road ecosystem, obtained from the X-Road operator or downloaded from
   the Central Server.
-* An X-Road **subsystem for the catalog** registered on the Security Server that the collector uses.
+* An X-Road **client subsystem for the catalog**, registered on the Security Server used by the collector.
 
 ## 4. Container Images
 
@@ -273,11 +273,11 @@ either of two ways, and the two can be combined:
   in this guide use them.
 * **A mounted configuration file** at `/app/config/application.yaml` (Spring Boot's default external configuration
   location inside the container). Mount it read-only; nothing in the image writes configuration files. A mounted file
-  is the right choice when a key has no packaged default or when list-valued keys become unwieldy as environment
-  variables.
+  is the right choice when a property has no packaged default or when list-valued properties become unwieldy as
+  environment variables.
 
-A mounted file is merged with the packaged defaults key by key, so it only needs to contain the keys you change. The
-complete configuration reference of each module is in the module READMEs:
+A mounted file is merged with the packaged defaults property by property, so it only needs to contain the properties
+you change. The complete configuration reference of each module is in the module READMEs:
 
 * [X-Road Catalog Collector — Configuration](../xroad-catalog-collector/README.md#configuration)
 * [X-Road Catalog Lister — Configuration](../xroad-catalog-lister/README.md#configuration)
@@ -289,26 +289,26 @@ complete configuration reference of each module is in the module READMEs:
 
 ### 6.2 Environment Variable Naming
 
-Standard Spring Boot relaxed binding applies to the `spring.*`, `server.*`, `management.*` and `logging.*` keys:
-uppercase the key and replace `.` and `-` with `_`, for example:
+Standard Spring Boot relaxed binding applies to the `spring.*`, `server.*`, `management.*` and `logging.*`
+properties: uppercase the property name and replace `.` and `-` with `_`, for example:
 
 * `spring.datasource.url` → `SPRING_DATASOURCE_URL`
 * `management.endpoint.health.show-components` → `MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS`
 
-For the application's own `xroad.*` and `xroad-catalog.*` keys the same rule applies; a literal `_` already present in
-the key survives, for example:
+For the application's own `xroad.*` and `xroad-catalog.*` properties the same rule applies; a literal `_` already
+present in the property name survives, for example:
 
 * `xroad-catalog.target.xroad-instance` → `XROAD_CATALOG_TARGET_XROAD_INSTANCE`
 * `xroad.configuration-client.global_conf_tls_cert_verification` →
   `XROAD_CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION`
 
-List-valued keys take an index suffix: `xroad-catalog.instance.ignored-subsystem-ids[0]` →
+List-valued properties take an index suffix: `xroad-catalog.instance.ignored-subsystem-ids[0]` →
 `XROAD_CATALOG_INSTANCE_IGNORED_SUBSYSTEM_IDS_0`.
 
 > [!NOTE]
-> Only `xroad.*` keys that have a packaged default in the lister's `application.yaml` are passed on to the embedded
-> X-Road configuration client. A key without a packaged default cannot be introduced via an environment variable —
-> set it in a mounted configuration file instead.
+> Only `xroad.*` properties that have a packaged default in the lister's `application.yaml` are passed on to the
+> embedded X-Road configuration client. A property without a packaged default cannot be introduced via an environment
+> variable — set it in a mounted configuration file instead.
 
 ### 6.3 Collector Configuration
 

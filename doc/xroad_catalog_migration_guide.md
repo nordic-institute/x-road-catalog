@@ -58,6 +58,9 @@ This guide is for operators running X-Road Catalog from the RPM packages (`xroad
 `create_tables_*.sql` scripts) who are moving to the container-based release. New installations should use the
 [Installation Guide](xroad_catalog_installation_guide.md) directly.
 
+The guide describes migrating from the latest RPM release. If your installation runs an older RPM version, first
+upgrade it to the latest RPM release, and only then migrate to the containers.
+
 The guide assumes familiarity with the Installation Guide; it describes only what is specific to moving an existing
 installation and its data.
 
@@ -66,10 +69,10 @@ installation and its data.
 | Area                   | RPM installation                                                                  | Container installation                                                                                                                         |
 |------------------------|-----------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
 | Packaging              | RPMs, systemd units, `/usr/lib/xroad-catalog/*.jar`                               | Images `niis/xroad-catalog-collector` and `niis/xroad-catalog-lister`                                                                          |
-| Configuration          | `/etc/xroad/xroad-catalog/*.properties`, `application.conf`                       | Environment variables or a mounted `application.yaml`; key names changed, see [4](#4-configuration-translation)                                |
+| Configuration          | `/etc/xroad/xroad-catalog/*.properties`, `application.conf`                       | Environment variables or a mounted `application.yaml`; property names changed, see [4](#4-configuration-translation)                           |
 | Schema management      | SQL scripts run once by the RPM `%post` scriptlet                                 | Liquibase, run by the collector at every start; adopts the existing schema                                                                     |
 | Database roles         | Everything connects as `xroad_catalog`                                            | `xroad_catalog` (owner, migrations only), `xroad_catalog_collector` (read/write), `xroad_catalog_lister` (read-only)                           |
-| Configuration client   | Separate `xroad-confclient` RPM and systemd unit                                  | Embedded in the lister, configured with `xroad.configuration-client.*` keys                                                                    |
+| Configuration client   | Separate `xroad-confclient` RPM and systemd unit                                  | Embedded in the lister, configured with `xroad.configuration-client.*` properties                                                              |
 | APIs                   | REST V1 and SOAP                                                                  | REST V2 (new); REST V1 and SOAP retained behind `xroad-catalog.legacy-api.enabled`, off by default; differences, see [3](#3-api-compatibility) |
 | FI profile             | Organization / company collection and endpoints                                   | Removed entirely                                                                                                                               |
 | Logs                   | journald                                                                          | Container stdout                                                                                                                               |
@@ -218,10 +221,10 @@ containers.
 
 Everything else left in the properties files is framework plumbing that the images already set correctly; do not carry
 it over. That covers `spring.main.web_environment` and `spring.main.allow-bean-definition-overriding` in
-`collector-production.properties`; the non-datasource keys of `catalogdb-production.properties`
+`collector-production.properties`; the non-datasource properties of `catalogdb-production.properties`
 (`spring.jpa.database`, `spring.datasource.platform`, `spring.jpa.show-sql`, `spring.jpa.hibernate.ddl-auto`,
 `spring.database.driverClassName`); `springdoc.api-docs.enabled`, `springdoc.swagger-ui.enabled`,
-`springdoc.swagger-ui.path` and the `logging.level.*` keys in `lister-production.properties`; and
+`springdoc.swagger-ui.path` and the `logging.level.*` properties in `lister-production.properties`; and
 `version.properties`, which only records the installed version. Adjust log levels with `LOGGING_LEVEL_*` environment
 variables instead ([Installation Guide, 12](xroad_catalog_installation_guide.md#12-logs)).
 
