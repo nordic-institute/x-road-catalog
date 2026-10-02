@@ -152,13 +152,17 @@ public class TaskPoolConfiguration {
     }
 
     /**
-     * Fails startup on an hour outside 0-23 or a window whose start is not before its end. Both windows are
+     * Fails startup on an hour outside 0-23 or a window whose start is not before its end. The windows are
      * evaluated by {@code CollectorUtils.isTimeBetweenHours}, which would otherwise throw on every scheduler
      * tick for an hour such as 24, and are open at both ends, so an empty window never fetches or flushes.
+     * The fetch window is skipped when {@code xroad-catalog.tasks.fetch-run-unlimited} is true, since it is
+     * then never evaluated; the flush-log window is always validated.
      */
     public void validateHourWindows() {
-        validateHourWindow("xroad-catalog.tasks.fetch-time-after-hour", fetchTimeAfterHour,
-                "xroad-catalog.tasks.fetch-time-before-hour", fetchTimeBeforeHour);
+        if (!fetchRunUnlimited) {
+            validateHourWindow("xroad-catalog.tasks.fetch-time-after-hour", fetchTimeAfterHour,
+                    "xroad-catalog.tasks.fetch-time-before-hour", fetchTimeBeforeHour);
+        }
         validateHourWindow("xroad-catalog.log-storage.flush-log-time-after-hour", flushLogTimeAfterHour,
                 "xroad-catalog.log-storage.flush-log-time-before-hour", flushLogTimeBeforeHour);
     }

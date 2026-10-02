@@ -186,6 +186,32 @@ class TaskPoolConfigurationTest {
         assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
     }
 
+    @Test
+    void validateHourWindowsIgnoresEmptyFetchWindowWhenFetchRunUnlimited() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchRunUnlimited", true);
+        setHourWindows(18, 6, 3, 4);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsIgnoresFetchHourAbove23WhenFetchRunUnlimited() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchRunUnlimited", true);
+        setHourWindows(3, 24, 3, 4);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsStillRejectsInvalidFlushWindowWhenFetchRunUnlimited() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchRunUnlimited", true);
+        setHourWindows(3, 4, 4, 3);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-before-hour"), e.getMessage());
+    }
+
     private void setHourWindows(int fetchAfter, int fetchBefore, int flushAfter, int flushBefore) {
         ReflectionTestUtils.setField(taskPoolConfiguration, "fetchTimeAfterHour", fetchAfter);
         ReflectionTestUtils.setField(taskPoolConfiguration, "fetchTimeBeforeHour", fetchBefore);
