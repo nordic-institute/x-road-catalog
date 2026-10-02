@@ -123,11 +123,19 @@ public class ListClientsTask {
             log.info("{} new members were published as event", newMembers.size());
             return true;
         } catch (Exception e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
-                    "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(), "500");
-            catalogService.saveErrorLog(errorLog);
             log.error("Error when fetching listClients(url: {})", listClientsUrl, e);
+            saveFetchError(listClientsUrl, e);
             return false;
+        }
+    }
+
+    private void saveFetchError(String listClientsUrl, Exception cause) {
+        try {
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
+                    "Error when fetching listClients(url: " + listClientsUrl + "): " + cause.getMessage(), "500");
+            catalogService.saveErrorLog(errorLog);
+        } catch (Exception e) {
+            log.error("Failed to store the listClients error in the error log", e);
         }
     }
 

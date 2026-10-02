@@ -320,6 +320,27 @@ public class ListClientsTaskTest {
         }
     }
 
+    @Test
+    public void testFailedListClientsFetchReportsFailureWhenSavingTheErrorLogFails() {
+        try (MockedStatic<ClientListUtil> mocked = mockStatic(ClientListUtil.class)) {
+            mocked.when(() -> ClientListUtil.clientListFromResponse(any(), any(RestTemplate.class)))
+                    .thenThrow(new CatalogCollectorRuntimeException("connection refused"));
+            Mockito.doThrow(new RuntimeException("db down")).when(catalogService).saveErrorLog(any());
+
+            final Queue<MemberWithName> listMethodsQueue = new ConcurrentLinkedQueue<>();
+            FetchWorkTracker fetchWorkTracker = new FetchWorkTracker();
+            ListClientsTask listClientsTask = new ListClientsTask(catalogService, conf, listMethodsQueue, newMembersEventPublisher,
+                    fetchWorkTracker, new RestTemplate(), Clock.systemDefaultZone());
+
+            assertFalse(assertDoesNotThrow(listClientsTask::run));
+
+            verify(catalogService, times(1)).saveErrorLog(any());
+            verifyNoInteractions(newMembersEventPublisher);
+            assertEquals(0, listMethodsQueue.size());
+            assertEquals(0, fetchWorkTracker.pending());
+        }
+    }
+
     private MemberWithName createClientType(ObjectType objectType, String memberCode, String subsystemCode) throws XRd4JException {
         return createClientType(objectType, "FI", "GOV", memberCode, subsystemCode);
     }
