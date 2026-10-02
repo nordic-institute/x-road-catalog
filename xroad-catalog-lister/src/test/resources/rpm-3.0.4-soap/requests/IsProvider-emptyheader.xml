@@ -1,0 +1,14 @@
+<soapenv:Envelope
+xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
+xmlns:iden="http://x-road.eu/xsd/identifiers"
+xmlns:xrcl="http://xroad.vrk.fi/xroad-catalog-lister">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <xrcl:IsProvider>
+         <xrcl:xRoadInstance>DEV</xrcl:xRoadInstance>
+         <xrcl:memberClass>COM</xrcl:memberClass>
+         <xrcl:memberCode>1234</xrcl:memberCode>
+      </xrcl:IsProvider>
+   </soapenv:Body>
+</soapenv:Envelope>

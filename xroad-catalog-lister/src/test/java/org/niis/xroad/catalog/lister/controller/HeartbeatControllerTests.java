@@ -54,6 +54,9 @@ import static org.mockito.BDDMockito.given;
 @ActiveProfiles({"test", "general-testdata"})
 public class HeartbeatControllerTests {
 
+    private static final int SAMPLES = 5;
+    private static final int NANOS_PER_MILLI = 1_000_000;
+
     @Autowired
     TestRestTemplate restTemplate;
 
@@ -99,6 +102,18 @@ public class HeartbeatControllerTests {
         assertFalse(json.getBoolean("dbWorking"));
         assertEquals("X-Road Catalog Lister", json.getString("appName"));
         assertEquals("1.0.3", json.getString("appVersion"));
+    }
+
+    @Test
+    public void heartbeatSystemTimeHasMillisecondPrecision() throws JSONException {
+        given(catalogService.checkDatabaseConnection()).willReturn(Boolean.TRUE);
+
+        for (int i = 0; i < SAMPLES; i++) {
+            ResponseEntity<String> response = restTemplate.getForEntity("/api/heartbeat", String.class);
+            assertNotNull(response.getBody());
+            LocalDateTime systemTime = LocalDateTime.parse(new JSONObject(response.getBody()).getString("systemTime"));
+            assertEquals(0, systemTime.getNano() % NANOS_PER_MILLI, "systemTime must be truncated to milliseconds: " + systemTime);
+        }
     }
 
     /**

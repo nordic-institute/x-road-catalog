@@ -26,6 +26,7 @@ package org.niis.xroad.catalog.collector.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.util.CollectorUtils;
 import org.niis.xroad.catalog.persistence.entity.CollectionRun;
 import org.niis.xroad.catalog.persistence.repository.CollectionRunRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,16 @@ import java.time.LocalDateTime;
 /**
  * One collection cycle: list clients, block until the {@link FetchWorkTracker} pending counter
  * reaches zero, recompute the denormalized columns, then finalize the {@link CollectionRun} row.
+ *
+ * <p>The fetch window is decided here, once per scheduler tick. Outside it (and with
+ * {@code fetch-run-unlimited} false) the tick logs at debug level and returns without a run row, a
+ * fetch, a recompute or a metrics sample, so {@link CollectionRun} rows and the last-success gauge
+ * reflect only cycles that actually collected. The old {@code error_log} rows are flushed before that
+ * check, in their own separately configured window, so the flush happens on every tick.
+ *
+ * <p>A cycle whose client list could not be fetched is finalized with {@code success = false}: the
+ * {@link ListClientsTask} reports the failure through its return value after writing the error log row,
+ * so the last-success gauge only advances when the ecosystem was actually listed.
  *
  * <p>The tick passed to {@link FetchWorkTracker#awaitAllDone(long)} is a reporting interval, not a
  * deadline — each tick writes the pending count to the run row for heartbeat visibility. The wait
@@ -86,6 +97,18 @@ public class CollectionCycleRunner {
     }
 
     public void run() {
+        // Own catch: these run before the cycle's try block, and an escaping exception would end the schedule.
+        try {
+            listClientsTask.flushOldErrorLogEntries();
+            if (!fetchWindowOpen()) {
+                log.debug("Outside the fetch window {}:00-{}:00, skipping the collection cycle",
+                        taskPoolConfiguration.getFetchTimeAfterHour(), taskPoolConfiguration.getFetchTimeBeforeHour());
+                return;
+            }
+        } catch (Exception e) {
+            log.error("Skipping the collection cycle, the error log flush or the fetch window check failed", e);
+            return;
+        }
         // Monotonic elapsed time for the duration metric: wall-clock (LocalDateTime) differences can go
         // backwards across a DST rollback or an NTP step, and Micrometer silently drops negative samples.
         long cycleStartNanos = System.nanoTime();
@@ -99,8 +122,7 @@ public class CollectionCycleRunner {
         boolean interrupted = false;
         try {
             LocalDateTime deadline = fetchWindowEnd();
-            listClientsTask.run();
-            listClientsOk = true;
+            listClientsOk = listClientsTask.run();
             writeProgress(run);
             allWorkDone = awaitAllWorkDone(run, deadline);
         } catch (InterruptedException e) {
@@ -122,9 +144,14 @@ public class CollectionCycleRunner {
         }
     }
 
+    private boolean fetchWindowOpen() {
+        return taskPoolConfiguration.isFetchRunUnlimited()
+                || CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFetchTimeAfterHour(),
+                taskPoolConfiguration.getFetchTimeBeforeHour());
+    }
+
     /**
      * End of the window in which the collector is allowed to fetch, or null when fetching is unlimited.
-     * Reuses the {@code fetch-time-before-hour} semantics of {@link ListClientsTask}.
      */
     private LocalDateTime fetchWindowEnd() {
         if (taskPoolConfiguration.isFetchRunUnlimited()) {

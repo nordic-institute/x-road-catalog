@@ -122,7 +122,7 @@ values will be used.
 
 | Parameter                                              | Defaults                                     | Description                                                                                                                                                                                                                                                                                                  | Since |
 |--------------------------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
-| `xroad-catalog.instance.ignored-subsystem-ids`         | ``                                           | A parameter for setting the list of subsystems that should be ignored in the collection process. The value needs to be formatted as a YAML list. The default value is empty.                                                                                                                                 | 1.0.0 |
+| `xroad-catalog.instance.ignored-subsystem-ids`         | ``                                           | A parameter for setting the list of subsystems that are excluded from the collection process: neither they nor their services are stored, and a previously collected subsystem is marked as removed once listed. The value needs to be formatted as a YAML list. The default value is empty.                 | 1.0.0 |
 | `xroad-catalog.urls.list-clients-host`                 | `${xroad-catalog.urls.security-server-host}` | A parameter for setting the Security Server host to be used to get list of clients. Default value references `xroad-catalog.urls.security-server-host`.                                                                                                                                                      | 1.0.0 |
 | `xroad-catalog.urls.webservices-endpoint`              | `${xroad-catalog.urls.security-server-host}` | A parameter for setting the Security Server host to be used to get list of OpenAPI services, SOAP services, and list of services. Default value references `xroad-catalog.urls.security-server-host`.                                                                                                        | 1.0.0 |
 | `xroad-catalog.pool-size.fetch-openapi`                | `10`                                         | A parameter for setting the amount of virtual threads in the pool for fetching OpenAPI services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                            | 1.0.0 |
@@ -141,12 +141,7 @@ values will be used.
 
 ### Fixed-Mandatory Values to include in `application.yaml`
 
-The following list of configurations must be included in the `application.yaml` file without modifications to their
-values.
-> [!IMPORTANT]
-> If user is not using the `application.yaml` file to customize the configurations, e.g., using spring boot profile or
-> k8s
-> configmap, service will use the default `application.yaml` which provide these values already.
+The following values are supplied by the packaged `application.yaml` and are listed for reference.
 
 #### Fixed-Mandatory Values for Data Source and Liquibase
 
@@ -158,7 +153,6 @@ values.
 | [spring.jpa.open-in-view](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.open-in-view)                         | `false`                                          | Preferably `false` in production.                                       | 1.0.0 |
 | [spring.jpa.show-sql](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.show-sql)                                 | `false`                                          | Use to debug SQL statements executed. Preferably `false` in production. | 1.0.0 |
 | [spring.jpa.hibernate.ddl-auto](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.hibernate.ddl-auto)             | `none`                                           | Keep to `none` to avoid conflict with liquibase.                        | 1.0.0 |
-| spring.jpa.properties.hibernate.dialect                                                                                                                                              | `org.hibernate.dialect.PostgreSQLDialect`        | PostgreSQL is the only supported RDMBS.                                 | 1.0.0 |
 | [spring.liquibase.enabled](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.enabled)             | `true`                                           | `true` to execute liquibase changesets against database during startup. | 1.0.0 |
 | [spring.liquibase.change-log](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.change-log)       | `classpath:db/changelog/db.changelog-master.xml` | Points to changesets maintained by collector module.                    | 1.0.0 |
 | [spring.liquibase.show-summary](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.show-summary)   | `verbose`                                        | Prints a summary of liquibase files during application's startup        | 1.0.0 |

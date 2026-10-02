@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-public class ListClientsTask implements Runnable {
+public class ListClientsTask {
 
     private final TaskPoolConfiguration taskPoolConfiguration;
     private final CatalogService catalogService;
@@ -72,25 +72,41 @@ public class ListClientsTask implements Runnable {
         this.clock = clock;
     }
 
-    public void run() {
+    /**
+     * Fetches the client list unconditionally; the fetch window is decided by {@link CollectionCycleRunner}.
+     * Never throws: a failed fetch is written to the error log and reported through the return value, so
+     * that the runner finalizes the cycle as unsuccessful instead of the scheduler dying.
+     *
+     * @return true when the client list was fetched and stored, false when the fetch failed
+     */
+    public boolean run() {
         log.info("Starting ListClientsTask");
-        if (CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFlushLogTimeAfterHour(),
-                taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
-            catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
-        }
+        return fetchClients();
+    }
 
-        if (taskPoolConfiguration.isFetchRunUnlimited()
-                || CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFetchTimeAfterHour(),
-                taskPoolConfiguration.getFetchTimeBeforeHour())) {
-            fetchClients();
+    /**
+     * Deletes {@code error_log} rows older than the configured retention when the clock is inside the
+     * flush-log window. Called by {@link CollectionCycleRunner} on every scheduler tick, independently of
+     * the fetch window. Never throws, so a failed flush cannot stop the collection cycle or the scheduler.
+     */
+    public void flushOldErrorLogEntries() {
+        if (!CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFlushLogTimeAfterHour(),
+                taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
+            return;
+        }
+        try {
+            catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
+        } catch (Exception e) {
+            log.error("Failed to flush old error log entries", e);
         }
     }
 
-    private void fetchClients() {
+    private boolean fetchClients() {
         String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
         try {
             log.info("Getting client list from {}", listClientsUrl);
-            List<MemberWithName> clientList = ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate);
+            List<MemberWithName> clientList = withoutIgnoredSubsystems(
+                    ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate));
             HashMap<MemberId, Member> m = populateMapWithMembers(clientList);
             Set<Member> newMembers = catalogService.saveAllMembersAndSubsystems(m.values());
 
@@ -105,13 +121,35 @@ public class ListClientsTask implements Runnable {
 
             newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).collect(Collectors.toSet()));
             log.info("{} new members were published as event", newMembers.size());
+            return true;
         } catch (Exception e) {
-            ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
-                    "Error when fetching listClients(url: " + listClientsUrl + "): " + e.getMessage(), "500");
-            catalogService.saveErrorLog(errorLog);
             log.error("Error when fetching listClients(url: {})", listClientsUrl, e);
+            saveFetchError(listClientsUrl, e);
+            return false;
         }
+    }
 
+    private void saveFetchError(String listClientsUrl, Exception cause) {
+        try {
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
+                    "Error when fetching listClients(url: " + listClientsUrl + "): " + cause.getMessage(), "500");
+            catalogService.saveErrorLog(errorLog);
+        } catch (Exception e) {
+            log.error("Failed to store the listClients error in the error log", e);
+        }
+    }
+
+    private List<MemberWithName> withoutIgnoredSubsystems(List<MemberWithName> clientList) {
+        return clientList.stream().filter(client -> !isIgnoredSubsystem(client)).toList();
+    }
+
+    private boolean isIgnoredSubsystem(MemberWithName client) {
+        boolean ignored = ObjectType.SUBSYSTEM.equals(client.getId().getObjectType())
+                && taskPoolConfiguration.isIgnoredSubsystem(client);
+        if (ignored) {
+            log.info("Subsystem {} marked as ignored in configuration, excluding it from the catalog", IdentifierUtil.toString(client));
+        }
+        return ignored;
     }
 
     private HashMap<MemberId, Member> populateMapWithMembers(List<MemberWithName> clientList) {

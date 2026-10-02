@@ -58,7 +58,7 @@ public class CollectorMetrics {
         this.meterRegistry = meterRegistry;
         this.clock = clock;
         Gauge.builder(LAST_SUCCESS_TIMESTAMP_METRIC, lastSuccessEpochSeconds, AtomicLong::get)
-                .description("Epoch seconds of the last successful collection cycle, for alerting on staleness")
+                .description("Epoch seconds when the last successful collection cycle finished")
                 .baseUnit("seconds")
                 .register(meterRegistry);
         seedLastSuccess(collectionRunRepository);

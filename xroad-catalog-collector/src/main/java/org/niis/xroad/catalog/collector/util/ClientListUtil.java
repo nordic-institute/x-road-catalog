@@ -25,8 +25,10 @@
 package org.niis.xroad.catalog.collector.util;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xroad.catalog.collector.exception.CatalogCollectorRuntimeException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -36,8 +38,12 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public final class ClientListUtil {
+
+    private static final int BODY_EXCERPT_LENGTH = 200;
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
     private ClientListUtil() {
         // Private empty constructor
@@ -49,14 +55,43 @@ public final class ClientListUtil {
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity,
                 String.class);
-        JSONObject bodyJson = new JSONObject(response.getBody());
-        JSONArray members = bodyJson.getJSONArray("member");
+        JSONArray members = parseBody(response).getJSONArray("member");
         List<MemberWithName> clientList = new ArrayList<>();
         for (int i = 0; i < members.length(); i++) {
             JSONObject member = members.getJSONObject(i);
             clientList.add(constructMemberWithName(member));
         }
         return clientList;
+    }
+
+    /**
+     * A Security Server answers listClients with 2xx and a non-JSON body when, for example, its global
+     * configuration has expired; a 4xx/5xx already surfaces as Spring's {@code HttpStatusCodeException}
+     * with status and body. The message therefore names what came back, not only where the JSON
+     * tokenizer stopped, so an administrator can tell an expired global configuration, a proxy error page
+     * and a wrong port apart.
+     */
+    private static JSONObject parseBody(ResponseEntity<String> response) {
+        String body = response.getBody() == null ? "" : response.getBody();
+        try {
+            return new JSONObject(body);
+        } catch (JSONException e) {
+            MediaType contentType = response.getHeaders().getContentType();
+            throw new CatalogCollectorRuntimeException("listClients answered HTTP " + response.getStatusCode()
+                    + " with a body that is not JSON (" + (contentType == null ? "no Content-Type" : "Content-Type: " + contentType)
+                    + "): " + excerpt(body), e);
+        }
+    }
+
+    private static String excerpt(String body) {
+        String collapsed = WHITESPACE.matcher(body).replaceAll(" ").trim();
+        if (collapsed.isEmpty()) {
+            return "(empty body)";
+        }
+        if (collapsed.length() <= BODY_EXCERPT_LENGTH) {
+            return collapsed;
+        }
+        return collapsed.substring(0, BODY_EXCERPT_LENGTH) + "...";
     }
 
     private static MemberWithName constructMemberWithName(final JSONObject member) {

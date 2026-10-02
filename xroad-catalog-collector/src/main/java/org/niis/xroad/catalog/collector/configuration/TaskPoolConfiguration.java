@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -39,6 +40,8 @@ import java.util.Set;
 @Getter
 @Configuration
 public class TaskPoolConfiguration {
+
+    private static final int MAX_HOUR = 23;
 
     // X-Road instance parameters
 
@@ -119,6 +122,15 @@ public class TaskPoolConfiguration {
         return ignoredSubsystemIdsProperties.getIgnoredSubsystemIds();
     }
 
+    public boolean isIgnoredSubsystem(MemberWithName subsystem) {
+        String identifier = String.format("%s:%s:%s:%s",
+                subsystem.getId().getXRoadInstance(),
+                subsystem.getId().getMemberClass(),
+                subsystem.getId().getMemberCode(),
+                subsystem.getId().getSubsystemCode());
+        return getIgnoredSubsystemIds().contains(identifier);
+    }
+
     @Bean
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -133,10 +145,65 @@ public class TaskPoolConfiguration {
      * initialization, so setting them in {@code @PostConstruct} is early enough.
      */
     @PostConstruct
+    void init() {
+        configureSaajTimeouts();
+        normalizeUrls();
+        validateHourWindows();
+    }
+
+    /**
+     * Fails startup on an hour outside 0-23 or a window whose start is not before its end. The windows are
+     * evaluated by {@code CollectorUtils.isTimeBetweenHours}, which would otherwise throw on every scheduler
+     * tick for an hour such as 24, and are open at both ends, so an empty window never fetches or flushes.
+     * The fetch window is skipped when {@code xroad-catalog.tasks.fetch-run-unlimited} is true, since it is
+     * then never evaluated; the flush-log window is always validated.
+     */
+    public void validateHourWindows() {
+        if (!fetchRunUnlimited) {
+            validateHourWindow("xroad-catalog.tasks.fetch-time-after-hour", fetchTimeAfterHour,
+                    "xroad-catalog.tasks.fetch-time-before-hour", fetchTimeBeforeHour);
+        }
+        validateHourWindow("xroad-catalog.log-storage.flush-log-time-after-hour", flushLogTimeAfterHour,
+                "xroad-catalog.log-storage.flush-log-time-before-hour", flushLogTimeBeforeHour);
+    }
+
+    private static void validateHourWindow(String afterProperty, int afterHour, String beforeProperty, int beforeHour) {
+        validateHour(afterProperty, afterHour);
+        validateHour(beforeProperty, beforeHour);
+        if (afterHour >= beforeHour) {
+            throw new IllegalStateException(String.format("%s (%d) must be lower than %s (%d): the window does not cross midnight",
+                    afterProperty, afterHour, beforeProperty, beforeHour));
+        }
+    }
+
+    private static void validateHour(String property, int hour) {
+        if (hour < 0 || hour > MAX_HOUR) {
+            throw new IllegalStateException(String.format("%s must be an hour of the day between 0 and %d, got %d",
+                    property, MAX_HOUR, hour));
+        }
+    }
+
     public void configureSaajTimeouts() {
         // Both parse timeout millis as int; must stay below Integer.MAX_VALUE/1000
         System.setProperty("saaj.connect.timeout", String.valueOf(Duration.ofSeconds(clientConnectTimeoutSeconds).toMillis()));
         System.setProperty("saaj.read.timeout", String.valueOf(Duration.ofSeconds(clientReadTimeoutSeconds).toMillis()));
+    }
+
+    public void normalizeUrls() {
+        securityServerHost = stripTrailingSlashes(securityServerHost);
+        webservicesEndpoint = stripTrailingSlashes(webservicesEndpoint);
+        listClientsHost = stripTrailingSlashes(listClientsHost);
+    }
+
+    private static String stripTrailingSlashes(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        int end = value.length();
+        while (end > 0 && value.charAt(end - 1) == '/') {
+            end--;
+        }
+        return value.substring(0, end);
     }
 
 }

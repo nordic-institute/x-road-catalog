@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Clock;
+import java.time.Duration;
 
 /**
  * Collector-wide cross-cutting infrastructure beans.
@@ -40,11 +41,12 @@ public class InfrastructureConfiguration {
      * System-default-zone clock, not UTC: every timestamp the collector persists is host-local
      * wall-clock time, and the lister's clock bean makes the same choice. Deployment invariant:
      * the collector, the lister and the Postgres session must share one timezone.
+     * Ticks in whole milliseconds so persisted timestamps keep the precision the 3.x converters produced.
      * {@link ConditionalOnMissingBean} lets tests override with a fixed clock.
      */
     @Bean
     @ConditionalOnMissingBean(Clock.class)
     public Clock systemClock() {
-        return Clock.systemDefaultZone();
+        return Clock.tick(Clock.systemDefaultZone(), Duration.ofMillis(1));
     }
 }

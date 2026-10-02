@@ -121,15 +121,15 @@ public class ListMethodsTask implements Runnable {
                 FetchHandOff.handOff(semaphore, fetchWorkTracker, () -> saveSubsystemsAndServices(client));
             }
         } catch (InterruptedException e) {
-            log.warn("Interrupted while waiting for clients, stopping ListMethodsTask", e);
+            log.info("Interrupted while waiting for clients, stopping ListMethodsTask");
             Thread.currentThread().interrupt();
         }
     }
 
     private void saveSubsystemsAndServices(final MemberWithName client) {
         try {
-            if (shouldBeIgnored(client)) {
-                log.info("Subsystem {} marked as ignored in configuration, skipping services", IdentifierUtil.toString(client));
+            if (taskPoolConfiguration.isIgnoredSubsystem(client)) {
+                log.info("Subsystem {} marked as ignored in configuration, skipping", IdentifierUtil.toString(client));
                 return;
             }
 
@@ -199,14 +199,5 @@ public class ListMethodsTask implements Runnable {
         } else {
             this.openApiQueue.add(service);
         }
-    }
-
-    private boolean shouldBeIgnored(final MemberWithName subsystem) {
-        String identifier = String.format("%s:%s:%s:%s",
-                subsystem.getId().getXRoadInstance(),
-                subsystem.getId().getMemberClass(),
-                subsystem.getId().getMemberCode(),
-                subsystem.getId().getSubsystemCode());
-        return taskPoolConfiguration.getIgnoredSubsystemIds().contains(identifier);
     }
 }

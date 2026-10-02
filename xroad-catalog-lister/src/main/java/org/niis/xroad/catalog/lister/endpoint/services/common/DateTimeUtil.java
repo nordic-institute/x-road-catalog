@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * @deprecated Superseded by the V2 REST API ({@code org.niis.xroad.catalog.lister.v2}); scheduled for removal.
@@ -52,11 +53,16 @@ public final class DateTimeUtil {
         return calendar.toGregorianCalendar().toZonedDateTime().toLocalDateTime();
     }
 
-    public static LocalDateTime parseXmlDateTime(String dateTimeString) {
+    public static LocalDateTime parseXmlDateTime(String parameterName, String dateTimeString) {
         if (!StringUtils.hasText(dateTimeString)) {
             return null;
         }
-        XMLGregorianCalendar xmlCalendar = DATATYPE_FACTORY.newXMLGregorianCalendar(dateTimeString);
+        XMLGregorianCalendar xmlCalendar;
+        try {
+            xmlCalendar = DATATYPE_FACTORY.newXMLGregorianCalendar(dateTimeString);
+        } catch (IllegalArgumentException e) {
+            throw new DateTimeParseException("Invalid " + parameterName + ": " + dateTimeString, dateTimeString, 0, e);
+        }
         return toLocalDateTime(xmlCalendar);
     }
 

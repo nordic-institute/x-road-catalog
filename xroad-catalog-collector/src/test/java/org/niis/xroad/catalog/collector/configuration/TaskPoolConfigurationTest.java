@@ -33,8 +33,12 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit test (no Spring context) for the client I/O timeout wiring in {@link TaskPoolConfiguration}.
@@ -96,6 +100,123 @@ class TaskPoolConfigurationTest {
                 System.getProperty(SAAJ_CONNECT_TIMEOUT_PROPERTY));
         assertEquals(String.valueOf(Duration.ofSeconds(READ_TIMEOUT_SECONDS).toMillis()),
                 System.getProperty(SAAJ_READ_TIMEOUT_PROPERTY));
+    }
+
+    @Test
+    void normalizeUrlsStripsSingleTrailingSlash() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "securityServerHost", "https://ss.example.org:8443/");
+
+        taskPoolConfiguration.normalizeUrls();
+
+        assertEquals("https://ss.example.org:8443", taskPoolConfiguration.getSecurityServerHost());
+    }
+
+    @Test
+    void normalizeUrlsStripsMultipleTrailingSlashes() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "listClientsHost", "https://ss.example.org:8443///");
+
+        taskPoolConfiguration.normalizeUrls();
+
+        assertEquals("https://ss.example.org:8443", taskPoolConfiguration.getListClientsHost());
+    }
+
+    @Test
+    void normalizeUrlsLeavesValueWithoutTrailingSlashUnchanged() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "webservicesEndpoint", "https://ss.example.org:8443");
+
+        taskPoolConfiguration.normalizeUrls();
+
+        assertEquals("https://ss.example.org:8443", taskPoolConfiguration.getWebservicesEndpoint());
+    }
+
+    @Test
+    void normalizeUrlsLeavesNullValueUnchanged() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "securityServerHost", null);
+
+        taskPoolConfiguration.normalizeUrls();
+
+        assertNull(taskPoolConfiguration.getSecurityServerHost());
+    }
+
+    @Test
+    void validateHourWindowsAcceptsTheDefaultWindows() {
+        setHourWindows(3, 4, 3, 4);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsAcceptsTheFullDay() {
+        setHourWindows(0, 23, 0, 23);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsRejectsFetchHourAbove23() {
+        setHourWindows(3, 24, 3, 4);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.tasks.fetch-time-before-hour"), e.getMessage());
+        assertTrue(e.getMessage().contains("24"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsRejectsNegativeFlushHour() {
+        setHourWindows(3, 4, -1, 4);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsRejectsFetchWindowThatDoesNotStartBeforeItEnds() {
+        setHourWindows(4, 3, 3, 4);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.tasks.fetch-time-after-hour"), e.getMessage());
+        assertTrue(e.getMessage().contains("xroad-catalog.tasks.fetch-time-before-hour"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsRejectsEmptyFlushWindow() {
+        setHourWindows(3, 4, 3, 3);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
+    }
+
+    @Test
+    void validateHourWindowsIgnoresEmptyFetchWindowWhenFetchRunUnlimited() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchRunUnlimited", true);
+        setHourWindows(18, 6, 3, 4);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsIgnoresFetchHourAbove23WhenFetchRunUnlimited() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchRunUnlimited", true);
+        setHourWindows(3, 24, 3, 4);
+
+        assertDoesNotThrow(taskPoolConfiguration::validateHourWindows);
+    }
+
+    @Test
+    void validateHourWindowsStillRejectsInvalidFlushWindowWhenFetchRunUnlimited() {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchRunUnlimited", true);
+        setHourWindows(3, 4, 4, 3);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, taskPoolConfiguration::validateHourWindows);
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-after-hour"), e.getMessage());
+        assertTrue(e.getMessage().contains("xroad-catalog.log-storage.flush-log-time-before-hour"), e.getMessage());
+    }
+
+    private void setHourWindows(int fetchAfter, int fetchBefore, int flushAfter, int flushBefore) {
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchTimeAfterHour", fetchAfter);
+        ReflectionTestUtils.setField(taskPoolConfiguration, "fetchTimeBeforeHour", fetchBefore);
+        ReflectionTestUtils.setField(taskPoolConfiguration, "flushLogTimeAfterHour", flushAfter);
+        ReflectionTestUtils.setField(taskPoolConfiguration, "flushLogTimeBeforeHour", flushBefore);
     }
 
 }
