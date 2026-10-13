@@ -44,7 +44,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,7 +74,7 @@ public class SharedParamsParserV2 {
 
     @FunctionalInterface
     interface VersionUnmarshaller {
-        SharedParameters unmarshal(Path sharedParamsFile) throws CertificateEncodingException, IOException;
+        SharedParameters unmarshal(Path sharedParamsFile);
     }
 
     /**
@@ -223,11 +222,11 @@ public class SharedParamsParserV2 {
         rejectUnsafeXml(path);
 
         SchemaVersion remembered = rememberedVersion.get();
-        Exception lastFailure = null;
+        RuntimeException lastFailure = null;
         if (remembered != null) {
             try {
                 return remembered.unmarshaller().unmarshal(path);
-            } catch (CertificateEncodingException | IOException | RuntimeException e) {
+            } catch (RuntimeException e) {
                 lastFailure = e;
             }
         }
@@ -240,7 +239,7 @@ public class SharedParamsParserV2 {
                 log.info("Shared-params file {} matched schema version {}", sharedParamsFile, candidate.name());
                 rememberedVersion.set(candidate);
                 return params;
-            } catch (CertificateEncodingException | IOException | RuntimeException e) {
+            } catch (RuntimeException e) {
                 lastFailure = e;
             }
         }
