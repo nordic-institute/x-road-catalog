@@ -32,6 +32,7 @@ import org.niis.xroad.globalconf.model.SharedParametersV2;
 import org.niis.xroad.globalconf.model.SharedParametersV3;
 import org.niis.xroad.globalconf.model.SharedParametersV4;
 import org.niis.xroad.globalconf.model.SharedParametersV5;
+import org.niis.xroad.globalconf.model.SharedParametersV6;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -47,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SharedParamsParserV2Test {
 
+    private static final String V6_FIXTURE = "src/test/resources/shared-params-v6.xml";
     private static final String V5_FIXTURE = "src/test/resources/shared-params-2.xml";
     private static final String V5_FIXTURE_DEV_CS = "src/test/resources/shared-params-dev-cs.xml";
     private static final String V2_FIXTURE = "src/test/resources/shared-params.xml";
@@ -54,7 +57,7 @@ public class SharedParamsParserV2Test {
     private static final String XXE_FIXTURE = "src/test/resources/shared-params-xxe.xml";
     private static final String NO_SUPPORTED_VERSION_MESSAGE =
             "did not validate against any supported shared-parameters schema version";
-    private static final List<String> NEWEST_FIRST_LADDER = List.of("V5", "V4", "V3", "V2");
+    private static final List<String> NEWEST_FIRST_LADDER = List.of("V6", "V5", "V4", "V3", "V2");
 
     private final SharedParamsParserV2 parser = new SharedParamsParserV2();
 
@@ -70,8 +73,8 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseSubsystemNames() throws Exception {
-        // shared-params-2.xml only validates as schema V5, the only version whose XSD allows
-        // <subsystemName>; it has at least one such element
+        // shared-params-2.xml validates as schema V5 (and V6, a superset of V5), the only versions
+        // whose XSDs allow <subsystemName>; it has at least one such element
         List<SubsystemNameInfo> names = parser.parse(V5_FIXTURE).subsystemNames();
         names.forEach(n -> {
             assertTrue(n.getMemberClass() != null && !n.getMemberClass().isBlank());
@@ -90,8 +93,8 @@ public class SharedParamsParserV2Test {
 
     @Test
     void testParseSubsystemNamesFromSecondV5Fixture() throws Exception {
-        // shared-params-dev-cs.xml also only validates as schema V5; confirms the newest-first
-        // fallback isn't accidentally tied to a single fixture
+        // shared-params-dev-cs.xml also validates as schema V5 (and V6) only; confirms the
+        // newest-first fallback isn't accidentally tied to a single fixture
         List<SubsystemNameInfo> names = parser.parse(V5_FIXTURE_DEV_CS).subsystemNames();
         assertEquals(1, names.size());
         assertEquals("PUB", names.get(0).getMemberClass());
@@ -106,8 +109,60 @@ public class SharedParamsParserV2Test {
     }
 
     @Test
+    void testParseV6FixtureResolvesEverySharedParamsResultSet() throws Exception {
+        // shared-params-v6.xml is what configuration-client 7.8.3 downloads from a 7.8 Central Server
+        // (global configuration version 6): <costType> on the TSA only exists in the V6 XSD
+        SharedParamsParserV2.ParsedSharedParams parsed = parser.parse(V6_FIXTURE);
+
+        assertEquals("DEV", parser.parseInstanceIdentifier(V6_FIXTURE));
+
+        assertEquals(2, parsed.memberClasses().size());
+        assertTrue(parsed.memberClasses().stream().anyMatch(c -> "COM".equals(c.getCode())
+                && "Commercial".equals(c.getDescription())));
+        assertTrue(parsed.memberClasses().stream().anyMatch(c -> "GOV".equals(c.getCode())));
+
+        assertEquals(1, parsed.subsystemNames().size());
+        SubsystemNameInfo catalog = parsed.subsystemNames().get(0);
+        assertEquals("COM", catalog.getMemberClass());
+        assertEquals("1234", catalog.getMemberCode());
+        assertEquals("catalog", catalog.getSubsystemCode());
+        assertEquals("X-Road Catalog", catalog.getSubsystemName());
+
+        assertEquals(2, parsed.securityServers().size());
+        SecurityServerInfo ss0 = parsed.securityServers().stream().filter(s -> "SS0".equals(s.serverCode()))
+                .findFirst().orElseThrow();
+        assertEquals("ss0", ss0.address());
+        assertEquals("COM", ss0.owner().memberClass());
+        assertEquals("1234", ss0.owner().memberCode());
+        assertEquals("Test member", ss0.owner().name());
+        assertEquals(2, ss0.clients().size());
+        assertTrue(ss0.clients().stream().anyMatch(c -> "MANAGEMENT".equals(c.subsystemCode())));
+        assertTrue(ss0.clients().stream().anyMatch(c -> "catalog".equals(c.subsystemCode())));
+        SecurityServerInfo ss1 = parsed.securityServers().stream().filter(s -> "SS1".equals(s.serverCode()))
+                .findFirst().orElseThrow();
+        assertEquals("Test client", ss1.owner().name());
+        assertEquals(1, ss1.clients().size());
+        assertEquals("TestClient", ss1.clients().get(0).subsystemCode());
+    }
+
+    @Test
+    void theV6FixtureMatchesTheV6RungAloneAndNothingBelowIt() {
+        // the fixture must validate as V6 only, so that this test keeps proving the regression a
+        // ladder that stops at V5 would reproduce
+        List<String> attempts = new ArrayList<>();
+        SharedParamsParserV2 counting = new SharedParamsParserV2(countingLadder(attempts));
+        assertDoesNotThrow(() -> counting.parse(V6_FIXTURE));
+        assertEquals(List.of("V6"), attempts, "the newest rung must match first");
+
+        List<SharedParamsParserV2.SchemaVersion> withoutV6 = countingLadder(attempts).subList(1, NEWEST_FIRST_LADDER.size());
+        SharedParamsParserV2 laddersOnlyUpToV5 = new SharedParamsParserV2(withoutV6);
+        IOException exception = assertThrows(IOException.class, () -> laddersOnlyUpToV5.parse(V6_FIXTURE));
+        assertTrue(exception.getMessage().contains(NO_SUPPORTED_VERSION_MESSAGE));
+    }
+
+    @Test
     void testParseThrowsWhenDocumentMatchesNoSupportedSchemaVersion() {
-        // shared-params-unsupported.xml is well-formed but matches no V2-V5 schema; the parser must
+        // shared-params-unsupported.xml is well-formed but matches no V2-V6 schema; the parser must
         // fail loudly so SharedParamsCache can tell "not parseable" apart from "genuinely empty".
         IOException exception = assertThrows(IOException.class, () -> parser.parse(UNSUPPORTED_FIXTURE));
         assertTrue(exception.getMessage().contains(NO_SUPPORTED_VERSION_MESSAGE));
@@ -174,7 +229,7 @@ public class SharedParamsParserV2Test {
 
         SharedParamsParserV2.ParsedSharedParams parsed = counting.parse(V5_FIXTURE);
 
-        assertEquals(List.of("V5"), attempts, "one unmarshal per parse, not one per derived result set");
+        assertEquals(List.of("V6"), attempts, "one unmarshal per parse, not one per derived result set");
         assertEquals(3, parsed.memberClasses().size());
         assertFalse(parsed.subsystemNames().isEmpty());
         assertEquals(4, parsed.securityServers().size());
@@ -197,7 +252,7 @@ public class SharedParamsParserV2Test {
     void parseFallsBackToTheFullLadderWhenTheRememberedVersionStopsMatching() throws Exception {
         parser.parse(V5_FIXTURE);
 
-        // a V2-schema document must still parse after V5 has been remembered
+        // a V2-schema document must still parse after V6 has been remembered
         List<SecurityServerInfo> servers = parser.parse(V2_FIXTURE).securityServers();
         assertEquals(1, servers.size());
         assertEquals("SS1", servers.get(0).serverCode());
@@ -240,6 +295,7 @@ public class SharedParamsParserV2Test {
 
     private static List<SharedParamsParserV2.SchemaVersion> countingLadder(List<String> attempts) {
         return List.of(
+                counting("V6", attempts, file -> new SharedParametersV6(file, OffsetDateTime.MAX).getSharedParameters()),
                 counting("V5", attempts, file -> new SharedParametersV5(file, OffsetDateTime.MAX).getSharedParameters()),
                 counting("V4", attempts, file -> new SharedParametersV4(file, OffsetDateTime.MAX).getSharedParameters()),
                 counting("V3", attempts, file -> new SharedParametersV3(file, OffsetDateTime.MAX).getSharedParameters()),

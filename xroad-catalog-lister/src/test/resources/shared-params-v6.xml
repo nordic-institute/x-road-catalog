@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>DEV</instanceIdentifier>
+    <source>
+        <address>cs</address>
+        <internalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC8We+lkpfx66ENAQ7RHPagGu5rRTx6LdbKCUo2C20qCElQnM1wByATyXaPgK2cA6959o3E0475Ez7zWa4LDiTGrNtd0/+3JkeF7+kq11vJ2dK1r9boyuZCpNgSHojob+5OltCAfEuO1RvrvvYGvcNF1NdvNQDWybLde21w6a2o8gZvaWZm211uFGZDBKnB17t4JQNzELNKLOWXXKFBVPp3fE9eU0ier887QFdLS7oTEhxTMG1+hf6hylQgdJ3gOJhPD+/Iao7MR2SwV2ceAsM81fALGXhp6iISPVyJfVkMH6MVR4p1u9xbLKgxU1iKTvgJ1GCUCMDajUmo937yd0XbAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQBBg+g37Ck8jWKnRXbiTg99ICgTHk+rVjmMVPtDG2ca4+tMi+t0PnqMJbiYiP55OkEc/hxr9W6UcGikkm4sFyTIev6vyx5SwgNj868Y36NsOGO+uN/A4ZN3VeNeR4BwQjNfJpGWP1cvuuUQhQdl/713kMvoW9evHxyj3IITq0LZArsg16L7Cbsnykuw9bdhBD4PVNRJTXBJgjZJy9rullG/8VvAkuW1hKYDc5K8CTi6jWrh7Gy9swAzR8ixpX4Dw9+Aw9ScRSjvL9i5zK+CHhcq8rXkXm9py7KCQmbseEorwwBX8BlA1XTHigavLaXQC3dbeaoPwS/qMSHQkAkebZTj</internalVerificationCert>
+    </source>
+    <approvedTSA>
+        <name>Test TSA</name>
+        <url>http://testca:8899</url>
+        <cert>AAAA</cert>
+        <costType>FREE</costType>
+    </approvedTSA>
+    <member id="id0">
+        <memberClass>
+            <code>COM</code>
+            <description>Commercial</description>
+        </memberClass>
+        <memberCode>1234</memberCode>
+        <name>Test member</name>
+        <subsystem id="id1">
+            <subsystemCode>MANAGEMENT</subsystemCode>
+        </subsystem>
+        <subsystem id="id2">
+            <subsystemCode>catalog</subsystemCode>
+            <subsystemName>X-Road Catalog</subsystemName>
+        </subsystem>
+    </member>
+    <member id="id3">
+        <memberClass>
+            <code>COM</code>
+            <description>Commercial</description>
+        </memberClass>
+        <memberCode>4321</memberCode>
+        <name>Test client</name>
+        <subsystem id="id4">
+            <subsystemCode>TestClient</subsystemCode>
+        </subsystem>
+    </member>
+    <securityServer>
+        <owner>id0</owner>
+        <serverCode>SS0</serverCode>
+        <address>ss0</address>
+        <authCertHash>4o7Vpav9+d4lGAKc8mQo4TCYMSet2HM4+evXOZKIdb4=</authCertHash>
+        <client>id1</client>
+        <client>id2</client>
+    </securityServer>
+    <securityServer>
+        <owner>id3</owner>
+        <serverCode>SS1</serverCode>
+        <address>ss1</address>
+        <authCertHash>JeDmMOyjZXb/aVscXvyojfA+nXeQouD7diQzbLXzTzk=</authCertHash>
+        <client>id4</client>
+    </securityServer>
+    <globalSettings>
+        <memberClass>
+            <code>COM</code>
+            <description>Commercial</description>
+        </memberClass>
+        <memberClass>
+            <code>GOV</code>
+            <description>Governmental organisations</description>
+        </memberClass>
+        <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
+    </globalSettings>
+</ns3:conf>
