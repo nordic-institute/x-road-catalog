@@ -1,5 +1,5 @@
 # Base image for X-Road Catalog. Digest-pinned; Dependabot tracks the tag/digest pair.
-FROM docker.io/library/eclipse-temurin:21-jre-alpine@sha256:974b08960c5d96694c780e65b2d5705268ab1e1ca1a0dd0caf4ba6c3fe34d699 \
+FROM docker.io/library/eclipse-temurin:25-jre-alpine@sha256:3c0a9084927a221ccd1d007fcaf614465672c0af37aaa834c5184483afe56d61 \
     AS base-xroad-catalog
 
 # Labels following the OCI Image Spec
