@@ -24,7 +24,7 @@
  */
 package org.niis.xroad.catalog.persistence.testsupport;
 
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -35,7 +35,7 @@ import org.springframework.test.context.DynamicPropertySource;
  */
 public abstract class PostgresTestBase {
 
-    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
+    private static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
 
     static {
         POSTGRES.start();

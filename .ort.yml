@@ -164,3 +164,28 @@ resolutions:
         redistribution but prohibits use to provide a competing product or service, and each
         release converts to Apache-2.0 two years after publication. X-Road Catalog embeds Liquibase 
         for database migrations and does not compete with it, so the non-compete condition is satisfied."
+  issues:
+    - message: "(?s)IOException: Could not resolve provenance for package 'Maven:org.niis.xroad:configuration-client:.*"
+      reason: "CANT_FIX_ISSUE"
+      comment: "org.niis.xroad:configuration-client is published as a shaded executable
+          uber-jar, not a library. Its manifest declares Main-Class
+          org.niis.xroad.confclient.application.ConfClientDaemonMain, and the 7.8.3 artifact
+          holds 32161 entries in 114 MB, of which only 406 are org/niis classes; the rest is
+          BouncyCastle, Jackson, Logback and other dependencies flattened in by the shadow
+          build. No -sources.jar is published (HTTP 404), and both the pom and the Gradle
+          module metadata declare zero dependencies, so the scanner has neither an ARTIFACT
+          nor a VCS origin to resolve. This cannot be fixed from X-Road Catalog.
+
+          The bundled third-party code is not unreviewed: it is analysed in the X-Road
+          repository's own Double Open Compliance runs, which resolve the full dependency
+          tree. The gap here is one of attribution location, not of missing review.
+
+          A packages curation pointing vcs at src/service/configuration-client in the X-Road
+          repository was considered and rejected: it would scan only the 1.3% of the artifact
+          that is NIIS-authored source and report the package as scanned, understating the
+          licences actually shipped. Recording the gap is preferred to closing it falsely.
+
+          The durable fix is to depend on a thin library module rather than the uber-jar, so
+          that its dependencies resolve in this project's own graph. Revisit this resolution
+          if that change is made, or if configuration-client is ever published as a
+          non-shaded artifact."

@@ -174,7 +174,7 @@ class SharedParamsCacheTest {
     @Test
     void parseFailureYieldsEmptyResultsWithoutThrowingAndIsCachedForTheTtl() throws Exception {
         when(parser.parse(anyString())).thenThrow(new IOException(
-                "did not validate against any supported shared-parameters schema version (V2-V5)"));
+                "did not validate against any supported shared-parameters schema version (V2-V6)"));
 
         assertTrue(cache.securityServers().isEmpty());
         assertTrue(cache.memberClassDescriptions().isEmpty());

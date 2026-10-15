@@ -14,7 +14,7 @@ machine.
 **Tools**
 
 Required for building:
-* OpenJDK / JDK version 21
+* OpenJDK / JDK version 25
 * Gradle
 * Docker
 

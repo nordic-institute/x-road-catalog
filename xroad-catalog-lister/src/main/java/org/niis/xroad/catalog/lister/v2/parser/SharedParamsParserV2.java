@@ -35,6 +35,7 @@ import org.niis.xroad.globalconf.model.SharedParametersV2;
 import org.niis.xroad.globalconf.model.SharedParametersV3;
 import org.niis.xroad.globalconf.model.SharedParametersV4;
 import org.niis.xroad.globalconf.model.SharedParametersV5;
+import org.niis.xroad.globalconf.model.SharedParametersV6;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
@@ -44,7 +45,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <p><b>Version handling:</b> the library has no version-detecting entry point, only one
  * unmarshaller class per schema version, each performing mandatory XSD validation on construction.
- * This parser tries the newest version first (V5) and falls back to V4, V3, V2; the strict
+ * This parser tries the newest version first (V6) and falls back to V5, V4, V3, V2; the strict
  * per-version validation guarantees a document for an unsupported schema throws rather than being
  * silently mis-parsed. The version that matched is remembered and tried first on the next parse, so
  * the fallback ladder is walked once rather than on every call; a remembered version that stops
@@ -75,7 +75,7 @@ public class SharedParamsParserV2 {
 
     @FunctionalInterface
     interface VersionUnmarshaller {
-        SharedParameters unmarshal(Path sharedParamsFile) throws CertificateEncodingException, IOException;
+        SharedParameters unmarshal(Path sharedParamsFile);
     }
 
     /**
@@ -88,6 +88,7 @@ public class SharedParamsParserV2 {
 
     // Newest supported schema version first.
     private static final List<SchemaVersion> SUPPORTED_VERSIONS = List.of(
+            new SchemaVersion("V6", file -> new SharedParametersV6(file, OffsetDateTime.MAX).getSharedParameters()),
             new SchemaVersion("V5", file -> new SharedParametersV5(file, OffsetDateTime.MAX).getSharedParameters()),
             new SchemaVersion("V4", file -> new SharedParametersV4(file, OffsetDateTime.MAX).getSharedParameters()),
             new SchemaVersion("V3", file -> new SharedParametersV3(file, OffsetDateTime.MAX).getSharedParameters()),
@@ -223,11 +224,11 @@ public class SharedParamsParserV2 {
         rejectUnsafeXml(path);
 
         SchemaVersion remembered = rememberedVersion.get();
-        Exception lastFailure = null;
+        RuntimeException lastFailure = null;
         if (remembered != null) {
             try {
                 return remembered.unmarshaller().unmarshal(path);
-            } catch (CertificateEncodingException | IOException | RuntimeException e) {
+            } catch (RuntimeException e) {
                 lastFailure = e;
             }
         }
@@ -240,12 +241,12 @@ public class SharedParamsParserV2 {
                 log.info("Shared-params file {} matched schema version {}", sharedParamsFile, candidate.name());
                 rememberedVersion.set(candidate);
                 return params;
-            } catch (CertificateEncodingException | IOException | RuntimeException e) {
+            } catch (RuntimeException e) {
                 lastFailure = e;
             }
         }
         throw new IOException("Shared-params file " + sharedParamsFile + " did not validate against any "
-                + "supported shared-parameters schema version (V2-V5)", lastFailure);
+                + "supported shared-parameters schema version (V2-V6)", lastFailure);
     }
 
     /**
