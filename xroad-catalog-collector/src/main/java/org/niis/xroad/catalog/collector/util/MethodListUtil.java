@@ -39,6 +39,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -149,6 +151,22 @@ public final class MethodListUtil {
     }
 
     /**
+     * The security server forwards the Content-Type the service sent and falls back to a bare
+     * {@code text/plain}, so a body without a declared charset is read as UTF-8 rather than the
+     * ISO-8859-1 that {@link RestTemplate} would assume.
+     */
+    private static String decode(ResponseEntity<byte[]> response) {
+        byte[] body = response.getBody();
+        if (body == null) {
+            return null;
+        }
+        MediaType contentType = response.getHeaders().getContentType();
+        Charset charset = contentType != null && contentType.getCharset() != null
+                ? contentType.getCharset() : StandardCharsets.UTF_8;
+        return new String(body, charset);
+    }
+
+    /**
      * @return the parsed response body, or {@code null} when the request or the parsing failed; the
      *         failure is logged and recorded in the error log once per member
      */
@@ -160,9 +178,9 @@ public final class MethodListUtil {
         headers.set("X-Road-Client", xRoadClientHeader);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-                    String.class);
-            return parser.apply(response.getBody());
+            ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+                    byte[].class);
+            return parser.apply(decode(response));
         } catch (Exception e) {
             SecurityServerMetadata newSecurityServerMetadata = SecurityServerMetadata.builder()
                     .xRoadInstance(client.getXRoadInstance())

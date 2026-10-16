@@ -24,6 +24,9 @@
  */
 package org.niis.xroad.catalog.lister.v2.service;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import org.niis.xroad.catalog.lister.v2.exception.MultipleVersionsException;
 import org.niis.xroad.catalog.lister.v2.exception.BadRequestException;
 import org.niis.xroad.catalog.lister.v2.dto.DescriptorPayload;
@@ -41,6 +44,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,6 +64,8 @@ public class ServiceService {
 
     // UNKNOWN is a transient not-yet-classified state, filterable so operators can find such services.
     private static final Set<String> ALLOWED_SERVICE_TYPES = Set.of("SOAP", "REST", "OPENAPI", "UNKNOWN");
+
+    private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
     private final ServiceRepository serviceRepository;
     private final SubsystemRepository subsystemRepository;
@@ -259,12 +265,29 @@ public class ServiceService {
 
     private DescriptorPayload openApiPayload(String data) {
         byte[] body = data.getBytes(StandardCharsets.UTF_8);
-        // The collector stores the description as the service publishes it. A JSON document starts
-        // with '{' or '[' and JSON has no comments, so any other leading character means YAML.
-        String trimmed = data.stripLeading();
-        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        // The collector stores the description as the service publishes it, so the media type is
+        // decided here. Every JSON document is also YAML, but flow-style YAML such as
+        // "{openapi: 3.0.3}" starts like JSON without being JSON, so the whole document is checked.
+        if (isJsonDocument(data)) {
             return new DescriptorPayload(body, MediaType.APPLICATION_JSON);
         }
         return new DescriptorPayload(body, MediaType.parseMediaType("application/yaml"));
+    }
+
+    /**
+     * Streams through the document without building a tree: a single JSON object or array
+     * followed by nothing but whitespace.
+     */
+    static boolean isJsonDocument(String data) {
+        try (JsonParser parser = JSON_FACTORY.createParser(data)) {
+            JsonToken root = parser.nextToken();
+            if (root != JsonToken.START_OBJECT && root != JsonToken.START_ARRAY) {
+                return false;
+            }
+            parser.skipChildren();
+            return parser.nextToken() == null;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

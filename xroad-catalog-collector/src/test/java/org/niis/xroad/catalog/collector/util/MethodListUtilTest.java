@@ -38,6 +38,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -103,6 +104,32 @@ class MethodListUtilTest {
 
         assertEquals(json, descriptor);
         verify(catalogService, never()).saveErrorLog(any());
+    }
+
+    @Test
+    void openApiFromResponseReadsCharsetlessBodyAsUtf8() throws XRd4JException {
+        String yaml = "openapi: 3.0.3\ninfo:\n  title: Café ÕÄÖÜ\n";
+        // the security server falls back to a bare text/plain when the service declares no Content-Type
+        server.expect(requestTo(OPENAPI_URL))
+                .andRespond(withSuccess(yaml.getBytes(StandardCharsets.UTF_8), MediaType.TEXT_PLAIN));
+
+        String descriptor = MethodListUtil.openApiFromResponse(service(), HOST, consumer(), catalogService,
+                restTemplate, Clock.systemUTC());
+
+        assertEquals(yaml, descriptor);
+    }
+
+    @Test
+    void openApiFromResponseHonoursDeclaredCharset() throws XRd4JException {
+        String yaml = "openapi: 3.0.3\ninfo:\n  title: Café\n";
+        server.expect(requestTo(OPENAPI_URL))
+                .andRespond(withSuccess(yaml.getBytes(StandardCharsets.ISO_8859_1),
+                        MediaType.parseMediaType("text/plain; charset=ISO-8859-1")));
+
+        String descriptor = MethodListUtil.openApiFromResponse(service(), HOST, consumer(), catalogService,
+                restTemplate, Clock.systemUTC());
+
+        assertEquals(yaml, descriptor);
     }
 
     @Test
