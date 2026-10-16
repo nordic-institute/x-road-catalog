@@ -1,16 +1,39 @@
-# Introduction to X-Road Catalog Collector
+# X-Road Catalog Collector <!-- omit in toc -->
 
-The purpose of this module is to collect members, subsystems and services from the X-Road ecosystem and store them to 
-a database. 
+## Table of Contents <!-- omit in toc -->
 
-The module is implemented using concurrent Akka actors: 
+* [Introduction to X-Road Catalog Collector](#introduction-to-x-road-catalog-collector)
+* [Build](#build)
+* [Configuration](#configuration)
+  * [Mandatory to Provide](#mandatory-to-provide)
+    * [Mandatory Configurations for Data Source and Liquibase](#mandatory-configurations-for-data-source-and-liquibase)
+    * [Mandatory Configurations for Common Features](#mandatory-configurations-for-common-features)
+  * [Optional Configurations](#optional-configurations)
+    * [Optional Configurations for Common Features](#optional-configurations-for-common-features)
+  * [Fixed-Mandatory Values to include in `application.yaml`](#fixed-mandatory-values-to-include-in-applicationyaml)
+    * [Fixed-Mandatory Values for Data Source and Liquibase](#fixed-mandatory-values-for-data-source-and-liquibase)
+    * [Fixed-Mandatory Values for Spring Boot Framework](#fixed-mandatory-values-for-spring-boot-framework)
+    * [Fixed-Mandatory Values for Management Endpoints](#fixed-mandatory-values-for-management-endpoints)
+* [Monitoring](#monitoring)
+* [Graceful shutdown and container stop timeout](#graceful-shutdown-and-container-stop-timeout)
+* [Run](#run)
+* [Run against a remote Security Server over an SSH tunnel](#run-against-a-remote-security-server-over-an-ssh-tunnel)
 
-* `FetchWsdlActor` - fetches WSDL descriptions of SOAP services from the X-Road instance and stores them to the db.
-* `FetchOpenApiActor` - fetches OpenAPI descriptions of Rest services from the X-Road instance and stores them to the db.
-* `ListClientsActor` - fetches a list of clients from the X-Road instance and stores them to the db.
-* `ListMethodsActor` - fetches a list of services from the X-Road instance and stores them to the db.
-* `FetchOrganizationsActor` - fetches a list of public organizations from an external API and stores them to the db.
-* `FetchCompaniesActor` - fetches a list of private companies from an external API and stores them to the db.
+## Introduction to X-Road Catalog Collector
+
+The purpose of this module is to collect members, subsystems and services from the X-Road ecosystem and store them to
+a database.
+
+The module is implemented using JAVA virtual threads:
+
+* `FetchWsdlTask` - fetches WSDL descriptions of SOAP services from the X-Road instance and stores them to the db.
+* `FetchRestTask` - fetches REST services without descriptions from the X-Road instance and stores them to the db.
+* `FetchOpenApiTask` - fetches OpenAPI descriptions of Rest services from the X-Road instance and stores them to the db.
+* `ListClientsTask` - fetches a list of clients from the X-Road instance and stores them to the db.
+* `ListMethodsTask` - fetches a list of services from the X-Road instance and stores them to the db.
+
+The following diagram gives a high-level overview of how the tasks are executed:
+![Process diagram](collector_process.svg "Process diagram")
 
 See also the [Installation Guide](../doc/xroad_catalog_installation_guide.md) and
 [User Guide](../doc/xroad_catalog_user_guide.md).
@@ -20,20 +43,178 @@ See also the [Installation Guide](../doc/xroad_catalog_installation_guide.md) an
 X-Road Catalog Collector can be built by running:
 
 ```bash
-$ ../gradlew clean build
-```
-
-## Build RPM Packages on Non-RedHat Platform
-
-First make sure that `xroad-catalog-persistence` is located next to `xroad-catalog-collector`. The RPM build uses sql
-files from `xroad-catalog-persistence/src/main/sql`. If the `default` profile is used, the `CATALOG_PROFILE` argument
-can be omitted. More information about profiles is available in the [build instructions](../BUILD.md#profiles).
-
-```bash
 ../gradlew clean build
-docker build -t collector-rpm packages/xroad-catalog-collector/docker --build-arg CATALOG_PROFILE=<PROFILE>
-docker run -v $PWD/..:/workspace collector-rpm
 ```
+
+## Configuration
+
+X-Road Catalog Collector configurations are divided into three groups:
+
+### Mandatory to Provide
+
+Values of following configurations are expected to be provided by service's user. Otherwise, service may fail to start.
+Configurations are categorized according to their usage into different groups in the following sections.
+> [!NOTE]
+> Some configuration parameters are required depending on the use-case. For
+> example, `spring.liquibase.parameters.users.*`
+> parameters are only required if liquibase context include `users`.
+
+#### Mandatory Configurations for Data Source and Liquibase
+
+| Data Source and Liquibase Configurations                                                                                                                                   | Defaults                  | Comment                                                                                                                                                                      | Since |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| [spring.datasource.url](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.url)                   |                           |                                                                                                                                                                              | 1.0.0 |
+| [spring.datasource.username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.username)         |                           | Must match the pre-created collector role, i.e. `spring.liquibase.parameters.users.collector.username`.                                                                      | 1.0.0 |
+| [spring.datasource.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.password)         |                           | Must match the password of the pre-created collector role.                                                                                                                   | 1.0.0 |
+| [spring.liquibase.user](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.user)         | `xroad_catalog`           | An admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                                           | 1.0.0 |
+| [spring.liquibase.password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.password) |                           | Password of the admin user or the database owner to be used by liquibase scripts to apply DDLs.                                                                              | 1.0.0 |
+| [spring.liquibase.contexts](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.contexts) | `users`                   | Available value is `users`. It grants privileges to the pre-created collector and lister roles.                                                                              | 1.0.0 |
+| spring.liquibase.parameters.users.collector.username                                                                                                                       | `xroad_catalog_collector` | Mandatory if liquibase context include `users`. Identifies the pre-created role that is granted full read/write privilege to everything in the database.                     | 1.0.0 |
+| spring.liquibase.parameters.users.lister.username                                                                                                                          | `xroad_catalog_lister`    | Mandatory if liquibase context include `users`. Identifies the pre-created role that is granted read-only privilege to all tables, views, and functions in the database.     | 1.0.0 |
+
+> [!NOTE]
+> The `users` context only grants privileges; it never creates roles. Both application roles must exist before
+> the first start, and the application refuses to start with a message naming the missing role otherwise. Create
+> them as plain login roles with no administrative attributes:
+> ```sql
+> CREATE ROLE xroad_catalog_collector WITH
+>     LOGIN
+>     NOSUPERUSER
+>     NOCREATEDB
+>     NOCREATEROLE
+>     NOINHERIT
+>     NOREPLICATION
+>     NOBYPASSRLS
+>     CONNECTION LIMIT -1
+>     PASSWORD '<collector password>';
+>
+> CREATE ROLE xroad_catalog_lister WITH
+>     LOGIN
+>     NOSUPERUSER
+>     NOCREATEDB
+>     NOCREATEROLE
+>     NOINHERIT
+>     NOREPLICATION
+>     NOBYPASSRLS
+>     CONNECTION LIMIT -1
+>     PASSWORD '<lister password>';
+> ```
+> Apart from `NOINHERIT`, the attributes above are PostgreSQL's `CREATE ROLE` defaults; they are spelled out so
+> that the intended privilege level of the two roles is explicit and survives a cluster with different defaults.
+> Once the roles exist, the `users` context grants them their privileges.
+
+#### Mandatory Configurations for Common Features
+
+| Configurations                            | Defaults | Description                                                                                              | Since |
+|-------------------------------------------|----------|----------------------------------------------------------------------------------------------------------|-------|
+| `xroad-catalog.target.xroad-instance`     |          | A parameter for setting the X-Road instance.                                                             | 1.0.0 |
+| `xroad-catalog.target.subsystem-code`     |          | A parameter for setting the X-Road sub-system code.                                                      | 1.0.0 |
+| `xroad-catalog.target.member-class`       |          | A parameter for setting the X-Road member class.                                                         | 1.0.0 |
+| `xroad-catalog.target.member-code`        |          | A parameter for setting the X-Road member code.                                                          | 1.0.0 |
+| `xroad-catalog.urls.security-server-host` |          | A parameter for setting the Security Server host to connect to. e.g., <http://security.server.host:8080> | 1.0.0 |
+
+### Optional Configurations
+
+Values of following configurations are optional and customizable by service's user. If a value is not provided, default
+values will be used.
+
+#### Optional Configurations for Common Features
+
+| Parameter                                              | Defaults                                     | Description                                                                                                                                                                                                                                                                                                  | Since |
+|--------------------------------------------------------|----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| `xroad-catalog.instance.ignored-subsystem-ids`         | ``                                           | A parameter for setting the list of subsystems that are excluded from the collection process: neither they nor their services are stored, and a previously collected subsystem is marked as removed once listed. The value needs to be formatted as a YAML list. The default value is empty.                 | 1.0.0 |
+| `xroad-catalog.urls.list-clients-host`                 | `${xroad-catalog.urls.security-server-host}` | A parameter for setting the Security Server host to be used to get list of clients. Default value references `xroad-catalog.urls.security-server-host`.                                                                                                                                                      | 1.0.0 |
+| `xroad-catalog.urls.webservices-endpoint`              | `${xroad-catalog.urls.security-server-host}` | A parameter for setting the Security Server host to be used to get list of OpenAPI services, SOAP services, and list of services. Default value references `xroad-catalog.urls.security-server-host`.                                                                                                        | 1.0.0 |
+| `xroad-catalog.pool-size.fetch-openapi`                | `10`                                         | A parameter for setting the amount of virtual threads in the pool for fetching OpenAPI services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                            | 1.0.0 |
+| `xroad-catalog.pool-size.fetch-rest`                   | `10`                                         | A parameter for setting the amount of virtual threads in the pool for fetching REST services from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                               | 1.0.0 |
+| `xroad-catalog.pool-size.fetch-wsdl`                   | `10`                                         | A parameter for setting the amount of virtual threads in the pool for fetching WSDLs from Security Server, e.g. value `10` means `10 virtual threads`.                                                                                                                                                       | 1.0.0 |
+| `xroad-catalog.pool-size.list-methods`                 | `50`                                         | A parameter for setting the amount of virtual threads in the pool for fetching methods metadata from Security Server, e.g. value `50` means `50 virtual threads`.                                                                                                                                            | 1.0.0 |
+| `xroad-catalog.log-storage.error-log-length-in-days`   | `90`                                         | A parameter for setting the amount in days for how long the errors logs should be kept in the db, e.g. value `90` means `for 90 days`.                                                                                                                                                                       | 1.0.0 |
+| `xroad-catalog.log-storage.flush-log-time-after-hour`  | `3`                                          | A parameter for setting the start of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.log-storage.error-log-length-in-days` parameter, e.g. value `18` means starting from `18:00`.                                            | 1.0.0 |
+| `xroad-catalog.log-storage.flush-log-time-before-hour` | `4`                                          | A parameter for setting the end of time interval during which the error logs in the db will be deleted when those exceed the amount in days set by `xroad-catalog.log-storage.error-log-length-in-days` parameter, e.g. value  `23` means ending at `23:00`.                                                 | 1.0.0 |
+| `xroad-catalog.tasks.collector-interval-min`           | `20`                                         | A parameter for setting the amount of time in minutes after which the X-Road Catalog Collector should start re-fetching data from Security Server, e.g. value `20` means `every 20 minutes`.                                                                                                                 | 1.0.0 |
+| `xroad-catalog.tasks.fetch-run-unlimited`              | `false`                                      | A parameter for setting whether the X-Road Catalog Collector should try to fetch data from Security Server continuously during a day or only between certain hours, e.g. value `true` means `continously`.                                                                                                   | 1.0.0 |
+| `xroad-catalog.tasks.fetch-time-after-hour`            | `3`                                          | A parameter for setting the start of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `18` means starting from `18:00`. | 1.0.0 |
+| `xroad-catalog.tasks.fetch-time-before-hour`           | `4`                                          | A parameter for setting the end of time interval during which the X-Road Catalog Collector should try to fetch data from Security Server continuously (this parameter will be ignored if the parameter `xroad-catalog.fetch-run-unlimited` is set to `true`), e.g. value `23` means ending at `23:00`.       | 1.0.0 |
+| `xroad-catalog.tasks.client-connect-timeout-seconds`   | `10`                                         | A parameter for setting the connect timeout in seconds of the HTTP and SOAP calls made to the Security Server. Every call must be time-bounded, otherwise a collection cycle might never properly finish.                                                                 | 4.0.0 |
+| `xroad-catalog.tasks.client-read-timeout-seconds`      | `60`                                         | A parameter for setting the read timeout in seconds of the HTTP and SOAP calls made to the Security Server. Every call must be time-bounded, otherwise a collection cycle might never properly finish.                                                                    | 4.0.0 |
+
+### Fixed-Mandatory Values to include in `application.yaml`
+
+The following values are supplied by the packaged `application.yaml` and are listed for reference.
+
+#### Fixed-Mandatory Values for Data Source and Liquibase
+
+| Data Source and Liquibase Configurations                                                                                                                                             | Defaults                                         | Comment                                                                 | Since |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|-------------------------------------------------------------------------|-------|
+| [spring.datasource.driver-class-name](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.driver-class-name) |                                                  |                                                                         | 1.0.0 |
+| [spring.jpa.database](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.database)                                 | `POSTGRESQL`                                     |                                                                         | 1.0.0 |
+| [spring.jpa.generate-ddl](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.generate-ddl)                         | `false`                                          | Always use `false`. Liquibase will apply modified DDLs.                 | 1.0.0 |
+| [spring.jpa.open-in-view](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.open-in-view)                         | `false`                                          | Preferably `false` in production.                                       | 1.0.0 |
+| [spring.jpa.show-sql](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.show-sql)                                 | `false`                                          | Use to debug SQL statements executed. Preferably `false` in production. | 1.0.0 |
+| [spring.jpa.hibernate.ddl-auto](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.jpa.hibernate.ddl-auto)             | `none`                                           | Keep to `none` to avoid conflict with liquibase.                        | 1.0.0 |
+| [spring.liquibase.enabled](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.enabled)             | `true`                                           | `true` to execute liquibase changesets against database during startup. | 1.0.0 |
+| [spring.liquibase.change-log](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.change-log)       | `classpath:db/changelog/db.changelog-master.xml` | Points to changesets maintained by collector module.                    | 1.0.0 |
+| [spring.liquibase.show-summary](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.liquibase.show-summary)   | `verbose`                                        | Prints a summary of liquibase files during application's startup        | 1.0.0 |
+
+#### Fixed-Mandatory Values for Spring Boot Framework
+
+| Spring Boot framework configurations                                                                                                                                                                 | Defaults   | Comment                                                                                                                                                                                                                         | Since |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| [spring.main.web-application-type](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.core.spring.main.web-application-type)                       | `servlet`  | The collector serves no HTTP API of its own, but a servlet container is still required to expose the Actuator management endpoints. The main connector is disabled with `server.port: -1`, so only the management port listens. | 4.0.0 |
+| [spring.lifecycle.timeout-per-shutdown-phase](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.core.spring.lifecycle.timeout-per-shutdown-phase) | `30s`      | How long Spring waits for each shutdown phase to complete. See [Graceful shutdown and container stop timeout](#graceful-shutdown-and-container-stop-timeout).                                                                   | 4.0.0 |
+| [server.port](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.server.server.port)                                                               | `-1`       | Disables the main HTTP connector, so nothing is served on a main port. The Actuator endpoints listen on `management.server.port` instead.                                                                                       | 4.0.0 |
+| [server.shutdown](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.server.server.shutdown)                                                       | `graceful` | Requests in flight on the management connector are allowed to finish before the web context is closed.                                                                                                                          | 4.0.0 |
+
+#### Fixed-Mandatory Values for Management Endpoints
+
+The Actuator management endpoints are used for container health checks and for metrics scraping, see
+[Monitoring](#monitoring).
+
+| Management endpoint configurations                   | Defaults            | Comment                                                                                                                                                                                                             | Since |
+|------------------------------------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| `management.server.port`                             | `8090`              | The Actuator endpoints are served on this separate connector, not on an application port.                                                                                                                           | 4.0.0 |
+| `management.endpoints.web.exposure.include`          | `health,prometheus` | Only these two endpoints are exposed. Endpoints such as `env`, `heapdump`, `loggers` and `threaddump` are deliberately left unexposed.                                                                              | 4.0.0 |
+| `management.endpoint.health.probes.enabled`          | `true`              | Enables the `/actuator/health/liveness` and `/actuator/health/readiness` probe endpoints.                                                                                                                           | 4.0.0 |
+| `management.endpoint.health.group.readiness.include` | `readinessState,db` | Readiness reflects database reachability. Liveness deliberately does not, so that a database outage does not make the runtime restart an otherwise healthy process.                                                 | 4.0.0 |
+| `management.endpoint.health.cache.time-to-live`      | `10s`               | Caches `/actuator/health`.                                                                                                                                                                                          | 4.0.0 |
+| `management.endpoint.health.show-components`         | `never`             | Spring Boot defaults to `never`: the health response carries the overall status only, with no component breakdown. The `dev` profile (`application-dev.yaml`) overrides it to `always`, useful for local debugging. | 4.0.0 |
+
+## Monitoring
+
+The collector exposes no HTTP API, but it does serve Spring Boot Actuator endpoints on the management port
+(`management.server.port`, `8090` by default):
+
+| Endpoint                     | Purpose                                                                                                |
+|------------------------------|--------------------------------------------------------------------------------------------------------|
+| `/actuator/health`           | Overall status only, without a component breakdown (see `management.endpoint.health.show-components`). |
+| `/actuator/health/liveness`  | Liveness probe. Does not depend on the database, so a database outage does not trigger a restart.      |
+| `/actuator/health/readiness` | Readiness probe. Reports `DOWN` while the database is unreachable.                                     |
+| `/actuator/prometheus`       | Metrics in the Prometheus text format, to be scraped by a Prometheus-compatible collector.             |
+
+In addition to the standard JVM, process and data source meters provided by Micrometer, the following collector-specific
+metrics are exported (the names below are the exported Prometheus names):
+
+| Metric                                                    | Type  | Description                                                                                      |
+|-----------------------------------------------------------|-------|--------------------------------------------------------------------------------------------------|
+| `xroad_catalog_collection_cycle_duration_seconds`         | Timer | Duration of a full collection cycle, tagged `success` with the value `true` or `false`.          |
+| `xroad_catalog_collection_last_success_timestamp_seconds` | Gauge | Unix epoch seconds of the last successful collection cycle, intended for alerting on stale data. |
+
+## Graceful shutdown and container stop timeout
+
+On `SIGTERM` the collector shuts down in an orderly way instead of dropping work in progress:
+
+1. Graceful web shutdown is enabled (`server.shutdown: graceful`) and each shutdown phase is given up to 30 seconds
+   (`spring.lifecycle.timeout-per-shutdown-phase`).
+2. `DefaultTasksInitializer` then waits in a `@PreDestroy` hook for up to a further 25 seconds for the collector
+   scheduler and the virtual fetch worker threads to wind down, so that an in-flight collection run is finalized.
+
+> [!IMPORTANT]
+> The container runtime must allow more time than its default stop timeout, otherwise the process is `SIGKILL`ed in the
+> middle of its shutdown and the in-flight collection run is never finalized. Docker's default stop timeout is only 10
+> seconds, which is not enough: `docker/compose.yml` therefore sets `stop_grace_period: 35s`, and a Kubernetes
+> deployment needs an equivalent `terminationGracePeriodSeconds`. If either of the two timeouts above is raised, raise
+> the runtime's stop timeout accordingly.
 
 ## Run
 
@@ -51,22 +232,29 @@ java -jar target/xroad-catalog-collector-1.0-SNAPSHOT.jar
 
 ## Run against a remote Security Server over an SSH tunnel
 
-First create an ssh tunnel to a local port:
+1. First create an ssh tunnel to a local port:
 
-```bash
-ssh -nNT -L <LOCAL_PORT>:<DESTINATION>:<DESTINATION_PORT> [USER@]SSH_SERVER
-```
+    ```bash
+    ssh -nNT -L <LOCAL_PORT>:<DESTINATION>:<DESTINATION_PORT> [USER@]SSH_SERVER
+    ```
 
-For example, there's a Security Server running on a machine `my-security-server.com` on an internal private network on
-port `80`. The Security Server is accessible from the machine `my-ssh-server.com`. To connect to the Security Server from
-the local machine using the local port `9000`, forward the connection using the following command:
+   For example, there's a Security Server running on a machine `my-security-server.com` on an internal private network
+   on
+   port `80`. The Security Server is accessible from the machine `my-ssh-server.com`. To connect to the Security Server
+   from the local machine using the local port `9000`, forward the connection using the following command:
 
-```bash
-ssh -nNT -L 9000:my-security-server.com:80 my-user@my-ssh-server.com
-```
+    ```bash
+    ssh -nNT -L 9000:my-security-server.com:80 my-user@my-ssh-server.com
+    ```
 
-Then run the collector with profile `sshtest`:
+2. Then run the collector with profile `sshtest`:
 
-```bash
-java -Dspring.profiles.active=sshtest -jar build/libs/xroad-catalog-collector.jar --spring.config.name=collector,catalogdb
-```
+    ```bash
+    java -jar build/libs/xroad-catalog-collector.jar --xroad-catalog.security-server-host=http://localhost:<LOCAL_PORT>
+    ```
+
+   For our example and since the port is `9000`, the command would be:
+
+    ```bash
+    java -jar build/libs/xroad-catalog-collector.jar --xroad-catalog.security-server-host=http://localhost:9000
+    ```

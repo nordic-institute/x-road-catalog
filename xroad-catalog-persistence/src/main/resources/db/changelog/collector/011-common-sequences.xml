@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="011-common-sequences-member-sequence" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="member_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="member_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="member_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE member_id_seq OWNED BY member.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-subsystem-sequence" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="subsystem_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="subsystem_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="subsystem_id_seq" startValue="1" incrementBy="1"/>
+        <sql>ALTER SEQUENCE subsystem_id_seq OWNED BY subsystem.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-service-sequence" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="service_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="service_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="service_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE service_id_seq OWNED BY service.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-wsdl-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="wsdl_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="wsdl_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="wsdl_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE wsdl_id_seq OWNED BY wsdl.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-wsdl-external-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="wsdl_external_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="wsdl_external_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="wsdl_external_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE wsdl_external_id_seq OWNED BY wsdl.external_id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-open-api-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="open_api_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="open_api_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="open_api_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE open_api_id_seq OWNED BY open_api.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-open-api-external-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="open_api_external_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="open_api_external_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="open_api_external_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE open_api_external_id_seq OWNED BY open_api.external_id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-rest-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="rest_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="rest_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="rest_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE rest_id_seq OWNED BY rest.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-rest-external-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="rest_external_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="rest_external_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="rest_external_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE rest_external_id_seq OWNED BY rest.external_id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-endpoint-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="endpoint_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="endpoint_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="endpoint_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE endpoint_id_seq OWNED BY endpoint.id;</sql>
+    </changeSet>
+    <changeSet id="011-common-sequences-error-log-id-seq" author="niis">
+        <preConditions onFail="MARK_RAN" onFailMessage="error_log_id_seq sequence exists">
+            <not>
+                <sequenceExists sequenceName="error_log_id_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="error_log_id_seq" startValue="1" incrementBy="1" cacheSize="1"/>
+        <sql>ALTER SEQUENCE error_log_id_seq OWNED BY error_log.id;</sql>
+    </changeSet>
+</databaseChangeLog>

@@ -3,6 +3,11 @@
 build
 xroad-catalog-lister/packages/xroad-catalog-lister/redhat/RPMS/
 xroad-catalog-lister/packages/xroad-catalog-lister/redhat/SRPMS/
+xroad-catalog-collector/packages/xroad-catalog-collector/redhat/RPMS/
+xroad-catalog-collector/packages/xroad-catalog-collector/redhat/SRPMS/
 xroad-catalog-persistence/classes/
 .gradle/
 out/
+.sdkmanrc
+.settings/*
+.project

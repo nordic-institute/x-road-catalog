@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0] - 2025-08-29
+
+# Added
+- Configuration property to allow ignoring specific subsystems during collection (xroad-catalog.instance.ignored-subsystem-ids)
+
+# Changed
+- Migrated from custom X-Road SOAP implementation to XRD4J library for improved standards compliance
+- Refactored all collection tasks to use virtual threads and improved concurrency patterns
+- Enhanced error handling and logging throughout collection tasks
+- Improved WSDL and OpenAPI fetch task implementations with better retry logic
+
+## [3.0.7] - 2023-11-17
+
+# Changed
+- Refactor ListMembers endpoint to have extra field "serviceType"
+
+## [3.0.6] - 2023-11-09
+
+# Changed
+- Refactor fetch of companies
+
+## [3.0.5] - 2023-11-07
+
+# Changed
+- Pull latest version from NIIS develop branch
+
 ## [3.0.4] - 2023-02-13
 
 # Changed

@@ -1,0 +1,12 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Header><xro:protocolVersion xmlns:xro="http://x-road.eu/xsd/xroad.xsd">4.x</xro:protocolVersion><xro:id xmlns:xro="http://x-road.eu/xsd/xroad.xsd">ID11234</xro:id><xro:userId xmlns:xro="http://x-road.eu/xsd/xroad.xsd">EE1234567890</xro:userId><xro:client xmlns:iden="http://x-road.eu/xsd/identifiers" xmlns:xro="http://x-road.eu/xsd/xroad.xsd" iden:objectType="MEMBER">
+         <iden:xRoadInstance>DEV</iden:xRoadInstance>
+         <iden:memberClass>COM</iden:memberClass>
+         <iden:memberCode>1234</iden:memberCode>
+      </xro:client><xro:service xmlns:iden="http://x-road.eu/xsd/identifiers" xmlns:xro="http://x-road.eu/xsd/xroad.xsd" iden:objectType="SERVICE">
+         <iden:xRoadInstance>DEV</iden:xRoadInstance>
+         <iden:memberClass>COM</iden:memberClass>
+         <iden:memberCode>1234</iden:memberCode>
+         <iden:subsystemCode>catalog</iden:subsystemCode>
+         <iden:serviceCode>IsProvider</iden:serviceCode>
+         <iden:serviceVersion>v1</iden:serviceVersion>
+      </xro:service></SOAP-ENV:Header><SOAP-ENV:Body><ns2:IsProviderResponse xmlns:ns2="http://xroad.vrk.fi/xroad-catalog-lister"><ns2:provider>true</ns2:provider></ns2:IsProviderResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

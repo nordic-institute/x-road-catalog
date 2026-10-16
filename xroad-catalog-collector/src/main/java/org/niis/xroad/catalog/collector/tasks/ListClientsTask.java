@@ -1,0 +1,176 @@
+/**
+ * The MIT License
+ *
+ * Copyright (c) 2023- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2016-2023 Finnish Digital Agency
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.catalog.collector.tasks;
+
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xrd4j.common.member.ObjectType;
+import org.niis.xroad.catalog.collector.configuration.TaskPoolConfiguration;
+import org.niis.xroad.catalog.collector.events.NewMembersEventPublisher;
+import org.niis.xroad.catalog.collector.service.CatalogService;
+import org.niis.xroad.catalog.collector.util.ClientListUtil;
+import org.niis.xroad.catalog.collector.util.IdentifierUtil;
+import org.niis.xroad.catalog.collector.util.CollectorUtils;
+import org.niis.xroad.catalog.collector.util.MemberWithName;
+import org.niis.xroad.catalog.persistence.entity.ErrorLog;
+import org.niis.xroad.catalog.persistence.entity.Member;
+import org.niis.xroad.catalog.persistence.entity.MemberId;
+import org.niis.xroad.catalog.persistence.entity.Subsystem;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.time.Clock;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Component
+public class ListClientsTask {
+
+    private final TaskPoolConfiguration taskPoolConfiguration;
+    private final CatalogService catalogService;
+    private final Queue<MemberWithName> listMethodsQueue;
+    private final NewMembersEventPublisher newMembersEventPublisher;
+    private final FetchWorkTracker fetchWorkTracker;
+    private final RestTemplate restTemplate;
+    private final Clock clock;
+
+    public ListClientsTask(CatalogService catalogService, TaskPoolConfiguration taskPoolConfiguration,
+                           Queue<MemberWithName> listMethodsQueue, NewMembersEventPublisher newMembersEventPublisher,
+                           FetchWorkTracker fetchWorkTracker, RestTemplate restTemplate, Clock clock) {
+        this.taskPoolConfiguration = taskPoolConfiguration;
+        this.catalogService = catalogService;
+        this.listMethodsQueue = listMethodsQueue;
+        this.newMembersEventPublisher = newMembersEventPublisher;
+        this.fetchWorkTracker = fetchWorkTracker;
+        this.restTemplate = restTemplate;
+        this.clock = clock;
+    }
+
+    /**
+     * Fetches the client list unconditionally; the fetch window is decided by {@link CollectionCycleRunner}.
+     * Never throws: a failed fetch is written to the error log and reported through the return value, so
+     * that the runner finalizes the cycle as unsuccessful instead of the scheduler dying.
+     *
+     * @return true when the client list was fetched and stored, false when the fetch failed
+     */
+    public boolean run() {
+        log.info("Starting ListClientsTask");
+        return fetchClients();
+    }
+
+    /**
+     * Deletes {@code error_log} rows older than the configured retention when the clock is inside the
+     * flush-log window. Called by {@link CollectionCycleRunner} on every scheduler tick, independently of
+     * the fetch window. Never throws, so a failed flush cannot stop the collection cycle or the scheduler.
+     */
+    public void flushOldErrorLogEntries() {
+        if (!CollectorUtils.isTimeBetweenHours(clock, taskPoolConfiguration.getFlushLogTimeAfterHour(),
+                taskPoolConfiguration.getFlushLogTimeBeforeHour())) {
+            return;
+        }
+        try {
+            catalogService.deleteOldErrorLogEntries(taskPoolConfiguration.getErrorLogLengthInDays());
+        } catch (Exception e) {
+            log.error("Failed to flush old error log entries", e);
+        }
+    }
+
+    private boolean fetchClients() {
+        String listClientsUrl = taskPoolConfiguration.getListClientsHost() + "/listClients";
+        try {
+            log.info("Getting client list from {}", listClientsUrl);
+            List<MemberWithName> clientList = withoutIgnoredSubsystems(
+                    ClientListUtil.clientListFromResponse(listClientsUrl, restTemplate));
+            HashMap<MemberId, Member> m = populateMapWithMembers(clientList);
+            Set<Member> newMembers = catalogService.saveAllMembersAndSubsystems(m.values());
+
+            // We only fetch WSDL-s and REST services from subsystems
+            List<MemberWithName> subsystems = clientList.stream()
+                    .filter(client -> ObjectType.SUBSYSTEM.equals(client.getId().getObjectType()))
+                    .toList();
+            fetchWorkTracker.register(subsystems.size());
+            listMethodsQueue.addAll(subsystems);
+
+            log.info("All subsystems ({}) sent to ListMethodsTask", subsystems.size());
+
+            newMembersEventPublisher.publishNewMembersEvent(newMembers.stream().map(Member::getMemberCode).collect(Collectors.toSet()));
+            log.info("{} new members were published as event", newMembers.size());
+            return true;
+        } catch (Exception e) {
+            log.error("Error when fetching listClients(url: {})", listClientsUrl, e);
+            saveFetchError(listClientsUrl, e);
+            return false;
+        }
+    }
+
+    private void saveFetchError(String listClientsUrl, Exception cause) {
+        try {
+            ErrorLog errorLog = CollectorUtils.createErrorLog(clock, null,
+                    "Error when fetching listClients(url: " + listClientsUrl + "): " + cause.getMessage(), "500");
+            catalogService.saveErrorLog(errorLog);
+        } catch (Exception e) {
+            log.error("Failed to store the listClients error in the error log", e);
+        }
+    }
+
+    private List<MemberWithName> withoutIgnoredSubsystems(List<MemberWithName> clientList) {
+        return clientList.stream().filter(client -> !isIgnoredSubsystem(client)).toList();
+    }
+
+    private boolean isIgnoredSubsystem(MemberWithName client) {
+        boolean ignored = ObjectType.SUBSYSTEM.equals(client.getId().getObjectType())
+                && taskPoolConfiguration.isIgnoredSubsystem(client);
+        if (ignored) {
+            log.info("Subsystem {} marked as ignored in configuration, excluding it from the catalog", IdentifierUtil.toString(client));
+        }
+        return ignored;
+    }
+
+    private HashMap<MemberId, Member> populateMapWithMembers(List<MemberWithName> clientList) {
+        HashMap<MemberId, Member> m = new HashMap<>();
+        int clientCounter = 0;
+        for (MemberWithName client : clientList) {
+            clientCounter++;
+            log.debug("{} - {}", clientCounter, IdentifierUtil.toString(client));
+            Member newMember = new Member(client.getId().getXRoadInstance(),
+                    client.getId().getMemberClass(),
+                    client.getId().getMemberCode(),
+                    client.getName());
+            newMember.setSubsystems(new HashSet<>());
+            m.putIfAbsent(newMember.createKey(), newMember);
+
+            if (ObjectType.SUBSYSTEM.equals(client.getId().getObjectType())) {
+                Subsystem newSubsystem = new Subsystem(newMember, client.getId().getSubsystemCode());
+                m.get(newMember.createKey()).getAllSubsystems().add(newSubsystem);
+            }
+        }
+
+        return m;
+    }
+}

@@ -1,0 +1,70 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ''
+    username: xroad_catalog_lister
+    password: ''
+  jpa:
+    generate-ddl: false
+    open-in-view: false
+    show-sql: false
+    hibernate.ddl-auto: none
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  port: 8070
+  shutdown: graceful
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      # show-details/show-components are left at their default (never): probes only need the HTTP status code
+      cache:
+        time-to-live: 10s
+      group:
+        readiness:
+          include: readinessState,db
+
+# OpenAPI documentation
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /api-docs
+    urls-primary-name: v2
+
+# X-Road configuration-client parameters
+xroad:
+  common.configuration-path: /etc/xroad/globalconf
+  proxy.configuration-anchor-file: /etc/xroad/configuration-anchor.xml
+  configuration-client:
+    port: 5665
+    admin-port: 5675
+    update-interval: 60
+    allowed-federations: none
+    proxy-configuration-backup-cron: "* * * * * ? 2099"
+    global_conf_tls_cert_verification: true
+    global_conf_hostname_verification: true
+
+# X-Road instance parameters
+xroad-catalog:
+  shared-params-file: ${xroad.common.configuration-path}/<INSTANCE_IDENTIFIER>/shared-params.xml
+  configuration-client.enabled: true
+  legacy-api.enabled: false
+
+logging:
+  level:
+    org:
+      hibernate: ERROR
+  pattern:
+    level: "%5p [%X{requestId:-}]"
