@@ -78,7 +78,8 @@ class MethodListUtilTest {
 
     @Test
     void openApiFromResponseKeepsYamlDescriptorVerbatim() throws XRd4JException {
-        String yaml = "openapi: 3.0.3\ninfo:\n  title: Petstore\n  version: '1.0'\npaths: {}\n";
+        String yaml = "openapi: 3.0.3\ninfo:\n  title: Petstore\n  description: Lemmikkieläimet ä ö\n"
+                + "  version: '1.0'\npaths: {}\n";
         server.expect(requestTo(OPENAPI_URL))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("X-Road-Client", "DEV/COM/4321/catalog"))
@@ -94,7 +95,8 @@ class MethodListUtilTest {
 
     @Test
     void openApiFromResponseKeepsJsonDescriptorVerbatim() throws XRd4JException {
-        String json = "{\n  \"openapi\": \"3.0.3\",\n  \"info\": {\"title\": \"Petstore\", \"version\": \"1.0\"},\n"
+        String json = "{\n  \"openapi\": \"3.0.3\",\n"
+                + "  \"info\": {\"title\": \"Petstore\", \"description\": \"Lemmikkieläimet ä ö\", \"version\": \"1.0\"},\n"
                 + "  \"paths\": {}\n}\n";
         server.expect(requestTo(OPENAPI_URL))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));

@@ -298,7 +298,8 @@ class ServiceServiceTest {
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(103L)).thenReturn(List.of());
-        when(descriptorRepository.findActiveOpenApiData(103L)).thenReturn(List.of("openapi: 3.0.0\ninfo:\n  title: x"));
+        String yaml = "openapi: 3.0.0\ninfo:\n  title: x\n  description: Lemmikkieläimet ä ö\n";
+        when(descriptorRepository.findActiveOpenApiData(103L)).thenReturn(List.of(yaml));
 
         Optional<DescriptorPayload> result =
                 service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1");
@@ -306,7 +307,7 @@ class ServiceServiceTest {
         assertTrue(result.isPresent());
         DescriptorPayload payload = result.get();
         assertEquals(MediaType.parseMediaType("application/yaml"), payload.contentType());
-        assertTrue(new String(payload.content(), StandardCharsets.UTF_8).startsWith("openapi:"));
+        assertEquals(yaml, new String(payload.content(), StandardCharsets.UTF_8));
     }
 
     @Test
