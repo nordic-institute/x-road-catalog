@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [4.0.0] - 2025-08-29
 
+# Fixed
+- OpenAPI descriptors published as YAML are now stored and classified as OPENAPI services; previously only JSON
+  descriptors were accepted, so services with a YAML descriptor had no descriptor and a service type of UNKNOWN
+
 # Added
 - Configuration property to allow ignoring specific subsystems during collection (xroad-catalog.instance.ignored-subsystem-ids)
 

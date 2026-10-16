@@ -51,6 +51,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Queue;
@@ -332,8 +333,8 @@ public class ListMethodsTaskTest {
             Queue<XRoadIdentifier> restServices, Queue<XRoadIdentifier> openApiServices,
             FetchWorkTracker fetchWorkTracker) throws InterruptedException, XRd4JException, SOAPException {
         RestTemplate restTemplate = mock(RestTemplate.class);
-        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-                .thenReturn(ResponseEntity.ok(listMethodsResponseBody));
+        when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(byte[].class)))
+                .thenReturn(ResponseEntity.ok(listMethodsResponseBody.getBytes(StandardCharsets.UTF_8)));
 
         SOAPClient soapClient = mock(SOAPClient.class);
         ServiceResponse<String, java.util.List<ProducerMember>> response = new ServiceResponse<>();
