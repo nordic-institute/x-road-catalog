@@ -259,8 +259,8 @@ public class ServiceService {
 
     private DescriptorPayload openApiPayload(String data) {
         byte[] body = data.getBytes(StandardCharsets.UTF_8);
-        // Stored OpenAPI content is JSON re-serialized by the collector (always starts with '{'),
-        // and since JSON has no comments, any other leading character means YAML.
+        // The collector stores the description as the service publishes it. A JSON document starts
+        // with '{' or '[' and JSON has no comments, so any other leading character means YAML.
         String trimmed = data.stripLeading();
         if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
             return new DescriptorPayload(body, MediaType.APPLICATION_JSON);
