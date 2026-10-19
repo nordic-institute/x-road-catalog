@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -297,7 +298,8 @@ class ServiceServiceTest {
         when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1"))
                 .thenReturn(Optional.of(svc));
         when(descriptorRepository.findActiveWsdlData(103L)).thenReturn(List.of());
-        when(descriptorRepository.findActiveOpenApiData(103L)).thenReturn(List.of("openapi: 3.0.0\ninfo:\n  title: x"));
+        String yaml = "openapi: 3.0.0\ninfo:\n  title: x\n  description: Lemmikkieläimet ä ö\n";
+        when(descriptorRepository.findActiveOpenApiData(103L)).thenReturn(List.of(yaml));
 
         Optional<DescriptorPayload> result =
                 service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descYamlSvc", "v1");
@@ -305,7 +307,7 @@ class ServiceServiceTest {
         assertTrue(result.isPresent());
         DescriptorPayload payload = result.get();
         assertEquals(MediaType.parseMediaType("application/yaml"), payload.contentType());
-        assertTrue(new String(payload.content(), StandardCharsets.UTF_8).startsWith("openapi:"));
+        assertEquals(yaml, new String(payload.content(), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -321,6 +323,31 @@ class ServiceServiceTest {
 
         assertTrue(result.isPresent());
         assertEquals(MediaType.APPLICATION_JSON, result.get().contentType());
+    }
+
+    @Test
+    void testGetVersionDescriptorReturnsOpenApiYamlForFlowStyleContent() {
+        Service svc = serviceEntityWithId(111L, "descFlowYamlSvc", "v1", "OPENAPI");
+        when(serviceRepository.findActiveVersionByNaturalKey(INSTANCE, PUB, CODE_14151328, SUBSYSTEM_A1,
+                "descFlowYamlSvc", "v1")).thenReturn(Optional.of(svc));
+        when(descriptorRepository.findActiveWsdlData(111L)).thenReturn(List.of());
+        when(descriptorRepository.findActiveOpenApiData(111L))
+                .thenReturn(List.of("{openapi: 3.0.0, info: {title: x}, paths: {}}"));
+
+        Optional<DescriptorPayload> result =
+                service.getVersionDescriptor(PUB, CODE_14151328, SUBSYSTEM_A1, "descFlowYamlSvc", "v1");
+
+        assertTrue(result.isPresent());
+        assertEquals(MediaType.parseMediaType("application/yaml"), result.get().contentType());
+    }
+
+    @Test
+    void testIsJsonDocumentRejectsTrailingContentAndScalars() {
+        assertTrue(ServiceService.isJsonDocument(" {\"openapi\":\"3.0.0\"} \n"));
+        assertFalse(ServiceService.isJsonDocument("{\"openapi\":\"3.0.0\"} trailing"));
+        assertFalse(ServiceService.isJsonDocument("{\"openapi\":\"3.0.0\"} {}"));
+        assertFalse(ServiceService.isJsonDocument("\"just a string\""));
+        assertFalse(ServiceService.isJsonDocument("{\"openapi\":"));
     }
 
     @Test

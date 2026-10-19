@@ -39,10 +39,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
 public final class MethodListUtil {
@@ -100,6 +103,9 @@ public final class MethodListUtil {
     }
 
     /**
+     * The {@code getOpenAPI} metaservice returns the description exactly as the service publishes it,
+     * as YAML or JSON, so the descriptor is kept verbatim rather than parsed.
+     *
      * @return the OpenAPI descriptor, or {@code null} when the fetch failed — callers must not
      *         persist a missing descriptor, since that would destroy previously collected content
      */
@@ -117,10 +123,8 @@ public final class MethodListUtil {
                 + clientType.getServiceCode();
 
         String xRoadClientHeader = createHeader(consumerMember);
-        JSONObject json = MethodListUtil.getJSON(url, "Fetch of OpenAPI descriptor", clientType, xRoadClientHeader,
-                catalogService, restTemplate, clock);
-
-        return (json != null) ? json.toString() : null;
+        return fetch(url, "Fetch of OpenAPI descriptor", clientType, xRoadClientHeader, catalogService, restTemplate,
+                clock, List.of(MediaType.ALL), Function.identity());
     }
 
     public static List<Endpoint> getEndpointList(
@@ -142,16 +146,41 @@ public final class MethodListUtil {
 
     private static JSONObject getJSON(String url, String operation, XRoadIdentifier client, String xRoadClientHeader,
                                       CatalogService catalogService, RestTemplate restTemplate, Clock clock) {
+        return fetch(url, operation, client, xRoadClientHeader, catalogService, restTemplate, clock,
+                List.of(MediaType.APPLICATION_JSON), body -> new JSONObject(body));
+    }
+
+    /**
+     * The security server forwards the Content-Type the service sent and falls back to a bare
+     * {@code text/plain}, so a body without a declared charset is read as UTF-8 rather than the
+     * ISO-8859-1 that {@link RestTemplate} would assume.
+     */
+    private static String decode(ResponseEntity<byte[]> response) {
+        byte[] body = response.getBody();
+        if (body == null) {
+            return null;
+        }
+        MediaType contentType = response.getHeaders().getContentType();
+        Charset charset = contentType != null && contentType.getCharset() != null
+                ? contentType.getCharset() : StandardCharsets.UTF_8;
+        return new String(body, charset);
+    }
+
+    /**
+     * @return the parsed response body, or {@code null} when the request or the parsing failed; the
+     *         failure is logged and recorded in the error log once per member
+     */
+    private static <T> T fetch(String url, String operation, XRoadIdentifier client, String xRoadClientHeader,
+                               CatalogService catalogService, RestTemplate restTemplate, Clock clock,
+                               List<MediaType> accept, Function<String, T> parser) {
         HttpHeaders headers = new HttpHeaders();
-        List<MediaType> mediaTypes = new ArrayList<>();
-        mediaTypes.add(MediaType.APPLICATION_JSON);
-        headers.setAccept(mediaTypes);
+        headers.setAccept(accept);
         headers.set("X-Road-Client", xRoadClientHeader);
         final HttpEntity<String> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-                    String.class);
-            return new JSONObject(response.getBody());
+            ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+                    byte[].class);
+            return parser.apply(decode(response));
         } catch (Exception e) {
             SecurityServerMetadata newSecurityServerMetadata = SecurityServerMetadata.builder()
                     .xRoadInstance(client.getXRoadInstance())
