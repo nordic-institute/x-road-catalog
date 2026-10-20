@@ -1,5 +1,7 @@
 # Change Log
 
+## 4.1.0 - UNRELEASED
+
 ## 4.0.0 - 2026-10-20
 - OpenAPI descriptors published as YAML are stored and served (as `application/yaml`), not only JSON ones
 - New V2 REST API (`/api/v2`) with pagination, filtering and searching capabilities
