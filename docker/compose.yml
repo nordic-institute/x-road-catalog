@@ -1,0 +1,128 @@
+name: xrd-catalog-service-dev
+
+services:
+  xrd-catalog-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 512m
+    ports:
+      - 4910:5432
+    environment:
+      POSTGRES_DB: xroad_catalog
+      POSTGRES_USER: xroad_catalog
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - xrd-catalog-db-data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - ./db/init-app-roles.sql:/docker-entrypoint-initdb.d/init-app-roles.sql:ro
+    networks:
+      - xrd-catalog-network
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    mem_limit: 128m
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 5080:8080
+    depends_on:
+      - xrd-catalog-db
+    networks:
+      - xrd-catalog-network
+  xrd-catalog-collector:
+    build:
+      context: ../.
+      dockerfile: docker/collector/Dockerfile
+    restart: unless-stopped
+    # The image's JAVA_TOOL_OPTIONS sizes the heap at 75% of this limit. Without a limit the JVM would instead
+    # take 75% of host RAM, per service.
+    mem_limit: 1g
+    # Must stay above the application-side shutdown budget, otherwise Docker SIGKILLs mid-shutdown. Raise this
+    # if spring.lifecycle.timeout-per-shutdown-phase or DefaultTasksInitializer.SHUTDOWN_GRACE_SECONDS is raised.
+    stop_grace_period: 35s
+    environment:
+      # spring
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog?socketTimeout=60
+      - SPRING_DATASOURCE_PASSWORD=xroad_catalog_collector
+      - SPRING_LIQUIBASE_PASSWORD=secret
+      - SPRING_LIQUIBASE_CONTEXTS=users
+      # catalog
+      - XROAD_CATALOG_TARGET_XROAD_INSTANCE=DEV
+      - XROAD_CATALOG_TARGET_SUBSYSTEM_CODE=catalog
+      - XROAD_CATALOG_TARGET_MEMBER_CLASS=COM
+      - XROAD_CATALOG_TARGET_MEMBER_CODE=1234
+      - XROAD_CATALOG_INSTANCE_IGNORED_SUBSYSTEM_IDS_0=DEV:COM:1234:MANAGEMENT
+      - XROAD_CATALOG_URLS_SECURITY_SERVER_HOST=http://ss0:8080
+      - XROAD_CATALOG_URLS_LIST_CLIENTS_HOST=http://ss0:8080
+      - XROAD_CATALOG_URLS_WEBSERVICES_ENDPOINT=http://ss0:8080
+      - XROAD_CATALOG_POOL_SIZE_FETCH_OPENAPI=5
+      - XROAD_CATALOG_POOL_SIZE_FETCH_REST=5
+      - XROAD_CATALOG_POOL_SIZE_FETCH_WSDL=5
+      - XROAD_CATALOG_POOL_SIZE_LIST_METHODS=5
+      - XROAD_CATALOG_LOG_STORAGE_ERROR_LOG_LENGTH_IN_DAYS=90
+      - XROAD_CATALOG_LOG_STORAGE_FLUSH_LOG_TIME_AFTER_HOUR=3
+      - XROAD_CATALOG_LOG_STORAGE_FLUSH_LOG_TIME_BEFORE_HOUR=4
+      - XROAD_CATALOG_TASKS_COLLECTOR_INTERVAL_MIN=1
+      - XROAD_CATALOG_TASKS_FETCH_RUN_UNLIMITED=true
+      - XROAD_CATALOG_TASKS_FETCH_TIME_AFTER_HOUR=3
+      - XROAD_CATALOG_TASKS_FETCH_TIME_BEFORE_HOUR=4
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      # Example: mount a JVM options file to pass secret flags (e.g. javax.net.ssl.* passwords) without them
+      # leaking into JAVA_TOOL_OPTIONS logs; see docker/README.md.
+      # - ./collector/config/jvm-options:/etc/xroad/catalog/jvm-options:ro
+      # - ./collector/config/keystore.p12:/etc/xroad/catalog/ssl/keystore.p12:ro
+      # - ./collector/config/truststore.p12:/etc/xroad/catalog/ssl/truststore.p12:ro
+    depends_on:
+      - xrd-catalog-db
+    networks:
+      - xrd-catalog-network
+      - xroad-network
+  xrd-catalog-lister:
+    build:
+      context: ../.
+      dockerfile: docker/lister/Dockerfile
+    restart: unless-stopped
+    mem_limit: 1g
+    # Must stay above the application-side shutdown budget (spring.lifecycle.timeout-per-shutdown-phase, 30s),
+    # otherwise Docker SIGKILLs mid-shutdown. If that timeout is raised, raise this too.
+    stop_grace_period: 35s
+    environment:
+      # spring
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://xrd-catalog-db:5432/xroad_catalog
+      - SPRING_DATASOURCE_PASSWORD=xroad_catalog_lister
+      # show-components (default "never") is the one dev-profile behavior this compose relies on. The dev
+      # profile's verbose TRACE/DEBUG loggers are intentionally not applied; set LOGGING_LEVEL_* if needed.
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_COMPONENTS=always
+      # xroad
+      - XROAD_COMMON_CONFIGURATION_PATH=/etc/xroad/globalconf
+      - XROAD_PROXY_CONFIGURATION_ANCHOR_FILE=/etc/xroad/configuration-anchor.xml
+      - XROAD_CONFIGURATION_CLIENT_PORT=5665
+      - XROAD_CONFIGURATION_CLIENT_ADMIN_PORT=5675
+      - XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL=60
+      - XROAD_CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS=none
+      - XROAD_CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION=false
+      - XROAD_CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION=false
+      # catalog
+      - XROAD_CATALOG_SHARED_PARAMS_FILE=/etc/xroad/globalconf/DEV/shared-params.xml
+      - XROAD_CATALOG_CONFIGURATION_CLIENT_ENABLED=true
+      - XROAD_CATALOG_LEGACY_API_ENABLED=true
+    volumes:
+      - ./lister/config/configuration-anchor.xml:/etc/xroad/configuration-anchor.xml:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8070:8070
+    depends_on:
+      - xrd-catalog-collector
+    networks:
+      - xrd-catalog-network
+      - xroad-network
+
+volumes:
+  xrd-catalog-db-data:
+networks:
+  xrd-catalog-network:
+    name: xrd-catalog-network
+    driver: bridge
+  xroad-network:
+    external: true

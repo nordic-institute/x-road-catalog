@@ -1,0 +1,1 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Header/><SOAP-ENV:Body><ns2:IsProviderResponse xmlns:ns2="http://xroad.vrk.fi/xroad-catalog-lister"><ns2:provider>true</ns2:provider></ns2:IsProviderResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

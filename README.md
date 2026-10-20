@@ -3,6 +3,8 @@
 [![Go to X-Road Community Slack](https://img.shields.io/badge/Go%20to%20Community%20Slack-grey.svg)](https://jointxroad.slack.com/)
 [![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/community)
 
+[![X-ROAD](img/xroad_catalog_logo.png)](https://x-road.global/)
+
 ## About the repository 
 
 This repository contains information about the X-Road Catalog, its source code, development, installation and documentation.
@@ -37,7 +39,7 @@ The X-Road Catalog software consists of three modules:
 
 - [X-Road Catalog Collector](xroad-catalog-collector/README.md)
   * Collects information from the X-Road ecosystem (possibly also from external APIs) and stores it to the postgresql database. 
-  * Implemented using concurrent Akka actors. 
+  * Implemented using JAVA virtual threads. 
 - [X-Road Catalog Lister](xroad-catalog-lister/README.md)
   * Provides REST and SOAP interfaces that offer information collected by the Collector. 
   * Can be used as an X-Road service (X-Road headers are in place).
@@ -63,7 +65,8 @@ See the [X-Road Catalog User Guide](doc/xroad_catalog_user_guide.md).
 ## How to contribute?
 
 [Sign up](https://id.atlassian.com/signup) for an account and
-get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).
+get access to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4) and 
+[X-Road Catalog Backlog](https://nordic-institute.atlassian.net/browse/XRDCAT).
 
 Submit a pull request to [X-Road Catalog source code Github repository](https://github.com/nordic-institute/X-Road-Catalog)
 or an enhancement request to the [X-Road Service Desk](https://nordic-institute.atlassian.net/servicedesk/customer/portal/4).

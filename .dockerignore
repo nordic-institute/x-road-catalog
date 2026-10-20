@@ -1,0 +1,6 @@
+# Allowlist: the docker build context is ignored by default and only the
+# files a Dockerfile actually COPYs from the context are un-ignored below.
+*
+!xroad-catalog-collector/build/libs
+!xroad-catalog-lister/build/libs
+!docker/docker-entrypoint.sh

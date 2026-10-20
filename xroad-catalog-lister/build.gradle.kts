@@ -1,0 +1,95 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+plugins {
+    alias(libs.plugins.spring.boot)
+    java
+    jacoco
+    id("catalogservice.java-checks")
+}
+
+group = "org.niis.xroad.catalog.lister"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-snapshots/")
+    }
+    maven {
+        url = uri("https://artifactory.niis.org/artifactory/xroad-maven-releases/")
+    }
+}
+
+tasks.bootJar {
+    enabled = true
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.processResources {
+    val appVersion = project.version.toString()
+    inputs.property("appVersion", appVersion)
+    filesMatching("version.properties") {
+        expand("appVersion" to appVersion)
+    }
+}
+
+dependencies {
+    implementation(platform(libs.spring.boot.dependencies))
+
+    implementation(project(":xroad-catalog-persistence"))
+    implementation(libs.jakarta)
+    implementation(libs.spring.doc)
+    implementation(libs.commons.csv)
+    implementation(libs.spring.boot.actuator)
+    implementation(libs.spring.boot.jpa)
+    implementation(libs.spring.boot.web)
+    implementation(libs.micrometer.prometheus)
+    implementation(libs.jackson)
+    implementation(libs.guava)
+    implementation(libs.lombok)
+    implementation(libs.xmlunit.core)
+    implementation(libs.xroad.configuration.client)
+    implementation(libs.xrd4j.server)
+
+    annotationProcessor(libs.lombok)
+
+    testImplementation(libs.spring.boot.test)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.mockito)
+    testImplementation(libs.lombok)
+    testImplementation(libs.h2.database)
+    testImplementation(testFixtures(project(":xroad-catalog-persistence")))
+
+    testRuntimeOnly(libs.junit.launcer)
+    testRuntimeOnly(libs.liquibase)
+
+    testAnnotationProcessor(libs.lombok)
+}
+
+tasks.test {
+    systemProperty("user.timezone", "Europe/Helsinki")
+    useJUnitPlatform()
+    testLogging {
+        //events "passed", "skipped", "failed", "standardOut", "standardError"
+        events = setOf(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED, TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR)
+    }
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+springBoot {
+    mainClass.set("org.niis.xroad.catalog.lister.ListerApplication")
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required = true
+    }
+}

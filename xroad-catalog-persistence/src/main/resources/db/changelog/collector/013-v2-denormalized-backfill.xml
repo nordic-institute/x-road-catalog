@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="backfill-member-is-provider" author="niis" dbms="postgresql">
+        <sql>
+            UPDATE member m SET is_provider = (m.removed IS NULL AND EXISTS (
+                SELECT 1 FROM subsystem ss JOIN service s ON s.subsystem_id = ss.id
+                WHERE ss.member_id = m.id AND ss.removed IS NULL AND s.removed IS NULL))
+        </sql>
+    </changeSet>
+    <changeSet id="backfill-service-type" author="niis" dbms="postgresql">
+        <sql>
+            UPDATE service s SET service_type = CASE
+                WHEN EXISTS (SELECT 1 FROM wsdl w WHERE w.service_id = s.id AND w.removed IS NULL) THEN 'SOAP'
+                WHEN EXISTS (SELECT 1 FROM open_api o WHERE o.service_id = s.id AND o.removed IS NULL) THEN 'OPENAPI'
+                WHEN EXISTS (SELECT 1 FROM rest r WHERE r.service_id = s.id AND r.removed IS NULL) THEN 'REST'
+                ELSE 'UNKNOWN' END
+        </sql>
+    </changeSet>
+</databaseChangeLog>

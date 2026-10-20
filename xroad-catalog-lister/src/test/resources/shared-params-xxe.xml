@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE ns3:conf [
+    <!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>&xxe;</instanceIdentifier>
+</ns3:conf>
