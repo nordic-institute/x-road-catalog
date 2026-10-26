@@ -58,10 +58,6 @@ excludes:
     reason: "DOCUMENTATION_OF"
     comment: "Documentation that's not distributed."
 
-  - pattern: "sbom/**"
-    reason: "DOCUMENTATION_OF"
-    comment: "This directory contains SBOMs that are not distributed."
-
   - pattern: "xroad-catalog-collector/src/test/**"
     reason: "TEST_OF"
     comment: "This directory contains tests."
